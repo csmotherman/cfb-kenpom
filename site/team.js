@@ -12,31 +12,24 @@
     return "https://cdn.collegefootballdata.com/logos/256/" + teamId + ".png";
   }
 
-  function statCell(value, rankValue, primary, useSign, digits) {
-    var td = document.createElement("td");
-    td.className = "num stat-cell" + (primary ? " primary" : "");
-    var text;
-    if (na(value)) {
-      text = "—";
-    } else if (useSign) {
-      text = (value >= 0 ? "+" : "") + value.toFixed(digits === undefined ? 1 : digits);
-    } else {
-      text = value.toFixed(digits === undefined ? 1 : digits);
-    }
-    td.appendChild(document.createTextNode(text));
-    if (rankValue !== undefined && rankValue !== null) {
-      var sub = document.createElement("span");
-      sub.className = "rank-sub";
-      sub.textContent = " (" + rankValue + ")";
-      td.appendChild(sub);
-    }
-    return td;
-  }
-
   function cell(className, text) {
     var td = document.createElement("td");
     if (className) td.className = className;
     td.textContent = text;
+    return td;
+  }
+
+  function statCell(value, rankValue, primary, digits, metricKey) {
+    var td = document.createElement("td");
+    td.className = "num stat-cell history-metric-cell" + (primary ? " primary" : "");
+    td.dataset.historyMetric = metricKey;
+    td.appendChild(document.createTextNode(signed(value, digits)));
+    if (!na(rankValue)) {
+      var sub = document.createElement("span");
+      sub.className = "rank-sub";
+      sub.textContent = "(" + rankValue + ")";
+      td.appendChild(sub);
+    }
     return td;
   }
 
@@ -56,225 +49,299 @@
   if (!slug || seasons.length === 0) {
     var notFound = document.createElement("div");
     notFound.className = "not-found";
-    notFound.innerHTML = 'Team not found. <a href="index.html">Back to all teams &rarr;</a>';
+    notFound.innerHTML = 'Team not found. <a href="index.html">Back to all ratings &rarr;</a>';
     content.appendChild(notFound);
     return;
   }
 
   var latest = seasons[0];
-  document.title = latest.team + " — CollegeFootballFocus";
+  document.title = latest.team + " Football Ratings — CollegeFootballFocus";
+  var meta = document.querySelector('meta[name="description"]');
+  if (meta) {
+    meta.setAttribute("content", latest.team + " college football ratings, opponent-adjusted offense and defense, strength of schedule, and season history.");
+  }
 
-  var breadcrumbs = document.getElementById("breadcrumbs");
-  if (breadcrumbs) {
+  renderBreadcrumbs();
+  renderHero();
+  renderSnapshot();
+  renderHistory();
+  renderAdvancedPreview();
+
+  function renderBreadcrumbs() {
+    var breadcrumbs = document.getElementById("breadcrumbs");
+    if (!breadcrumbs) return;
     breadcrumbs.innerHTML = "";
-    var crumbTeams = document.createElement("a");
-    crumbTeams.href = "index.html";
-    crumbTeams.textContent = "Teams";
-    breadcrumbs.appendChild(crumbTeams);
+
+    var ratings = document.createElement("a");
+    ratings.href = "index.html";
+    ratings.textContent = "Ratings";
+    breadcrumbs.appendChild(ratings);
 
     var sep1 = document.createElement("span");
     sep1.className = "crumb-sep";
     sep1.textContent = "/";
     breadcrumbs.appendChild(sep1);
 
-    var crumbConf = document.createElement("a");
-    crumbConf.href = "index.html?q=" + encodeURIComponent(latest.conf);
-    crumbConf.textContent = latest.conf;
-    breadcrumbs.appendChild(crumbConf);
+    var conf = document.createElement("a");
+    conf.href = "index.html?conf=" + encodeURIComponent(latest.conf);
+    conf.textContent = latest.conf;
+    breadcrumbs.appendChild(conf);
 
     var sep2 = document.createElement("span");
     sep2.className = "crumb-sep";
     sep2.textContent = "/";
     breadcrumbs.appendChild(sep2);
 
-    var crumbTeam = document.createElement("span");
-    crumbTeam.className = "crumb-current";
-    crumbTeam.textContent = latest.team;
-    breadcrumbs.appendChild(crumbTeam);
+    var team = document.createElement("span");
+    team.className = "crumb-current";
+    team.textContent = latest.team;
+    breadcrumbs.appendChild(team);
   }
 
-  var hero = document.createElement("section");
-  hero.className = "team-hero";
+  function renderHero() {
+    var hero = document.createElement("section");
+    hero.className = "team-hero";
 
-  var img = document.createElement("img");
-  img.className = "team-hero__logo";
-  img.src = logoUrl(latest.teamId);
-  img.alt = "";
-  img.onerror = function () { img.style.visibility = "hidden"; };
-  hero.appendChild(img);
+    var img = document.createElement("img");
+    img.className = "team-hero__logo";
+    img.src = logoUrl(latest.teamId);
+    img.alt = latest.team + " logo";
+    img.decoding = "async";
+    img.onerror = function () { img.style.visibility = "hidden"; };
+    hero.appendChild(img);
 
-  var info = document.createElement("div");
-  info.className = "team-hero__info";
+    var info = document.createElement("div");
+    info.className = "team-hero__info";
 
-  var conf = document.createElement("span");
-  conf.className = "eyebrow";
-  conf.textContent = latest.conf + " · " + latest.year + " (through Wk " + latest.finalWeek + ")";
-  info.appendChild(conf);
+    var eyebrow = document.createElement("span");
+    eyebrow.className = "eyebrow";
+    eyebrow.textContent = latest.conf + " · " + latest.year + " through Week " + latest.finalWeek;
+    info.appendChild(eyebrow);
 
-  var name = document.createElement("h1");
-  name.className = "team-hero__name";
-  name.textContent = latest.team;
-  info.appendChild(name);
+    var name = document.createElement("h1");
+    name.className = "team-hero__name";
+    name.textContent = latest.team;
+    info.appendChild(name);
 
-  var current = document.createElement("div");
-  current.className = "team-hero__current";
-  current.innerHTML =
-    "Rank <b>" + (na(latest.rank) ? "—" : latest.rank) + "</b> &middot; AdjEM <b>" + signed(latest.adjEM) +
-    "</b> &middot; " + latest.record;
-  info.appendChild(current);
+    var rankText = na(latest.rank) ? "—" : "#" + latest.rank;
+    var current = document.createElement("div");
+    current.className = "team-hero__current";
+    current.innerHTML = '<b>' + rankText + '</b> nationally &middot; <b>' + latest.record + '</b> &middot; AdjEM <b>' + signed(latest.adjEM, 1) + '</b>';
+    info.appendChild(current);
 
-  var glance = document.createElement("div");
-  glance.className = "team-hero__glance";
-  [
-    ["Off", na(latest.adjO) ? "—" : latest.adjO.toFixed(2), latest.adjORank],
-    ["Def", na(latest.adjD) ? "—" : latest.adjD.toFixed(2), latest.adjDRank]
-  ].forEach(function (item) {
-    var chip = document.createElement("div");
-    chip.className = "glance-chip";
-    var label = document.createElement("span");
-    label.className = "glance-chip__label";
-    label.textContent = item[0];
-    var value = document.createElement("span");
-    value.className = "glance-chip__value mono";
-    value.textContent = item[1];
-    var rank = document.createElement("span");
-    rank.className = "glance-chip__rank";
-    rank.textContent = na(item[2]) ? "" : "#" + item[2];
-    chip.appendChild(label);
-    chip.appendChild(value);
-    chip.appendChild(rank);
-    glance.appendChild(chip);
-  });
-  info.appendChild(glance);
+    hero.appendChild(info);
+    content.appendChild(hero);
+  }
 
-  hero.appendChild(info);
-  content.appendChild(hero);
+  function renderSnapshot() {
+    var section = document.createElement("section");
+    section.className = "team-snapshot";
 
-  var historySection = document.createElement("section");
-  historySection.className = "team-history";
+    var header = document.createElement("div");
+    header.className = "section-heading";
+    var heading = document.createElement("h2");
+    heading.textContent = "Current Rating Snapshot";
+    header.appendChild(heading);
+    var note = document.createElement("span");
+    note.textContent = "Value · national rank";
+    header.appendChild(note);
+    section.appendChild(header);
 
-  var heading = document.createElement("h2");
-  heading.textContent = "Season History";
-  historySection.appendChild(heading);
+    var grid = document.createElement("div");
+    grid.className = "snapshot-grid";
+    [
+      { label: "Overall", value: signed(latest.adjEM, 1), rank: latest.rank, detail: "AdjEM" },
+      { label: "Offense", value: signed(latest.adjO, 2), rank: latest.adjORank, detail: "AdjO" },
+      { label: "Defense", value: signed(latest.adjD, 2), rank: latest.adjDRank, detail: "AdjD" },
+      { label: "Schedule", value: signed(latest.sos, 1), rank: latest.sosRank, detail: "SOS" }
+    ].forEach(function (item) {
+      var card = document.createElement("div");
+      card.className = "snapshot-card";
 
-  var scroll = document.createElement("div");
-  scroll.className = "table-scroll";
+      var top = document.createElement("div");
+      top.className = "snapshot-card__top";
+      var label = document.createElement("span");
+      label.className = "snapshot-card__label";
+      label.textContent = item.label;
+      var detail = document.createElement("span");
+      detail.className = "snapshot-card__detail";
+      detail.textContent = item.detail;
+      top.appendChild(label);
+      top.appendChild(detail);
+      card.appendChild(top);
 
-  var table = document.createElement("table");
-  table.className = "data-table";
-  table.id = "historyTable";
+      var values = document.createElement("div");
+      values.className = "snapshot-card__values";
+      var value = document.createElement("strong");
+      value.className = "mono";
+      value.textContent = item.value;
+      var rank = document.createElement("span");
+      rank.className = "mono snapshot-card__rank";
+      rank.textContent = na(item.rank) ? "—" : "#" + item.rank;
+      values.appendChild(value);
+      values.appendChild(rank);
+      card.appendChild(values);
+      grid.appendChild(card);
+    });
 
-  var thead = document.createElement("thead");
-  var headRow = document.createElement("tr");
-  ["Year", "Conf", "W-L", "Rk", "AdjEM", "AdjO", "AdjD", "SOS", "SOR"].forEach(function (label, i) {
-    var th = document.createElement("th");
-    th.textContent = label;
-    if (i === 0) th.classList.add("year-cell");
-    if (i >= 2) th.classList.add("num");
-    headRow.appendChild(th);
-  });
-  thead.appendChild(headRow);
-  table.appendChild(thead);
+    section.appendChild(grid);
+    content.appendChild(section);
+  }
 
-  var tbody = document.createElement("tbody");
-  seasons.forEach(function (s) {
-    var tr = document.createElement("tr");
-    tr.appendChild(cell("mono year-cell", String(s.year)));
-    tr.appendChild(cell("conf-cell", s.conf));
-    tr.appendChild(cell("num record-cell", s.record));
-    tr.appendChild(cell("num rank-cell", na(s.rank) ? "—" : String(s.rank)));
-    tr.appendChild(statCell(s.adjEM, undefined, true, true));
-    tr.appendChild(statCell(s.adjO, s.adjORank, false, true, 2));
-    tr.appendChild(statCell(s.adjD, s.adjDRank, false, true, 2));
-    tr.appendChild(statCell(s.sos, s.sosRank, false, true));
-    tr.appendChild(statCell(s.sor, s.sorRank, false, true));
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody);
+  function renderHistory() {
+    var section = document.createElement("section");
+    section.className = "team-history";
 
-  scroll.appendChild(table);
-  historySection.appendChild(scroll);
-  content.appendChild(historySection);
+    var header = document.createElement("div");
+    header.className = "section-heading";
+    var heading = document.createElement("h2");
+    heading.textContent = "Season History";
+    header.appendChild(heading);
+    var note = document.createElement("span");
+    note.textContent = seasons.length + (seasons.length === 1 ? " season" : " seasons") + " available";
+    header.appendChild(note);
+    section.appendChild(header);
 
-  renderAdvancedPreview(latest, slug);
+    var tools = document.createElement("div");
+    tools.className = "history-mobile-tools";
+    var label = document.createElement("label");
+    label.setAttribute("for", "historyMetricSelect");
+    label.textContent = "Compare";
+    var select = document.createElement("select");
+    select.id = "historyMetricSelect";
+    [
+      ["adjEM", "Overall rating (AdjEM)"],
+      ["rank", "Overall rank"],
+      ["adjO", "Offense (AdjO)"],
+      ["adjD", "Defense (AdjD)"],
+      ["sos", "Strength of schedule"]
+    ].forEach(function (item) {
+      var opt = document.createElement("option");
+      opt.value = item[0];
+      opt.textContent = item[1];
+      select.appendChild(opt);
+    });
+    tools.appendChild(label);
+    tools.appendChild(select);
+    section.appendChild(tools);
 
-  function renderAdvancedPreview(latest, slug) {
-  var content = document.getElementById("teamContent");
-  // data.js and advanced-data.js share the same 0-indexed week numbering.
-  var advYearData = (window.CFF_ADV_DATA || {})[String(latest.year)] || {};
-  var advRows = advYearData[String(latest.finalWeek)] || [];
-  var adv = advRows.filter(function (r) { return r.slug === slug; })[0];
-  if (!adv) return;
+    var scroll = document.createElement("div");
+    scroll.className = "table-scroll history-table-scroll";
+    scroll.setAttribute("role", "region");
+    scroll.setAttribute("aria-label", latest.team + " season history");
+    scroll.setAttribute("tabindex", "0");
 
-  var wk = adv.wk || {};
-  var sos = (wk.opponentSrsCount) ? (wk.opponentSrsSum / wk.opponentSrsCount) : null;
-  var pace = (wk.games) ? (wk.offPlays / wk.games) : null;
+    var table = document.createElement("table");
+    table.className = "data-table";
+    table.id = "historyTable";
+    var caption = document.createElement("caption");
+    caption.className = "sr-only";
+    caption.textContent = latest.team + " historical college football ratings";
+    table.appendChild(caption);
 
-  var section = document.createElement("section");
-  section.className = "adv-preview";
+    var thead = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    [
+      { label: "Year", cls: "year-cell" },
+      { label: "Conf", cls: "conf-cell" },
+      { label: "W-L", cls: "num record-cell" },
+      { label: "Rk", cls: "num history-rank-cell", metric: "rank" },
+      { label: "AdjEM", cls: "num history-metric-cell", metric: "adjEM" },
+      { label: "AdjO", cls: "num history-metric-cell", metric: "adjO" },
+      { label: "AdjD", cls: "num history-metric-cell", metric: "adjD" },
+      { label: "SOS", cls: "num history-metric-cell", metric: "sos" }
+    ].forEach(function (def) {
+      var th = document.createElement("th");
+      th.scope = "col";
+      th.className = def.cls || "";
+      th.textContent = def.label;
+      if (def.metric) th.dataset.historyMetric = def.metric;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
 
-  var headingRow = document.createElement("div");
-  headingRow.className = "adv-preview__heading";
+    var tbody = document.createElement("tbody");
+    seasons.forEach(function (s) {
+      var tr = document.createElement("tr");
+      if (s.year === latest.year) tr.classList.add("history-current");
+      tr.appendChild(cell("mono year-cell", String(s.year)));
+      tr.appendChild(cell("conf-cell", s.conf));
+      tr.appendChild(cell("num record-cell", s.record));
 
-  var heading = document.createElement("h2");
-  heading.textContent = "Advanced CFF Analytics";
-  headingRow.appendChild(heading);
+      var rankCell = cell("num mono history-rank-cell", na(s.rank) ? "—" : String(s.rank));
+      rankCell.dataset.historyMetric = "rank";
+      tr.appendChild(rankCell);
+      tr.appendChild(statCell(s.adjEM, undefined, true, 1, "adjEM"));
+      tr.appendChild(statCell(s.adjO, s.adjORank, false, 2, "adjO"));
+      tr.appendChild(statCell(s.adjD, s.adjDRank, false, 2, "adjD"));
+      tr.appendChild(statCell(s.sos, s.sosRank, false, 1, "sos"));
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    scroll.appendChild(table);
+    section.appendChild(scroll);
+    content.appendChild(section);
 
-  var badge = document.createElement("span");
-  badge.className = "adv-preview__badge";
-  badge.textContent = "Premium · Coming Soon";
-  headingRow.appendChild(badge);
+    function applyHistoryMetric() {
+      var selected = select.value;
+      Array.prototype.forEach.call(table.querySelectorAll("[data-history-metric]"), function (el) {
+        el.classList.toggle("mobile-selected-history-metric", el.dataset.historyMetric === selected);
+      });
+    }
 
-  section.appendChild(headingRow);
+    select.addEventListener("change", applyHistoryMetric);
+    applyHistoryMetric();
+  }
 
-  var note = document.createElement("p");
-  note.className = "adv-preview__note";
-  note.textContent = "Opponent-adjusted efficiency splits by phase of the game — General, Offense, and Defense — with week-by-week filtering.";
-  section.appendChild(note);
+  function renderAdvancedPreview() {
+    var section = document.createElement("section");
+    section.className = "adv-preview";
 
-  var locked = document.createElement("div");
-  locked.className = "adv-preview__locked";
+    var headingRow = document.createElement("div");
+    headingRow.className = "adv-preview__heading";
+    var heading = document.createElement("h2");
+    heading.textContent = "Advanced CFF Analytics";
+    var badge = document.createElement("span");
+    badge.className = "adv-preview__badge";
+    badge.textContent = "PRO";
+    headingRow.appendChild(heading);
+    headingRow.appendChild(badge);
+    section.appendChild(headingRow);
 
-  var scroll = document.createElement("div");
-  scroll.className = "table-scroll adv-preview__table";
+    var note = document.createElement("p");
+    note.className = "adv-preview__note";
+    note.textContent = "Go beyond the overall rating and isolate how this team wins: efficiency, explosiveness, finishing drives, field position, pace and custom week ranges.";
+    section.appendChild(note);
 
-  var table = document.createElement("table");
-  table.className = "data-table";
+    var locked = document.createElement("div");
+    locked.className = "adv-preview__locked";
+    var grid = document.createElement("div");
+    grid.className = "adv-preview__grid";
+    ["Success Rate", "Explosiveness", "Finishing", "Field Position", "Pace", "Week Splits"].forEach(function (label) {
+      var item = document.createElement("div");
+      item.className = "adv-preview__metric";
+      var name = document.createElement("span");
+      name.textContent = label;
+      var value = document.createElement("strong");
+      value.className = "adv-preview__blur-value";
+      value.textContent = "••••";
+      item.appendChild(name);
+      item.appendChild(value);
+      grid.appendChild(item);
+    });
+    locked.appendChild(grid);
 
-  var thead = document.createElement("thead");
-  var headRow = document.createElement("tr");
-  ["CFF", "SOS", "Field Pos", "Pace", "ST"].forEach(function (label) {
-    var th = document.createElement("th");
-    th.className = "num";
-    th.textContent = label;
-    headRow.appendChild(th);
-  });
-  thead.appendChild(headRow);
-  table.appendChild(thead);
+    var overlay = document.createElement("div");
+    overlay.className = "adv-preview__overlay";
+    var link = document.createElement("a");
+    link.className = "subscribe-btn";
+    link.href = "advanced.html";
+    link.textContent = "Preview Advanced CFF";
+    overlay.appendChild(link);
+    locked.appendChild(overlay);
 
-  var tbody = document.createElement("tbody");
-  var tr = document.createElement("tr");
-  tr.appendChild(cell("num stat-cell primary", signed(adv.cff, 1)));
-  tr.appendChild(cell("num stat-cell", signed(sos, 1)));
-  tr.appendChild(cell("num stat-cell", signed(adv.fieldPos, 1)));
-  tr.appendChild(cell("num stat-cell", na(pace) ? "—" : pace.toFixed(1)));
-  tr.appendChild(cell("num stat-cell", "—"));
-  tbody.appendChild(tr);
-  table.appendChild(tbody);
-
-  scroll.appendChild(table);
-  locked.appendChild(scroll);
-
-  var overlay = document.createElement("div");
-  overlay.className = "adv-preview__overlay";
-  var btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "subscribe-btn";
-  btn.textContent = "Subscribe to View";
-  overlay.appendChild(btn);
-  locked.appendChild(overlay);
-
-  section.appendChild(locked);
-  content.appendChild(section);
+    section.appendChild(locked);
+    content.appendChild(section);
   }
 })();

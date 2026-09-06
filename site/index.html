@@ -3,31 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CollegeFootballFocus — Ratings</title>
+  <meta name="theme-color" content="#172438" />
+  <meta name="description" content="College football opponent-adjusted team ratings, offense and defense rankings, strength of schedule, weekly movement, and historical seasons." />
+  <title>College Football Ratings — CollegeFootballFocus</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
-    rel="stylesheet"
-  />
-
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="ratings.css" />
 </head>
 <body>
+  <a class="skip-link" href="#mainContent">Skip to ratings</a>
 
   <header class="site-header">
     <div class="site-header__inner">
-      <a href="index.html" class="logotype">CollegeFootball<span>Focus</span></a>
+      <a href="index.html" class="logotype" aria-label="CollegeFootballFocus home">CollegeFootball<span>Focus</span></a>
       <div class="site-header__right">
-        <span class="eyebrow site-header__tagline">Opponent-Adjusted Efficiency Ratings</span>
+        <span class="eyebrow site-header__tagline">Opponent-Adjusted College Football Ratings</span>
         <div class="site-search" id="siteSearch">
-          <button type="button" class="site-search__toggle" aria-label="Search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <button type="button" class="site-search__toggle" aria-label="Search teams">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
           <div class="site-search__box">
-            <input type="text" class="site-search__input" placeholder="Search teams…" autocomplete="off" />
+            <input type="search" class="site-search__input" placeholder="Search teams…" autocomplete="off" aria-label="Search teams" />
             <button type="button" class="site-search__close" aria-label="Close search">&times;</button>
           </div>
           <div class="site-search__results" hidden></div>
@@ -36,55 +35,89 @@
     </div>
   </header>
 
-  <nav class="site-nav">
+  <nav class="site-nav" aria-label="Primary navigation">
     <div class="container">
-      <a href="index.html" class="active">Rankings</a>
+      <a href="index.html" class="active" aria-current="page">Ratings</a>
       <a href="advanced.html">Advanced Analytics</a>
     </div>
   </nav>
 
+  <section class="ratings-hero container" aria-labelledby="ratingsTitle">
+    <div class="ratings-hero__copy">
+      <span class="eyebrow">CFF Ratings</span>
+      <h1 id="ratingsTitle">College Football Ratings</h1>
+      <p class="ratings-hero__description">A schedule-adjusted view of how strong every FBS team has actually played, updated week by week from real game results.</p>
+    </div>
+    <div class="ratings-hero__meta">
+      <span class="ratings-status" id="ratingsStatus">Loading season…</span>
+      <a class="utility-link" href="methodology.html">How the ratings work</a>
+    </div>
+  </section>
+
   <div class="control-bar">
     <div class="control-bar__inner">
       <span class="control-label">Season</span>
-      <nav class="year-nav" id="yearNav"></nav>
+      <nav class="year-nav" id="yearNav" aria-label="Season"></nav>
 
       <div class="filter-box">
-        <input id="filterInput" type="text" placeholder="Search team or conference…" autocomplete="off" />
+        <label class="sr-only" for="filterInput">Search ratings</label>
+        <input id="filterInput" type="search" placeholder="Search team…" autocomplete="off" />
       </div>
 
-      <span class="row-count" id="rowCount"></span>
+      <div class="conference-filter">
+        <label class="sr-only" for="conferenceSelect">Conference</label>
+        <select id="conferenceSelect" aria-label="Filter by conference">
+          <option value="">All conferences</option>
+        </select>
+      </div>
+
+      <span class="row-count" id="rowCount" aria-live="polite"></span>
     </div>
 
     <div class="control-bar__inner control-bar__inner--secondary">
       <span class="control-label">Week</span>
-      <nav class="week-nav" id="weekNav"></nav>
-
-      <p class="methodology-note">Real game data. AdjEM is a schedule-adjusted Simple Rating System (SRS) score; AdjO/AdjD come from a research-only opponent-adjustment model (validated, not yet production-locked — see footer). SOR has no defined methodology yet and is left blank. Wk Δ is the rank change since the prior week. Click any column to sort.</p>
+      <nav class="week-nav" id="weekNav" aria-label="Week"></nav>
+      <p class="control-help">Week 0 is opening-week data. Tap or click a metric header to sort. National rank for AdjO, AdjD and SOS appears in parentheses. <a href="methodology.html">Metric definitions →</a></p>
     </div>
   </div>
 
-  <aside class="premium-teaser container" aria-label="Advanced analytics preview">
-    <div class="premium-teaser__copy">
-      <span class="premium-teaser__title">Want the why behind the ranking?</span>
-      <span class="premium-teaser__text">Advanced CFF adds offense, defense, success rate, explosiveness, field position and week-range splits.</span>
-    </div>
-    <a class="premium-teaser__link" href="advanced.html">Preview Advanced →</a>
-  </aside>
+  <div class="mobile-table-tools container" aria-label="Mobile table display options">
+    <label class="mobile-table-tools__label" for="mobileMetricSelect">Compare</label>
+    <select id="mobileMetricSelect" class="mobile-table-tools__select">
+      <option value="adjEM">Overall rating (AdjEM)</option>
+      <option value="adjO">Offense (AdjO)</option>
+      <option value="adjD">Defense (AdjD)</option>
+      <option value="sos">Strength of schedule</option>
+      <option value="sor">Strength of record</option>
+    </select>
+    <span class="mobile-table-tools__hint">Mobile keeps Rank + Team fixed and lets you choose the comparison stat.</span>
+  </div>
 
-  <main class="table-main container">
-    <div class="table-scroll">
+  <main id="mainContent" class="table-main container">
+    <div class="table-scroll" role="region" aria-label="College football ratings table" tabindex="0">
       <table id="ratingsTable" class="data-table">
-        <thead>
-          <tr id="theadRow"></tr>
-        </thead>
+        <caption class="sr-only">College football opponent-adjusted ratings</caption>
+        <thead><tr id="theadRow"></tr></thead>
         <tbody id="ratingsBody"></tbody>
       </table>
     </div>
   </main>
 
+  <aside class="premium-teaser container" aria-label="Advanced analytics preview">
+    <div class="premium-teaser__copy">
+      <span class="premium-teaser__title">The rating tells you who is good. Advanced CFF tells you why.</span>
+      <span class="premium-teaser__text">Break teams down by offense, defense, success rate, explosiveness, finishing drives, field position and custom week ranges.</span>
+    </div>
+    <a class="premium-teaser__link" href="advanced.html">Explore Advanced</a>
+  </aside>
+
   <footer class="site-footer">
-    <div class="container">
-      <p>CollegeFootballFocus — real game data (CFBD), 2014–2025 plus in-progress 2026. AdjO/AdjD use a research-only, independently-validated opponent-adjustment model, not this project's locked production rating. SOR is intentionally blank — no validated definition exists yet.</p>
+    <div class="container site-footer__inner">
+      <p>CollegeFootballFocus uses real game data. AdjEM is the site's schedule-adjusted SRS strength rating. AdjO/AdjD are research-stage opponent-adjusted efficiency measures; SOR remains intentionally blank until a validated definition is locked.</p>
+      <div class="site-footer__links">
+        <a href="methodology.html">Methodology</a>
+        <a href="advanced.html">Advanced CFF</a>
+      </div>
     </div>
   </footer>
 

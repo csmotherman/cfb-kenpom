@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#172438" />
+  <meta name="description" content="How CollegeFootballFocus calculates college football ratings, opponent-adjusted offense and defense, strength of schedule, and advanced week-range statistics." />
+  <title>Ratings Methodology — CollegeFootballFocus</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="ratings.css" />
+  <link rel="stylesheet" href="content.css" />
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to methodology</a>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="logotype" aria-label="CollegeFootballFocus home">CollegeFootball<span>Focus</span></a>
+      <div class="site-header__right">
+        <span class="eyebrow site-header__tagline">Ratings Methodology</span>
+        <div class="site-search" id="siteSearch">
+          <button type="button" class="site-search__toggle" aria-label="Search teams">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <div class="site-search__box">
+            <input type="search" class="site-search__input" placeholder="Search teams…" autocomplete="off" aria-label="Search teams" />
+            <button type="button" class="site-search__close" aria-label="Close search">&times;</button>
+          </div>
+          <div class="site-search__results" hidden></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav" aria-label="Primary navigation">
+    <div class="container">
+      <a href="index.html">Ratings</a>
+      <a href="advanced.html">Advanced Analytics</a>
+    </div>
+  </nav>
+
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="index.html">Ratings</a><span class="crumb-sep">/</span><span class="crumb-current">Methodology</span>
+  </nav>
+
+  <main id="mainContent" class="content-page">
+    <header class="content-hero">
+      <div class="content-hero__kicker"><span class="eyebrow">CFF Methodology</span><span class="status-pill">Transparent by design</span></div>
+      <h1>What the ratings actually mean</h1>
+      <p>CollegeFootballFocus is built to estimate team strength from real games, not recreate the AP Poll. The core table adjusts for the quality of competition so a strong performance against a strong opponent is treated differently from the same raw result against a weak one.</p>
+    </header>
+
+    <section class="content-section">
+      <h2>Core ratings</h2>
+      <div class="definition-grid">
+        <article class="definition-card">
+          <div class="definition-card__term"><h3>AdjEM / CFF</h3><span class="definition-card__status">Core</span></div>
+          <p>The site's schedule-adjusted Simple Rating System (SRS) strength score. It is computed week by week using games available through that point in the season. Higher is better.</p>
+        </article>
+        <article class="definition-card">
+          <div class="definition-card__term"><h3>AdjO</h3><span class="definition-card__status">Research stage</span></div>
+          <p>A schedule-adjusted offensive yards-per-play edge from the opponent-adjustment research model. The value and its national rank are shown together. Higher is better.</p>
+        </article>
+        <article class="definition-card">
+          <div class="definition-card__term"><h3>AdjD</h3><span class="definition-card__status">Research stage</span></div>
+          <p>A schedule-adjusted defensive yards-per-play edge. The model is expressed so higher is better for defense too, making positive values consistently represent outperforming expectation.</p>
+        </article>
+        <article class="definition-card">
+          <div class="definition-card__term"><h3>SOS</h3><span class="definition-card__status">Core</span></div>
+          <p>Strength of schedule, based on the average SRS strength of opponents played through the selected week or within the selected Advanced range.</p>
+        </article>
+        <article class="definition-card">
+          <div class="definition-card__term"><h3>Wk Δ</h3><span class="definition-card__status">Context</span></div>
+          <p>The change in a team's overall CFF rank from the previous week. It helps surface movement without pretending one week is a completely new model.</p>
+        </article>
+        <article class="definition-card">
+          <div class="definition-card__term"><h3>SOR</h3><span class="definition-card__status">Not locked</span></div>
+          <p>Strength of record is intentionally blank. The site will not publish a number until the résumé-based definition is specified and validated.</p>
+        </article>
+      </div>
+      <div class="callout"><strong>Important:</strong> a strength rating and a résumé ranking answer different questions. CFF is primarily trying to describe how strong a team has played, not reward every win equally or reproduce a human poll.</div>
+    </section>
+
+    <section class="content-section">
+      <h2>Advanced CFF</h2>
+      <p>Advanced Analytics separates metrics that can truly be recalculated for a selected range from model estimates that only exist as a snapshot through an end week.</p>
+      <ul class="content-list">
+        <li><strong>Selected-range stats:</strong> success rate, passing success, rushing success, pace, time of possession, record and range SOS are recomputed from the weeks you choose.</li>
+        <li><strong>End-week model snapshots:</strong> CFF, adjusted offense/defense, field-position edge, explosiveness and finishing use the model state as of the selected end week.</li>
+        <li><strong>Pass / run split:</strong> describes offensive tendency or opponent tendency against a defense across the selected range.</li>
+        <li><strong>Special teams:</strong> intentionally blank until a real source and validated definition are added.</li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>Data and validation philosophy</h2>
+      <p>Game and play data are CFBD-derived and materialized through the project's canonical data pipeline. The site rebuilds its ratings and Advanced data from that pipeline rather than hand-editing numbers in the UI.</p>
+      <p>Research-stage opponent-adjustment metrics are labeled instead of presented as finished methodology. The source project has shown improvement versus naive baselines in held-out testing, but those metrics remain explicitly separated from the locked core rating until the production definition is final.</p>
+      <div class="content-actions">
+        <a class="content-btn content-btn--primary" href="index.html">View ratings</a>
+        <a class="content-btn" href="advanced.html">Explore Advanced CFF</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <p>CollegeFootballFocus favors explicit methodology over invented completeness. Missing metrics stay missing until the definition and data are trustworthy enough to publish.</p>
+      <div class="site-footer__links"><a href="index.html">Ratings</a><a href="advanced.html">Advanced CFF</a></div>
+    </div>
+  </footer>
+
+  <script src="search-index.js"></script>
+  <script src="site.js"></script>
+</body>
+</html>
