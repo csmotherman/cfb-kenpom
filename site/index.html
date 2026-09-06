@@ -71,6 +71,18 @@
     <a class="premium-teaser__link" href="advanced.html">Preview Advanced →</a>
   </aside>
 
+  <div class="mobile-table-tools container" aria-label="Mobile table display options">
+    <label class="mobile-table-tools__label" for="mobileMetricSelect">Compare</label>
+    <select id="mobileMetricSelect" class="mobile-table-tools__select">
+      <option value="adjEM">Overall (AdjEM)</option>
+      <option value="adjO">Offense (AdjO)</option>
+      <option value="adjD">Defense (AdjD)</option>
+      <option value="sos">Strength of Schedule</option>
+      <option value="sor">Strength of Record</option>
+    </select>
+    <span class="mobile-table-tools__hint">Rank + team + one stat. Tap a header to sort.</span>
+  </div>
+
   <main class="table-main container">
     <div class="table-scroll">
       <table id="ratingsTable" class="data-table">
