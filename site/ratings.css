@@ -49,8 +49,9 @@
 }
 
 .site-nav a {
-  display: inline-block;
-  padding: var(--space-2) 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 12.5px;
@@ -67,6 +68,18 @@
 .site-nav a.active {
   color: var(--color-paper);
   border-bottom-color: var(--color-gold);
+}
+
+.site-nav a[href="advanced.html"]::after {
+  content: "PRO";
+  margin-left: 7px;
+  padding: 1px 5px;
+  border: 1px solid rgba(197, 154, 67, 0.72);
+  border-radius: var(--radius-sm);
+  color: var(--color-gold);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
 }
 
 /* ---- Control bar: year nav + search + count ---- */
@@ -104,6 +117,8 @@
   display: flex;
   gap: var(--space-3);
   overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .year-nav button,
@@ -183,15 +198,12 @@
 
 .table-scroll {
   overflow-x: auto;
-  /* Bounded, independently-scrolling panel — the only reliable way to get
-     a genuinely sticky <thead> alongside contained horizontal scroll:
-     any ancestor with overflow-x:auto forces overflow-y to compute as
-     auto too, making IT (not the page) the sticky containing block, so
-     the vertical scroll needs to be real, not incidental. */
   max-height: 78vh;
   overflow-y: auto;
   border: 1px solid var(--color-hairline-strong);
   border-top: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 .data-table {
@@ -349,9 +361,7 @@
   color: var(--color-ink-tertiary);
 }
 
-/* ---------------------------------------------------------------------
-   Site search (header)
-   --------------------------------------------------------------------- */
+/* ---- Site search ---- */
 .site-search {
   position: relative;
   flex-shrink: 0;
@@ -432,36 +442,14 @@
   color: var(--color-ink);
 }
 
-.site-search__result:last-child {
-  border-bottom: none;
-}
-
-.site-search__result img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.site-search__result-name {
-  font-weight: 600;
-  flex: 1;
-}
-
-.site-search__result-conf {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--color-ink-tertiary);
-}
-
+.site-search__result:last-child { border-bottom: none; }
+.site-search__result img { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
+.site-search__result-name { font-weight: 600; flex: 1; }
+.site-search__result-conf { font-family: var(--font-mono); font-size: 10.5px; color: var(--color-ink-tertiary); }
 .site-search__result:hover,
-.site-search__result.active {
-  background: var(--color-paper-raised);
-}
+.site-search__result.active { background: var(--color-paper-raised); }
 
-/* ---------------------------------------------------------------------
-   Tooltip trigger + floating bubble
-   --------------------------------------------------------------------- */
+/* ---- Tooltips ---- */
 .tip-trigger {
   display: inline-flex;
   align-items: center;
@@ -479,9 +467,7 @@
   vertical-align: middle;
 }
 
-.tip-trigger:hover {
-  opacity: 1;
-}
+.tip-trigger:hover { opacity: 1; }
 
 .tip-bubble {
   position: fixed;
@@ -500,9 +486,7 @@
   max-width: 240px;
 }
 
-/* ---------------------------------------------------------------------
-   Breadcrumbs
-   --------------------------------------------------------------------- */
+/* ---- Breadcrumbs ---- */
 .breadcrumbs {
   padding: var(--space-3) var(--space-6) 0;
   font-family: var(--font-body);
@@ -512,49 +496,12 @@
   overflow-x: auto;
 }
 
-.breadcrumbs a {
-  color: var(--color-ink-secondary);
-  font-weight: 600;
-}
+.breadcrumbs a { color: var(--color-ink-secondary); font-weight: 600; }
+.breadcrumbs a:hover { color: var(--color-navy); text-decoration: underline; }
+.breadcrumbs .crumb-sep { margin: 0 var(--space-2); color: var(--color-hairline-strong); }
+.breadcrumbs .crumb-current { color: var(--color-ink-secondary); }
 
-.breadcrumbs a:hover {
-  color: var(--color-navy);
-  text-decoration: underline;
-}
-
-.breadcrumbs .crumb-sep {
-  margin: 0 var(--space-2);
-  color: var(--color-hairline-strong);
-}
-
-.breadcrumbs .crumb-current {
-  color: var(--color-ink-secondary);
-}
-
-/* ---------------------------------------------------------------------
-   Skeleton loading state
-   --------------------------------------------------------------------- */
-.skeleton-row td {
-  padding: 8px var(--space-3);
-}
-
-.skeleton-bar {
-  display: block;
-  height: 11px;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--color-hairline) 25%, var(--color-hairline-strong) 50%, var(--color-hairline) 75%);
-  background-size: 200% 100%;
-  animation: skeleton-pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes skeleton-pulse {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ---------------------------------------------------------------------
-   Interaction feedback
-   --------------------------------------------------------------------- */
+/* ---- Interaction feedback ---- */
 .year-nav button,
 .week-nav button,
 .tab-nav button,
@@ -566,21 +513,52 @@
 
 .year-nav button:active,
 .week-nav button:active,
-.tab-nav button:active {
-  color: var(--color-gold-dark);
+.tab-nav button:active { color: var(--color-gold-dark); }
+.data-table tbody tr { transition: background-color 0.1s ease; }
+
+/* ---- Premium teaser / conversion strip ---- */
+.premium-teaser {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin: var(--space-4) auto;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-hairline-strong);
+  border-left: 3px solid var(--color-gold);
+  background: var(--color-paper-raised);
 }
 
-.data-table tbody tr {
-  transition: background-color 0.1s ease;
+.premium-teaser__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.premium-teaser__title {
+  font-weight: 700;
+  color: var(--color-navy);
+}
+
+.premium-teaser__text {
+  font-size: 12.5px;
+  color: var(--color-ink-secondary);
+}
+
+.premium-teaser__link {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-navy);
 }
 
 /* ---------------------------------------------------------------------
    Responsive: laptop / tablet / phone
    --------------------------------------------------------------------- */
 @media (max-width: 1024px) {
-  .container {
-    padding: 0 var(--space-5);
-  }
+  .container { padding: 0 var(--space-5); }
 }
 
 @media (max-width: 768px) {
@@ -590,39 +568,116 @@
     padding-right: var(--space-4);
   }
 
-  .eyebrow.site-header__tagline {
-    display: none;
-  }
-
-  .row-count {
-    margin-left: 0;
-  }
-
-  .site-search__input {
-    width: 150px;
-  }
+  .eyebrow.site-header__tagline { display: none; }
+  .row-count { margin-left: 0; }
+  .site-search__input { width: 150px; }
 }
 
 @media (max-width: 640px) {
-  .site-header__inner,
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+  }
+
+  .site-header__inner {
+    min-height: 52px;
+    align-items: center;
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+  }
+
+  .site-nav .container {
+    gap: 0;
+    padding: 0;
+  }
+
+  .site-nav a {
+    flex: 1;
+    justify-content: center;
+    min-height: 46px;
+    font-size: 11.5px;
+  }
+
   .control-bar__inner {
-    padding-left: var(--space-4);
-    padding-right: var(--space-4);
+    gap: var(--space-2) var(--space-3);
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
   }
 
-  .row-count {
-    margin-left: 0;
+  .control-label {
+    width: 100%;
   }
 
-  /* Header search collapses into a toggle + full-width overlay */
-  .site-search__toggle {
-    display: inline-flex;
+  .year-nav,
+  .week-nav {
+    width: 100%;
+    gap: var(--space-2);
+    padding-bottom: 2px;
   }
 
-  .site-search__box {
-    display: none;
+  .year-nav button,
+  .week-nav button {
+    flex: 0 0 auto;
+    min-width: 44px;
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+    border: 1px solid transparent;
+    border-bottom-width: 2px;
   }
 
+  .year-nav button.active,
+  .week-nav button.active {
+    background: var(--color-paper);
+    border-color: var(--color-hairline-strong);
+    border-bottom-color: var(--color-gold);
+  }
+
+  .filter-box {
+    order: -1;
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .filter-box input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .methodology-note {
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  .table-main.container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .table-scroll {
+    max-height: calc(100dvh - 210px);
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+
+  .premium-teaser {
+    margin: var(--space-3) var(--space-4);
+    align-items: flex-start;
+  }
+
+  .premium-teaser__link {
+    align-self: center;
+  }
+
+  /* Header search becomes a full-width overlay */
+  .site-search__toggle { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
+  .site-search__box { display: none; }
   .site-search--open .site-search__box {
     display: flex;
     position: fixed;
@@ -631,50 +686,38 @@
     background: var(--color-navy);
     padding: var(--space-3) var(--space-4);
   }
-
-  .site-search--open .site-search__input {
-    flex: 1;
-    width: auto;
-  }
-
-  .site-search--open .site-search__close {
-    display: inline-flex;
-  }
-
+  .site-search--open .site-search__input { flex: 1; width: auto; min-height: 44px; font-size: 16px; }
+  .site-search--open .site-search__close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
   .site-search--open .site-search__results {
     position: fixed;
-    top: 54px;
+    top: 68px;
     left: 0;
     right: 0;
     width: auto;
-    max-height: calc(100vh - 54px);
+    max-height: calc(100dvh - 68px);
     z-index: 99;
   }
 }
 
 @media (max-width: 480px) {
-  .logotype {
-    font-size: 21px;
-  }
-
-  .control-label {
-    font-size: 10px;
-  }
-
+  .logotype { font-size: 21px; }
+  .control-label { font-size: 10px; }
   .year-nav button,
-  .week-nav button {
-    font-size: 12px;
+  .week-nav button { font-size: 12px; }
+
+  .premium-teaser {
+    flex-direction: column;
+  }
+
+  .premium-teaser__link {
+    align-self: flex-start;
   }
 }
 
 /* ---------------------------------------------------------------------
    Mobile table UX: horizontal scroll with sticky identity columns.
-   Desktop (>900px) is untouched — full table, no sticky columns.
    --------------------------------------------------------------------- */
 @media (max-width: 900px) {
-  /* Fixed (not just minimum) widths so sticky left-offsets below are
-     always correct — a sticky cell's "left" can't safely depend on a
-     content-driven width. */
   .rank-cell {
     width: 46px;
     min-width: 46px;
@@ -691,9 +734,6 @@
     text-overflow: ellipsis;
   }
 
-  /* Space is tight in these narrow sticky columns — drop the tooltip
-     badge (Rk/Wk Δ are self-explanatory from the data) and tighten
-     padding so the label itself stays fully readable. */
   thead th.rank-cell,
   thead th.delta-cell {
     padding-left: 6px;
@@ -701,19 +741,10 @@
   }
 
   thead th.rank-cell .tip-trigger,
-  thead th.delta-cell .tip-trigger {
-    display: none;
-  }
+  thead th.delta-cell .tip-trigger { display: none; }
 
-  .team-cell {
-    min-width: 150px;
-  }
-
-  .year-cell {
-    width: 56px;
-    min-width: 56px;
-    max-width: 56px;
-  }
+  .team-cell { min-width: 150px; }
+  .year-cell { width: 56px; min-width: 56px; max-width: 56px; }
 
   #ratingsTable .rank-cell,
   .adv-table .rank-cell,
@@ -754,36 +785,26 @@
   #ratingsTable thead th.team-cell,
   .adv-table thead th.rank-cell,
   .adv-table thead th.team-cell,
-  #historyTable thead th.year-cell {
-    z-index: 3;
-  }
+  #historyTable thead th.year-cell { z-index: 3; }
 
-  /* Opaque backgrounds so scrolled content doesn't show through sticky
-     cells — tbody only; thead keeps its navy background from the base rule. */
   #ratingsTable tbody .rank-cell,
   #ratingsTable tbody .delta-cell,
   #ratingsTable tbody .team-cell,
   .adv-table tbody .rank-cell,
   .adv-table tbody .team-cell,
-  #historyTable tbody .year-cell {
-    background: var(--color-paper);
-  }
+  #historyTable tbody .year-cell { background: var(--color-paper); }
 
   #ratingsTable tbody tr:nth-child(even) .rank-cell,
   #ratingsTable tbody tr:nth-child(even) .delta-cell,
   #ratingsTable tbody tr:nth-child(even) .team-cell,
   .adv-table tbody tr:nth-child(even) .rank-cell,
   .adv-table tbody tr:nth-child(even) .team-cell,
-  #historyTable tbody tr:nth-child(even) .year-cell {
-    background: var(--color-paper-raised);
-  }
+  #historyTable tbody tr:nth-child(even) .year-cell { background: var(--color-paper-raised); }
 
   #ratingsTable tbody tr:hover .rank-cell,
   #ratingsTable tbody tr:hover .delta-cell,
   #ratingsTable tbody tr:hover .team-cell,
   .adv-table tbody tr:hover .rank-cell,
   .adv-table tbody tr:hover .team-cell,
-  #historyTable tbody tr:hover .year-cell {
-    background: #e4dcc7;
-  }
+  #historyTable tbody tr:hover .year-cell { background: #e4dcc7; }
 }
