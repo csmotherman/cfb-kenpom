@@ -1,1 +1,424 @@
-(function () {\n  var COLUMNS = [\n    { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", cellClass: "rank-cell", tooltip: "Overall rank by AdjEM, the site's schedule-adjusted strength rating." },\n    { key: "team", label: "Team", numeric: false, defaultDir: "asc", cellClass: "team-cell" },\n    { key: "conf", label: "Conf", numeric: false, defaultDir: "asc", cellClass: "conf-cell" },\n    { key: "adjEM", label: "AdjEM", numeric: true, defaultDir: "desc", primary: true, tooltip: "Schedule-adjusted point-margin strength from the site's walk-forward SRS model. Higher is better." },\n    { key: "adjO", label: "AdjO", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Research-stage schedule-adjusted offensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },\n    { key: "adjD", label: "AdjD", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Research-stage schedule-adjusted defensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },\n    { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Strength of schedule: average SRS strength of opponents played through the selected week." },\n    { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record is intentionally blank until a validated methodology is locked." }\n  ];\n\n  var YEARS = window.CFB_YEARS || [];\n  var WEEKS = window.CFB_WEEKS || {};\n\n  function weeksForYear(year) { return WEEKS[String(year)] || []; }\n  function lastWeek(year) {\n    var ws = weeksForYear(year);\n    return ws[ws.length - 1];\n  }\n\n  var initialYear = YEARS[YEARS.length - 1];\n  var state = {\n    year: String(initialYear),\n    week: String(lastWeek(initialYear)),\n    sortKey: "rank",\n    sortDir: "asc",\n    filter: (window.CFF && CFF.getQueryParam("q")) || "",\n    conference: (window.CFF && CFF.getQueryParam("conf")) || "",\n    mobileMetric: "adjEM"\n  };\n\n  var theadRow = document.getElementById("theadRow");\n  var tbody = document.getElementById("ratingsBody");\n  var yearNav = document.getElementById("yearNav");\n  var weekNav = document.getElementById("weekNav");\n  var filterInput = document.getElementById("filterInput");\n  var conferenceSelect = document.getElementById("conferenceSelect");\n  var rowCount = document.getElementById("rowCount");\n  var mobileMetricSelect = document.getElementById("mobileMetricSelect");\n  var ratingsTitle = document.getElementById("ratingsTitle");\n  var ratingsStatus = document.getElementById("ratingsStatus");\n\n  function logoUrl(teamId) {\n    return "https://cdn.collegefootballdata.com/logos/64/" + teamId + ".png";\n  }\n\n  function baseRows() {\n    var yearData = window.CFB_DATA[state.year] || {};\n    return (yearData[state.week] || []).slice();\n  }\n\n  function setActiveButtonState(container, dataKey, selectedValue) {\n    Array.prototype.forEach.call(container.children, function (btn) {\n      var active = btn.dataset[dataKey] === String(selectedValue);\n      btn.classList.toggle("active", active);\n      if (active) btn.setAttribute("aria-current", "true");\n      else btn.removeAttribute("aria-current");\n    });\n  }\n\n  function buildYearNav() {\n    yearNav.innerHTML = "";\n    YEARS.forEach(function (year) {\n      var btn = document.createElement("button");\n      btn.type = "button";\n      btn.dataset.year = String(year);\n      btn.textContent = String(year);\n      btn.setAttribute("aria-label", String(year) + " season");\n      yearNav.appendChild(btn);\n    });\n    setActiveButtonState(yearNav, "year", state.year);\n  }\n\n  function buildWeekNav() {\n    weekNav.innerHTML = "";\n    weeksForYear(state.year).forEach(function (week) {\n      var btn = document.createElement("button");\n      btn.type = "button";\n      btn.dataset.week = String(week);\n      btn.textContent = "Wk " + week;\n      btn.setAttribute("aria-label", "Week " + week);\n      weekNav.appendChild(btn);\n    });\n    setActiveButtonState(weekNav, "week", state.week);\n  }\n\n  function buildConferenceSelect() {\n    if (!conferenceSelect) return;\n    var conferences = [];\n    baseRows().forEach(function (t) {\n      if (t.conf && conferences.indexOf(t.conf) === -1) conferences.push(t.conf);\n    });\n    conferences.sort();\n\n    if (state.conference && conferences.indexOf(state.conference) === -1) {\n      state.conference = "";\n    }\n\n    conferenceSelect.innerHTML = "";\n    var all = document.createElement("option");\n    all.value = "";\n    all.textContent = "All conferences";\n    conferenceSelect.appendChild(all);\n\n    conferences.forEach(function (conf) {\n      var opt = document.createElement("option");\n      opt.value = conf;\n      opt.textContent = conf;\n      conferenceSelect.appendChild(opt);\n    });\n    conferenceSelect.value = state.conference;\n  }\n\n  function addTipTrigger(th, tooltip) {\n    if (!tooltip) return;\n    var trigger = document.createElement("span");\n    trigger.className = "tip-trigger";\n    trigger.textContent = "?";\n    trigger.setAttribute("data-tip", tooltip);\n    trigger.setAttribute("tabindex", "0");\n    trigger.setAttribute("role", "button");\n    trigger.setAttribute("aria-label", "Explain this metric");\n    th.appendChild(trigger);\n  }\n\n  function buildHeader() {\n    theadRow.innerHTML = "";\n\n    COLUMNS.forEach(function (col) {\n      var th = document.createElement("th");\n      th.scope = "col";\n      th.dataset.key = col.key;\n      if (col.numeric) th.classList.add("num");\n      if (col.cellClass) th.classList.add(col.cellClass);\n      if (["adjEM", "adjO", "adjD", "sos", "sor"].indexOf(col.key) !== -1) {\n        th.classList.add("metric-cell");\n        th.dataset.metricKey = col.key;\n      }\n      th.classList.add("sortable");\n      th.setAttribute("aria-sort", "none");\n\n      var label = document.createElement("span");\n      label.textContent = col.label;\n      th.appendChild(label);\n      addTipTrigger(th, col.tooltip);\n\n      var indicator = document.createElement("span");\n      indicator.className = "sort-indicator";\n      indicator.dataset.role = "indicator";\n      indicator.setAttribute("aria-hidden", "true");\n      th.appendChild(indicator);\n\n      th.addEventListener("click", function (e) {\n        if (e.target.closest("[data-tip]")) return;\n        if (state.sortKey === col.key) state.sortDir = state.sortDir === "asc" ? "desc" : "asc";\n        else { state.sortKey = col.key; state.sortDir = col.defaultDir; }\n        render();\n      });\n\n      theadRow.appendChild(th);\n    });\n\n    var wlHeader = document.createElement("th");\n    wlHeader.scope = "col";\n    wlHeader.className = "num record-cell";\n    wlHeader.textContent = "W-L";\n    theadRow.insertBefore(wlHeader, theadRow.children[3]);\n\n    var moveHeader = document.createElement("th");\n    moveHeader.scope = "col";\n    moveHeader.className = "num delta-cell";\n    moveHeader.textContent = "Wk Δ";\n    addTipTrigger(moveHeader, "Change in overall rank from the previous week.");\n    theadRow.insertBefore(moveHeader, theadRow.children[1]);\n  }\n\n  function updateHeaderIndicators() {\n    Array.prototype.forEach.call(theadRow.children, function (th) {\n      var indicator = th.querySelector('[data-role="indicator"]');\n      if (!indicator) return;\n      var active = th.dataset.key === state.sortKey;\n      indicator.textContent = active ? (state.sortDir === "asc" ? "▲" : "▼") : "";\n      th.setAttribute("aria-sort", active ? (state.sortDir === "asc" ? "ascending" : "descending") : "none");\n    });\n  }\n\n  function getRows() {\n    var rows = baseRows();\n    var needle = state.filter.trim().toLowerCase();\n\n    if (needle) {\n      rows = rows.filter(function (t) { return t.team.toLowerCase().indexOf(needle) !== -1; });\n    }\n    if (state.conference) {\n      rows = rows.filter(function (t) { return t.conf === state.conference; });\n    }\n\n    var key = state.sortKey;\n    var dir = state.sortDir === "asc" ? 1 : -1;\n    rows.sort(function (a, b) {\n      var av = a[key];\n      var bv = b[key];\n      if (av === null || av === undefined) return bv === null || bv === undefined ? 0 : 1;\n      if (bv === null || bv === undefined) return -1;\n      if (typeof av === "string") return av.localeCompare(bv) * dir;\n      return (av - bv) * dir;\n    });\n    return rows;\n  }\n\n  function cell(className, text) {\n    var td = document.createElement("td");\n    if (className) td.className = className;\n    td.textContent = text;\n    return td;\n  }\n\n  function teamCell(t) {\n    var td = document.createElement("td");\n    td.className = "team-cell";\n\n    var link = document.createElement("a");\n    link.className = "team-link";\n    link.href = "team.html?team=" + encodeURIComponent(t.slug);\n\n    var img = document.createElement("img");\n    img.className = "team-logo";\n    img.src = logoUrl(t.teamId);\n    img.alt = "";\n    img.loading = "lazy";\n    img.decoding = "async";\n    img.onerror = function () { img.style.visibility = "hidden"; };\n    link.appendChild(img);\n\n    var name = document.createElement("span");\n    name.textContent = t.team;\n    link.appendChild(name);\n    td.appendChild(link);\n    return td;\n  }\n\n  function deltaCell(change) {\n    var td = document.createElement("td");\n    td.className = "num delta-cell";\n    if (change === null || change === undefined) { td.classList.add("delta-new"); td.textContent = "NEW"; }\n    else if (change > 0) { td.classList.add("delta-up"); td.textContent = "▲" + change; }\n    else if (change < 0) { td.classList.add("delta-down"); td.textContent = "▼" + Math.abs(change); }\n    else { td.classList.add("delta-flat"); td.textContent = "—"; }\n    return td;\n  }\n\n  function statCell(value, rankValue, primary, useSign, decimals, metricKey) {\n    var td = document.createElement("td");\n    td.className = "num stat-cell metric-cell" + (primary ? " primary" : "");\n    td.dataset.metricKey = metricKey;\n\n    var digits = decimals === undefined ? 1 : decimals;\n    var text;\n    if (value === null || value === undefined) text = "—";\n    else if (useSign) text = (value >= 0 ? "+" : "") + value.toFixed(digits);\n    else text = value.toFixed(digits);\n    td.appendChild(document.createTextNode(text));\n\n    if (rankValue !== undefined && rankValue !== null) {\n      var sub = document.createElement("span");\n      sub.className = "rank-sub";\n      sub.textContent = "(" + rankValue + ")";\n      td.appendChild(sub);\n    }\n    return td;\n  }\n\n  function renderSkeleton() {\n    var colCount = theadRow.children.length;\n    tbody.innerHTML = "";\n    for (var i = 0; i < 10; i++) {\n      var tr = document.createElement("tr");\n      tr.className = "skeleton-row";\n      for (var c = 0; c < colCount; c++) {\n        var td = document.createElement("td");\n        var bar = document.createElement("span");\n        bar.className = "skeleton-bar";\n        bar.style.width = (c === 2 ? 70 : 40 + ((c * 13) % 30)) + "%";\n        td.appendChild(bar);\n        tr.appendChild(td);\n      }\n      tbody.appendChild(tr);\n    }\n  }\n\n  function renderSoon() {\n    renderSkeleton();\n    window.setTimeout(render, 80);\n  }\n\n  function applyMobileMetricVisibility() {\n    Array.prototype.forEach.call(document.querySelectorAll("#ratingsTable .metric-cell"), function (el) {\n      el.classList.toggle("mobile-selected-metric", el.dataset.metricKey === state.mobileMetric);\n    });\n  }\n\n  function updatePageStatus(visibleCount) {\n    var total = baseRows().length;\n    var status = state.year + " · through Week " + state.week + " · " + total + " teams";\n    if (ratingsStatus) ratingsStatus.textContent = status;\n    if (ratingsTitle) ratingsTitle.textContent = state.year + " College Football Ratings";\n    document.title = state.year + " College Football Ratings — CollegeFootballFocus";\n\n    var filtered = !!state.filter.trim() || !!state.conference;\n    rowCount.textContent = filtered ? (visibleCount + " of " + total + " teams") : (total + " teams");\n  }\n\n  function render() {\n    var rows = getRows();\n    tbody.innerHTML = "";\n\n    if (rows.length === 0) {\n      var tr = document.createElement("tr");\n      tr.className = "empty-row";\n      var td = document.createElement("td");\n      td.colSpan = 10;\n      td.textContent = "No teams match the current filters.";\n      tr.appendChild(td);\n      tbody.appendChild(tr);\n    } else {\n      rows.forEach(function (t) {\n        var tr = document.createElement("tr");\n        if (t.rank !== null && t.rank <= 10) tr.classList.add("rank-tier-top10");\n        tr.appendChild(cell("num rank-cell", t.rank === null ? "—" : String(t.rank)));\n        tr.appendChild(deltaCell(t.rank === null ? undefined : t.rankChange));\n        tr.appendChild(teamCell(t));\n        tr.appendChild(cell("conf-cell", t.conf));\n        tr.appendChild(cell("num record-cell", t.record));\n        tr.appendChild(statCell(t.adjEM, undefined, true, true, 1, "adjEM"));\n        tr.appendChild(statCell(t.adjO, t.adjORank, false, true, 2, "adjO"));\n        tr.appendChild(statCell(t.adjD, t.adjDRank, false, true, 2, "adjD"));\n        tr.appendChild(statCell(t.sos, t.sosRank, false, true, 1, "sos"));\n        tr.appendChild(statCell(t.sor, t.sorRank, false, true, 1, "sor"));\n        tbody.appendChild(tr);\n      });\n    }\n\n    updatePageStatus(rows.length);\n    updateHeaderIndicators();\n    applyMobileMetricVisibility();\n  }\n\n  yearNav.addEventListener("click", function (e) {\n    var btn = e.target.closest("button[data-year]");\n    if (!btn) return;\n    state.year = btn.dataset.year;\n    state.week = String(lastWeek(state.year));\n    state.conference = "";\n    setActiveButtonState(yearNav, "year", state.year);\n    buildWeekNav();\n    buildConferenceSelect();\n    renderSoon();\n  });\n\n  weekNav.addEventListener("click", function (e) {\n    var btn = e.target.closest("button[data-week]");\n    if (!btn) return;\n    state.week = btn.dataset.week;\n    state.conference = "";\n    setActiveButtonState(weekNav, "week", state.week);\n    buildConferenceSelect();\n    renderSoon();\n  });\n\n  filterInput.addEventListener("input", function () {\n    state.filter = filterInput.value;\n    render();\n  });\n\n  if (conferenceSelect) {\n    conferenceSelect.addEventListener("change", function () {\n      state.conference = conferenceSelect.value;\n      render();\n    });\n  }\n\n  if (mobileMetricSelect) {\n    mobileMetricSelect.value = state.mobileMetric;\n    mobileMetricSelect.addEventListener("change", function () {\n      state.mobileMetric = mobileMetricSelect.value;\n      applyMobileMetricVisibility();\n    });\n  }\n\n  filterInput.value = state.filter;\n  buildYearNav();\n  buildWeekNav();\n  buildConferenceSelect();\n  buildHeader();\n  render();\n})();\n
+(function () {
+  var COLUMNS = [
+    { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", cellClass: "rank-cell", tooltip: "Overall rank by AdjEM, the site's schedule-adjusted strength rating." },
+    { key: "team", label: "Team", numeric: false, defaultDir: "asc", cellClass: "team-cell" },
+    { key: "conf", label: "Conf", numeric: false, defaultDir: "asc", cellClass: "conf-cell" },
+    { key: "adjEM", label: "AdjEM", numeric: true, defaultDir: "desc", primary: true, tooltip: "Schedule-adjusted point-margin strength from the site's walk-forward SRS model. Higher is better." },
+    { key: "adjO", label: "AdjO", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Research-stage schedule-adjusted offensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
+    { key: "adjD", label: "AdjD", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Research-stage schedule-adjusted defensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
+    { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Strength of schedule: average SRS strength of opponents played through the selected week." },
+    { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record is intentionally blank until a validated methodology is locked." }
+  ];
+
+  var YEARS = window.CFB_YEARS || [];
+  var WEEKS = window.CFB_WEEKS || {};
+
+  function weeksForYear(year) {
+    return WEEKS[String(year)] || [];
+  }
+
+  function lastWeek(year) {
+    var ws = weeksForYear(year);
+    return ws[ws.length - 1];
+  }
+
+  var initialYear = YEARS[YEARS.length - 1];
+  var state = {
+    year: String(initialYear),
+    week: String(lastWeek(initialYear)),
+    sortKey: "rank",
+    sortDir: "asc",
+    filter: (window.CFF && CFF.getQueryParam("q")) || "",
+    conference: (window.CFF && CFF.getQueryParam("conf")) || "",
+    mobileMetric: "adjEM"
+  };
+
+  var theadRow = document.getElementById("theadRow");
+  var tbody = document.getElementById("ratingsBody");
+  var yearNav = document.getElementById("yearNav");
+  var weekNav = document.getElementById("weekNav");
+  var filterInput = document.getElementById("filterInput");
+  var conferenceSelect = document.getElementById("conferenceSelect");
+  var rowCount = document.getElementById("rowCount");
+  var mobileMetricSelect = document.getElementById("mobileMetricSelect");
+  var ratingsTitle = document.getElementById("ratingsTitle");
+  var ratingsStatus = document.getElementById("ratingsStatus");
+
+  function logoUrl(teamId) {
+    return "https://cdn.collegefootballdata.com/logos/64/" + teamId + ".png";
+  }
+
+  function baseRows() {
+    var yearData = window.CFB_DATA[state.year] || {};
+    return (yearData[state.week] || []).slice();
+  }
+
+  function setActiveButtonState(container, dataKey, selectedValue) {
+    Array.prototype.forEach.call(container.children, function (btn) {
+      var active = btn.dataset[dataKey] === String(selectedValue);
+      btn.classList.toggle("active", active);
+      if (active) btn.setAttribute("aria-current", "true");
+      else btn.removeAttribute("aria-current");
+    });
+  }
+
+  function buildYearNav() {
+    yearNav.innerHTML = "";
+    YEARS.forEach(function (year) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.dataset.year = String(year);
+      btn.textContent = String(year);
+      btn.setAttribute("aria-label", String(year) + " season");
+      yearNav.appendChild(btn);
+    });
+    setActiveButtonState(yearNav, "year", state.year);
+  }
+
+  function buildWeekNav() {
+    weekNav.innerHTML = "";
+    weeksForYear(state.year).forEach(function (week) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.dataset.week = String(week);
+      btn.textContent = "Wk " + week;
+      btn.setAttribute("aria-label", "Week " + week);
+      weekNav.appendChild(btn);
+    });
+    setActiveButtonState(weekNav, "week", state.week);
+  }
+
+  function buildConferenceSelect() {
+    if (!conferenceSelect) return;
+
+    var conferences = [];
+    baseRows().forEach(function (t) {
+      if (t.conf && conferences.indexOf(t.conf) === -1) conferences.push(t.conf);
+    });
+    conferences.sort();
+
+    if (state.conference && conferences.indexOf(state.conference) === -1) {
+      state.conference = "";
+    }
+
+    conferenceSelect.innerHTML = "";
+    var all = document.createElement("option");
+    all.value = "";
+    all.textContent = "All conferences";
+    conferenceSelect.appendChild(all);
+
+    conferences.forEach(function (conf) {
+      var opt = document.createElement("option");
+      opt.value = conf;
+      opt.textContent = conf;
+      conferenceSelect.appendChild(opt);
+    });
+    conferenceSelect.value = state.conference;
+  }
+
+  function addTipTrigger(th, tooltip) {
+    if (!tooltip) return;
+    var trigger = document.createElement("span");
+    trigger.className = "tip-trigger";
+    trigger.textContent = "?";
+    trigger.setAttribute("data-tip", tooltip);
+    trigger.setAttribute("tabindex", "0");
+    trigger.setAttribute("role", "button");
+    trigger.setAttribute("aria-label", "Explain this metric");
+    th.appendChild(trigger);
+  }
+
+  function buildHeader() {
+    theadRow.innerHTML = "";
+
+    COLUMNS.forEach(function (col) {
+      var th = document.createElement("th");
+      th.scope = "col";
+      th.dataset.key = col.key;
+      if (col.numeric) th.classList.add("num");
+      if (col.cellClass) th.classList.add(col.cellClass);
+      if (["adjEM", "adjO", "adjD", "sos", "sor"].indexOf(col.key) !== -1) {
+        th.classList.add("metric-cell");
+        th.dataset.metricKey = col.key;
+      }
+      th.classList.add("sortable");
+      th.setAttribute("aria-sort", "none");
+
+      var label = document.createElement("span");
+      label.textContent = col.label;
+      th.appendChild(label);
+      addTipTrigger(th, col.tooltip);
+
+      var indicator = document.createElement("span");
+      indicator.className = "sort-indicator";
+      indicator.dataset.role = "indicator";
+      indicator.setAttribute("aria-hidden", "true");
+      th.appendChild(indicator);
+
+      th.addEventListener("click", function (e) {
+        if (e.target.closest("[data-tip]")) return;
+        if (state.sortKey === col.key) {
+          state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+        } else {
+          state.sortKey = col.key;
+          state.sortDir = col.defaultDir;
+        }
+        render();
+      });
+
+      theadRow.appendChild(th);
+    });
+
+    var wlHeader = document.createElement("th");
+    wlHeader.scope = "col";
+    wlHeader.className = "num record-cell";
+    wlHeader.textContent = "W-L";
+    theadRow.insertBefore(wlHeader, theadRow.children[3]);
+
+    var moveHeader = document.createElement("th");
+    moveHeader.scope = "col";
+    moveHeader.className = "num delta-cell";
+    moveHeader.textContent = "Wk Δ";
+    addTipTrigger(moveHeader, "Change in overall rank from the previous week.");
+    theadRow.insertBefore(moveHeader, theadRow.children[1]);
+  }
+
+  function updateHeaderIndicators() {
+    Array.prototype.forEach.call(theadRow.children, function (th) {
+      var indicator = th.querySelector('[data-role="indicator"]');
+      if (!indicator) return;
+      var active = th.dataset.key === state.sortKey;
+      indicator.textContent = active ? (state.sortDir === "asc" ? "▲" : "▼") : "";
+      th.setAttribute("aria-sort", active ? (state.sortDir === "asc" ? "ascending" : "descending") : "none");
+    });
+  }
+
+  function getRows() {
+    var rows = baseRows();
+    var needle = state.filter.trim().toLowerCase();
+
+    if (needle) {
+      rows = rows.filter(function (t) {
+        return t.team.toLowerCase().indexOf(needle) !== -1;
+      });
+    }
+    if (state.conference) {
+      rows = rows.filter(function (t) {
+        return t.conf === state.conference;
+      });
+    }
+
+    var key = state.sortKey;
+    var dir = state.sortDir === "asc" ? 1 : -1;
+    rows.sort(function (a, b) {
+      var av = a[key];
+      var bv = b[key];
+      if (av === null || av === undefined) return bv === null || bv === undefined ? 0 : 1;
+      if (bv === null || bv === undefined) return -1;
+      if (typeof av === "string") return av.localeCompare(bv) * dir;
+      return (av - bv) * dir;
+    });
+    return rows;
+  }
+
+  function cell(className, text) {
+    var td = document.createElement("td");
+    if (className) td.className = className;
+    td.textContent = text;
+    return td;
+  }
+
+  function teamCell(t) {
+    var td = document.createElement("td");
+    td.className = "team-cell";
+
+    var link = document.createElement("a");
+    link.className = "team-link";
+    link.href = "team.html?team=" + encodeURIComponent(t.slug);
+
+    var img = document.createElement("img");
+    img.className = "team-logo";
+    img.src = logoUrl(t.teamId);
+    img.alt = "";
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.onerror = function () {
+      img.style.visibility = "hidden";
+    };
+    link.appendChild(img);
+
+    var name = document.createElement("span");
+    name.textContent = t.team;
+    link.appendChild(name);
+    td.appendChild(link);
+    return td;
+  }
+
+  function deltaCell(change) {
+    var td = document.createElement("td");
+    td.className = "num delta-cell";
+    if (change === null || change === undefined) {
+      td.classList.add("delta-new");
+      td.textContent = "NEW";
+    } else if (change > 0) {
+      td.classList.add("delta-up");
+      td.textContent = "▲" + change;
+    } else if (change < 0) {
+      td.classList.add("delta-down");
+      td.textContent = "▼" + Math.abs(change);
+    } else {
+      td.classList.add("delta-flat");
+      td.textContent = "—";
+    }
+    return td;
+  }
+
+  function statCell(value, rankValue, primary, useSign, decimals, metricKey) {
+    var td = document.createElement("td");
+    td.className = "num stat-cell metric-cell" + (primary ? " primary" : "");
+    td.dataset.metricKey = metricKey;
+
+    var digits = decimals === undefined ? 1 : decimals;
+    var text;
+    if (value === null || value === undefined) {
+      text = "—";
+    } else if (useSign) {
+      text = (value >= 0 ? "+" : "") + value.toFixed(digits);
+    } else {
+      text = value.toFixed(digits);
+    }
+    td.appendChild(document.createTextNode(text));
+
+    if (rankValue !== undefined && rankValue !== null) {
+      var sub = document.createElement("span");
+      sub.className = "rank-sub";
+      sub.textContent = "(" + rankValue + ")";
+      td.appendChild(sub);
+    }
+    return td;
+  }
+
+  function renderSkeleton() {
+    var colCount = theadRow.children.length;
+    tbody.innerHTML = "";
+    for (var i = 0; i < 10; i++) {
+      var tr = document.createElement("tr");
+      tr.className = "skeleton-row";
+      for (var c = 0; c < colCount; c++) {
+        var td = document.createElement("td");
+        var bar = document.createElement("span");
+        bar.className = "skeleton-bar";
+        bar.style.width = (c === 2 ? 70 : 40 + ((c * 13) % 30)) + "%";
+        td.appendChild(bar);
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+  }
+
+  function renderSoon() {
+    renderSkeleton();
+    window.setTimeout(render, 80);
+  }
+
+  function applyMobileMetricVisibility() {
+    Array.prototype.forEach.call(document.querySelectorAll("#ratingsTable .metric-cell"), function (el) {
+      el.classList.toggle("mobile-selected-metric", el.dataset.metricKey === state.mobileMetric);
+    });
+  }
+
+  function updatePageStatus(visibleCount) {
+    var total = baseRows().length;
+    var status = state.year + " · through Week " + state.week + " · " + total + " teams";
+    if (ratingsStatus) ratingsStatus.textContent = status;
+    if (ratingsTitle) ratingsTitle.textContent = state.year + " College Football Ratings";
+    document.title = state.year + " College Football Ratings — CollegeFootballFocus";
+
+    var filtered = !!state.filter.trim() || !!state.conference;
+    rowCount.textContent = filtered ? (visibleCount + " of " + total + " teams") : (total + " teams");
+  }
+
+  function render() {
+    var rows = getRows();
+    tbody.innerHTML = "";
+
+    if (rows.length === 0) {
+      var tr = document.createElement("tr");
+      tr.className = "empty-row";
+      var td = document.createElement("td");
+      td.colSpan = 10;
+      td.textContent = "No teams match the current filters.";
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    } else {
+      rows.forEach(function (t) {
+        var tr = document.createElement("tr");
+        if (t.rank !== null && t.rank <= 10) tr.classList.add("rank-tier-top10");
+        tr.appendChild(cell("num rank-cell", t.rank === null ? "—" : String(t.rank)));
+        tr.appendChild(deltaCell(t.rank === null ? undefined : t.rankChange));
+        tr.appendChild(teamCell(t));
+        tr.appendChild(cell("conf-cell", t.conf));
+        tr.appendChild(cell("num record-cell", t.record));
+        tr.appendChild(statCell(t.adjEM, undefined, true, true, 1, "adjEM"));
+        tr.appendChild(statCell(t.adjO, t.adjORank, false, true, 2, "adjO"));
+        tr.appendChild(statCell(t.adjD, t.adjDRank, false, true, 2, "adjD"));
+        tr.appendChild(statCell(t.sos, t.sosRank, false, true, 1, "sos"));
+        tr.appendChild(statCell(t.sor, t.sorRank, false, true, 1, "sor"));
+        tbody.appendChild(tr);
+      });
+    }
+
+    updatePageStatus(rows.length);
+    updateHeaderIndicators();
+    applyMobileMetricVisibility();
+  }
+
+  yearNav.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-year]");
+    if (!btn) return;
+    state.year = btn.dataset.year;
+    state.week = String(lastWeek(state.year));
+    state.conference = "";
+    setActiveButtonState(yearNav, "year", state.year);
+    buildWeekNav();
+    buildConferenceSelect();
+    renderSoon();
+  });
+
+  weekNav.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-week]");
+    if (!btn) return;
+    state.week = btn.dataset.week;
+    state.conference = "";
+    setActiveButtonState(weekNav, "week", state.week);
+    buildConferenceSelect();
+    renderSoon();
+  });
+
+  filterInput.addEventListener("input", function () {
+    state.filter = filterInput.value;
+    render();
+  });
+
+  if (conferenceSelect) {
+    conferenceSelect.addEventListener("change", function () {
+      state.conference = conferenceSelect.value;
+      render();
+    });
+  }
+
+  if (mobileMetricSelect) {
+    mobileMetricSelect.value = state.mobileMetric;
+    mobileMetricSelect.addEventListener("change", function () {
+      state.mobileMetric = mobileMetricSelect.value;
+      applyMobileMetricVisibility();
+    });
+  }
+
+  filterInput.value = state.filter;
+  buildYearNav();
+  buildWeekNav();
+  buildConferenceSelect();
+  buildHeader();
+  render();
+})();
