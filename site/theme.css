@@ -1,0 +1,134 @@
+/* ==========================================================================
+   CollegeFootballFocus — Global Design System
+   Editorial / scouting-department / statistical-reference visual language.
+   ========================================================================== */
+
+:root {
+  /* ---- Color: restrained neutral brand palette ---- */
+  --color-paper: #f4f1ea;
+  --color-paper-raised: #ece7d9;
+  --color-ink: #171717;
+  --color-ink-secondary: #4a473f;
+  --color-ink-tertiary: #85806f;
+  --color-navy: #172438;
+  --color-navy-light: #22314a;
+  --color-gold: #c59a43;
+  --color-gold-dark: #a57f31;
+  --color-hairline: #d9d3c2;
+  --color-hairline-strong: #b9b29c;
+  --color-up: #3f6e4e;
+  --color-down: #8b3a3a;
+
+  /* ---- Type ---- */
+  --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --font-body: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+
+  /* ---- Spacing scale ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --radius-sm: 2px;
+  --container-width: 1320px;
+}
+
+/* ---- Reset ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* No overflow-x:hidden here — it breaks position:sticky site-wide (an
+   ancestor with non-visible overflow becomes the sticky containing block).
+   Horizontal overflow is instead contained locally (.table-scroll,
+   .year-nav, .week-nav already scope their own overflow-x: auto). */
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Minimum comfortable touch target on touch devices, without changing
+   desktop sizing (coarse pointer = finger, not mouse). */
+@media (pointer: coarse) {
+  .year-nav button,
+  .week-nav button,
+  .tab-nav button,
+  .data-table th.sortable,
+  .site-search__toggle,
+  .subscribe-btn {
+    min-height: 40px;
+  }
+
+  /* Small visual badge, larger invisible hit area */
+  .tip-trigger {
+    position: relative;
+  }
+
+  .tip-trigger::before {
+    content: "";
+    position: absolute;
+    inset: -13px;
+  }
+}
+
+h1, h2, h3, h4, p, ul, ol {
+  margin: 0;
+}
+
+ul, ol {
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+button, input {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---- Layout primitives ---- */
+.container {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+}
+
+/* ---- Typography helpers ---- */
+.eyebrow {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--color-gold-dark);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,91 @@
+/* ==========================================================================
+   CollegeFootballFocus — Advanced CFF Analytics
+   ========================================================================== */
+
+/* ---- Sticky controls while scrolling the long table ----
+   .table-scroll is its own bounded, independently-scrolling panel (see
+   ratings.css), so the table's <thead> sticks at top:0 within that panel —
+   no coordination with the control bar's height is needed. */
+.control-bar--sticky {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+/* ---- Advanced table: center numeric columns (header + values) ---- */
+.adv-table th.num,
+.adv-table td.num {
+  text-align: center;
+}
+
+/* ---- Tab nav ---- */
+.tab-nav {
+  display: flex;
+  gap: var(--space-7);
+  border-bottom: 2px solid var(--color-navy);
+}
+
+.tab-nav button {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  padding: var(--space-3) 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ink-secondary);
+  cursor: pointer;
+}
+
+.tab-nav button:hover {
+  color: var(--color-ink);
+}
+
+.tab-nav button.active {
+  color: var(--color-navy);
+  border-bottom-color: var(--color-gold);
+}
+
+/* ---- Week range controls ---- */
+.week-range {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.week-range select {
+  background: var(--color-paper);
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.week-range select:focus {
+  outline: none;
+  border-color: var(--color-navy);
+}
+
+.week-range__sep {
+  color: var(--color-ink-tertiary);
+  font-family: var(--font-mono);
+}
+
+/* ---- Advanced page section spacing ---- */
+.tab-bar {
+  padding: var(--space-4) 0 0;
+}
+
+.adv-note {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  color: var(--color-ink-tertiary);
+  padding: var(--space-2) 0 var(--space-4);
+}

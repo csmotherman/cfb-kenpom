@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cfb-analytics"
+version = "0.1.0"
+description = "Reliability-first college football raw data foundation"
+requires-python = ">=3.11"
+dependencies = [
+  "httpx>=0.27,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+models = [
+  "numpy>=2,<3",
+  "scipy>=1.15,<2",
+  "scikit-learn>=1.6,<2",
+]
+publish = ["pyarrow>=18,<22"]
+
+[project.scripts]
+cfb-raw = "cfb_analytics.raw.cli:main"
+cfb-drive-forensics = "cfb_analytics.derived.drive_forensics_cli:main"
+cfb-adjusted-ratings = "cfb_analytics.analytics.schedule_adjusted.cli:main"
+cfb-darren-pack = "cfb_analytics.analytics.schedule_adjusted.darren_data_pack:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,257 @@
+/* ==========================================================================
+   CollegeFootballFocus — Team Profile
+   ========================================================================== */
+
+.team-hero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5) 0 var(--space-6);
+  border-bottom: 2px solid var(--color-navy);
+}
+
+.team-hero__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.team-hero__logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.team-hero__name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 40px;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  line-height: 1;
+  margin: var(--space-1) 0;
+}
+
+.team-hero__current {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--color-ink-secondary);
+}
+
+.team-hero__current b {
+  color: var(--color-navy);
+  font-weight: 700;
+}
+
+.team-hero__glance {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.glance-chip {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+}
+
+.glance-chip__label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+
+.glance-chip__value {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-navy);
+}
+
+.glance-chip__rank {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-tertiary);
+}
+
+.team-history {
+  padding: var(--space-6) 0;
+}
+
+.team-history h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+  margin-bottom: var(--space-4);
+}
+
+/* ---- Advanced CFF Analytics preview (locked) ---- */
+.adv-preview {
+  padding: var(--space-6) 0 var(--space-7);
+  border-top: 1px solid var(--color-hairline-strong);
+}
+
+.adv-preview__heading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.adv-preview__heading h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.adv-preview__badge {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-gold-dark);
+  border: 1px solid var(--color-gold-dark);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+}
+
+.adv-preview__note {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-ink-secondary);
+  max-width: 640px;
+  margin-bottom: var(--space-4);
+}
+
+.adv-preview__locked {
+  position: relative;
+}
+
+.adv-preview__table {
+  filter: blur(4px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.adv-preview__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(244, 241, 234, 0.4);
+}
+
+/* Shared CTA treatment — reused by any primary action button on the site
+   (Subscribe to View today; future actions like "Compare Teams" should
+   reuse .btn-primary rather than introducing a new button style). */
+.btn-primary,
+.subscribe-btn {
+  display: inline-block;
+  background: var(--color-navy);
+  color: var(--color-paper);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+}
+
+.btn-primary:hover,
+.subscribe-btn:hover {
+  background: var(--color-navy-light);
+}
+
+@media (pointer: coarse) {
+  .btn-primary,
+  .subscribe-btn {
+    min-height: 44px;
+  }
+}
+
+.not-found {
+  padding: var(--space-7) var(--space-6);
+  font-family: var(--font-body);
+  color: var(--color-ink-secondary);
+}
+
+.not-found a {
+  color: var(--color-navy);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .team-hero {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .team-history,
+  .adv-preview {
+    padding-top: var(--space-5);
+    padding-bottom: var(--space-5);
+  }
+}
+
+@media (max-width: 640px) {
+  .team-hero {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  .team-hero__logo {
+    width: 52px;
+    height: 52px;
+  }
+
+  .team-hero__name {
+    font-size: 26px;
+  }
+
+  .team-hero__current {
+    font-size: 12.5px;
+  }
+
+  .team-hero__glance {
+    flex-wrap: wrap;
+  }
+
+  .adv-preview__heading {
+    flex-wrap: wrap;
+  }
+
+  .adv-preview__locked {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 400px) {
+  .team-hero {
+    align-items: flex-start;
+  }
+
+  .team-hero__name {
+    font-size: 22px;
+  }
+}

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CollegeFootballFocus — Ratings</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="ratings.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="logotype">CollegeFootball<span>Focus</span></a>
+      <div class="site-header__right">
+        <span class="eyebrow site-header__tagline">Opponent-Adjusted Efficiency Ratings</span>
+        <div class="site-search" id="siteSearch">
+          <button type="button" class="site-search__toggle" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <div class="site-search__box">
+            <input type="text" class="site-search__input" placeholder="Search teams…" autocomplete="off" />
+            <button type="button" class="site-search__close" aria-label="Close search">&times;</button>
+          </div>
+          <div class="site-search__results" hidden></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav">
+    <div class="container">
+      <a href="index.html" class="active">Rankings</a>
+      <a href="advanced.html">Advanced Analytics</a>
+    </div>
+  </nav>
+
+  <div class="control-bar">
+    <div class="control-bar__inner">
+      <span class="control-label">Season</span>
+      <nav class="year-nav" id="yearNav"></nav>
+
+      <div class="filter-box">
+        <input id="filterInput" type="text" placeholder="Search team or conference…" autocomplete="off" />
+      </div>
+
+      <span class="row-count" id="rowCount"></span>
+    </div>
+
+    <div class="control-bar__inner control-bar__inner--secondary">
+      <span class="control-label">Week</span>
+      <nav class="week-nav" id="weekNav"></nav>
+
+      <p class="methodology-note">Real game data. AdjEM is a schedule-adjusted Simple Rating System (SRS) score; AdjO/AdjD come from a research-only opponent-adjustment model (validated, not yet production-locked — see footer). SOR has no defined methodology yet and is left blank. Wk Δ is the rank change since the prior week. Click any column to sort.</p>
+    </div>
+  </div>
+
+  <main class="table-main container">
+    <div class="table-scroll">
+      <table id="ratingsTable" class="data-table">
+        <thead>
+          <tr id="theadRow"></tr>
+        </thead>
+        <tbody id="ratingsBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>CollegeFootballFocus — real game data (CFBD), 2014–2025 plus in-progress 2026. AdjO/AdjD use a research-only, independently-validated opponent-adjustment model, not this project's locked production rating. SOR is intentionally blank — no validated definition exists yet.</p>
+    </div>
+  </footer>
+
+  <script src="search-index.js"></script>
+  <script src="site.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "version": "michigan-staff-v1",
+  "updated_at": "2026-08-18",
+  "sources": [
+    "https://mgoblue.com/sports/2017/6/16/michigan-football-head-coaching-records",
+    "https://mgoblue.com/sports/football/coaches"
+  ],
+  "seasons": [
+    {"season": 2010, "head_coach": "Rich Rodriguez", "value_type": "ACTUAL"},
+    {"season": 2011, "head_coach": "Brady Hoke", "value_type": "ACTUAL"},
+    {"season": 2012, "head_coach": "Brady Hoke", "value_type": "ACTUAL"},
+    {"season": 2013, "head_coach": "Brady Hoke", "value_type": "ACTUAL"},
+    {"season": 2014, "head_coach": "Brady Hoke", "value_type": "ACTUAL"},
+    {"season": 2015, "head_coach": "Jim Harbaugh", "value_type": "ACTUAL"},
+    {"season": 2016, "head_coach": "Jim Harbaugh", "value_type": "ACTUAL"},
+    {"season": 2017, "head_coach": "Jim Harbaugh", "value_type": "ACTUAL"},
+    {"season": 2018, "head_coach": "Jim Harbaugh", "value_type": "ACTUAL"},
+    {"season": 2019, "head_coach": "Jim Harbaugh", "value_type": "ACTUAL"},
+    {"season": 2020, "head_coach": "Jim Harbaugh", "value_type": "ACTUAL"},
+    {"season": 2021, "head_coach": "Jim Harbaugh", "value_type": "ACTUAL"},
+    {"season": 2022, "head_coach": "Jim Harbaugh", "value_type": "ACTUAL"},
+    {"season": 2023, "head_coach": "Jim Harbaugh", "value_type": "ACTUAL", "notes": "Official record credits game-day coaches during Harbaugh's suspension."},
+    {"season": 2024, "head_coach": "Sherrone Moore", "value_type": "ACTUAL"},
+    {"season": 2025, "head_coach": "Sherrone Moore", "value_type": "ACTUAL", "notes": "Official record credits Biff Poggi with a 2-1 interim record."},
+    {"season": 2026, "head_coach": "Kyle Whittingham", "offensive_coordinator": "Jason Beck", "defensive_coordinator": "Jay Hill", "value_type": "PRESEASON"}
+  ]
+}

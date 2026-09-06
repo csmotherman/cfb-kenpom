@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team — CollegeFootballFocus</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="ratings.css" />
+  <link rel="stylesheet" href="team.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="logotype">CollegeFootball<span>Focus</span></a>
+      <div class="site-header__right">
+        <span class="eyebrow site-header__tagline">Opponent-Adjusted Efficiency Ratings</span>
+        <div class="site-search" id="siteSearch">
+          <button type="button" class="site-search__toggle" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <div class="site-search__box">
+            <input type="text" class="site-search__input" placeholder="Search teams…" autocomplete="off" />
+            <button type="button" class="site-search__close" aria-label="Close search">&times;</button>
+          </div>
+          <div class="site-search__results" hidden></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav">
+    <div class="container">
+      <a href="index.html">Rankings</a>
+      <a href="advanced.html">Advanced Analytics</a>
+    </div>
+  </nav>
+
+  <nav class="breadcrumbs" id="breadcrumbs" aria-label="Breadcrumb"></nav>
+
+  <div id="teamContent" class="container">
+    <!-- rendered by team.js -->
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>CollegeFootballFocus — real game data (CFBD). Opponent-adjusted ratings use a research-only model, independently validated this session but not this project's locked production rating.</p>
+    </div>
+  </footer>
+
+  <script src="search-index.js"></script>
+  <script src="site.js"></script>
+  <script src="data.js"></script>
+  <script src="advanced-data.js"></script>
+  <script src="team.js"></script>
+</body>
+</html>
