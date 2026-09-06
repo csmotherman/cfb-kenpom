@@ -3,7 +3,7 @@
     { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", cellClass: "rank-cell",
       tooltip: "Overall rank by AdjEM (real SRS rating, opponent-adjusted, computed week by week from actual games only)" },
     { key: "team", label: "Team", numeric: false, defaultDir: "asc", cellClass: "team-cell" },
-    { key: "conf", label: "Conf", numeric: false, defaultDir: "asc" },
+    { key: "conf", label: "Conf", numeric: false, defaultDir: "asc", cellClass: "conf-cell" },
     { key: "adjEM", label: "AdjEM", numeric: true, defaultDir: "desc", primary: true,
       tooltip: "Real Simple Rating System (SRS) score: schedule-adjusted point margin, computed walk-forward from actual results only" },
     { key: "adjO", label: "AdjO", numeric: true, defaultDir: "desc", rankKey: "adjORank",
@@ -35,7 +35,8 @@
     week: String(lastWeek(initialYear)),
     sortKey: "rank",
     sortDir: "asc",
-    filter: (window.CFF && CFF.getQueryParam("q")) || ""
+    filter: (window.CFF && CFF.getQueryParam("q")) || "",
+    mobileMetric: "adjEM"
   };
 
   var theadRow = document.getElementById("theadRow");
@@ -44,6 +45,7 @@
   var weekNav = document.getElementById("weekNav");
   var filterInput = document.getElementById("filterInput");
   var rowCount = document.getElementById("rowCount");
+  var mobileMetricSelect = document.getElementById("mobileMetricSelect");
 
   function logoUrl(teamId) {
     return "https://cdn.collegefootballdata.com/logos/64/" + teamId + ".png";
@@ -86,6 +88,10 @@
       th.dataset.key = col.key;
       if (col.numeric) th.classList.add("num");
       if (col.cellClass) th.classList.add(col.cellClass);
+      if (["adjEM", "adjO", "adjD", "sos", "sor"].indexOf(col.key) !== -1) {
+        th.classList.add("metric-cell");
+        th.dataset.metricKey = col.key;
+      }
       th.classList.add("sortable");
 
       var label = document.createElement("span");
@@ -114,7 +120,7 @@
 
     // Record column is not sortable — inserted after Conf
     var wlHeader = document.createElement("th");
-    wlHeader.className = "num";
+    wlHeader.className = "num record-cell";
     wlHeader.textContent = "W-L";
     theadRow.insertBefore(wlHeader, theadRow.children[3]);
 
@@ -219,9 +225,10 @@
     return td;
   }
 
-  function statCell(value, rankValue, primary, useSign, decimals) {
+  function statCell(value, rankValue, primary, useSign, decimals, metricKey) {
     var td = document.createElement("td");
-    td.className = "num stat-cell" + (primary ? " primary" : "");
+    td.className = "num stat-cell metric-cell" + (primary ? " primary" : "");
+    td.dataset.metricKey = metricKey;
     var text;
     if (value === null || value === undefined) {
       text = "—";
@@ -283,17 +290,24 @@
         tr.appendChild(teamCell(t));
         tr.appendChild(cell("conf-cell", t.conf));
         tr.appendChild(cell("num record-cell", t.record));
-        tr.appendChild(statCell(t.adjEM, undefined, true, true));
-        tr.appendChild(statCell(t.adjO, t.adjORank, false, true, 2));
-        tr.appendChild(statCell(t.adjD, t.adjDRank, false, true, 2));
-        tr.appendChild(statCell(t.sos, t.sosRank, false, true));
-        tr.appendChild(statCell(t.sor, t.sorRank, false, true));
+        tr.appendChild(statCell(t.adjEM, undefined, true, true, undefined, "adjEM"));
+        tr.appendChild(statCell(t.adjO, t.adjORank, false, true, 2, "adjO"));
+        tr.appendChild(statCell(t.adjD, t.adjDRank, false, true, 2, "adjD"));
+        tr.appendChild(statCell(t.sos, t.sosRank, false, true, undefined, "sos"));
+        tr.appendChild(statCell(t.sor, t.sorRank, false, true, undefined, "sor"));
         tbody.appendChild(tr);
       });
     }
 
     rowCount.textContent = rows.length + (rows.length === 1 ? " team" : " teams");
     updateHeaderIndicators();
+    applyMobileMetricVisibility();
+  }
+
+  function applyMobileMetricVisibility() {
+    Array.prototype.forEach.call(document.querySelectorAll("#ratingsTable .metric-cell"), function (el) {
+      el.classList.toggle("mobile-selected-metric", el.dataset.metricKey === state.mobileMetric);
+    });
   }
 
   yearNav.addEventListener("click", function (e) {
@@ -322,6 +336,14 @@
     state.filter = filterInput.value;
     render();
   });
+
+  if (mobileMetricSelect) {
+    mobileMetricSelect.value = state.mobileMetric;
+    mobileMetricSelect.addEventListener("change", function () {
+      state.mobileMetric = mobileMetricSelect.value;
+      applyMobileMetricVisibility();
+    });
+  }
 
   filterInput.value = state.filter;
 
