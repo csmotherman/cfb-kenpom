@@ -94,7 +94,8 @@
     tab: "general",
     sortKey: null,
     sortDir: "asc",
-    filter: ""
+    filter: "",
+    mobileMetric: "cff"
   };
 
   var yearNav = document.getElementById("yearNav");
@@ -105,6 +106,7 @@
   var rowCount = document.getElementById("rowCount");
   var theadRow = document.getElementById("advTheadRow");
   var tbody = document.getElementById("advBody");
+  var advancedMobileMetricSelect = document.getElementById("advancedMobileMetricSelect");
 
   function logoUrl(teamId) {
     return "https://cdn.collegefootballdata.com/logos/64/" + teamId + ".png";
@@ -130,6 +132,21 @@
       if (key === state.tab) btn.classList.add("active");
       tabNav.appendChild(btn);
     });
+  }
+
+  function buildMobileMetricSelect() {
+    if (!advancedMobileMetricSelect) return;
+    var tab = TABS[state.tab];
+    advancedMobileMetricSelect.innerHTML = "";
+    tab.columns.forEach(function (col) {
+      var opt = document.createElement("option");
+      opt.value = col.key;
+      opt.textContent = col.label;
+      advancedMobileMetricSelect.appendChild(opt);
+    });
+    var valid = tab.columns.some(function (col) { return col.key === state.mobileMetric; });
+    if (!valid) state.mobileMetric = tab.primaryKey;
+    advancedMobileMetricSelect.value = state.mobileMetric;
   }
 
   function buildWeekSelects() {
@@ -241,6 +258,12 @@
       if (numeric) th.classList.add("num");
       if (key === "rank") th.classList.add("rank-cell");
       if (key === "team") th.classList.add("team-cell");
+      if (key === "conf") th.classList.add("conf-cell");
+      if (key === "wins") th.classList.add("record-cell");
+      if (tab.columns.some(function (col) { return col.key === key; })) {
+        th.classList.add("metric-cell");
+        th.dataset.metricKey = key;
+      }
       var span = document.createElement("span");
       span.textContent = label;
       th.appendChild(span);
@@ -322,7 +345,8 @@
 
   function statCell(t, col) {
     var td = document.createElement("td");
-    td.className = "num stat-cell" + (col.primary ? " primary" : "");
+    td.className = "num stat-cell metric-cell" + (col.primary ? " primary" : "");
+    td.dataset.metricKey = col.key;
     td.appendChild(document.createTextNode(FORMATTERS[col.fmt](t[col.key])));
     if (col.rankable) {
       var r = t["_rank_" + col.key];
@@ -418,6 +442,13 @@
       " (" + weeks.length + (weeks.length === 1 ? " week" : " weeks") + ")";
 
     updateHeaderIndicators();
+    applyMobileMetricVisibility();
+  }
+
+  function applyMobileMetricVisibility() {
+    Array.prototype.forEach.call(document.querySelectorAll(".adv-table .metric-cell"), function (el) {
+      el.classList.toggle("mobile-selected-metric", el.dataset.metricKey === state.mobileMetric);
+    });
   }
 
   yearNav.addEventListener("click", function (e) {
@@ -438,11 +469,13 @@
     var btn = e.target.closest("button[data-tab]");
     if (!btn) return;
     state.tab = btn.dataset.tab;
+    state.mobileMetric = TABS[state.tab].primaryKey;
     state.sortKey = null;
     state.sortDir = "asc";
     Array.prototype.forEach.call(tabNav.children, function (b) {
       b.classList.toggle("active", b === btn);
     });
+    buildMobileMetricSelect();
     buildHeader();
     renderSoon();
   });
@@ -470,6 +503,13 @@
     render();
   });
 
+  if (advancedMobileMetricSelect) {
+    advancedMobileMetricSelect.addEventListener("change", function () {
+      state.mobileMetric = advancedMobileMetricSelect.value;
+      applyMobileMetricVisibility();
+    });
+  }
+
   if (window.CFF) {
     var initialFilter = CFF.getQueryParam("q");
     if (initialFilter) {
@@ -480,6 +520,7 @@
 
   buildYearNav();
   buildTabNav();
+  buildMobileMetricSelect();
   buildWeekSelects();
   buildHeader();
   render();
