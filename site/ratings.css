@@ -808,3 +808,140 @@
   .adv-table tbody tr:hover .team-cell,
   #historyTable tbody tr:hover .year-cell { background: #e4dcc7; }
 }
+
+
+/* ---------------------------------------------------------------------
+   Mobile comparison table
+   Keep native table semantics, but reduce the phone view to the columns
+   users actually compare: rank, team, and one user-selected metric.
+   --------------------------------------------------------------------- */
+.mobile-table-tools {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .mobile-table-tools {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--color-paper);
+    border-bottom: 1px solid var(--color-hairline-strong);
+  }
+
+  .mobile-table-tools__label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-tertiary);
+  }
+
+  .mobile-table-tools__select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 36px 0 var(--space-3);
+    border: 1px solid var(--color-hairline-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-paper-raised);
+    color: var(--color-navy);
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .mobile-table-tools__hint {
+    grid-column: 1 / -1;
+    font-size: 10.5px;
+    line-height: 1.35;
+    color: var(--color-ink-tertiary);
+  }
+
+  #ratingsTable,
+  .adv-table {
+    min-width: 0;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  #ratingsTable .delta-cell,
+  #ratingsTable .conf-cell,
+  #ratingsTable .record-cell,
+  #ratingsTable .metric-cell:not(.mobile-selected-metric),
+  .adv-table .conf-cell,
+  .adv-table .record-cell,
+  .adv-table .metric-cell:not(.mobile-selected-metric) {
+    display: none;
+  }
+
+  #ratingsTable .rank-cell,
+  .adv-table .rank-cell {
+    position: sticky;
+    left: 0;
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
+    padding-left: 7px;
+    padding-right: 5px;
+    text-align: center;
+  }
+
+  #ratingsTable .team-cell,
+  .adv-table .team-cell {
+    position: sticky;
+    left: 44px;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+    box-shadow: 1px 0 0 var(--color-hairline-strong);
+  }
+
+  #ratingsTable .metric-cell.mobile-selected-metric,
+  .adv-table .metric-cell.mobile-selected-metric {
+    display: table-cell;
+    width: 104px;
+    min-width: 104px;
+    max-width: 104px;
+    padding-left: 6px;
+    padding-right: 8px;
+    text-align: right;
+  }
+
+  .adv-table .metric-cell.mobile-selected-metric {
+    text-align: center;
+  }
+
+  #ratingsTable .team-link,
+  .adv-table .team-link {
+    min-width: 0;
+  }
+
+  #ratingsTable .team-link span,
+  .adv-table .team-link span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #ratingsTable .rank-sub,
+  .adv-table .rank-sub {
+    display: block;
+    min-width: 0;
+    margin-top: 1px;
+    font-size: 9px;
+    line-height: 1.1;
+  }
+
+  #ratingsTable th.metric-cell.mobile-selected-metric .tip-trigger,
+  .adv-table th.metric-cell.mobile-selected-metric .tip-trigger {
+    display: none;
+  }
+
+  .table-scroll {
+    overflow-x: hidden;
+  }
+}
