@@ -1,8 +1,6 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { supabaseUrl } from "./config";
 
-let adminClient: ReturnType<typeof createSupabaseClient> | null = null;
-
 export function createAdminClient() {
   const secretKey =
     process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -13,15 +11,11 @@ export function createAdminClient() {
     );
   }
 
-  if (!adminClient) {
-    adminClient = createSupabaseClient(supabaseUrl, secretKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false,
-      },
-    });
-  }
-
-  return adminClient;
+  return createSupabaseClient(supabaseUrl, secretKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  });
 }
