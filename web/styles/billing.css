@@ -49,12 +49,12 @@
   line-height: 1.45;
 }
 
-.billing-plan-card small {
+.billing-plan-card__price {
   display: block;
-  margin-top: 7px;
-  color: #7a652f;
-  font-size: 8px;
-  font-weight: 700;
+  margin-top: 8px;
+  color: #775a1d;
+  font-size: 9px;
+  font-weight: 800;
   line-height: 1.4;
 }
 
