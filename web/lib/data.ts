@@ -7,6 +7,45 @@ async function fetchJson<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export class PremiumAccessError extends Error {
+  status: number;
+  code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = "PremiumAccessError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+async function fetchPremiumJson<T>(path: string): Promise<T> {
+  const res = await fetch(path, {
+    cache: "no-store",
+    credentials: "same-origin",
+    signal: AbortSignal.timeout(20000),
+  });
+
+  if (res.ok) return res.json() as Promise<T>;
+
+  let payload: { code?: string; message?: string } = {};
+  try {
+    payload = (await res.json()) as { code?: string; message?: string };
+  } catch {
+    // Preserve the HTTP status even if a proxy or host returned non-JSON.
+  }
+
+  if (res.status === 401 || res.status === 403) {
+    throw new PremiumAccessError(
+      res.status,
+      payload.code ?? (res.status === 401 ? "SIGN_IN_REQUIRED" : "UPGRADE_REQUIRED"),
+      payload.message ?? "A GRID subscription is required to view this data."
+    );
+  }
+
+  throw new Error(payload.message ?? `Failed to load ${path}: ${res.status}`);
+}
+
 // Two-tier cache: `data` holds already-resolved seasons for synchronous,
 // zero-flicker reads (via useSyncExternalStore below); `inflight` dedupes
 // concurrent requests for the same season. Once a season lands in `data` it
@@ -80,7 +119,7 @@ export function getAdvancedSeason(year: number | string): Promise<AdvancedSeason
   if (cached) return Promise.resolve(cached);
   let entry = advancedInflight.get(key);
   if (!entry) {
-    entry = fetchJson<AdvancedSeason>(`/data/advanced/${key}.json`).then((season) => {
+    entry = fetchPremiumJson<AdvancedSeason>(`/api/premium/advanced/${key}`).then((season) => {
       dataErrors.delete(`advanced:${key}`);
       advancedData.set(key, season);
       advancedInflight.delete(key);
@@ -146,8 +185,29 @@ export function useAdvancedSeason(year: string | null): AdvancedSeason | undefin
 }
 
 export async function getPredictionsWeek(season: number | string, week: number | string): Promise<PredictionsWeek | null> {
-  const response = await fetch(`/data/predictions/${season}-${week}.json`, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
+  const path = `/api/premium/predictions/${season}/${week}`;
+  const response = await fetch(path, {
+    cache: "no-store",
+    credentials: "same-origin",
+    signal: AbortSignal.timeout(20000),
+  });
   if (response.status === 404) return null;
-  if (!response.ok) throw new Error("Predictions are temporarily unavailable");
-  return response.json() as Promise<PredictionsWeek>;
+  if (response.ok) return response.json() as Promise<PredictionsWeek>;
+
+  let payload: { code?: string; message?: string } = {};
+  try {
+    payload = (await response.json()) as { code?: string; message?: string };
+  } catch {
+    // Fall through to status-based messaging below.
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    throw new PremiumAccessError(
+      response.status,
+      payload.code ?? (response.status === 401 ? "SIGN_IN_REQUIRED" : "UPGRADE_REQUIRED"),
+      payload.message ?? "A GRID subscription is required to view Predictions."
+    );
+  }
+
+  throw new Error(payload.message ?? "Predictions are temporarily unavailable");
 }
