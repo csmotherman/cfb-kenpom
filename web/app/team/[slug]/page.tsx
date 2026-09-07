@@ -21,10 +21,10 @@ function signed(n: number | null | undefined, digits = 1): string {
 type SeasonRow = RankingsRow & { year: number; finalWeek: number; finalWeekLabel: string };
 
 const HISTORY_METRICS = [
-  ["adjEM", "Overall rating (AdjEM)"],
+  ["adjEM", "Overall rating (RPI)"],
   ["rank", "Overall rank"],
-  ["adjO", "Offense (AdjO)"],
-  ["adjD", "Defense (AdjD)"],
+  ["adjO", "Offense (RPI-O)"],
+  ["adjD", "Defense (RPI-D)"],
   ["sos", "Strength of schedule"],
 ] as const;
 
@@ -69,7 +69,7 @@ function TeamProfile({ slug }: { slug: string }) {
 
   useEffect(() => {
     if (latest) {
-      document.title = `${latest.team} Football Ratings — CollegeFootballFocus`;
+      document.title = `${latest.team} RPI | GRID`;
     }
   }, [latest]);
 
@@ -81,7 +81,7 @@ function TeamProfile({ slug }: { slug: string }) {
         <SiteHeader tagline="Opponent-Adjusted College Football Ratings" />
         <SiteNav />
         <main id="teamContent" className="container loading-state" aria-live="polite">Loading team history…</main>
-        <SiteFooter note="Records include completed FBS-vs-FBS games only. CollegeFootballFocus uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Research-stage metrics are labeled as such until their definitions are production-locked." />
+        <SiteFooter note="Records include completed FBS-vs-FBS games only. GRID uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Relative Performance Index (RPI) measures team performance relative to opponent expectations and adjusts for opponent strength." />
       </>
     );
   }
@@ -96,7 +96,7 @@ function TeamProfile({ slug }: { slug: string }) {
             Team not found. <Link href="/">Back to all ratings &rarr;</Link>
           </div>
         </main>
-        <SiteFooter note="Records include completed FBS-vs-FBS games only. CollegeFootballFocus uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Research-stage metrics are labeled as such until their definitions are production-locked." />
+        <SiteFooter note="Records include completed FBS-vs-FBS games only. GRID uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Relative Performance Index (RPI) measures team performance relative to opponent expectations and adjusts for opponent strength." />
       </>
     );
   }
@@ -131,7 +131,7 @@ function TeamProfile({ slug }: { slug: string }) {
             <span className="eyebrow">{latest.conf} · {latest.year} through {latest.finalWeekLabel}</span>
             <h1 className="team-hero__name">{latest.team}</h1>
             <div className="team-hero__current">
-              <b>{na(latest.rank) ? "—" : `#${latest.rank}`}</b> nationally &middot; <b>{latest.record}</b> &middot; AdjEM <b>{signed(latest.adjEM, 1)}</b>
+              <b>{na(latest.rank) ? "—" : `#${latest.rank}`}</b> nationally &middot; <b>{latest.record}</b> &middot; RPI <b>{signed(latest.adjEM, 1)}</b>
             </div>
           </div>
         </section>
@@ -143,9 +143,9 @@ function TeamProfile({ slug }: { slug: string }) {
           </div>
           <div className="snapshot-grid">
             {[
-              { label: "Overall", value: signed(latest.adjEM, 1), rank: latest.rank, detail: "AdjEM" },
-              { label: "Offense", value: signed(latest.adjO, 2), rank: latest.adjORank, detail: "AdjO" },
-              { label: "Defense", value: signed(latest.adjD, 2), rank: latest.adjDRank, detail: "AdjD" },
+              { label: "Overall", value: signed(latest.adjEM, 1), rank: latest.rank, detail: "RPI" },
+              { label: "Offense", value: signed(latest.adjO, 2), rank: latest.adjORank, detail: "RPI-O" },
+              { label: "Defense", value: signed(latest.adjD, 2), rank: latest.adjDRank, detail: "RPI-D" },
               { label: "Schedule", value: signed(latest.sos, 1), rank: latest.sosRank, detail: "SOS" },
             ].map((item) => (
               <div className="snapshot-card" key={item.label}>
@@ -179,16 +179,16 @@ function TeamProfile({ slug }: { slug: string }) {
 
           <div className="table-scroll history-table-scroll" role="region" aria-label={`${latest.team} season history`} tabIndex={0}>
             <table className="data-table" id="historyTable">
-              <caption className="sr-only">{latest.team} historical college football ratings</caption>
+              <caption className="sr-only">{latest.team} historical GRID RPI ratings</caption>
               <thead>
                 <tr>
                   <th scope="col" className="year-cell">Year</th>
                   <th scope="col" className="conf-cell">Conf</th>
                   <th scope="col" className="num record-cell">W-L</th>
                   <th scope="col" className={"num history-rank-cell" + (historyMetric === "rank" ? " mobile-selected-history-metric" : "")}>Rk</th>
-                  <th scope="col" className={"num history-metric-cell" + (historyMetric === "adjEM" ? " mobile-selected-history-metric" : "")}>AdjEM</th>
-                  <th scope="col" className={"num history-metric-cell" + (historyMetric === "adjO" ? " mobile-selected-history-metric" : "")}>AdjO</th>
-                  <th scope="col" className={"num history-metric-cell" + (historyMetric === "adjD" ? " mobile-selected-history-metric" : "")}>AdjD</th>
+                  <th scope="col" className={"num history-metric-cell" + (historyMetric === "adjEM" ? " mobile-selected-history-metric" : "")}>RPI</th>
+                  <th scope="col" className={"num history-metric-cell" + (historyMetric === "adjO" ? " mobile-selected-history-metric" : "")}>RPI-O</th>
+                  <th scope="col" className={"num history-metric-cell" + (historyMetric === "adjD" ? " mobile-selected-history-metric" : "")}>RPI-D</th>
                   <th scope="col" className={"num history-metric-cell" + (historyMetric === "sos" ? " mobile-selected-history-metric" : "")}>SOS</th>
                 </tr>
               </thead>
@@ -214,7 +214,7 @@ function TeamProfile({ slug }: { slug: string }) {
 
         <section className="adv-preview">
           <div className="adv-preview__heading">
-            <h2>Advanced CFF Analytics</h2>
+            <h2>GRID Pro</h2>
             <span className="adv-preview__badge">PRO</span>
           </div>
           <p className="adv-preview__note">Go beyond the overall rating and isolate how this team wins: efficiency, explosiveness, finishing drives, field position, pace and custom week ranges.</p>
@@ -228,13 +228,13 @@ function TeamProfile({ slug }: { slug: string }) {
               ))}
             </div>
             <div className="adv-preview__overlay">
-              <Link className="subscribe-btn" href="/advanced">Preview Advanced CFF</Link>
+              <Link className="subscribe-btn" href="/advanced">Preview GRID Pro</Link>
             </div>
           </div>
         </section>
       </main>
 
-      <SiteFooter note="Records include completed FBS-vs-FBS games only. CollegeFootballFocus uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Research-stage metrics are labeled as such until their definitions are production-locked." />
+      <SiteFooter note="Records include completed FBS-vs-FBS games only. GRID uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Relative Performance Index (RPI) measures team performance relative to opponent expectations and adjusts for opponent strength. RPI-O and RPI-D are the corresponding opponent-adjusted offensive and defensive performance measures." />
     </>
   );
 }
