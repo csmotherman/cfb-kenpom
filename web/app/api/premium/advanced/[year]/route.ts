@@ -1,7 +1,7 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { getCurrentEntitlements } from "@/lib/auth/entitlements";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { AdvancedSeason } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,31 +41,29 @@ export async function GET(
   }
 
   try {
-    const filePath = path.join(
-      process.cwd(),
-      "public",
-      "data",
-      "advanced",
-      `${year}.json`
-    );
-    const body = await readFile(filePath, "utf8");
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("premium_datasets")
+      .select("payload")
+      .eq("dataset_type", "advanced")
+      .eq("season", Number(year))
+      .eq("week", 0)
+      .maybeSingle();
 
-    return new NextResponse(body, {
-      status: 200,
-      headers: {
-        ...PRIVATE_HEADERS,
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    });
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    if (code === "ENOENT") {
+    if (error) throw error;
+    if (!data) {
       return NextResponse.json(
         { code: "NOT_FOUND", message: "Advanced analytics are not published for this season." },
         { status: 404, headers: PRIVATE_HEADERS }
       );
     }
-    console.error("Failed to read protected advanced analytics", error);
+
+    return NextResponse.json(data.payload as AdvancedSeason, {
+      status: 200,
+      headers: PRIVATE_HEADERS,
+    });
+  } catch (error) {
+    console.error("Failed to read private advanced analytics", error);
     return NextResponse.json(
       { code: "DATA_UNAVAILABLE", message: "Advanced analytics are temporarily unavailable." },
       { status: 500, headers: PRIVATE_HEADERS }

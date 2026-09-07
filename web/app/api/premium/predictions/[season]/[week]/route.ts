@@ -1,7 +1,6 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { getCurrentEntitlements } from "@/lib/auth/entitlements";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { PredictionsWeek } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -48,15 +47,24 @@ export async function GET(
   }
 
   try {
-    const filePath = path.join(
-      process.cwd(),
-      "public",
-      "data",
-      "predictions",
-      `${season}-${week}.json`
-    );
-    const raw = await readFile(filePath, "utf8");
-    const published = JSON.parse(raw) as PredictionsWeek;
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("premium_datasets")
+      .select("payload")
+      .eq("dataset_type", "predictions")
+      .eq("season", Number(season))
+      .eq("week", Number(week))
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return NextResponse.json(
+        { code: "NOT_FOUND", message: "Predictions are not published for this week." },
+        { status: 404, headers: PRIVATE_HEADERS }
+      );
+    }
+
+    const published = data.payload as PredictionsWeek;
     const totalGames = published.games.length;
     const isLimited = entitlements.predictions === "limited";
     const response: PredictionsWeek = {
@@ -77,14 +85,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    if (code === "ENOENT") {
-      return NextResponse.json(
-        { code: "NOT_FOUND", message: "Predictions are not published for this week." },
-        { status: 404, headers: PRIVATE_HEADERS }
-      );
-    }
-    console.error("Failed to read protected predictions", error);
+    console.error("Failed to read private predictions", error);
     return NextResponse.json(
       { code: "DATA_UNAVAILABLE", message: "Predictions are temporarily unavailable." },
       { status: 500, headers: PRIVATE_HEADERS }

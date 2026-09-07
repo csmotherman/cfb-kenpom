@@ -20,6 +20,8 @@ permissions:
 
 env:
   CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
+  SUPABASE_URL: https://wmlzqmtsxqqxuiekmrqm.supabase.co
+  SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
 
 jobs:
   refresh:
@@ -45,6 +47,8 @@ jobs:
               raise SystemExit('Season must be between 2014 and the current year')
           if not os.environ.get('CFBD_API_KEY'):
               raise SystemExit('Repository secret CFBD_API_KEY is required')
+          if not os.environ.get('SUPABASE_SECRET_KEY'):
+              raise SystemExit('Repository secret SUPABASE_SECRET_KEY is required for private premium publication')
           with open(os.environ['GITHUB_ENV'], 'a') as output:
               output.write(f'SEASON={season}\n')
           PY
@@ -86,12 +90,20 @@ jobs:
         run: python -m cfb_analytics.pipelines.build_canonical --season "$SEASON"
       - name: Compute ratings
         run: python -m cfb_analytics.pipelines.calculate_ratings --season "$SEASON"
+
+      # Historical premium data is private in Supabase. Hydrate it only into
+      # ignored runner files so the existing cross-table publication checks can
+      # validate the refreshed season without putting premium JSON back in Git.
+      - name: Hydrate private premium history
+        run: python scripts/hydrate_premium_data.py
       - name: Compile and validate current season
         run: python scripts/compile_site_data.py --season "$SEASON"
       - name: Export Next.js data
         run: python scripts/export_web_data.py
       - name: Audit every published season
         run: python scripts/validate_site_data.py
+      - name: Publish premium data to Supabase
+        run: python scripts/publish_premium_data.py --season "$SEASON"
 
       # GITHUB_TOKEN commits do not trigger other GitHub push workflows, so
       # validation must finish in this job before publication.
@@ -105,23 +117,28 @@ jobs:
       - run: npm run lint && npm run build
         working-directory: web
 
-      - name: Commit validated changes
+      - name: Remove private build artifacts
+        run: |
+          rm -f site/advanced-data.js
+          rm -rf web/public/data/advanced web/public/data/predictions
+
+      - name: Commit validated public changes
         id: publish
         env:
           TARGET_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "data/canonical/season=$SEASON" site/data.js site/advanced-data.js site/search-index.js web/public/data
+          git add "data/canonical/season=$SEASON" site/data.js site/search-index.js web/public/data
           if git diff --staged --quiet; then
-            echo "No data changes; skipping commit." >> "$GITHUB_STEP_SUMMARY"
+            echo "No public data changes; skipping commit." >> "$GITHUB_STEP_SUMMARY"
           else
             git commit -m "Refresh $SEASON ratings ($(date -u +%Y-%m-%d))"
             git fetch origin "$TARGET_BRANCH"
             git rebase "origin/$TARGET_BRANCH"
             git push origin "HEAD:$TARGET_BRANCH"
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Published validated $SEASON ratings." >> "$GITHUB_STEP_SUMMARY"
+            echo "Published validated $SEASON public ratings; premium data stayed in Supabase." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       # Optional after Vercel is connected. A deploy hook avoids depending on

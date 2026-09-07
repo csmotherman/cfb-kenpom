@@ -1,6 +1,6 @@
 # GRID Stripe billing
 
-GRID uses Stripe Checkout + Stripe Billing for paid subscriptions and Supabase for account entitlements.
+GRID uses Stripe Checkout + Stripe Billing for paid subscriptions and Supabase for account entitlements and private premium datasets.
 
 ## Plans
 
@@ -26,6 +26,8 @@ SUPABASE_SECRET_KEY=sb_secret_...
 
 Use `sk_test_...` and test-mode Price IDs until the complete checkout/webhook flow has been verified. Do not commit any secret values.
 
+The scheduled GitHub data refresh also requires a repository Actions secret named `SUPABASE_SECRET_KEY`. The Supabase project URL is non-secret and is already configured in the workflow. Premium files generated during the refresh are hydrated only on the runner, uploaded to Supabase, then deleted before any Git commit.
+
 ## Webhook
 
 Configure Stripe to send webhook events to:
@@ -47,7 +49,7 @@ The webhook is authoritative. The browser never directly grants itself Pro acces
 
 ## Premium data enforcement
 
-Advanced Analytics and Predictions are now checked on the server against the signed-in user's Supabase subscription record.
+Advanced Analytics and Predictions are checked on the server against the signed-in user's Supabase subscription record, then loaded from the private `premium_datasets` table with the server-only Supabase secret key. The table has RLS enabled and grants no direct access to `anon` or `authenticated` roles.
 
 Protected routes:
 
@@ -63,9 +65,9 @@ Access rules:
 - active/trialing GRID Pro: Advanced Analytics + the configured limited predictions preview
 - active/trialing GRID Pro+: Advanced Analytics + all published predictions
 
-Legacy URLs under `/data/advanced/*.json` and `/data/predictions/*.json` are intercepted by Next.js Proxy and rewritten into those entitlement-checked routes, so the deployed site cannot use the old static URLs as a paywall bypass. Premium responses use `private, no-store` caching.
+Legacy URLs under `/data/advanced/*.json` and `/data/predictions/*.json` are intercepted by Next.js Proxy and rewritten into those entitlement-checked routes. Premium responses use `private, no-store` caching.
 
-The source repository is currently public. Any premium dataset committed to that public GitHub repository remains retrievable from GitHub itself even though the deployed website blocks direct access. Before treating the data as proprietary, move generated premium datasets to private storage/database infrastructure or make the data-bearing repository private.
+Premium JSON is no longer kept in the current public branch. `site/advanced-data.js`, `web/public/data/advanced/`, and `web/public/data/predictions/` are gitignored so future refreshes do not accidentally republish them. Because the repository was already public before this migration, deleted files can still exist in old Git commit history until that history is rewritten or the repository is made private.
 
 ## Trial behavior
 
@@ -79,12 +81,13 @@ The Checkout Session collects a payment method by default. An eligible first-tim
 
 1. Create and test both products/prices in Stripe test mode.
 2. Set test-mode environment variables in the deployment environment.
-3. Register the webhook endpoint and save its signing secret.
-4. Run a full test: new GRID account → Checkout → trialing access → protected data → portal → cancel/update → access sync.
-5. Confirm signed-out and free accounts receive 401/403 responses from premium API routes.
-6. Confirm the legacy `/data/advanced/...` and `/data/predictions/...` URLs cannot bypass entitlement checks.
-7. Confirm duplicate-trial protection.
-8. Move proprietary premium datasets out of the public GitHub repository before relying on repository secrecy.
-9. Create the equivalent live-mode prices.
-10. Replace only the Stripe keys/price IDs/webhook secret with live values.
-11. Run a low-risk live checkout before announcing paid access.
+3. Add `SUPABASE_SECRET_KEY` to GitHub Actions repository secrets so scheduled premium publication can run.
+4. Register the webhook endpoint and save its signing secret.
+5. Run a full test: new GRID account → Checkout → trialing access → protected data → portal → cancel/update → access sync.
+6. Confirm signed-out and free accounts receive 401/403 responses from premium API routes.
+7. Confirm the legacy `/data/advanced/...` and `/data/predictions/...` URLs cannot bypass entitlement checks.
+8. Confirm duplicate-trial protection.
+9. Confirm the refresh workflow uploads premium data to Supabase without committing ignored premium artifacts.
+10. Create the equivalent live-mode prices.
+11. Replace only the Stripe keys/price IDs/webhook secret with live values.
+12. Run a low-risk live checkout before announcing paid access.

@@ -3,14 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
 
-  // The protected API routes read the published JSON from disk after checking
-  // the signed-in user's Supabase entitlement. Include those files in the
-  // serverless bundles even though their filenames are selected dynamically.
-  outputFileTracingIncludes: {
-    "/api/premium/advanced/*": ["./public/data/advanced/**/*.json"],
-    "/api/premium/predictions/*": ["./public/data/predictions/**/*.json"],
-  },
-
   async headers() {
     return [
       {

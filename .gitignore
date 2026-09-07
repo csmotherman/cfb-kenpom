@@ -12,3 +12,9 @@ node_modules/
 !.env.example
 .vercel/
 *.tsbuildinfo
+
+# Premium datasets are hydrated only inside trusted build jobs.
+# Never commit these files to the public repository.
+site/advanced-data.js
+web/public/data/advanced/
+web/public/data/predictions/
