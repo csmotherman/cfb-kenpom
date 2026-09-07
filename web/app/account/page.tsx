@@ -5,6 +5,10 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import { updateDisplayName } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase/server";
+import {
+  configuredTrialDays,
+  stripeBillingConfigured,
+} from "@/lib/stripe/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -14,13 +18,26 @@ export const metadata: Metadata = {
 };
 
 type AccountPageProps = {
-  searchParams: Promise<{ error?: string; message?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    message?: string;
+    checkout?: string;
+  }>;
 };
 
 function planLabel(plan: string) {
   if (plan === "pro_plus") return "GRID Pro+";
   if (plan === "pro") return "GRID Pro";
   return "Free";
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 export default async function AccountPage({ searchParams }: AccountPageProps) {
@@ -37,12 +54,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const [{ data: profile }, { data: subscription }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("display_name,email")
+      .select("display_name,email,trial_used_at")
       .eq("id", userId)
       .maybeSingle(),
     supabase
       .from("subscriptions")
-      .select("plan,status,trial_end,current_period_end,cancel_at_period_end")
+      .select(
+        "plan,status,stripe_customer_id,stripe_subscription_id,trial_end,current_period_end,cancel_at_period_end"
+      )
       .eq("user_id", userId)
       .maybeSingle(),
   ]);
@@ -60,6 +79,20 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         : "Locked";
   const email = profile?.email ?? (typeof claims?.email === "string" ? claims.email : "");
   const displayName = profile?.display_name ?? "";
+  const billingConfigured = stripeBillingConfigured();
+  const trialDays = configuredTrialDays();
+  const trialEligible = trialDays > 0 && !profile?.trial_used_at;
+  const canStartCheckout = status === "inactive" || status === "canceled";
+  const canManageBilling = Boolean(
+    billingConfigured && subscription?.stripe_customer_id
+  );
+
+  const checkoutMessage =
+    params.checkout === "success"
+      ? "Stripe checkout completed. Your GRID access will sync from the verified Stripe webhook."
+      : params.checkout === "canceled"
+        ? "Checkout canceled. Nothing was charged."
+        : null;
 
   return (
     <>
@@ -78,6 +111,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
             {params.error ? <p className="auth-alert auth-alert--error">{params.error}</p> : null}
             {params.message ? <p className="auth-alert auth-alert--success">{params.message}</p> : null}
+            {checkoutMessage ? <p className="auth-alert auth-alert--success">{checkoutMessage}</p> : null}
 
             <dl className="account-details">
               <div>
@@ -90,12 +124,23 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               </div>
               <div>
                 <dt>Status</dt>
-                <dd>{status === "inactive" ? "Free account" : status.replaceAll("_", " ")}</dd>
+                <dd>
+                  {status === "inactive"
+                    ? "Free account"
+                    : subscription?.cancel_at_period_end && status === "active"
+                      ? "Active · cancels at period end"
+                      : status.replaceAll("_", " ")}
+                </dd>
               </div>
               {subscription?.trial_end ? (
                 <div>
                   <dt>Trial ends</dt>
-                  <dd>{new Date(subscription.trial_end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}</dd>
+                  <dd>{formatDate(subscription.trial_end)}</dd>
+                </div>
+              ) : subscription?.current_period_end ? (
+                <div>
+                  <dt>Current period ends</dt>
+                  <dd>{formatDate(subscription.current_period_end)}</dd>
                 </div>
               ) : null}
             </dl>
@@ -121,7 +166,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             <div className="account-section">
               <div className="account-section__heading">
                 <h2>Access</h2>
-                <span>Access levels are read from your GRID account record.</span>
+                <span>Access levels are synced from Stripe into your GRID account.</span>
               </div>
               <div className="entitlement-list">
                 <div className="entitlement-row">
@@ -141,8 +186,62 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                   </b>
                 </div>
               </div>
+            </div>
+
+            <div className="account-section">
+              <div className="account-section__heading">
+                <h2>Billing</h2>
+                <span>Secure checkout and subscription management are hosted by Stripe.</span>
+              </div>
+
+              {canStartCheckout ? (
+                <div className="billing-plan-grid">
+                  <article className="billing-plan-card">
+                    <div>
+                      <span className="billing-plan-card__eyebrow">GRID Pro</span>
+                      <h3>Advanced analytics</h3>
+                      <p>Unlock the advanced team analytics table plus limited weekly predictions.</p>
+                      {trialEligible ? <small>{trialDays}-day trial available for eligible new subscribers.</small> : null}
+                    </div>
+                    <form action="/api/stripe/checkout" method="post">
+                      <input type="hidden" name="plan" value="pro" />
+                      <button className="auth-button billing-button" type="submit" disabled={!billingConfigured}>
+                        Start GRID Pro
+                      </button>
+                    </form>
+                  </article>
+
+                  <article className="billing-plan-card billing-plan-card--plus">
+                    <div>
+                      <span className="billing-plan-card__eyebrow">GRID Pro+</span>
+                      <h3>Full model access</h3>
+                      <p>Everything in GRID Pro plus complete access to weekly model predictions.</p>
+                      {trialEligible ? <small>{trialDays}-day trial available for eligible new subscribers.</small> : null}
+                    </div>
+                    <form action="/api/stripe/checkout" method="post">
+                      <input type="hidden" name="plan" value="pro_plus" />
+                      <button className="auth-button billing-button" type="submit" disabled={!billingConfigured}>
+                        Start GRID Pro+
+                      </button>
+                    </form>
+                  </article>
+                </div>
+              ) : null}
+
+              {canManageBilling ? (
+                <form className="billing-manage" action="/api/stripe/portal" method="post">
+                  <div>
+                    <strong>Stripe customer portal</strong>
+                    <span>Manage payment details, cancellation, and available plan changes.</span>
+                  </div>
+                  <button className="auth-button auth-button--secondary" type="submit">Manage billing</button>
+                </form>
+              ) : null}
+
               <p className="account-billing-note">
-                Billing is not connected yet. Creating a GRID account does not start a trial or charge you.
+                {billingConfigured
+                  ? "Payment details are handled by Stripe. GRID stores subscription identifiers and access status, not raw card numbers."
+                  : "Stripe billing code is installed, but checkout stays disabled until the Stripe products, price IDs, webhook secret, and server secrets are configured."}
               </p>
             </div>
 
@@ -152,7 +251,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </section>
         </div>
       </main>
-      <SiteFooter note="Account access is backed by Supabase authentication and row-level security. Paid billing will be connected separately." />
+      <SiteFooter note="GRID accounts use Supabase authentication. Paid subscription state is synchronized from Stripe webhooks into row-level-secured account records." />
     </>
   );
 }
