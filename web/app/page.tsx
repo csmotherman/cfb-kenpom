@@ -39,6 +39,15 @@ function statText(value: number | null, useSign: boolean, decimals: number) {
   return useSign ? (value >= 0 ? "+" : "") + value.toFixed(decimals) : value.toFixed(decimals);
 }
 
+function ordinal(n: number) {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  if (n % 10 === 1) return `${n}st`;
+  if (n % 10 === 2) return `${n}nd`;
+  if (n % 10 === 3) return `${n}rd`;
+  return `${n}th`;
+}
+
 export default function RatingsPage() {
   const [years, setYears] = useState<number[]>([]);
   const [year, setYear] = useState<string>("");
@@ -108,7 +117,12 @@ export default function RatingsPage() {
     const needle = filter.trim().toLowerCase();
     let out = rows;
     if (needle) out = out.filter((t) => t.team.toLowerCase().includes(needle));
-    if (conference) out = out.filter((t) => t.conf === conference);
+    if (conference === "G5") {
+      const power = new Set(["B1G", "SEC", "ACC", "B12", "Big Ten", "Big 12"]);
+      out = out.filter((t) => !power.has(t.conf));
+    } else if (conference) {
+      out = out.filter((t) => t.conf === conference);
+    }
     const dir = sortDir === "asc" ? 1 : -1;
     out = out.slice().sort((a, b) => {
       const av = (a as Record<string, unknown>)[sortKey] as string | number | null;
@@ -157,7 +171,7 @@ export default function RatingsPage() {
           <span className="eyebrow">CFF Ratings</span>
           <h1 id="ratingsTitle">{year ? `${year} College Football Ratings` : "College Football Ratings"}</h1>
           <p className="ratings-hero__description">
-            A schedule-adjusted view of how strong every FBS team has actually played, updated week by week from real game results.
+            Opponent-adjusted team ratings through {week ? weekLabel(Number(week), true) : "the latest week"}.
           </p>
         </div>
         <div className="ratings-hero__meta">
@@ -167,84 +181,61 @@ export default function RatingsPage() {
         </div>
       </section>
 
-      <div className="control-bar">
-        <div className="control-bar__inner">
-          <span className="control-label">Season</span>
-          <nav className="year-nav" aria-label="Season">
-            {years.map((y) => (
-              <button
-                key={y}
-                type="button"
-                className={String(y) === year ? "active" : undefined}
-                aria-label={`${y} season`}
-                onClick={() => {
-                  setYear(String(y));
-                  setConference("");
-                }}
-              >
-                {y}
-              </button>
-            ))}
-          </nav>
-
-          <div className="filter-box">
-            <label className="sr-only" htmlFor="filterInput">Search ratings</label>
-            <input
-              id="filterInput"
-              type="search"
-              placeholder="Search team…"
-              autoComplete="off"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            />
-          </div>
-
-          <div className="conference-filter">
-            <label className="sr-only" htmlFor="conferenceSelect">Conference</label>
-            <select
-              id="conferenceSelect"
-              aria-label="Filter by conference"
-              value={conference}
-              onChange={(e) => setConference(e.target.value)}
+      <section className="mockup-controls container" aria-label="Ratings filters">
+        <div className="conference-pills" role="group" aria-label="Conference">
+          {[
+            ["", "All"],
+            ["B1G", "B1G"],
+            ["SEC", "SEC"],
+            ["ACC", "ACC"],
+            ["B12", "B12"],
+            ["G5", "G5"],
+          ].map(([value, label]) => (
+            <button
+              key={label}
+              type="button"
+              className={conference === value ? "active" : undefined}
+              onClick={() => setConference(value)}
             >
-              <option value="">All conferences</option>
-              {conferences.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mockup-select-row">
+          <label className="mockup-select">
+            <span className="sr-only">Season</span>
+            <select
+              value={year}
+              onChange={(e) => {
+                setYear(e.target.value);
+                setConference("");
+              }}
+              aria-label="Season"
+            >
+              {years.map((y) => <option key={y} value={String(y)}>{y} Season</option>)}
+            </select>
+          </label>
+
+          <label className="mockup-select">
+            <span className="sr-only">Through week</span>
+            <select
+              value={week}
+              onChange={(e) => {
+                setWeek(e.target.value);
+                setConference("");
+              }}
+              aria-label="Through week"
+            >
+              {weeks.map((w) => (
+                <option key={w} value={String(w)}>Through {weekLabel(w, true)}</option>
               ))}
             </select>
-          </div>
+          </label>
 
-          <span className="row-count" aria-live="polite">
-            {isFiltered ? `${filtered.length} of ${total} teams` : `${total} teams`}
-          </span>
+          <span className="mockup-updated">Updated<br />Sep 7, 2026</span>
         </div>
-
-        <div className="control-bar__inner control-bar__inner--secondary">
-          <span className="control-label">Week</span>
-          <nav className="week-nav" aria-label="Week">
-            {weeks.map((w) => {
-              const label = weekLabel(w);
-              return (
-                <button
-                  key={w}
-                  type="button"
-                  className={String(w) === week ? "active" : undefined}
-                  aria-label={label}
-                  onClick={() => {
-                    setWeek(String(w));
-                    setConference("");
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </nav>
-          <p className="control-help">
-            Week 0 is opening-week data. Tap or click a metric header to sort. National rank for AdjO, AdjD and SOS appears in parentheses.
-          </p>
-        </div>
-      </div>
+      </section>
 
       <div className="mobile-table-tools container" aria-label="Mobile table display options">
         <label className="mobile-table-tools__label" htmlFor="mobileMetricSelect">Compare</label>
@@ -279,7 +270,7 @@ export default function RatingsPage() {
                 {COLUMNS.slice(1, 3).map((col) => (
                   <HeaderCell key={col.key} col={col} sortKey={sortKey} sortDir={sortDir} onClick={onHeaderClick} />
                 ))}
-                <th scope="col" className="num record-cell">W-L</th>
+                <th scope="col" className="num record-cell">REC</th>
                 {COLUMNS.slice(3).map((col) => (
                   <HeaderCell key={col.key} col={col} sortKey={sortKey} sortDir={sortDir} onClick={onHeaderClick} />
                 ))}
@@ -306,13 +297,16 @@ export default function RatingsPage() {
                     <td className="num rank-cell">{t.rank === null ? "—" : t.rank}</td>
                     {deltaCell(t.rank === null ? undefined : t.rankChange)}
                     <td className="team-cell">
-                      <TeamLink team={t.team} teamId={t.teamId} slug={t.slug} />
+                      <div className="team-cell-stack">
+                        <TeamLink team={t.team} teamId={t.teamId} slug={t.slug} />
+                        <span className="team-conf-label">{t.conf}</span>
+                      </div>
                     </td>
                     <td className="conf-cell">{t.conf}</td>
                     <td className="num record-cell">{t.record}</td>
                     <StatCell value={t.adjEM} primary useSign decimals={1} metricKey="adjEM" mobileMetric={mobileMetric} />
-                    <StatCell value={t.adjO} rank={t.adjORank} useSign decimals={2} metricKey="adjO" mobileMetric={mobileMetric} />
-                    <StatCell value={t.adjD} rank={t.adjDRank} useSign decimals={2} metricKey="adjD" mobileMetric={mobileMetric} />
+                    <StatCell value={t.adjO} rank={t.adjORank} useSign decimals={1} metricKey="adjO" mobileMetric={mobileMetric} />
+                    <StatCell value={t.adjD} rank={t.adjDRank} useSign decimals={1} metricKey="adjD" mobileMetric={mobileMetric} />
                     <StatCell value={t.sos} rank={t.sosRank} useSign decimals={1} metricKey="sos" mobileMetric={mobileMetric} />
                     <StatCell value={t.sor} rank={t.sorRank} useSign decimals={1} metricKey="sor" mobileMetric={mobileMetric} />
                   </tr>
@@ -386,7 +380,7 @@ function StatCell({
       data-metric-key={metricKey}
     >
       {statText(value, useSign, decimals)}
-      {!na(rank) ? <span className="rank-sub">({rank})</span> : null}
+      {!na(rank) ? <span className="rank-sub">{ordinal(rank)}</span> : null}
     </td>
   );
 }
