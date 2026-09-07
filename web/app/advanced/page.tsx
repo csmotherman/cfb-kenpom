@@ -7,7 +7,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
-import { getMeta, getAdvancedSeason } from "@/lib/data";
+import { getMeta, prefetchAllAdvanced, useAdvancedSeason } from "@/lib/data";
 import type { AdvancedRow } from "@/lib/types";
 
 function na(v: unknown): v is null | undefined {
@@ -97,15 +97,16 @@ type Aggregated = {
   [key: string]: unknown;
 };
 
+// Stable empty fallbacks -- `season?.weeks ?? []` would otherwise create a
+// new array/object every render while unloaded, defeating memoization below.
+const EMPTY_WEEKS: number[] = [];
+const EMPTY_BY_WEEK: Record<string, AdvancedRow[]> = {};
+
 export default function AdvancedPage() {
   const [years, setYears] = useState<number[]>([]);
   const [year, setYear] = useState<string>("");
-  const [weeks, setWeeks] = useState<number[]>([]);
   const [startWeek, setStartWeek] = useState<number | null>(null);
   const [endWeek, setEndWeek] = useState<number | null>(null);
-  const [seasonByWeek, setSeasonByWeek] = useState<Record<string, AdvancedRow[]>>({});
-  const [snapshotBySlug, setSnapshotBySlug] = useState<Record<string, AdvancedRow>>({});
-  const [loadedYear, setLoadedYear] = useState<string | null>(null);
   const [tab, setTab] = useState<keyof typeof TABS>("general");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -116,25 +117,47 @@ export default function AdvancedPage() {
     getMeta().then((meta) => {
       setYears(meta.advancedYears);
       setYear(String(meta.advancedYears[meta.advancedYears.length - 1]));
+      // Each season is a ~1MB JSON file -- load them all in the background up
+      // front so switching seasons later reads from cache instantly.
+      prefetchAllAdvanced(meta.advancedYears);
     });
   }, []);
 
-  useEffect(() => {
-    if (!year) return;
-    getAdvancedSeason(year).then((season) => {
-      setWeeks(season.weeks);
-      setStartWeek(season.weeks[0]);
-      setEndWeek(season.weeks[season.weeks.length - 1]);
-      setSeasonByWeek(season.byWeek);
-      const endRows = season.byWeek[String(season.weeks[season.weeks.length - 1])] || [];
-      const snap: Record<string, AdvancedRow> = {};
-      endRows.forEach((r) => (snap[r.slug] = r));
-      setSnapshotBySlug(snap);
-      setLoadedYear(year);
-    });
-  }, [year]);
+  // Reads the cache reactively: renders instantly whenever this season was
+  // already prefetched or previously viewed, with no fetch or flicker.
+  const season = useAdvancedSeason(year || null);
+  const loading = !season;
+  const weeks = season?.weeks ?? EMPTY_WEEKS;
+  const seasonByWeek = season?.byWeek ?? EMPTY_BY_WEEK;
 
-  const loading = loadedYear !== year;
+  // Postseason site-weeks are named by CFBD's own playoff round (e.g. "CFP
+  // Semifinal") instead of just numbered -- see lib/types.ts's WeekLabels.
+  function weekLabel(w: number): string {
+    return season?.weekLabels?.[String(w)] || `Week ${w}`;
+  }
+  function weekRangeLabel(start: number, end: number): string {
+    if (start === end) return weekLabel(start);
+    return `${weekLabel(start)}–${weekLabel(end)}`;
+  }
+
+  const snapshotBySlug = useMemo(() => {
+    if (!season) return {};
+    const endRows = season.byWeek[String(season.weeks[season.weeks.length - 1])] || [];
+    const snap: Record<string, AdvancedRow> = {};
+    endRows.forEach((r) => (snap[r.slug] = r));
+    return snap;
+  }, [season]);
+
+  // Switching years always resets to the full week range, matching the
+  // original site. Adjusted during render rather than in an effect (React's
+  // documented pattern for this) so it applies the instant `season` is
+  // available -- no extra render, no flicker.
+  const [rangeYear, setRangeYear] = useState(year);
+  if (year !== rangeYear && season) {
+    setRangeYear(year);
+    setStartWeek(season.weeks[0]);
+    setEndWeek(season.weeks[season.weeks.length - 1]);
+  }
 
   const teams = useMemo<Aggregated[]>(() => {
     if (startWeek === null || endWeek === null) return [];
@@ -296,7 +319,7 @@ export default function AdvancedPage() {
               />
             </div>
             <span className="row-count" aria-live="polite">
-              {visibleTeams.length} {visibleTeams.length === 1 ? "team" : "teams"} · Wk {startWeek}–{endWeek} ({selectedWeekCount} {selectedWeekCount === 1 ? "week" : "weeks"})
+              {visibleTeams.length} {visibleTeams.length === 1 ? "team" : "teams"} · {startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : ""} ({selectedWeekCount} {selectedWeekCount === 1 ? "week" : "weeks"})
             </span>
           </div>
 
@@ -314,7 +337,7 @@ export default function AdvancedPage() {
                 }}
               >
                 {weeks.map((w) => (
-                  <option key={w} value={w}>Week {w}</option>
+                  <option key={w} value={w}>{weekLabel(w)}</option>
                 ))}
               </select>
               <span className="week-range__sep">&ndash;</span>
@@ -329,7 +352,7 @@ export default function AdvancedPage() {
                 }}
               >
                 {weeks.map((w) => (
-                  <option key={w} value={w}>Week {w}</option>
+                  <option key={w} value={w}>{weekLabel(w)}</option>
                 ))}
               </select>
             </div>
@@ -463,7 +486,7 @@ export default function AdvancedPage() {
           </div>
         </aside>
 
-        <SiteFooter note="Advanced CFF combines selected-range rate statistics with end-week opponent-adjusted model snapshots. Special teams and SOR remain blank until validated definitions and sources are locked." />
+        <SiteFooter note="Advanced CFF combines selected-range rate statistics with end-week opponent-adjusted model snapshots. Special teams remains blank until a real source and validated definition are added." />
       </div>
     </>
   );

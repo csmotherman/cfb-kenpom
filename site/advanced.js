@@ -1,9 +1,22 @@
 (function () {
   var YEARS = window.CFF_ADV_YEARS || [];
   var WEEKS = window.CFF_ADV_WEEKS || {};
+  var WEEK_LABELS = window.CFF_ADV_WEEK_LABELS || {};
 
   function weeksForYear(year) {
     return WEEKS[String(year)] || [];
+  }
+
+  function weekLabel(year, week) {
+    var yearLabels = WEEK_LABELS[String(year)] || {};
+    return yearLabels[String(week)] || ("Week " + week);
+  }
+
+  function weekRangeLabel(year, startWeek, endWeek) {
+    var startLabel = weekLabel(year, startWeek);
+    var endLabel = weekLabel(year, endWeek);
+    if (startWeek === endWeek) return startLabel;
+    return startLabel + "–" + endLabel;
   }
 
   function na(v) {
@@ -156,7 +169,7 @@
       weeks.forEach(function (w) {
         var opt = document.createElement("option");
         opt.value = String(w);
-        opt.textContent = "Week " + w;
+        opt.textContent = weekLabel(state.year, w);
         sel.appendChild(opt);
       });
     });
@@ -438,7 +451,7 @@
       return w >= state.startWeek && w <= state.endWeek;
     });
     rowCount.textContent = rows.length + (rows.length === 1 ? " team" : " teams") +
-      " · Wk " + state.startWeek + "–" + state.endWeek +
+      " · " + weekRangeLabel(state.year, state.startWeek, state.endWeek) +
       " (" + weeks.length + (weeks.length === 1 ? " week" : " weeks") + ")";
 
     updateHeaderIndicators();

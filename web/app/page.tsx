@@ -6,8 +6,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
-import { getMeta, getRankingsSeason } from "@/lib/data";
-import type { RankingsRow } from "@/lib/types";
+import { getMeta, prefetchAllRankings, useRankingsSeason } from "@/lib/data";
 import Link from "next/link";
 
 type Column = {
@@ -28,7 +27,7 @@ const COLUMNS: Column[] = [
   { key: "adjO", label: "AdjO", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Research-stage schedule-adjusted offensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
   { key: "adjD", label: "AdjD", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Research-stage schedule-adjusted defensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
   { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Strength of schedule: average SRS strength of opponents played through the selected week." },
-  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record is intentionally blank until a validated methodology is locked." },
+  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like AdjEM. Higher is better." },
 ];
 
 function na(v: unknown): v is null | undefined {
@@ -43,10 +42,7 @@ function statText(value: number | null, useSign: boolean, decimals: number) {
 export default function RatingsPage() {
   const [years, setYears] = useState<number[]>([]);
   const [year, setYear] = useState<string>("");
-  const [weeks, setWeeks] = useState<number[]>([]);
   const [week, setWeek] = useState<string>("");
-  const [seasonCache, setSeasonCache] = useState<Record<string, RankingsRow[]>>({});
-  const [loadedYear, setLoadedYear] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<Column["key"]>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filter, setFilter] = useState("");
@@ -67,21 +63,40 @@ export default function RatingsPage() {
     getMeta().then((meta) => {
       setYears(meta.rankingsYears);
       setYear(String(meta.rankingsYears[meta.rankingsYears.length - 1]));
+      // Every season is a ~1MB JSON file -- small enough to just load them
+      // all in the background up front, so clicking any year later reads
+      // from cache instantly instead of waiting on a fetch.
+      prefetchAllRankings(meta.rankingsYears);
     });
   }, []);
 
-  useEffect(() => {
-    if (!year) return;
-    getRankingsSeason(year).then((season) => {
-      setWeeks(season.weeks);
-      setSeasonCache(season.byWeek);
-      setLoadedYear(year);
-      setWeek(String(season.weeks[season.weeks.length - 1]));
-    });
-  }, [year]);
+  // Reads the cache reactively: renders instantly (no fetch, no flicker)
+  // whenever this season was already prefetched or previously viewed.
+  const season = useRankingsSeason(year || null);
+  const loading = !season;
+  const weeks = season?.weeks ?? [];
 
-  const loading = loadedYear !== year;
-  const rows = useMemo(() => (loading ? [] : seasonCache[week] || []), [loading, seasonCache, week]);
+  // Postseason site-weeks are named by CFBD's own playoff round (e.g. "CFP
+  // Semifinal") instead of just numbered -- see lib/types.ts's WeekLabels.
+  function weekLabel(w: number, long = false): string {
+    const label = season?.weekLabels?.[String(w)];
+    if (label) return label;
+    return long ? `Week ${w}` : `Wk ${w}`;
+  }
+
+  // Switching years always jumps to that season's last week, matching the
+  // original site. Adjusted during render (React's documented pattern for
+  // resetting state when a dependency changes) rather than in an effect, so
+  // it applies in the same pass -- no extra render, no flicker -- the moment
+  // `season` is available, which (thanks to prefetching) is usually already
+  // true the instant `year` changes.
+  const [weekYear, setWeekYear] = useState(year);
+  if (year !== weekYear && season) {
+    setWeekYear(year);
+    setWeek(String(season.weeks[season.weeks.length - 1]));
+  }
+
+  const rows = useMemo(() => (season && week ? season.byWeek[week] || [] : []), [season, week]);
 
   const conferences = useMemo(() => {
     const set = new Set<string>();
@@ -147,7 +162,7 @@ export default function RatingsPage() {
         </div>
         <div className="ratings-hero__meta">
           <span className="ratings-status">
-            {loading ? "Loading season…" : `${year} · through Week ${week} · ${total} teams`}
+            {loading ? "Loading season…" : `${year} · through ${weekLabel(Number(week), true)} · ${total} teams`}
           </span>
         </div>
       </section>
@@ -207,20 +222,23 @@ export default function RatingsPage() {
         <div className="control-bar__inner control-bar__inner--secondary">
           <span className="control-label">Week</span>
           <nav className="week-nav" aria-label="Week">
-            {weeks.map((w) => (
-              <button
-                key={w}
-                type="button"
-                className={String(w) === week ? "active" : undefined}
-                aria-label={`Week ${w}`}
-                onClick={() => {
-                  setWeek(String(w));
-                  setConference("");
-                }}
-              >
-                Wk {w}
-              </button>
-            ))}
+            {weeks.map((w) => {
+              const label = weekLabel(w);
+              return (
+                <button
+                  key={w}
+                  type="button"
+                  className={String(w) === week ? "active" : undefined}
+                  aria-label={label}
+                  onClick={() => {
+                    setWeek(String(w));
+                    setConference("");
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </nav>
           <p className="control-help">
             Week 0 is opening-week data. Tap or click a metric header to sort. National rank for AdjO, AdjD and SOS appears in parentheses.
@@ -313,7 +331,7 @@ export default function RatingsPage() {
         <Link className="premium-teaser__link" href="/advanced">Explore Advanced</Link>
       </aside>
 
-      <SiteFooter note="CollegeFootballFocus uses real game data. AdjEM is the site's schedule-adjusted SRS strength rating. AdjO/AdjD are research-stage opponent-adjusted efficiency measures; SOR remains intentionally blank until a validated definition is locked." />
+      <SiteFooter note="CollegeFootballFocus uses real game data. AdjEM is the site's schedule-adjusted SRS strength rating. AdjO/AdjD are research-stage opponent-adjusted efficiency measures. SOR is wins above an average team on the same schedule -- a résumé measure, separate from AdjEM's performance measure." />
     </>
   );
 }

@@ -17,8 +17,14 @@ export type RankingsRow = {
   rankChange: number | null;
 };
 
+// Site-week -> human label, for any week that isn't just "Week N" -- e.g.
+// "17": "CFP Semifinal". Grouped by CFBD's own playoff round field, not by
+// date gaps, so postseason weeks are named correctly instead of numbered.
+export type WeekLabels = Record<string, string>;
+
 export type RankingsSeason = {
   weeks: number[];
+  weekLabels: WeekLabels;
   byWeek: Record<string, RankingsRow[]>;
 };
 
@@ -42,6 +48,7 @@ export type AdvancedRow = {
 
 export type AdvancedSeason = {
   weeks: number[];
+  weekLabels: WeekLabels;
   byWeek: Record<string, AdvancedRow[]>;
 };
 

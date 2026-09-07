@@ -40,11 +40,12 @@ def load_existing_site_data():
         read_js_assignment(main_path, "CFB_DATA") or {},
         read_js_assignment(adv_path, "CFF_ADV_WEEKS") or {},
         read_js_assignment(adv_path, "CFF_ADV_DATA") or {},
+        read_js_assignment(main_path, "CFB_WEEK_LABELS") or {},
     )
 
 
 def build_season_payload(year):
-    weeks = build_year(year)
+    weeks, week_labels = build_year(year)
     if not weeks:
         return None
 
@@ -73,6 +74,7 @@ def build_season_payload(year):
         assign_rank(rows, "offYardsPerPlay", "adjORank")
         assign_rank(rows, "defYardsPerPlay", "adjDRank", reverse=True)
         assign_rank(rows, "sos", "sosRank")
+        assign_rank(rows, "sor", "sorRank")
 
         main_rows = []
         adv_rows = []
@@ -91,7 +93,7 @@ def build_season_payload(year):
                 "adjEM": r["cff"], "adjO": r["offYardsPerPlay"], "adjD": r["defYardsPerPlay"],
                 "adjORank": r["adjORank"], "adjDRank": r["adjDRank"],
                 "sos": r["sos"], "sosRank": r["sosRank"],
-                "sor": None, "sorRank": None,
+                "sor": r["sor"], "sorRank": r["sorRank"],
                 "rankChange": rank_change,
             })
 
@@ -114,7 +116,7 @@ def build_season_payload(year):
         f"season {year}: weeks {week_nums[0]}-{week_nums[-1]}, "
         f"{len(latest_rows)} teams, {rated_count} rated in final week"
     )
-    return week_nums, season_main, season_adv
+    return week_nums, season_main, season_adv, week_labels
 
 
 def main():
@@ -127,10 +129,10 @@ def main():
     args = parser.parse_args()
 
     if args.season:
-        main_weeks, main_data, adv_weeks, adv_data = load_existing_site_data()
+        main_weeks, main_data, adv_weeks, adv_data, week_labels = load_existing_site_data()
         target_years = [args.season]
     else:
-        main_weeks, main_data, adv_weeks, adv_data = {}, {}, {}, {}
+        main_weeks, main_data, adv_weeks, adv_data, week_labels = {}, {}, {}, {}, {}
         target_years = YEARS
 
     for year in target_years:
@@ -142,11 +144,12 @@ def main():
                 continue
             raise RuntimeError(f"season {year}: no valid ratings payload available")
 
-        week_nums, season_main, season_adv = built
+        week_nums, season_main, season_adv, season_week_labels = built
         main_weeks[key] = week_nums
         adv_weeks[key] = week_nums
         main_data[key] = season_main
         adv_data[key] = season_adv
+        week_labels[key] = season_week_labels
 
     published_years = sorted(int(y) for y in main_data.keys())
     published_adv_years = sorted(int(y) for y in adv_data.keys())
@@ -158,9 +161,18 @@ def main():
         "// computed walk-forward (each week uses only games played before it).\n"
         "// AdjO/AdjD are a schedule-adjusted yards-per-play edge from a RESEARCH-ONLY\n"
         "// model -- independently validated in the source repo but not yet the locked\n"
-        "// production rating. SOR remains intentionally null until validated.\n"
+        "// production rating. SOR (Strength of Record, sor-v1-wins-above-average)\n"
+        "// is wins above what an exactly-average FBS team would be expected to\n"
+        "// get on that same schedule -- see scripts/build_real_data.py for the\n"
+        "// full derivation. It answers a different question than AdjEM: résumé\n"
+        "// (won/lost, given the schedule) rather than performance strength.\n"
+        "// Postseason site-weeks are grouped by CFBD's own playoff round field\n"
+        "// (not by date gaps), so e.g. \"Week 17\" for a finished season is really\n"
+        "// one of Bowl Season / CFP First Round / Quarterfinal / Semifinal /\n"
+        "// National Championship -- see CFB_WEEK_LABELS for the human label.\n"
         "window.CFB_YEARS = " + json.dumps(published_years) + ";\n"
         "window.CFB_WEEKS = " + json.dumps(main_weeks) + ";\n"
+        "window.CFB_WEEK_LABELS = " + json.dumps(week_labels) + ";\n"
         "window.CFB_DATA = " + json.dumps(main_data, separators=(",", ":")) + ";\n"
     )
     (REPO / "site/data.js").write_text(js)
@@ -169,8 +181,10 @@ def main():
         "// REAL data -- see data.js header for methodology and validation notes.\n"
         "// Snapshot model fields reflect the selected end week; `wk` contains the\n"
         "// single-week raw counts used for genuinely rangeable Advanced metrics.\n"
+        "// CFF_ADV_WEEK_LABELS names postseason weeks (see data.js's CFB_WEEK_LABELS).\n"
         "window.CFF_ADV_YEARS = " + json.dumps(published_adv_years) + ";\n"
         "window.CFF_ADV_WEEKS = " + json.dumps(adv_weeks) + ";\n"
+        "window.CFF_ADV_WEEK_LABELS = " + json.dumps(week_labels) + ";\n"
         "window.CFF_ADV_DATA = " + json.dumps(adv_data, separators=(",", ":")) + ";\n"
     )
     (REPO / "site/advanced-data.js").write_text(adv_js)

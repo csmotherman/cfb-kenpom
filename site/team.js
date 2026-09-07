@@ -12,6 +12,12 @@
     return "https://cdn.collegefootballdata.com/logos/256/" + teamId + ".png";
   }
 
+  function throughWeekPhrase(year, week) {
+    var yearLabels = (window.CFB_WEEK_LABELS || {})[String(year)] || {};
+    var label = yearLabels[String(week)];
+    return label ? ("through " + label) : ("through Week " + week);
+  }
+
   function cell(className, text) {
     var td = document.createElement("td");
     if (className) td.className = className;
@@ -115,7 +121,7 @@
 
     var eyebrow = document.createElement("span");
     eyebrow.className = "eyebrow";
-    eyebrow.textContent = latest.conf + " · " + latest.year + " through Week " + latest.finalWeek;
+    eyebrow.textContent = latest.conf + " · " + latest.year + " " + throughWeekPhrase(latest.year, latest.finalWeek);
     info.appendChild(eyebrow);
 
     var name = document.createElement("h1");

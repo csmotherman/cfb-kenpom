@@ -5,7 +5,7 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { getMeta, getRankingsSeason } from "@/lib/data";
+import { getMeta, getRankingsSeason, prefetchAllRankings } from "@/lib/data";
 import { logoUrl } from "@/lib/teamCode";
 import type { RankingsRow } from "@/lib/types";
 
@@ -18,7 +18,7 @@ function signed(n: number | null | undefined, digits = 1): string {
   return (n >= 0 ? "+" : "") + n.toFixed(digits);
 }
 
-type SeasonRow = RankingsRow & { year: number; finalWeek: number };
+type SeasonRow = RankingsRow & { year: number; finalWeek: number; finalWeekLabel: string };
 
 const HISTORY_METRICS = [
   ["adjEM", "Overall rating (AdjEM)"],
@@ -38,15 +38,22 @@ export default function TeamPage({ params }: { params: Promise<{ slug: string }>
     getMeta().then(async (meta) => {
       const sortedYears = meta.rankingsYears.slice().sort((a, b) => b - a);
       if (cancelled) return;
+      prefetchAllRankings(sortedYears);
+      // Fetch every season in parallel (most are already cached -- from this
+      // prefetch, or from having visited the Home page first) rather than
+      // one at a time, so this doesn't wait on 12 sequential round-trips.
+      const allSeasons = await Promise.all(sortedYears.map((year) => getRankingsSeason(year)));
+      if (cancelled) return;
       const results: SeasonRow[] = [];
-      for (const year of sortedYears) {
-        const season = await getRankingsSeason(year);
+      allSeasons.forEach((season, i) => {
+        const year = sortedYears[i];
         const finalWeek = season.weeks[season.weeks.length - 1];
+        const finalWeekLabel = season.weekLabels?.[String(finalWeek)] || `Week ${finalWeek}`;
         const rows = season.byWeek[String(finalWeek)] || [];
         const match = rows.find((t) => t.slug === slug);
-        if (match) results.push({ ...match, year, finalWeek });
-      }
-      if (!cancelled) setSeasons(results);
+        if (match) results.push({ ...match, year, finalWeek, finalWeekLabel });
+      });
+      setSeasons(results);
     });
     return () => {
       cancelled = true;
@@ -114,7 +121,7 @@ export default function TeamPage({ params }: { params: Promise<{ slug: string }>
             }}
           />
           <div className="team-hero__info">
-            <span className="eyebrow">{latest.conf} · {latest.year} through Week {latest.finalWeek}</span>
+            <span className="eyebrow">{latest.conf} · {latest.year} through {latest.finalWeekLabel}</span>
             <h1 className="team-hero__name">{latest.team}</h1>
             <div className="team-hero__current">
               <b>{na(latest.rank) ? "—" : `#${latest.rank}`}</b> nationally &middot; <b>{latest.record}</b> &middot; AdjEM <b>{signed(latest.adjEM, 1)}</b>

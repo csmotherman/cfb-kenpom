@@ -7,14 +7,26 @@
     { key: "adjO", label: "AdjO", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Research-stage schedule-adjusted offensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
     { key: "adjD", label: "AdjD", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Research-stage schedule-adjusted defensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
     { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Strength of schedule: average SRS strength of opponents played through the selected week." },
-    { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record is intentionally blank until a validated methodology is locked." }
+    { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like AdjEM. Higher is better." }
   ];
 
   var YEARS = window.CFB_YEARS || [];
   var WEEKS = window.CFB_WEEKS || {};
+  var WEEK_LABELS = window.CFB_WEEK_LABELS || {};
 
   function weeksForYear(year) {
     return WEEKS[String(year)] || [];
+  }
+
+  function weekLabel(year, week) {
+    var yearLabels = WEEK_LABELS[String(year)] || {};
+    return yearLabels[String(week)] || ("Wk " + week);
+  }
+
+  function throughWeekPhrase(year, week) {
+    var yearLabels = WEEK_LABELS[String(year)] || {};
+    var label = yearLabels[String(week)];
+    return label ? ("through " + label) : ("through Week " + week);
   }
 
   function lastWeek(year) {
@@ -81,8 +93,9 @@
       var btn = document.createElement("button");
       btn.type = "button";
       btn.dataset.week = String(week);
-      btn.textContent = "Wk " + week;
-      btn.setAttribute("aria-label", "Week " + week);
+      var label = weekLabel(state.year, week);
+      btn.textContent = label;
+      btn.setAttribute("aria-label", label);
       weekNav.appendChild(btn);
     });
     setActiveButtonState(weekNav, "week", state.week);
@@ -329,7 +342,7 @@
 
   function updatePageStatus(visibleCount) {
     var total = baseRows().length;
-    var status = state.year + " · through Week " + state.week + " · " + total + " teams";
+    var status = state.year + " · " + throughWeekPhrase(state.year, state.week) + " · " + total + " teams";
     if (ratingsStatus) ratingsStatus.textContent = status;
     if (ratingsTitle) ratingsTitle.textContent = state.year + " College Football Ratings";
     document.title = state.year + " College Football Ratings — CollegeFootballFocus";

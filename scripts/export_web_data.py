@@ -21,10 +21,12 @@ def main():
     site = REPO / "site"
 
     cfb_weeks = read_js_assignment(site / "data.js", "CFB_WEEKS") or {}
+    cfb_week_labels = read_js_assignment(site / "data.js", "CFB_WEEK_LABELS") or {}
     cfb_data = read_js_assignment(site / "data.js", "CFB_DATA") or {}
     cfb_years = read_js_assignment(site / "data.js", "CFB_YEARS") or []
 
     adv_weeks = read_js_assignment(site / "advanced-data.js", "CFF_ADV_WEEKS") or {}
+    adv_week_labels = read_js_assignment(site / "advanced-data.js", "CFF_ADV_WEEK_LABELS") or {}
     adv_data = read_js_assignment(site / "advanced-data.js", "CFF_ADV_DATA") or {}
     adv_years = read_js_assignment(site / "advanced-data.js", "CFF_ADV_YEARS") or []
 
@@ -35,14 +37,22 @@ def main():
 
     for year in cfb_years:
         key = str(year)
-        payload = {"weeks": cfb_weeks.get(key, []), "byWeek": cfb_data.get(key, {})}
+        payload = {
+            "weeks": cfb_weeks.get(key, []),
+            "weekLabels": cfb_week_labels.get(key, {}),
+            "byWeek": cfb_data.get(key, {}),
+        }
         (WEB_DATA / "rankings" / f"{key}.json").write_text(
             json.dumps(payload, separators=(",", ":"))
         )
 
     for year in adv_years:
         key = str(year)
-        payload = {"weeks": adv_weeks.get(key, []), "byWeek": adv_data.get(key, {})}
+        payload = {
+            "weeks": adv_weeks.get(key, []),
+            "weekLabels": adv_week_labels.get(key, {}),
+            "byWeek": adv_data.get(key, {}),
+        }
         (WEB_DATA / "advanced" / f"{key}.json").write_text(
             json.dumps(payload, separators=(",", ":"))
         )
