@@ -394,10 +394,6 @@ export default function AdvancedPage() {
                     <button type="button" className="column-sort" onClick={() => onHeaderClick("team")}>Team</button>
                     <span className="sort-indicator">{sortKey === "team" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
                   </th>
-                  <th scope="col" className="conf-cell sortable" aria-sort={sortKey === "conf" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                    <button type="button" className="column-sort" onClick={() => onHeaderClick("conf")}>Conf</button>
-                    <span className="sort-indicator">{sortKey === "conf" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
-                  </th>
                   <th scope="col" className="num record-cell sortable" aria-sort={sortKey === "wins" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                     <button type="button" className="column-sort" onClick={() => onHeaderClick("wins")}>W-L</button>
                     <TipTrigger text="Real record within the selected week range" />
@@ -424,7 +420,7 @@ export default function AdvancedPage() {
                 {loading ? (
                   Array.from({ length: 14 }).map((_, i) => (
                     <tr key={i} className="skeleton-row">
-                      {Array.from({ length: 4 + tabDef.columns.length }).map((__, c) => (
+                      {Array.from({ length: 3 + tabDef.columns.length }).map((__, c) => (
                         <td key={c}>
                           <span className="skeleton-bar" style={{ width: (c === 1 ? 75 : 45 + ((c * 11) % 30)) + "%" }} />
                         </td>
@@ -433,7 +429,7 @@ export default function AdvancedPage() {
                   ))
                 ) : visibleTeams.length === 0 ? (
                   <tr className="empty-row">
-                    <td colSpan={4 + tabDef.columns.length}>No teams match &ldquo;{filter}&rdquo;.</td>
+                    <td colSpan={3 + tabDef.columns.length}>No teams match &ldquo;{filter}&rdquo;.</td>
                   </tr>
                 ) : (
                   visibleTeams.map((t) => (
@@ -445,7 +441,6 @@ export default function AdvancedPage() {
                           <span className="team-conf-label">{t.conf}</span>
                         </div>
                       </td>
-                      <td className="conf-cell">{t.conf}</td>
                       <td className="num record-cell">{t.record}</td>
                       {tabDef.columns.map((col) => (
                         <td

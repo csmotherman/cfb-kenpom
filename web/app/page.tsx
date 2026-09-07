@@ -10,7 +10,7 @@ import { getMeta, useRankingsSeason } from "@/lib/data";
 import Link from "next/link";
 
 type Column = {
-  key: "rank" | "team" | "conf" | "adjEM" | "adjO" | "adjD" | "sos" | "sor";
+  key: "rank" | "team" | "adjEM" | "adjO" | "adjD" | "sos" | "sor";
   label: string;
   numeric: boolean;
   defaultDir: "asc" | "desc";
@@ -22,7 +22,6 @@ type Column = {
 const COLUMNS: Column[] = [
   { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by AdjEM, the site's schedule-adjusted strength rating." },
   { key: "team", label: "Team", numeric: false, defaultDir: "asc" },
-  { key: "conf", label: "Conf", numeric: false, defaultDir: "asc" },
   { key: "adjEM", label: "AdjEM", numeric: true, defaultDir: "desc", primary: true, tooltip: "Schedule-adjusted point-margin strength from the site's walk-forward SRS model. Higher is better." },
   { key: "adjO", label: "AdjO", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Research-stage schedule-adjusted offensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
   { key: "adjD", label: "AdjD", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Research-stage schedule-adjusted defensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
@@ -263,20 +262,20 @@ export default function RatingsPage() {
                   Wk Δ
                   <TipTrigger text="Change in overall rank from the previous week." />
                 </th>
-                {COLUMNS.slice(1, 3).map((col) => (
+                {COLUMNS.slice(1, 2).map((col) => (
                   <HeaderCell key={col.key} col={col} sortKey={sortKey} sortDir={sortDir} onClick={onHeaderClick} />
                 ))}
                 <th scope="col" className="num record-cell">W-L</th>
-                {COLUMNS.slice(3).map((col) => (
+                {COLUMNS.slice(2).map((col) => (
                   <HeaderCell key={col.key} col={col} sortKey={sortKey} sortDir={sortDir} onClick={onHeaderClick} />
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                Array.from({ length: 10 }).map((_, i) => (
+                Array.from({ length: 9 }).map((_, i) => (
                   <tr key={i} className="skeleton-row">
-                    {Array.from({ length: 10 }).map((__, c) => (
+                    {Array.from({ length: 9 }).map((__, c) => (
                       <td key={c}>
                         <span className="skeleton-bar" style={{ width: (c === 2 ? 70 : 40 + ((c * 13) % 30)) + "%" }} />
                       </td>
@@ -285,7 +284,7 @@ export default function RatingsPage() {
                 ))
               ) : filtered.length === 0 ? (
                 <tr className="empty-row">
-                  <td colSpan={10}>No teams match the current filters.</td>
+                  <td colSpan={9}>No teams match the current filters.</td>
                 </tr>
               ) : (
                 filtered.map((t) => (
@@ -298,7 +297,6 @@ export default function RatingsPage() {
                         <span className="team-conf-label">{t.conf}</span>
                       </div>
                     </td>
-                    <td className="conf-cell">{t.conf}</td>
                     <td className="num record-cell">{t.record}</td>
                     <StatCell value={t.adjEM} primary useSign decimals={1} metricKey="adjEM" />
                     <StatCell value={t.adjO} rank={t.adjORank} useSign decimals={2} metricKey="adjO" />

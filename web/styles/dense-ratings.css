@@ -47,8 +47,8 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .table-scroll { max
 :is(#ratingsTable, .adv-table) .team-cell { min-width: 175px; }
 :is(#ratingsTable, .adv-table) .team-link { gap: 8px; font-size: 12px; }
 :is(#ratingsTable, .adv-table) .team-logo { width: 23px; height: 23px; }
-:is(#ratingsTable, .adv-table) .team-conf-label { display: none; }
-:is(#ratingsTable, .adv-table) .conf-cell { font-size: 10px; }
+:is(#ratingsTable, .adv-table) .team-cell-stack { display: flex; flex-direction: column; justify-content: center; gap: 1px; }
+:is(#ratingsTable, .adv-table) .team-conf-label { display: block; margin-left: 31px; font-size: 10px; color: #787668; line-height: 1.1; }
 :is(#ratingsTable, .adv-table) .rank-sub { margin-left: 5px; min-width: 0; font-size: 9px; color: #787668; }
 :is(#ratingsTable, .adv-table) .stat-cell[data-tone="positive"] { background: rgba(75, 123, 87, .065); }
 :is(#ratingsTable, .adv-table) .stat-cell[data-tone="negative"] { background: rgba(163, 80, 66, .065); }
