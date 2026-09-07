@@ -6,6 +6,7 @@ import {
   isPaidPlan,
   PAID_PLAN_LABELS,
   priceIdForPlan,
+  stripeBillingConfigured,
 } from "@/lib/stripe/plans";
 import {
   attachStripeCustomerToUser,
@@ -26,6 +27,14 @@ function siteOrigin(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!stripeBillingConfigured()) {
+    return accountRedirect(
+      request,
+      "error",
+      "Stripe checkout is not enabled until billing secrets, prices, and the verified webhook are configured."
+    );
+  }
+
   const formData = await request.formData();
   const requestedPlan = String(formData.get("plan") ?? "");
 
