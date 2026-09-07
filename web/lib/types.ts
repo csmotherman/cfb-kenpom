@@ -84,4 +84,6 @@ export type PredictionsWeek = {
   week: number;
   generatedAt: string;
   games: PredictionGame[];
+  access?: "limited" | "full";
+  totalGames?: number;
 };
