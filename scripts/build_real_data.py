@@ -199,8 +199,6 @@ def new_acc():
         "finNumA": 0, "finDenA": 0, "fieldPosSumA": 0.0, "fieldPosCountA": 0,
         "passSuccessNumA": 0, "passSuccessDenA": 0, "rushSuccessNumA": 0, "rushSuccessDenA": 0,
         "gamesPlayed": 0,
-        "opponentSrsSum": 0.0, "opponentSrsCount": 0,
-        "sorActualWins": 0.0, "sorExpectedWins": 0.0, "sorGames": 0,
         "slug": None, "teamId": None, "conf": None,
     }
 
@@ -253,6 +251,19 @@ def build_year(year):
     # this does not touch).
     srs_games_by_id = {}
     metric_history = []
+
+    # SOS/SOR opponent strength for the ratings page: (opponent, won) for
+    # every game a team has played, resolved at the END of each site-week
+    # against that week's fully-updated ratings -- not frozen at whatever
+    # the opponent looked like when the game was actually played. A week-3
+    # win over a team that turns out to make the playoff should look like a
+    # good win once we know that, not stay judged on a three-games-old
+    # rating. This isn't lookahead: a week-14 snapshot already knows
+    # everything through week 14, including how week-3 opponents turned
+    # out. (The separate per-game iterative_ratings.py dataset used for
+    # actual game predictions keeps its strict before-this-game cut --
+    # that one really would leak if it looked ahead.)
+    team_game_log = defaultdict(list)
 
     for wk in weeks_present:
         # Per-week-only (not cumulative) raw counts, so the client can sum an
@@ -356,48 +367,41 @@ def build_year(year):
             acc["dropbacksFaced"] += row.get("dropbacksFaced", 0) or 0
             acc["rushAttemptsFaced"] += row.get("rushAttemptsFaced", 0) or 0
 
-            # SOS/SOR still use the per-game walk-forward opponent rating
-            # (iter_row, from iterative_ratings.py's own locked per-game
-            # dataset) -- that's a genuinely different, correct use of
-            # "before this specific game" leakage-safety: schedule strength
-            # is about how good the opponent looked AT THE TIME they were
-            # played, not revised in hindsight the way cff/off/def now are.
+            # The Advanced page's SOS still reports a per-week raw rate (so
+            # an arbitrary [start,end] range can be summed client-side) --
+            # that one keeps the walk-forward, at-the-time opponent rating,
+            # from iterative_ratings.py's own locked per-game dataset.
             iter_row = iter_by_game.get(str(row.get("gameId") or row.get("game_id")))
             prefix = side_prefix(iter_row, name)
             if prefix:
                 opp_prefix = "away_" if prefix == "home_" else "home_"
                 opp_srs = iter_row.get(opp_prefix[:-1] + "Srs")
                 if num(opp_srs):
-                    acc["opponentSrsSum"] += opp_srs
-                    acc["opponentSrsCount"] += 1
                     wr = wk_raw[name]
                     wr["opponentSrsSum"] += opp_srs
                     wr["opponentSrsCount"] += 1
 
-                    # fitRmse is an in-sample residual of that week's SRS fit:
-                    # with fewer games played so far than teams involved, the
-                    # least-squares system is underdetermined and can drive
-                    # the residual to ~0 (a near-perfect fit with no
-                    # statistical meaning), which would make _ncdf collapse
-                    # to a hard 0/1 "certainty" for every game that week.
-                    # Require the fit to be over-determined (more games than
-                    # free team-rating parameters) before trusting sigma,
-                    # same spirit as excluding weeks with no fit at all.
-                    sigma = iter_row.get("srsFitRmse")
-                    games_before = iter_row.get("srsGamesBefore")
-                    teams_before = iter_row.get("srsTeamsBefore")
-                    well_determined = num(games_before) and num(teams_before) and games_before > teams_before
-                    if num(sigma) and sigma > 0 and well_determined:
-                        acc["sorExpectedWins"] += _ncdf(-opp_srs / sigma)
-                        acc["sorActualWins"] += row.get("win", 0) or 0
-                        acc["sorGames"] += 1
+            # The ratings page's cumulative SOS/SOR are resolved below, once
+            # per site-week, against every game logged here.
+            team_game_log[name].append((row.get("opponent"), bool(row.get("win", 0))))
 
         # League-wide re-solve using every game played through this site-week
         # (see the comment above the loop). One fit_srs + one fit_all_ratings
         # call per week, not per team -- every team's snapshot below reads
         # out of the same shared result.
-        srs_ratings = fit_srs(list(srs_games_by_id.values()))["ratings"] if srs_games_by_id else {}
+        srs_fit = fit_srs(list(srs_games_by_id.values())) if srs_games_by_id else None
+        srs_ratings = srs_fit["ratings"] if srs_fit else {}
         metric_ratings = fit_all_ratings(metric_history) if metric_history else {}
+
+        # Same degeneracy guard as before, just evaluated once for the whole
+        # week's fit instead of once per game: with fewer games played so far
+        # than teams involved, the least-squares system is underdetermined
+        # and can drive the residual to ~0 (a near-perfect in-sample fit with
+        # no statistical meaning), which would make _ncdf collapse to a hard
+        # 0/1 "certainty" for every game. Require the fit to be
+        # over-determined before trusting its sigma for SOR at all.
+        sigma = srs_fit.get("fitRmse") if srs_fit else None
+        well_determined = bool(srs_fit) and srs_fit["games"] > srs_fit["teams"] and num(sigma) and sigma > 0
 
         def metric(spec, side, team):
             v = metric_ratings.get(spec, {}).get(side, {}).get(team)
@@ -412,6 +416,19 @@ def build_year(year):
                 return round(n / d, 4) if d else None
 
             cff = srs_ratings.get(name)
+
+            srs_sum = srs_count = 0.0
+            sor_actual = sor_expected = sor_games = 0.0
+            if well_determined:
+                for opponent, won in team_game_log[name]:
+                    opp_srs = srs_ratings.get(opponent)
+                    if not num(opp_srs):
+                        continue
+                    srs_sum += opp_srs
+                    srs_count += 1
+                    sor_expected += _ncdf(-opp_srs / sigma)
+                    sor_actual += 1 if won else 0
+                    sor_games += 1
             off_ypp, def_ypp = metric("YardsPerPossession", "offense", name), metric("YardsPerPossession", "defense", name)
             off_yppl, def_yppl = metric("YardsPerPlay", "offense", name), metric("YardsPerPlay", "defense", name)
             off_exp, def_exp = metric("Explosive", "offense", name), metric("Explosive", "defense", name)
@@ -423,9 +440,9 @@ def build_year(year):
                 "record": f"{acc['wins']}-{acc['losses']}", "wins": acc["wins"],
                 "gamesPlayed": acc["gamesPlayed"],
                 "cff": round(cff, 2) if num(cff) else None,
-                "sos": round(acc["opponentSrsSum"] / acc["opponentSrsCount"], 2) if acc["opponentSrsCount"] else None,
-                "sor": round(acc["sorActualWins"] - acc["sorExpectedWins"], 2) if acc["sorGames"] else None,
-                "sorExpectedWins": round(acc["sorExpectedWins"], 2) if acc["sorGames"] else None,
+                "sos": round(srs_sum / srs_count, 2) if srs_count else None,
+                "sor": round(sor_actual - sor_expected, 2) if sor_games else None,
+                "sorExpectedWins": round(sor_expected, 2) if sor_games else None,
                 "fieldPos": round(field_pos, 2) if num(field_pos) else None,
                 "pace": round(acc["offPlaysTotal"] / acc["gamesPlayed"], 1),
                 "off": round(off_ypp, 2) if num(off_ypp) else None,
