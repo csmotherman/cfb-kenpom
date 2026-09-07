@@ -1,0 +1,45 @@
+/* Keep team logos optically centered across the full two-line team identity. */
+:is(#ratingsTable, .adv-table) .team-cell-stack {
+  position: relative;
+  height: 30px;
+}
+
+:is(#ratingsTable, .adv-table) .team-cell-stack .team-link {
+  min-height: 30px;
+  align-items: center;
+}
+
+/* The logo stays centered in the full identity block; the primary label sits
+   slightly above center to leave room for the conference line below. */
+:is(#ratingsTable, .adv-table) .team-cell-stack .team-name,
+:is(#ratingsTable, .adv-table) .team-cell-stack .team-code {
+  transform: translateY(-4px);
+}
+
+:is(#ratingsTable, .adv-table) .team-cell-stack .team-conf-label {
+  position: absolute;
+  left: 29px;
+  bottom: 1px;
+  margin-left: 0 !important;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  :is(#ratingsTable, .adv-table) .team-cell-stack {
+    height: 29px;
+  }
+
+  :is(#ratingsTable, .adv-table) .team-cell-stack .team-link {
+    min-height: 29px;
+  }
+
+  :is(#ratingsTable, .adv-table) .team-cell-stack .team-name,
+  :is(#ratingsTable, .adv-table) .team-cell-stack .team-code {
+    transform: translateY(-4px);
+  }
+
+  :is(#ratingsTable, .adv-table) .team-cell-stack .team-conf-label {
+    left: 25px;
+    bottom: 1px;
+  }
+}
