@@ -86,11 +86,16 @@ jobs:
       - name: Rebuild rankings table + advanced analytics data
         run: python scripts/compile_site_data.py --season ${{ env.SEASON }}
 
+      # Re-shapes the same generated site/data.js + site/advanced-data.js into
+      # per-season JSON for the Next.js app (web/) to fetch() at runtime.
+      - name: Export per-season JSON for the Next.js app
+        run: python scripts/export_web_data.py
+
       - name: Commit and push refreshed data
         run: |
           git config user.name "cfb-kenpom-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/canonical site/data.js site/advanced-data.js
+          git add data/canonical site/data.js site/advanced-data.js web/public/data
           if git diff --staged --quiet; then
             echo "No valid data changes; skipping commit."
           else

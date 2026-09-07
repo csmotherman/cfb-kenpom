@@ -1,0 +1,131 @@
+/* ========================================================================== */
+/* CollegeFootballFocus — Global Design System                               */
+/* ========================================================================== */
+
+:root {
+  --color-paper: #f4f1ea;
+  --color-paper-raised: #ece7d9;
+  --color-paper-soft: #f8f6f0;
+  --color-ink: #171717;
+  --color-ink-secondary: #4a473f;
+  --color-ink-tertiary: #777263;
+  --color-navy: #172438;
+  --color-navy-light: #22314a;
+  --color-gold: #c59a43;
+  --color-gold-dark: #9a762d;
+  --color-hairline: #d9d3c2;
+  --color-hairline-strong: #b9b29c;
+  --color-up: #3f6e4e;
+  --color-down: #8b3a3a;
+  --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --font-body: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --container-width: 1320px;
+  --shadow-float: 0 10px 28px rgba(23, 23, 23, 0.14);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+h1, h2, h3, h4, p, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+table { border-collapse: collapse; width: 100%; }
+button, input, select { font: inherit; color: inherit; }
+button, select { cursor: pointer; }
+img { max-width: 100%; }
+
+:focus-visible {
+  outline: 3px solid rgba(197, 154, 67, 0.9);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: fixed;
+  left: var(--space-3);
+  top: var(--space-3);
+  z-index: 1000;
+  transform: translateY(-160%);
+  padding: 9px 12px;
+  background: var(--color-navy);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+}
+.skip-link:focus { transform: translateY(0); }
+
+.container {
+  width: 100%;
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+}
+.eyebrow {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gold-dark);
+}
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (pointer: coarse) {
+  .year-nav button,
+  .week-nav button,
+  .tab-nav button,
+  .data-table th.sortable,
+  .site-search__toggle,
+  .subscribe-btn,
+  .btn-primary,
+  .mobile-premium-cta__button { min-height: 44px; }
+  .tip-trigger { position: relative; }
+  .tip-trigger::before { content: ""; position: absolute; inset: -13px; }
+}
+
+@media (max-width: 1024px) {
+  .container { padding-left: var(--space-5); padding-right: var(--space-5); }
+}
+@media (max-width: 640px) {
+  .container { padding-left: var(--space-4); padding-right: var(--space-4); }
+  body.search-open { overflow: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
