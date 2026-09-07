@@ -374,8 +374,20 @@ def build_year(year):
                     wr["opponentSrsSum"] += opp_srs
                     wr["opponentSrsCount"] += 1
 
+                    # fitRmse is an in-sample residual of that week's SRS fit:
+                    # with fewer games played so far than teams involved, the
+                    # least-squares system is underdetermined and can drive
+                    # the residual to ~0 (a near-perfect fit with no
+                    # statistical meaning), which would make _ncdf collapse
+                    # to a hard 0/1 "certainty" for every game that week.
+                    # Require the fit to be over-determined (more games than
+                    # free team-rating parameters) before trusting sigma,
+                    # same spirit as excluding weeks with no fit at all.
                     sigma = iter_row.get("srsFitRmse")
-                    if num(sigma) and sigma > 0:
+                    games_before = iter_row.get("srsGamesBefore")
+                    teams_before = iter_row.get("srsTeamsBefore")
+                    well_determined = num(games_before) and num(teams_before) and games_before > teams_before
+                    if num(sigma) and sigma > 0 and well_determined:
                         acc["sorExpectedWins"] += _ncdf(-opp_srs / sigma)
                         acc["sorActualWins"] += row.get("win", 0) or 0
                         acc["sorGames"] += 1
