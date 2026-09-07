@@ -64,6 +64,16 @@ jobs:
       - name: Derive per-game/per-season metrics
         run: python -m cfb_analytics.pipelines.calculate_metrics --season ${{ env.SEASON }}
 
+      # dropbacks/rushAttempts/basic-yardage counts aren't computed by
+      # calculate_metrics -- these two propagation scripts back them into
+      # the derived team_games/team_seasons JSON before canonical picks it
+      # up, same as was done by hand for every prior season (2014-2025).
+      - name: Propagate dropback/sack metrics
+        run: python -m cfb_analytics.analytics.dropback_propagation_cli propagate --season ${{ env.SEASON }}
+
+      - name: Propagate basic yardage metrics
+        run: python -m cfb_analytics.derived.basic_yardage_propagation_cli materialize --season ${{ env.SEASON }}
+
       - name: Build canonical identity + team_games
         run: python -m cfb_analytics.pipelines.build_canonical --season ${{ env.SEASON }}
 
