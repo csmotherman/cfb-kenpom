@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { TooltipProvider } from "@/components/Tooltip";
 import BrandTitleGuard from "@/components/BrandTitleGuard";
+import GridTerminologyGuard from "@/components/GridTerminologyGuard";
 import "@/styles/theme.css";
 import "@/styles/ratings.css";
 import "@/styles/advanced.css";
@@ -10,11 +11,12 @@ import "./additions.css";
 import "@/styles/mobile-fit.css";
 import "@/styles/dense-ratings.css";
 import "@/styles/ara-polish.css";
+import "@/styles/grid-brand.css";
 
 export const metadata: Metadata = {
-  title: "ARA | Adjusted Ratings & Analytics",
+  title: "GRID | College Football Analytics",
   description:
-    "Opponent-adjusted college football team ratings, offense and defense analytics, strength of schedule, weekly movement, and historical seasons.",
+    "GRID provides opponent-adjusted college football RPI ratings, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -35,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <BrandTitleGuard />
+        <GridTerminologyGuard />
         <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
