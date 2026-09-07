@@ -1,8 +1,6 @@
 /* ==========================================================================
    CollegeFootballFocus — shared site chrome
-   Header search + tap/hover tooltips. Loaded on every page, after
-   search-index.js and before the page-specific script (app.js / advanced.js
-   / team.js).
+   Header search + tap/hover tooltips. Loaded on every page.
    ========================================================================== */
 
 window.CFF = window.CFF || {};
@@ -13,6 +11,60 @@ CFF.getQueryParam = function (name) {
 
 CFF.logoUrl = function (teamId, size) {
   return "https://cdn.collegefootballdata.com/logos/" + (size || 64) + "/" + teamId + ".png";
+};
+
+/* Compact display aliases follow CFBD/ESPN-style team abbreviations. The
+   canonical data pipeline can eventually persist CFBD's abbreviation field;
+   this lookup keeps the current historical payload backward-compatible. */
+CFF.teamCode = function (team) {
+  var codes = {
+    "Air Force":"AFA", "Akron":"AKR", "Alabama":"ALA", "App State":"APP",
+    "Appalachian State":"APP", "Arizona":"ARIZ", "Arizona State":"ASU",
+    "Arkansas":"ARK", "Arkansas State":"ARST", "Army":"ARMY", "Auburn":"AUB",
+    "BYU":"BYU", "Ball State":"BALL", "Baylor":"BAY", "Boise State":"BOIS",
+    "Boston College":"BC", "Bowling Green":"BGSU", "Buffalo":"BUF",
+    "California":"CAL", "Central Michigan":"CMU", "Charlotte":"CLT",
+    "Cincinnati":"CIN", "Clemson":"CLEM", "Coastal Carolina":"CCU",
+    "Colorado":"COLO", "Colorado State":"CSU", "Delaware":"DEL", "Duke":"DUKE",
+    "East Carolina":"ECU", "Eastern Michigan":"EMU", "Florida":"FLA",
+    "Florida Atlantic":"FAU", "Florida International":"FIU", "Florida State":"FSU",
+    "Fresno State":"FRES", "Georgia":"UGA", "Georgia Southern":"GASO",
+    "Georgia State":"GAST", "Georgia Tech":"GT", "Hawai'i":"HAW", "Hawaii":"HAW",
+    "Houston":"HOU", "Illinois":"ILL", "Indiana":"IND", "Iowa":"IOWA",
+    "Iowa State":"ISU", "Jacksonville State":"JVST", "James Madison":"JMU",
+    "Kansas":"KU", "Kansas State":"KSU", "Kennesaw State":"KENN", "Kent State":"KENT",
+    "Kentucky":"UK", "LSU":"LSU", "Liberty":"LIB", "Louisiana":"UL",
+    "Louisiana Tech":"LT", "Louisville":"LOU", "Marshall":"MRSH", "Maryland":"MD",
+    "Massachusetts":"MASS", "Memphis":"MEM", "Miami":"MIA", "Miami (OH)":"M-OH",
+    "Michigan":"MICH", "Michigan State":"MSU", "Middle Tennessee":"MTSU",
+    "Minnesota":"MINN", "Mississippi State":"MSST", "Missouri":"MIZ",
+    "Missouri State":"MOST", "NC State":"NCST", "Navy":"NAVY", "Nebraska":"NEB",
+    "Nevada":"NEV", "New Mexico":"UNM", "New Mexico State":"NMSU",
+    "North Carolina":"UNC", "North Dakota State":"NDSU", "North Texas":"UNT",
+    "Northern Illinois":"NIU", "Northwestern":"NU", "Notre Dame":"ND", "Ohio":"OHIO",
+    "Ohio State":"OSU", "Oklahoma":"OU", "Oklahoma State":"OKST", "Old Dominion":"ODU",
+    "Ole Miss":"MISS", "Oregon":"ORE", "Oregon State":"ORST", "Penn State":"PSU",
+    "Pittsburgh":"PITT", "Purdue":"PUR", "Rice":"RICE", "Rutgers":"RUTG",
+    "SMU":"SMU", "Sacramento State":"SAC", "Sam Houston":"SHSU",
+    "San Diego State":"SDSU", "San José State":"SJSU", "San Jose State":"SJSU",
+    "South Alabama":"USA", "South Carolina":"SC", "South Florida":"USF",
+    "Southern Miss":"USM", "Stanford":"STAN", "Syracuse":"SYR", "TCU":"TCU",
+    "Temple":"TEM", "Tennessee":"TENN", "Texas":"TEX", "Texas A&M":"TAMU",
+    "Texas State":"TXST", "Texas Tech":"TTU", "Toledo":"TOL", "Troy":"TROY",
+    "Tulane":"TULN", "Tulsa":"TLSA", "UAB":"UAB", "UCF":"UCF", "UCLA":"UCLA",
+    "UConn":"CONN", "UL Monroe":"ULM", "UNLV":"UNLV", "USC":"USC", "UTEP":"UTEP",
+    "UTSA":"UTSA", "Utah":"UTAH", "Utah State":"USU", "Vanderbilt":"VAN",
+    "Virginia":"UVA", "Virginia Tech":"VT", "Wake Forest":"WAKE", "Washington":"WASH",
+    "Washington State":"WSU", "West Virginia":"WVU", "Western Kentucky":"WKU",
+    "Western Michigan":"WMU", "Wisconsin":"WIS", "Wyoming":"WYO"
+  };
+  if (codes[team]) return codes[team];
+  var clean = String(team || "").replace(/[^A-Za-z0-9 ]/g, " ").trim();
+  var words = clean.split(/\s+/).filter(Boolean);
+  if (!words.length) return "TEAM";
+  if (words.length === 1) return words[0].slice(0, 4).toUpperCase();
+  var acronym = words.map(function (w) { return w.charAt(0); }).join("").toUpperCase();
+  return acronym.slice(0, 5);
 };
 
 /* ---------------------------------------------------------------------
@@ -34,7 +86,9 @@ CFF.logoUrl = function (teamId, size) {
     var q = query.trim().toLowerCase();
     if (!q) return [];
     return INDEX.filter(function (t) {
-      return t.team.toLowerCase().indexOf(q) !== -1 || t.conf.toLowerCase().indexOf(q) !== -1;
+      return t.team.toLowerCase().indexOf(q) !== -1 ||
+        t.conf.toLowerCase().indexOf(q) !== -1 ||
+        CFF.teamCode(t.team).toLowerCase().indexOf(q) !== -1;
     }).slice(0, 8);
   }
 
@@ -54,6 +108,7 @@ CFF.logoUrl = function (teamId, size) {
       img.src = CFF.logoUrl(t.teamId, 64);
       img.alt = "";
       img.loading = "lazy";
+      img.decoding = "async";
       img.onerror = function () { img.style.visibility = "hidden"; };
       a.appendChild(img);
 
@@ -64,7 +119,7 @@ CFF.logoUrl = function (teamId, size) {
 
       var conf = document.createElement("span");
       conf.className = "site-search__result-conf";
-      conf.textContent = t.conf;
+      conf.textContent = CFF.teamCode(t.team) + " · " + t.conf;
       a.appendChild(conf);
 
       results.appendChild(a);
@@ -85,17 +140,11 @@ CFF.logoUrl = function (teamId, size) {
 
   if (toggle) {
     toggle.addEventListener("click", function () {
-      if (root.classList.contains("site-search--open")) {
-        closePanel();
-      } else {
-        openPanel();
-      }
+      if (root.classList.contains("site-search--open")) closePanel();
+      else openPanel();
     });
   }
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", closePanel);
-  }
+  if (closeBtn) closeBtn.addEventListener("click", closePanel);
 
   input.addEventListener("input", function () {
     activeIndex = -1;
@@ -106,25 +155,20 @@ CFF.logoUrl = function (teamId, size) {
   input.addEventListener("keydown", function (e) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      if (currentMatches.length === 0) return;
+      if (!currentMatches.length) return;
       activeIndex = Math.min(activeIndex + 1, currentMatches.length - 1);
       renderResults();
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      if (currentMatches.length === 0) return;
+      if (!currentMatches.length) return;
       activeIndex = Math.max(activeIndex - 1, 0);
       renderResults();
     } else if (e.key === "Enter") {
       e.preventDefault();
       var target = currentMatches[activeIndex >= 0 ? activeIndex : 0];
-      if (target) {
-        window.location.href = "team.html?team=" + encodeURIComponent(target.slug);
-      } else if (input.value.trim()) {
-        window.location.href = "index.html?q=" + encodeURIComponent(input.value.trim());
-      }
-    } else if (e.key === "Escape") {
-      closePanel();
-    }
+      if (target) window.location.href = "team.html?team=" + encodeURIComponent(target.slug);
+      else if (input.value.trim()) window.location.href = "index.html?q=" + encodeURIComponent(input.value.trim());
+    } else if (e.key === "Escape") closePanel();
   });
 
   document.addEventListener("click", function (e) {
@@ -133,10 +177,7 @@ CFF.logoUrl = function (teamId, size) {
 })();
 
 /* ---------------------------------------------------------------------
-   Tap/hover metric tooltips — any element carrying data-tip gets a
-   small "?" affordance (via CSS ::after) and a floating explanation
-   that opens on hover (desktop) or tap (mobile), independent of any
-   click handler on an ancestor (e.g. a sortable column header).
+   Tap/hover metric tooltips
    --------------------------------------------------------------------- */
 (function () {
   var bubble = document.createElement("div");
@@ -155,9 +196,8 @@ CFF.logoUrl = function (teamId, size) {
     var bw = bubble.offsetWidth;
     var left = rect.left + rect.width / 2 - bw / 2;
     left = Math.max(8, Math.min(left, window.innerWidth - bw - 8));
-    var top = rect.bottom + 8;
     bubble.style.left = left + "px";
-    bubble.style.top = top + "px";
+    bubble.style.top = rect.bottom + 8 + "px";
   }
 
   function show(trigger) {
@@ -176,33 +216,20 @@ CFF.logoUrl = function (teamId, size) {
     var trigger = e.target.closest("[data-tip]");
     if (trigger) show(trigger);
   });
-
   document.addEventListener("mouseout", function (e) {
     if (pinned) return;
-    var trigger = e.target.closest("[data-tip]");
-    if (trigger) hide();
+    if (e.target.closest("[data-tip]")) hide();
   });
-
   document.addEventListener("click", function (e) {
     var trigger = e.target.closest("[data-tip]");
     if (trigger) {
       e.stopPropagation();
-      if (pinned && current === trigger) {
-        hide();
-      } else {
-        show(trigger);
-        pinned = true;
-      }
+      if (pinned && current === trigger) hide();
+      else { show(trigger); pinned = true; }
       return;
     }
     if (!bubble.contains(e.target)) hide();
   });
-
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") hide();
-  });
-
-  window.addEventListener("scroll", function () {
-    if (current) place(current);
-  }, true);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") hide(); });
+  window.addEventListener("scroll", function () { if (current) place(current); }, true);
 })();
