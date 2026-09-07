@@ -7,7 +7,7 @@ import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
 import { getMeta, useRankingsSeason } from "@/lib/data";
-import { heatBackground } from "@/lib/heatmap";
+import { columnRange, heatBackground } from "@/lib/heatmap";
 import Link from "next/link";
 
 type Column = {
@@ -102,12 +102,16 @@ export default function RatingsPage() {
     return Array.from(set).sort();
   }, [rows]);
 
-  // Scaled against the full week's teams (not the filtered/searched subset)
-  // so a team's shade stays meaningful when narrowing to one conference.
-  const adjEMScale = useMemo(() => {
-    const values = rows.map((t) => t.adjEM).filter((v): v is number => !na(v));
-    return values.length ? Math.max(...values.map(Math.abs)) : 0;
-  }, [rows]);
+  // Each stat column gets its own min/max color scale, computed against the
+  // full week's teams (not the filtered/searched subset) so a team's shade
+  // stays meaningful when narrowing to one conference.
+  const ranges = useMemo(() => ({
+    adjEM: columnRange(rows.map((t) => t.adjEM)),
+    adjO: columnRange(rows.map((t) => t.adjO)),
+    adjD: columnRange(rows.map((t) => t.adjD)),
+    sos: columnRange(rows.map((t) => t.sos)),
+    sor: columnRange(rows.map((t) => t.sor)),
+  }), [rows]);
 
   const filtered = useMemo(() => {
     const needle = filter.trim().toLowerCase();
@@ -306,11 +310,11 @@ export default function RatingsPage() {
                       </div>
                     </td>
                     <td className="num record-cell">{t.record}</td>
-                    <StatCell value={t.adjEM} rank={t.rank} primary useSign decimals={1} metricKey="adjEM" bg={heatBackground(t.adjEM, adjEMScale)} />
-                    <StatCell value={t.adjO} rank={t.adjORank} useSign decimals={2} metricKey="adjO" />
-                    <StatCell value={t.adjD} rank={t.adjDRank} useSign decimals={2} metricKey="adjD" />
-                    <StatCell value={t.sos} rank={t.sosRank} useSign decimals={1} metricKey="sos" />
-                    <StatCell value={t.sor} rank={t.sorRank} useSign decimals={1} metricKey="sor" />
+                    <StatCell value={t.adjEM} rank={t.rank} primary useSign decimals={1} metricKey="adjEM" bg={heatBackground(t.adjEM, ranges.adjEM)} />
+                    <StatCell value={t.adjO} rank={t.adjORank} useSign decimals={2} metricKey="adjO" bg={heatBackground(t.adjO, ranges.adjO)} />
+                    <StatCell value={t.adjD} rank={t.adjDRank} useSign decimals={2} metricKey="adjD" bg={heatBackground(t.adjD, ranges.adjD)} />
+                    <StatCell value={t.sos} rank={t.sosRank} useSign decimals={1} metricKey="sos" bg={heatBackground(t.sos, ranges.sos)} />
+                    <StatCell value={t.sor} rank={t.sorRank} useSign decimals={1} metricKey="sor" bg={heatBackground(t.sor, ranges.sor)} />
                   </tr>
                 ))
               )}
@@ -383,7 +387,6 @@ function StatCell({
     <td
       className={"num stat-cell metric-cell" + (primary ? " primary" : "")}
       data-metric-key={metricKey}
-      data-tone={na(value) || value === 0 ? undefined : value > 0 ? "positive" : "negative"}
       style={bg ? { backgroundColor: bg } : undefined}
     >
       {statText(value, useSign, decimals)}

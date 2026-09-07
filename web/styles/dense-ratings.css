@@ -50,11 +50,7 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .table-scroll { max
 :is(#ratingsTable, .adv-table) .team-cell-stack { display: flex; flex-direction: column; justify-content: center; gap: 1px; }
 :is(#ratingsTable, .adv-table) .team-conf-label { display: block; margin-left: 31px; font-size: 10px; color: #787668; line-height: 1.1; }
 :is(#ratingsTable, .adv-table) .rank-sub { margin-left: 5px; min-width: 0; font-size: 9px; color: #787668; }
-:is(#ratingsTable, .adv-table) .stat-cell[data-tone="positive"] { background: rgba(75, 123, 87, .065); }
-:is(#ratingsTable, .adv-table) .stat-cell[data-tone="negative"] { background: rgba(163, 80, 66, .065); }
 :is(#ratingsTable, .adv-table) .stat-cell.primary { border-left: 1px solid #d9d3c2; font-weight: 700; }
-:is(#ratingsTable, .adv-table) .stat-cell.primary[data-tone="positive"] { background: rgba(75, 123, 87, .12); }
-:is(#ratingsTable, .adv-table) .stat-cell.primary[data-tone="negative"] { background: rgba(163, 80, 66, .12); }
 body:has(#ratingsTable, #advancedTable, #predictionsContent) .premium-teaser { margin-top: 12px; padding-block: 12px; box-shadow: none; border-radius: 0; }
 #methodology { scroll-margin-top: 40px; }
 @media (max-width: 1050px) {
