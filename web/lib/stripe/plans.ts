@@ -5,6 +5,11 @@ export const PAID_PLAN_LABELS: Record<PaidPlan, string> = {
   pro_plus: "GRID Pro+",
 };
 
+export const PAID_PLAN_MONTHLY_PRICE: Record<PaidPlan, string> = {
+  pro: "$0.99/month",
+  pro_plus: "$4.99/month",
+};
+
 export function isPaidPlan(value: unknown): value is PaidPlan {
   return value === "pro" || value === "pro_plus";
 }
@@ -30,7 +35,7 @@ export function planForPriceId(priceId: string | null | undefined): PaidPlan | n
 }
 
 export function configuredTrialDays() {
-  const parsed = Number.parseInt(process.env.STRIPE_TRIAL_DAYS ?? "0", 10);
+  const parsed = Number.parseInt(process.env.STRIPE_TRIAL_DAYS ?? "7", 10);
   if (!Number.isFinite(parsed) || parsed <= 0) return 0;
   return Math.min(parsed, 730);
 }
