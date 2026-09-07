@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -73,9 +74,17 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
   return (
     <header className="site-header">
       <div className="site-header__inner">
-        <Link href="/" className="logotype" aria-label="ARA — Adjusted Ratings & Analytics home">
-          <span className="logotype__mark" aria-hidden="true">ARA</span>
-          <span className="logotype__name">Adjusted Ratings &amp; Analytics</span>
+        <Link href="/" className="logotype" aria-label="GRID — College Football Analytics home">
+          <Image
+            className="logotype__logo"
+            src="/brand/grid-logo.png"
+            alt="GRID"
+            width={600}
+            height={192}
+            priority
+          />
+          <span className="logotype__divider" aria-hidden="true" />
+          <span className="logotype__name">College Football Analytics</span>
         </Link>
         <div className="site-header__right">
           <span className="eyebrow site-header__tagline">{tagline}</span>
