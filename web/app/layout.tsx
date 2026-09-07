@@ -7,6 +7,7 @@ import "@/styles/team.css";
 import "@/styles/mobile-tables.css";
 import "@/styles/mockup-light.css";
 import "./additions.css";
+import "@/styles/mobile-fit.css";
 
 export const metadata: Metadata = {
   title: "CollegeFootballFocus",
