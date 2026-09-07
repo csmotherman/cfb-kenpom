@@ -21,13 +21,13 @@ type Column = {
 };
 
 const COLUMNS: Column[] = [
-  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by AdjEM, the site's schedule-adjusted strength rating." },
+  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by RPI, GRID's Relative Performance Index." },
   { key: "team", label: "Team", numeric: false, defaultDir: "asc" },
-  { key: "adjEM", label: "AdjEM", numeric: true, defaultDir: "desc", primary: true, tooltip: "Schedule-adjusted point-margin strength from the site's walk-forward SRS model. Higher is better." },
-  { key: "adjO", label: "AdjO", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Research-stage schedule-adjusted offensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
-  { key: "adjD", label: "AdjD", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Research-stage schedule-adjusted defensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
+  { key: "adjEM", label: "RPI", numeric: true, defaultDir: "desc", primary: true, tooltip: "Relative Performance Index — GRID's overall opponent-adjusted measure of team performance." },
+  { key: "adjO", label: "RPI-O", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive performance." },
+  { key: "adjD", label: "RPI-D", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted defensive performance." },
   { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Strength of schedule: average SRS strength of opponents played through the selected week." },
-  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like AdjEM. Higher is better." },
+  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like RPI. Higher is better." },
 ];
 
 function na(v: unknown): v is null | undefined {
@@ -132,8 +132,7 @@ export default function RatingsPage() {
 
   useEffect(() => {
     if (!year) return;
-    const title = `${year} College Football Ratings — CollegeFootballFocus`;
-    document.title = title;
+    document.title = `${year} RPI Ratings | GRID`;
   }, [year]);
 
   function onHeaderClick(col: Column) {
@@ -165,10 +164,10 @@ export default function RatingsPage() {
 
       <section className="ratings-hero container" aria-labelledby="ratingsTitle">
         <div className="ratings-hero__copy">
-          <span className="eyebrow">CFF Ratings</span>
-          <h1 id="ratingsTitle">{year ? `${year} College Football Ratings` : "College Football Ratings"}</h1>
+          <span className="eyebrow">GRID RPI</span>
+          <h1 id="ratingsTitle">{year ? `${year} RPI Ratings` : "RPI Ratings"}</h1>
           <p className="ratings-hero__description">
-            Opponent-adjusted team strength, efficiency, and résumé, updated weekly from completed FBS-vs-FBS games.
+            Opponent-adjusted team performance, measuring how teams perform relative to what their opponents typically allow.
           </p>
         </div>
         <div className="ratings-hero__meta">
@@ -262,9 +261,9 @@ export default function RatingsPage() {
       </div>
 
       <main id="mainContent" className="table-main container">
-        <div className="table-scroll" role="region" aria-label="College football ratings table" tabIndex={0}>
+        <div className="table-scroll" role="region" aria-label="GRID RPI college football ratings table" tabIndex={0}>
           <table id="ratingsTable" className="data-table">
-            <caption className="sr-only">College football opponent-adjusted ratings</caption>
+            <caption className="sr-only">GRID Relative Performance Index college football ratings</caption>
             <thead>
               <tr>
                 {COLUMNS.slice(0, 1).map((col) => (
@@ -323,16 +322,16 @@ export default function RatingsPage() {
         </div>
       </main>
 
-      <aside className="premium-teaser container" aria-label="Advanced analytics preview">
+      <aside className="premium-teaser container" aria-label="GRID Pro advanced analytics preview">
         <div className="premium-teaser__copy">
-          <span className="premium-teaser__title">The rating tells you who is good. Advanced CFF tells you why.</span>
+          <span className="premium-teaser__title">The rating tells you who is good. GRID Pro tells you why.</span>
           <span className="premium-teaser__text">Break teams down by offense, defense, success rate, explosiveness, finishing drives, field position and custom week ranges.</span>
         </div>
-        <Link className="premium-teaser__link" href="/advanced">Explore Advanced</Link>
+        <Link className="premium-teaser__link" href="/advanced">Explore GRID Pro</Link>
       </aside>
 
       <div id="methodology" tabIndex={-1}>
-        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional, and SOS/SOR omit games without pregame opponent ratings. AdjEM is the site's schedule-adjusted SRS strength rating. AdjO/AdjD are research-stage opponent-adjusted efficiency measures. SOR is wins above an average team on the same schedule -- a résumé measure, separate from AdjEM's performance measure." />
+        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional, and SOS/SOR omit games without pregame opponent ratings. Relative Performance Index (RPI) measures team performance relative to opponent expectations and adjusts for opponent strength. RPI-O/RPI-D are the corresponding opponent-adjusted offensive and defensive performance measures. SOR is wins above an average team on the same schedule -- a résumé measure, separate from RPI's performance measure." />
       </div>
     </>
   );
@@ -357,7 +356,7 @@ function HeaderCell({
       data-metric-key={col.key}
       aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
     >
-      <button type="button" className="column-sort" onClick={() => onClick(col)}>
+      <button type="button" className="column-sort" onClick={() => onHeaderClick(col)}>
         {col.label}
         <span className="sort-indicator" aria-hidden="true">{active ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
       </button>
