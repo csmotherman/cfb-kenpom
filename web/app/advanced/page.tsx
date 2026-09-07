@@ -7,6 +7,7 @@ import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
 import { getMeta, useAdvancedSeason } from "@/lib/data";
+import { heatBackground } from "@/lib/heatmap";
 import type { AdvancedRow } from "@/lib/types";
 
 function na(v: unknown): v is null | undefined {
@@ -248,6 +249,14 @@ export default function AdvancedPage() {
     return out;
   }, [rankedTeams, filter, conference, sortKey, sortDir]);
 
+  // Scaled against every team in the tab (not the filtered/searched subset)
+  // so a team's shade stays meaningful when narrowing to one conference.
+  const primaryScaleMax = useMemo(() => {
+    const key = TABS[tab].primaryKey;
+    const values = teams.map((t) => t[key] as number | null).filter((v): v is number => !na(v));
+    return values.length ? Math.max(...values.map(Math.abs)) : 0;
+  }, [teams, tab]);
+
   function onHeaderClick(key: string) {
     if ((sortKey || "rank") === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -448,6 +457,7 @@ export default function AdvancedPage() {
                           className={"num stat-cell metric-cell" + (col.primary ? " primary" : "")}
                           data-metric-key={col.key}
                           data-tone={col.rankable && t[`_rank_${col.key}`] ? (Number(t[`_rank_${col.key}`]) <= teams.length / 2 ? "positive" : "negative") : undefined}
+                          style={col.primary ? { backgroundColor: heatBackground(t[col.key] as number | null, primaryScaleMax) } : undefined}
                         >
                           {col.fmt === "split0" ? splitText(t[col.key] as number | null) : FORMATTERS[col.fmt](t[col.key] as number | null)}
                           {col.rankable ? (

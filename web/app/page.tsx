@@ -7,6 +7,7 @@ import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
 import { getMeta, useRankingsSeason } from "@/lib/data";
+import { heatBackground } from "@/lib/heatmap";
 import Link from "next/link";
 
 type Column = {
@@ -99,6 +100,13 @@ export default function RatingsPage() {
     const set = new Set<string>();
     rows.forEach((t) => t.conf && set.add(t.conf));
     return Array.from(set).sort();
+  }, [rows]);
+
+  // Scaled against the full week's teams (not the filtered/searched subset)
+  // so a team's shade stays meaningful when narrowing to one conference.
+  const adjEMScale = useMemo(() => {
+    const values = rows.map((t) => t.adjEM).filter((v): v is number => !na(v));
+    return values.length ? Math.max(...values.map(Math.abs)) : 0;
   }, [rows]);
 
   const filtered = useMemo(() => {
@@ -298,7 +306,7 @@ export default function RatingsPage() {
                       </div>
                     </td>
                     <td className="num record-cell">{t.record}</td>
-                    <StatCell value={t.adjEM} primary useSign decimals={1} metricKey="adjEM" />
+                    <StatCell value={t.adjEM} rank={t.rank} primary useSign decimals={1} metricKey="adjEM" bg={heatBackground(t.adjEM, adjEMScale)} />
                     <StatCell value={t.adjO} rank={t.adjORank} useSign decimals={2} metricKey="adjO" />
                     <StatCell value={t.adjD} rank={t.adjDRank} useSign decimals={2} metricKey="adjD" />
                     <StatCell value={t.sos} rank={t.sosRank} useSign decimals={1} metricKey="sos" />
@@ -361,6 +369,7 @@ function StatCell({
   useSign,
   decimals,
   metricKey,
+  bg,
 }: {
   value: number | null;
   rank?: number | null;
@@ -368,12 +377,14 @@ function StatCell({
   useSign: boolean;
   decimals: number;
   metricKey: string;
+  bg?: string;
 }) {
   return (
     <td
       className={"num stat-cell metric-cell" + (primary ? " primary" : "")}
       data-metric-key={metricKey}
       data-tone={na(value) || value === 0 ? undefined : value > 0 ? "positive" : "negative"}
+      style={bg ? { backgroundColor: bg } : undefined}
     >
       {statText(value, useSign, decimals)}
       {!na(rank) ? <span className="rank-sub">({rank})</span> : null}
