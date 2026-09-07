@@ -1,0 +1,463 @@
+/* Light ratings redesign inspired by the approved mobile mockup. */
+
+:root {
+  --mockup-bg: #f7f9fc;
+  --mockup-card: #ffffff;
+  --mockup-navy: #10233f;
+  --mockup-blue: #2f80ed;
+  --mockup-muted: #6f7f98;
+  --mockup-border: #dfe6f0;
+  --mockup-pill: #f3f6fa;
+  --mockup-green-strong: #c9f1cf;
+  --mockup-green-soft: #e8f7ea;
+  --mockup-red-soft: #fde9e9;
+  --mockup-up: #1eaf5d;
+  --mockup-down: #ff4343;
+}
+
+body {
+  background: var(--mockup-bg);
+  color: #18263d;
+}
+
+.site-header {
+  background: var(--mockup-card);
+  border-bottom: 1px solid var(--mockup-border);
+}
+
+.site-header__inner {
+  min-height: 76px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.logotype {
+  font-family: var(--font-body);
+  font-size: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--mockup-navy);
+}
+
+.logotype::before {
+  content: "CFF";
+  font-style: italic;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  line-height: 1;
+}
+
+.logotype::after {
+  content: "COLLEGE\AFOOTBALL FOCUS";
+  white-space: pre;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+.logotype span { display: none; }
+
+.site-header__tagline {
+  color: var(--mockup-muted);
+  letter-spacing: 0.18em;
+  font-weight: 600;
+}
+
+.site-nav { display: none; }
+
+.ratings-hero {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-top: 28px;
+  padding-bottom: 12px;
+  align-items: flex-start;
+}
+
+.ratings-hero .eyebrow {
+  color: var(--mockup-blue);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+}
+
+.ratings-hero h1 {
+  margin-top: 2px;
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: -0.04em;
+  font-size: clamp(36px, 5vw, 62px);
+  line-height: 0.98;
+  color: #0f1f36;
+}
+
+.ratings-hero__description {
+  margin-top: 10px;
+  color: var(--mockup-muted);
+  font-size: 16px;
+  max-width: 760px;
+}
+
+.ratings-hero__meta {
+  color: var(--mockup-muted);
+}
+
+.control-bar {
+  max-width: 1180px;
+  margin: 0 auto 0;
+  padding: 0 32px 18px;
+  background: transparent;
+  border: 0;
+}
+
+.control-bar__inner {
+  padding: 0;
+  gap: 10px;
+}
+
+.control-bar__inner--secondary {
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+}
+
+.control-label,
+.control-help,
+.row-count,
+.filter-box { display: none; }
+
+.year-nav,
+.week-nav {
+  border: 1px solid var(--mockup-border);
+  background: var(--mockup-card);
+  border-radius: 10px;
+  padding: 0 4px;
+  min-height: 48px;
+  align-items: center;
+}
+
+.year-nav button,
+.week-nav button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  font-family: var(--font-body);
+  color: #20314d;
+  border-radius: 8px;
+}
+
+.year-nav button.active,
+.week-nav button.active {
+  color: #0e213b;
+  background: #eef3f9;
+}
+
+.conference-filter {
+  order: -1;
+  flex: 1 1 100%;
+  max-width: 520px;
+}
+
+.conference-filter select {
+  min-height: 46px;
+  border: 1px solid var(--mockup-border);
+  border-radius: 10px;
+  background: var(--mockup-card);
+  color: #1d2d47;
+}
+
+.table-main {
+  max-width: 1180px;
+  padding-bottom: 0;
+}
+
+.table-scroll {
+  max-height: none;
+  overflow: auto;
+  border: 1px solid var(--mockup-border);
+  border-radius: 12px;
+  background: var(--mockup-card);
+  box-shadow: 0 8px 24px rgba(31, 52, 79, 0.05);
+}
+
+.data-table {
+  min-width: 900px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 10px 12px;
+}
+
+.data-table thead th {
+  background: #f7f9fc;
+  color: #4e5f78;
+  border-bottom: 1px solid var(--mockup-border);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.data-table th.sortable:hover { background: #eef4fb; }
+.data-table th .sort-indicator { color: var(--mockup-blue); }
+
+.data-table tbody tr {
+  background: #fff;
+  border-bottom: 1px solid #e7edf5;
+}
+
+.data-table tbody tr:nth-child(even),
+.data-table tbody tr:hover {
+  background: #fff;
+}
+
+.data-table td {
+  font-size: 14px;
+}
+
+.data-table td.rank-cell {
+  color: #14233a;
+  font-weight: 800;
+}
+
+.data-table td.delta-cell {
+  width: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  padding-left: 2px;
+  padding-right: 4px;
+  font-size: 10px;
+  text-align: left;
+}
+
+.delta-up { color: var(--mockup-up); }
+.delta-down { color: var(--mockup-down); }
+.delta-flat { color: #8795aa; }
+
+.data-table td.team-cell {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.team-logo {
+  width: 34px;
+  height: 34px;
+}
+
+.team-link {
+  gap: 10px;
+  font-weight: 800;
+  color: #13243e;
+}
+
+.data-table td.conf-cell,
+.data-table th.conf-cell {
+  display: none;
+}
+
+.data-table td.record-cell {
+  color: #1e2e47;
+}
+
+.data-table td.stat-cell {
+  text-align: center;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: #17263d;
+}
+
+.data-table td.stat-cell.primary {
+  font-weight: 800;
+  color: #10223c;
+  background: var(--mockup-green-strong);
+}
+
+.data-table td.metric-cell:not(.primary) {
+  background: var(--mockup-green-soft);
+}
+
+.data-table td.metric-cell:nth-last-child(-n+3) {
+  background: #f4fbf5;
+}
+
+.rank-sub {
+  display: block;
+  min-width: 0;
+  margin: 2px 0 0;
+  font-size: 10px;
+  color: #65758e;
+}
+
+.premium-teaser {
+  max-width: 1180px;
+  border: 1px solid var(--mockup-border);
+  border-left: 1px solid var(--mockup-border);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 52, 79, 0.04);
+}
+
+@media (max-width: 640px) {
+  .site-header__inner {
+    min-height: 88px;
+    padding: 18px 18px 10px;
+    align-items: flex-start;
+  }
+
+  .site-header__right { gap: 8px; }
+  .site-header__tagline { display: none; }
+  .site-search__toggle { display: inline-flex; color: var(--mockup-navy); }
+  .site-search__box { display: none; }
+  .site-search--open .site-search__box {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    align-items: flex-start;
+    background: rgba(255,255,255,.98);
+    padding: 20px;
+  }
+
+  .logotype::before { font-size: 32px; }
+  .logotype::after { font-size: 12px; }
+
+  .ratings-hero {
+    display: block;
+    padding: 18px 18px 10px;
+  }
+
+  .ratings-hero .eyebrow {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+
+  .ratings-hero h1 {
+    font-size: 34px;
+    line-height: 1.02;
+  }
+
+  .ratings-hero__description {
+    font-size: 14px;
+    line-height: 1.35;
+    margin-top: 6px;
+  }
+
+  .ratings-hero__meta { display: none; }
+
+  .control-bar {
+    padding: 0 18px 16px;
+  }
+
+  .control-bar__inner,
+  .control-bar__inner--secondary {
+    flex-wrap: nowrap;
+  }
+
+  .conference-filter {
+    display: none;
+  }
+
+  .year-nav,
+  .week-nav {
+    flex: 1 1 50%;
+    overflow: hidden;
+  }
+
+  .year-nav button,
+  .week-nav button {
+    display: none;
+  }
+
+  .year-nav button.active,
+  .week-nav button.active {
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    background: transparent;
+    font-size: 13px;
+  }
+
+  .table-main.container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .table-scroll {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  #ratingsTable {
+    min-width: 760px !important;
+  }
+
+  #ratingsTable th,
+  #ratingsTable td {
+    height: 52px;
+    padding: 8px 8px;
+  }
+
+  #ratingsTable .rank-cell {
+    left: 0 !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    background: #fff !important;
+  }
+
+  #ratingsTable .delta-cell {
+    position: sticky;
+    left: 34px;
+    z-index: 5;
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    background: #fff !important;
+    box-shadow: none;
+  }
+
+  #ratingsTable .team-cell {
+    left: 64px !important;
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    background: #fff !important;
+    box-shadow: 2px 0 0 var(--mockup-border), 8px 0 12px rgba(31, 52, 79, 0.04);
+  }
+
+  #ratingsTable thead .rank-cell,
+  #ratingsTable thead .delta-cell,
+  #ratingsTable thead .team-cell {
+    background: #f7f9fc !important;
+  }
+
+  #ratingsTable tbody tr:nth-child(even) .rank-cell,
+  #ratingsTable tbody tr:nth-child(even) .delta-cell,
+  #ratingsTable tbody tr:nth-child(even) .team-cell {
+    background: #fff !important;
+  }
+
+  .team-link .team-name {
+    display: inline !important;
+    white-space: normal;
+    line-height: 1.15;
+    max-width: 98px;
+    font-size: 13px;
+  }
+
+  .team-link .team-code { display: none !important; }
+  .team-logo { width: 34px !important; height: 34px !important; flex: 0 0 34px; }
+
+  #ratingsTable .record-cell { min-width: 54px; }
+  #ratingsTable .metric-cell { min-width: 72px; }
+  #ratingsTable .delta-cell { font-size: 9px; }
+
+  .premium-teaser {
+    margin: 14px 14px 24px;
+    padding: 14px;
+  }
+}
