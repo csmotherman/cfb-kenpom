@@ -67,6 +67,48 @@ CFF.teamCode = function (team) {
   return acronym.slice(0, 5);
 };
 
+/* Load the dedicated mobile table overrides after the page CSS. */
+(function () {
+  if (document.querySelector('link[href="mobile-tables.css"]')) return;
+  var link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "mobile-tables.css";
+  document.head.appendChild(link);
+})();
+
+/* Ratings/Advanced render team rows after site.js loads. Decorate those links
+   whenever the table rerenders so mobile can show logo + compact code while
+   desktop keeps the full school name. */
+(function () {
+  function decorate(root) {
+    Array.prototype.forEach.call((root || document).querySelectorAll(".team-link"), function (link) {
+      if (link.dataset.cffDecorated === "1") return;
+      var name = link.querySelector("span");
+      if (!name) return;
+      var fullName = name.textContent.trim();
+      name.classList.add("team-name");
+      var code = document.createElement("span");
+      code.className = "team-code";
+      code.textContent = CFF.teamCode(fullName);
+      code.setAttribute("aria-hidden", "true");
+      link.appendChild(code);
+      link.dataset.cffDecorated = "1";
+    });
+  }
+
+  decorate(document);
+  var observer = new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      Array.prototype.forEach.call(mutation.addedNodes, function (node) {
+        if (node.nodeType !== 1) return;
+        if (node.matches && node.matches(".team-link")) decorate(node.parentNode || document);
+        else decorate(node);
+      });
+    });
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+})();
+
 /* ---------------------------------------------------------------------
    Header search
    --------------------------------------------------------------------- */
