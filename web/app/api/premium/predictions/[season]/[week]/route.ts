@@ -59,9 +59,14 @@ export async function GET(
     const published = JSON.parse(raw) as PredictionsWeek;
     const totalGames = published.games.length;
     const isLimited = entitlements.predictions === "limited";
-    const response: PredictionsWeek = isLimited
-      ? { ...published, games: published.games.slice(0, proPredictionLimit()) }
-      : published;
+    const response: PredictionsWeek = {
+      ...published,
+      games: isLimited
+        ? published.games.slice(0, proPredictionLimit())
+        : published.games,
+      access: isLimited ? "limited" : "full",
+      totalGames,
+    };
 
     return NextResponse.json(response, {
       status: 200,
