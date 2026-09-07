@@ -38,6 +38,7 @@ export function configuredTrialDays() {
 export function stripeBillingConfigured() {
   return Boolean(
     process.env.STRIPE_SECRET_KEY &&
+      process.env.STRIPE_WEBHOOK_SECRET &&
       process.env.STRIPE_PRO_PRICE_ID &&
       process.env.STRIPE_PRO_PLUS_PRICE_ID &&
       (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)
