@@ -6,7 +6,7 @@ GRID uses Stripe Checkout + Stripe Billing for paid subscriptions and Supabase f
 
 | Plan | Monthly price | Trial | Access |
 | --- | ---: | --- | --- |
-| GRID Pro | $0.99 | 7 days, once per GRID account | Advanced Analytics + limited weekly predictions |
+| GRID Pro | $0.99 | 7 days, once per GRID account | Advanced Analytics + 5 weekly predictions by default |
 | GRID Pro+ | $4.99 | 7 days, once per GRID account | Advanced Analytics + all weekly predictions |
 
 Create two recurring monthly Stripe Prices and map their `price_...` IDs to the environment variables below. Keep test-mode and live-mode IDs separate.
@@ -20,6 +20,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRO_PRICE_ID=price_...
 STRIPE_PRO_PLUS_PRICE_ID=price_...
 STRIPE_TRIAL_DAYS=7
+GRID_PRO_PREDICTION_LIMIT=5
 SUPABASE_SECRET_KEY=sb_secret_...
 ```
 
@@ -44,6 +45,28 @@ The app currently handles:
 
 The webhook is authoritative. The browser never directly grants itself Pro access.
 
+## Premium data enforcement
+
+Advanced Analytics and Predictions are now checked on the server against the signed-in user's Supabase subscription record.
+
+Protected routes:
+
+```text
+GET /api/premium/advanced/:year
+GET /api/premium/predictions/:season/:week
+```
+
+Access rules:
+
+- signed out: `401 SIGN_IN_REQUIRED`
+- free, inactive, past-due, or canceled: `403 UPGRADE_REQUIRED`
+- active/trialing GRID Pro: Advanced Analytics + the configured limited predictions preview
+- active/trialing GRID Pro+: Advanced Analytics + all published predictions
+
+Legacy URLs under `/data/advanced/*.json` and `/data/predictions/*.json` are intercepted by Next.js Proxy and rewritten into those entitlement-checked routes, so the deployed site cannot use the old static URLs as a paywall bypass. Premium responses use `private, no-store` caching.
+
+The source repository is currently public. Any premium dataset committed to that public GitHub repository remains retrievable from GitHub itself even though the deployed website blocks direct access. Before treating the data as proprietary, move generated premium datasets to private storage/database infrastructure or make the data-bearing repository private.
+
 ## Trial behavior
 
 The Checkout Session collects a payment method by default. An eligible first-time subscriber receives a seven-day trial. GRID records `profiles.trial_used_at` when Stripe confirms a trialing subscription so canceling and re-subscribing does not create repeated GRID trials for the same account.
@@ -57,10 +80,11 @@ The Checkout Session collects a payment method by default. An eligible first-tim
 1. Create and test both products/prices in Stripe test mode.
 2. Set test-mode environment variables in the deployment environment.
 3. Register the webhook endpoint and save its signing secret.
-4. Run a full test: new GRID account → Checkout → trialing access → portal → cancel/update → Supabase sync.
-5. Confirm duplicate-trial protection.
-6. Create the equivalent live-mode prices.
-7. Replace only the Stripe keys/price IDs/webhook secret with live values.
-8. Run a low-risk live checkout before announcing paid access.
-
-Do not move premium data behind a visual blur alone. The Advanced Analytics and Predictions data must ultimately be served through authenticated server routes so users cannot download paid JSON directly from `/public`.
+4. Run a full test: new GRID account → Checkout → trialing access → protected data → portal → cancel/update → access sync.
+5. Confirm signed-out and free accounts receive 401/403 responses from premium API routes.
+6. Confirm the legacy `/data/advanced/...` and `/data/predictions/...` URLs cannot bypass entitlement checks.
+7. Confirm duplicate-trial protection.
+8. Move proprietary premium datasets out of the public GitHub repository before relying on repository secrecy.
+9. Create the equivalent live-mode prices.
+10. Replace only the Stripe keys/price IDs/webhook secret with live values.
+11. Run a low-risk live checkout before announcing paid access.
