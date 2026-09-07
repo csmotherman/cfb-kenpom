@@ -356,7 +356,7 @@ function HeaderCell({
       data-metric-key={col.key}
       aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
     >
-      <button type="button" className="column-sort" onClick={() => onHeaderClick(col)}>
+      <button type="button" className="column-sort" onClick={() => onClick(col)}>
         {col.label}
         <span className="sort-indicator" aria-hidden="true">{active ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
       </button>
