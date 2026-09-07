@@ -30,6 +30,11 @@ const HISTORY_METRICS = [
 
 export default function TeamPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
+  return <TeamProfile key={slug} slug={slug} />;
+}
+
+function TeamProfile({ slug }: { slug: string }) {
+  const [loadError, setLoadError] = useState<Error | null>(null);
   const [seasons, setSeasons] = useState<SeasonRow[] | null>(null);
   const [historyMetric, setHistoryMetric] = useState<string>("adjEM");
 
@@ -54,7 +59,7 @@ export default function TeamPage({ params }: { params: Promise<{ slug: string }>
         if (match) results.push({ ...match, year, finalWeek, finalWeekLabel });
       });
       setSeasons(results);
-    });
+    }).catch((error: Error) => { if (!cancelled) setLoadError(error); });
     return () => {
       cancelled = true;
     };
@@ -68,13 +73,15 @@ export default function TeamPage({ params }: { params: Promise<{ slug: string }>
     }
   }, [latest]);
 
+  if (loadError) throw loadError;
+
   if (seasons === null) {
     return (
       <>
         <SiteHeader tagline="Opponent-Adjusted College Football Ratings" />
         <SiteNav />
-        <main id="teamContent" className="container" aria-live="polite" />
-        <SiteFooter note="CollegeFootballFocus uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Research-stage metrics are labeled as such until their definitions are production-locked." />
+        <main id="teamContent" className="container loading-state" aria-live="polite">Loading team history…</main>
+        <SiteFooter note="Records include completed FBS-vs-FBS games only. CollegeFootballFocus uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Research-stage metrics are labeled as such until their definitions are production-locked." />
       </>
     );
   }
@@ -89,7 +96,7 @@ export default function TeamPage({ params }: { params: Promise<{ slug: string }>
             Team not found. <Link href="/">Back to all ratings &rarr;</Link>
           </div>
         </main>
-        <SiteFooter note="CollegeFootballFocus uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Research-stage metrics are labeled as such until their definitions are production-locked." />
+        <SiteFooter note="Records include completed FBS-vs-FBS games only. CollegeFootballFocus uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Research-stage metrics are labeled as such until their definitions are production-locked." />
       </>
     );
   }
@@ -227,7 +234,7 @@ export default function TeamPage({ params }: { params: Promise<{ slug: string }>
         </section>
       </main>
 
-      <SiteFooter note="CollegeFootballFocus uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Research-stage metrics are labeled as such until their definitions are production-locked." />
+      <SiteFooter note="Records include completed FBS-vs-FBS games only. CollegeFootballFocus uses real game data and opponent-adjusted ratings to describe team strength, not poll position. Research-stage metrics are labeled as such until their definitions are production-locked." />
     </>
   );
 }

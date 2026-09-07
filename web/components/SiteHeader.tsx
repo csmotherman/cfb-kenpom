@@ -99,7 +99,9 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
                 autoComplete="off"
                 aria-label="Search teams"
                 value={query}
+                onFocus={() => setOpen(true)}
                 onChange={(e) => {
+                  setOpen(true);
                   setQuery(e.target.value);
                   setActiveIndex(-1);
                 }}
@@ -109,7 +111,7 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
                 &times;
               </button>
             </div>
-            <div className="site-search__results" hidden={matches.length === 0}>
+            <div className="site-search__results" hidden={!open || matches.length === 0}>
               {matches.map((t, i) => (
                 <a
                   key={t.slug}

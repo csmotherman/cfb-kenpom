@@ -84,3 +84,9 @@
 @media (max-width: 640px) {
   .predictions-cta { flex-direction: column; align-items: stretch; text-align: center; }
 }
+
+.data-updated { font-size: 9px; color: var(--color-ink-tertiary); }
+.loading-state { padding-block: 32px; }
+.loading-state h1 { font-family: var(--font-display); color: var(--color-navy); }
+.loading-state p { margin-block: 12px; }
+.loading-state button { padding: 8px 12px; margin-right: 16px; border: 1px solid var(--color-navy); background: var(--color-paper-soft); }

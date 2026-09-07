@@ -10,13 +10,13 @@ import { getMeta, getPredictionsWeek, getRankingsSeason } from "@/lib/data";
 import type { PredictionGame } from "@/lib/types";
 
 const LAUNCH_WEEK = 4;
-const FREE_ROWS = 5;
 
 function signedMargin(n: number): string {
   return (n >= 0 ? "+" : "") + n.toFixed(1);
 }
 
 export default function PredictionsPage() {
+  const [loadError, setLoadError] = useState<Error | null>(null);
   const [status, setStatus] = useState<"loading" | "before-launch" | "no-data" | "ready">("loading");
   const [season, setSeason] = useState<number | null>(null);
   const [week, setWeek] = useState<number | null>(null);
@@ -45,11 +45,13 @@ export default function PredictionsPage() {
         setGames(predictions.games);
         setStatus("ready");
       }
-    })();
+    })().catch((error: Error) => { if (!cancelled) setLoadError(error); });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  if (loadError) throw loadError;
 
   return (
     <>
@@ -71,8 +73,7 @@ export default function PredictionsPage() {
           </div>
           <h1>This week&rsquo;s game-by-game picks</h1>
           <p>
-            Model-projected winners and margins for every FBS game this week. The top {FREE_ROWS} are free for
-            everyone; the rest unlock with an Advanced CFF subscription.
+            Model-projected winners and margins for published FBS matchups, available starting in Week 4.
           </p>
         </div>
       </section>
@@ -96,15 +97,9 @@ export default function PredictionsPage() {
           </div>
         ) : (
           <div className="predictions-list">
-            {games.map((g, i) => (
-              <PredictionRow key={g.gameId} game={g} locked={i >= FREE_ROWS} />
+            {games.map((g) => (
+              <PredictionRow key={g.gameId} game={g} />
             ))}
-            {games.length > FREE_ROWS ? (
-              <div className="predictions-cta">
-                <span>Unlock all {games.length} picks with Advanced CFF.</span>
-                <Link className="subscribe-btn" href="/advanced">Preview Advanced CFF</Link>
-              </div>
-            ) : null}
           </div>
         )}
       </main>
@@ -114,22 +109,19 @@ export default function PredictionsPage() {
   );
 }
 
-function PredictionRow({ game, locked }: { game: PredictionGame; locked: boolean }) {
+function PredictionRow({ game }: { game: PredictionGame }) {
   return (
-    <div className={"predictions-row" + (locked ? " predictions-row--locked" : "")}>
+    <div className="predictions-row">
       <div className="predictions-row__matchup">
         <TeamChip team={game.awayTeam} teamId={game.awayTeamId} />
         <span className="predictions-row__at">@</span>
         <TeamChip team={game.homeTeam} teamId={game.homeTeamId} />
       </div>
-      {locked ? (
-        <div className="predictions-row__locked-value">••••</div>
-      ) : (
+
         <div className="predictions-row__pick">
           <strong>{game.predictedWinner}</strong>
           <span className="mono">{signedMargin(game.predictedMargin)}</span>
         </div>
-      )}
     </div>
   );
 }

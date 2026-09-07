@@ -74,7 +74,9 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
     const bw = bubbleRef.current.offsetWidth;
     let left = tip.rect.left + tip.rect.width / 2 - bw / 2;
     left = Math.max(8, Math.min(left, window.innerWidth - bw - 8));
-    setPos({ left, top: tip.rect.bottom + 8 });
+    const bh = bubbleRef.current.offsetHeight;
+    const top = tip.rect.bottom + bh + 8 > window.innerHeight ? Math.max(8, tip.rect.top - bh - 8) : tip.rect.bottom + 8;
+    setPos({ left, top });
   }, [tip]);
 
   return (
@@ -83,6 +85,8 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
       <div
         ref={bubbleRef}
         className="tip-bubble"
+        id="metric-tooltip"
+        role="tooltip"
         hidden={!tip}
         style={tip ? pos : undefined}
       >
@@ -96,11 +100,13 @@ export function TipTrigger({ text }: { text: string }) {
   const ctx = useContext(TooltipCtx);
   if (!ctx) return null;
   return (
-    <span
+    <button
+      type="button"
       className="tip-trigger"
       data-tip-trigger="1"
-      tabIndex={0}
-      role="button"
+      aria-describedby="metric-tooltip"
+      onFocus={(e) => ctx.show(e.currentTarget, text)}
+      onBlur={() => ctx.hide()}
       aria-label="Explain this metric"
       onMouseEnter={(e) => ctx.show(e.currentTarget, text)}
       onMouseLeave={() => ctx.hide()}
@@ -110,6 +116,6 @@ export function TipTrigger({ text }: { text: string }) {
       }}
     >
       ?
-    </span>
+    </button>
   );
 }

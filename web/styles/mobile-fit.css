@@ -1,255 +1,28 @@
-/* Mobile ratings table: show every core rating column at once.
-   This intentionally overrides mobile-tables.css for the main ratings page. */
-
+/* Keep every rating visible on phones, with conference beneath team identity.
+   Below 380px, allow a small horizontal scroll instead of shrinking the type. */
 @media (max-width: 640px) {
-  .table-main.container {
-    width: 100%;
-    max-width: 100%;
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .table-scroll {
-    width: 100%;
-    max-width: 100vw;
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
-    border-left: 0;
-    border-right: 0;
-  }
-
-  #ratingsTable {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    table-layout: fixed !important;
-  }
-
-  /* Conference is shown under the team name, not as its own column. */
-  #ratingsTable .conf-cell {
-    display: none !important;
-  }
-
-  #ratingsTable th,
-  #ratingsTable td {
-    height: 54px;
-    min-width: 0 !important;
-    max-width: none !important;
-    padding: 6px 2px;
-    overflow: hidden;
-    white-space: nowrap;
-    vertical-align: middle;
-  }
-
-  #ratingsTable thead th {
-    height: 44px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    text-align: center;
-    font-size: 8.5px;
-    line-height: 1;
-    letter-spacing: -0.015em;
-  }
-
-  /* 100% total: 6 + 4 + 28 + 9 + 11 + 10.5 + 10.5 + 10.5 + 10.5 */
-  #ratingsTable .rank-cell {
-    position: static !important;
-    left: auto !important;
-    z-index: auto !important;
-    width: 6% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    padding-left: 2px;
-    padding-right: 1px;
-    text-align: center;
-    background: inherit !important;
-    box-shadow: none !important;
-  }
-
-  #ratingsTable .delta-cell {
-    position: static !important;
-    left: auto !important;
-    z-index: auto !important;
-    width: 4% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    padding-left: 0;
-    padding-right: 0;
-    text-align: center;
-    background: inherit !important;
-    box-shadow: none !important;
-    font-size: 8px;
-  }
-
-  #ratingsTable thead .delta-cell {
-    font-size: 0 !important;
-  }
-
-  #ratingsTable thead .delta-cell::after {
-    content: "Δ";
-    font-size: 8.5px;
-    color: #4b5e7b;
-  }
-
-  #ratingsTable thead .delta-cell .tip-trigger {
-    display: none !important;
-  }
-
-  #ratingsTable .team-cell {
-    position: static !important;
-    left: auto !important;
-    z-index: auto !important;
-    width: 28% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    padding-left: 3px;
-    padding-right: 3px;
-    background: inherit !important;
-    box-shadow: none !important;
-  }
-
-  #ratingsTable .record-cell {
-    width: 9% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    padding-left: 1px;
-    padding-right: 2px;
-    text-align: center;
-  }
-
-  #ratingsTable .adjEM-cell {
-    width: 11% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-  }
-
-  #ratingsTable .adjO-cell,
-  #ratingsTable .adjD-cell,
-  #ratingsTable .sos-cell,
-  #ratingsTable .sor-cell {
-    width: 10.5% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-  }
-
-  #ratingsTable thead .rank-cell,
-  #ratingsTable thead .delta-cell,
-  #ratingsTable thead .team-cell {
-    background: #f7f9fc !important;
-  }
-
-  #ratingsTable tbody .rank-cell,
-  #ratingsTable tbody .delta-cell,
-  #ratingsTable tbody .team-cell {
-    background: #fff !important;
-  }
-
-  #ratingsTable .team-cell-stack {
-    min-width: 0;
-    gap: 0;
-  }
-
-  #ratingsTable .team-link {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    gap: 5px;
-  }
-
-  #ratingsTable .team-logo {
-    width: 27px !important;
-    height: 27px !important;
-    flex: 0 0 27px;
-  }
-
-  #ratingsTable .team-link .team-name {
-    display: block !important;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 10.5px;
-    line-height: 1.05;
-    font-weight: 800;
-  }
-
-  #ratingsTable .team-link .team-code {
-    display: none !important;
-  }
-
-  #ratingsTable .team-conf-label {
-    display: block;
-    margin: -4px 0 0 32px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: #71809a;
-    font-size: 8.5px;
-    line-height: 1;
-  }
-
-  #ratingsTable td.rank-cell {
-    font-size: 12px;
-  }
-
-  #ratingsTable td.record-cell {
-    font-size: 10.5px;
-  }
-
-  #ratingsTable td.stat-cell {
-    padding-left: 1px;
-    padding-right: 1px;
-    text-align: center;
-    font-size: 10.5px;
-    line-height: 1.05;
-  }
-
-  #ratingsTable td.stat-cell.primary {
-    font-size: 11.5px;
-  }
-
-  #ratingsTable .rank-sub {
-    display: block;
-    margin: 2px 0 0;
-    min-width: 0;
-    font-size: 8px;
-    line-height: 1;
-  }
-
-  #ratingsTable .sort-indicator,
-  #ratingsTable .tip-trigger {
-    margin-left: 1px;
-  }
-
-  #ratingsTable thead .tip-trigger {
-    width: 9px;
-    height: 9px;
-    font-size: 6px;
-  }
-}
-
-/* Extra compression for the narrowest phones. */
-@media (max-width: 380px) {
-  #ratingsTable .team-cell { width: 27% !important; }
-  #ratingsTable .record-cell { width: 8% !important; }
-  #ratingsTable .adjEM-cell { width: 11% !important; }
-  #ratingsTable .adjO-cell,
-  #ratingsTable .adjD-cell,
-  #ratingsTable .sos-cell,
-  #ratingsTable .sor-cell { width: 11% !important; }
-
-  #ratingsTable .team-logo {
-    width: 24px !important;
-    height: 24px !important;
-    flex-basis: 24px;
-  }
-  #ratingsTable .team-link .team-name { font-size: 9.5px; }
-  #ratingsTable .team-conf-label {
-    margin-left: 29px;
-    font-size: 7.5px;
-  }
-  #ratingsTable td.stat-cell { font-size: 9.5px; }
-  #ratingsTable td.stat-cell.primary { font-size: 10.5px; }
-  #ratingsTable thead th { font-size: 7.8px; }
+  body:has(:is(#ratingsTable, .adv-table)) .table-scroll { overflow: auto !important; max-width: 100%; }
+  :is(#ratingsTable, .adv-table) { width: 100% !important; min-width: 380px !important; table-layout: fixed !important; }
+  :is(#ratingsTable, .adv-table) th, :is(#ratingsTable, .adv-table) td { min-width: 0 !important; max-width: none !important; padding: 3px 2px !important; text-align: center; white-space: nowrap; }
+  :is(#ratingsTable, .adv-table) .rank-cell, :is(#ratingsTable, .adv-table) .delta-cell, :is(#ratingsTable, .adv-table) .team-cell { position: static !important; left: auto !important; box-shadow: none !important; }
+  :is(#ratingsTable, .adv-table) .rank-cell { width: 6% !important; }
+  :is(#ratingsTable, .adv-table) .delta-cell { width: 5% !important; font-size: 8px; }
+  :is(#ratingsTable, .adv-table) .team-cell { width: 24% !important; text-align: left; }
+  :is(#ratingsTable, .adv-table) .conf-cell { display: none !important; }
+  :is(#ratingsTable, .adv-table) .record-cell { width: 8% !important; }
+  :is(#ratingsTable, .adv-table) [data-metric-key="adjEM"] { width: 12% !important; }
+  :is(#ratingsTable, .adv-table) [data-metric-key="adjO"], :is(#ratingsTable, .adv-table) [data-metric-key="adjD"],
+  :is(#ratingsTable, .adv-table) [data-metric-key="sos"], :is(#ratingsTable, .adv-table) [data-metric-key="sor"] { width: 11.25% !important; }
+  :is(#ratingsTable, .adv-table) thead th { position: sticky !important; top: 0; font-size: 9px !important; letter-spacing: -.03em; }
+  :is(#ratingsTable, .adv-table) thead .rank-cell, :is(#ratingsTable, .adv-table) thead .team-cell { background: #e8e4d9 !important; }
+  :is(#ratingsTable, .adv-table) tbody .rank-cell, :is(#ratingsTable, .adv-table) tbody .team-cell { background: inherit !important; }
+  :is(#ratingsTable, .adv-table) td.stat-cell, :is(#ratingsTable, .adv-table) td.record-cell, :is(#ratingsTable, .adv-table) td.rank-cell { font-size: 10px; }
+  :is(#ratingsTable, .adv-table) .team-link { gap: 3px; }
+  :is(#ratingsTable, .adv-table) .team-logo { width: 22px !important; height: 22px !important; flex: 0 0 22px; }
+  :is(#ratingsTable, .adv-table) .team-link .team-name { display: none !important; }
+  :is(#ratingsTable, .adv-table) .team-link .team-code { display: inline !important; font-size: 10px; }
+  :is(#ratingsTable, .adv-table) .team-conf-label { display: block !important; margin-left: 25px; color: #777263; font-size: 8px; }
+  :is(#ratingsTable, .adv-table) .rank-sub { display: block; margin: 2px 0 0; font-size: 8px; }
+  :is(#ratingsTable, .adv-table) .tip-trigger { display: none; }
+  :is(#ratingsTable, .adv-table) .sort-indicator { width: auto; margin-left: 1px; font-size: 6px; }
 }

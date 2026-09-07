@@ -60,6 +60,9 @@ export type SearchIndexEntry = {
 };
 
 export type SiteMeta = {
+  generatedAt?: string;
+  dataVersion?: string;
+  scope?: string;
   rankingsYears: number[];
   advancedYears: number[];
 };

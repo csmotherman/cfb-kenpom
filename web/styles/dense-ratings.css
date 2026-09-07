@@ -1,277 +1,162 @@
-/* Density pass for the ratings route.
-   Goal: behave like KenPom — the data table is the product, not the hero. */
-
-/* Scope these overrides to pages that contain the main ratings table. */
-body:has(#ratingsTable) {
-  background: #fff;
+/* Editorial ratings treatment, layered after the shared main-branch styles. */
+body:has(#ratingsTable, #advancedTable, #predictionsContent) { background: #f2efe7; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .container,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar__inner { max-width: 1440px; margin-inline: auto; padding-inline: 24px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header { position: static; background: #f8f6f0; border-bottom: 1px solid #d9d3c2; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner { min-height: 48px; padding-block: 6px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .logotype { font-size: 26px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__tagline { font-size: 9px; letter-spacing: .12em; color: #66665f; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__input { width: 175px; min-height: 30px; height: 30px; font-size: 11px; background: #fffdf7; border-color: #cbc6b9; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a { min-height: 34px; font-size: 10px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero { padding-block: 12px 10px; gap: 16px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero .eyebrow { font-size: 9px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero h1 { font-size: 34px; line-height: 1; margin-top: 3px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__description { margin-top: 5px; font-size: 11px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__meta { flex-direction: column; align-items: flex-end; gap: 5px; font-size: 10px; white-space: nowrap; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .utility-link { font-size: 10px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar { background: #eeeadf; border-color: #d2ccbd; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar__inner { gap: 6px 12px; padding-block: 5px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-label { width: auto; font-size: 9px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .year-nav,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .week-nav { width: auto; max-width: 100%; gap: 2px; min-width: 0; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .year-nav button,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .week-nav button { min-width: 0; min-height: 28px; padding: 3px 7px; font-size: 10px; border-radius: 0; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .year-nav button.active,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .week-nav button.active { background: #faf8f2; border-color: transparent; border-bottom-color: var(--color-gold); }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .filter-box { order: 0; flex: 1 1 150px; max-width: 230px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .conference-filter { order: 0; flex: 0 1 165px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .filter-box input,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .conference-filter select { min-height: 30px; height: 30px; padding-block: 3px; font-size: 11px; border-radius: 2px; background: #faf8f2; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .row-count { width: auto; margin-left: auto; font-size: 10px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-help { width: auto; margin-left: auto; font-size: 10px; }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .table-scroll { max-height: none; overflow: visible; border: 1px solid #d2ccbd; border-top: 0; border-radius: 0; box-shadow: none; background: #faf8f2; }
+:is(#ratingsTable, .adv-table) { min-width: 0; width: 100%; }
+:is(#ratingsTable, .adv-table) th, :is(#ratingsTable, .adv-table) td { padding: 5px 10px; }
+:is(#ratingsTable, .adv-table) thead th { height: 36px; position: sticky; top: 0; z-index: 12; background: #e8e4d9; color: #263449; border-bottom: 1px solid #bcb5a4; font-size: 10px; letter-spacing: .02em; }
+:is(#ratingsTable, .adv-table) thead th:hover { background: #ded9cd; }
+:is(#ratingsTable, .adv-table) td { height: 42px; font-size: 12px; }
+:is(#ratingsTable, .adv-table) tbody tr { border-color: #e3ded2; }
+:is(#ratingsTable, .adv-table) tbody tr:nth-child(even) { background: #f5f2e9; }
+:is(#ratingsTable, .adv-table) tbody tr:hover { background: #ebe6d8; }
+:is(#ratingsTable, .adv-table) .column-sort { border: 0; padding: 7px 0; background: none; color: inherit; font: inherit; font-weight: 800; text-transform: inherit; }
+:is(#ratingsTable, .adv-table) .sort-indicator { width: 7px; font-size: 7px; color: #92702d; }
+:is(#ratingsTable, .adv-table) .rank-cell { width: 45px; }
+:is(#ratingsTable, .adv-table) .delta-cell { width: 42px; padding-inline: 3px; font-size: 9px; }
+:is(#ratingsTable, .adv-table) .delta-cell .tip-trigger { display: none; }
+:is(#ratingsTable, .adv-table) .team-cell { min-width: 175px; }
+:is(#ratingsTable, .adv-table) .team-link { gap: 8px; font-size: 12px; }
+:is(#ratingsTable, .adv-table) .team-logo { width: 23px; height: 23px; }
+:is(#ratingsTable, .adv-table) .team-conf-label { display: none; }
+:is(#ratingsTable, .adv-table) .conf-cell { font-size: 10px; }
+:is(#ratingsTable, .adv-table) .rank-sub { margin-left: 5px; min-width: 0; font-size: 9px; color: #787668; }
+:is(#ratingsTable, .adv-table) .stat-cell[data-tone="positive"] { background: rgba(75, 123, 87, .065); }
+:is(#ratingsTable, .adv-table) .stat-cell[data-tone="negative"] { background: rgba(163, 80, 66, .065); }
+:is(#ratingsTable, .adv-table) .stat-cell.primary { border-left: 1px solid #d9d3c2; font-weight: 700; }
+:is(#ratingsTable, .adv-table) .stat-cell.primary[data-tone="positive"] { background: rgba(75, 123, 87, .12); }
+:is(#ratingsTable, .adv-table) .stat-cell.primary[data-tone="negative"] { background: rgba(163, 80, 66, .12); }
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .premium-teaser { margin-top: 12px; padding-block: 12px; box-shadow: none; border-radius: 0; }
+#methodology { scroll-margin-top: 40px; }
+@media (max-width: 1050px) {
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__tagline { display: none; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__meta { white-space: normal; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-help { margin-left: 0; }
+  :is(#ratingsTable, .adv-table) th, :is(#ratingsTable, .adv-table) td { padding-inline: 6px; }
+  :is(#ratingsTable, .adv-table) .rank-sub { display: block; margin: 1px 0 0; }
+}
+@media (max-width: 640px) {
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .container,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar__inner { padding-inline: 10px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner { gap: 8px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .logotype { font-size: 20px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__right { flex: 1; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search { width: 100%; max-width: 145px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__box { display: flex; position: static; padding: 0; background: none; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__input { width: 100%; min-width: 0; font-size: 16px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__toggle,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__close { display: none; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__results { position: absolute; top: 36px; right: 0; left: auto; width: min(340px, 95vw); }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav .container { gap: 22px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a { flex: none; font-size: 10px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero { padding-block: 10px 8px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero h1 { font-size: 29px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__description { font-size: 11px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__meta { flex-direction: row; justify-content: space-between; align-items: center; margin-top: 7px; font-size: 9px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar__inner { gap: 5px 8px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .year-nav { flex: 1; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .filter-box { flex: 1 1 45%; max-width: none; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .conference-filter { flex: 1 1 45%; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .filter-box input,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .conference-filter select { font-size: 16px; height: 34px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .row-count { order: -1; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-label:first-child { order: -2; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .year-nav { order: -1; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .week-nav { flex: 1; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-help { font-size: 9px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .table-main.container { padding-inline: 0; }
+}
+/* Keep the two control rows predictable when tabs outgrow a phone. */
+:is(#ratingsTable, .adv-table) thead th { padding-block: 0; }
+@media (max-width: 640px) {
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar__inner:not(.control-bar__inner--secondary) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-label:first-child,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .year-nav,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .row-count { order: 0; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .filter-box { grid-column: 1 / 3; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .conference-filter { grid-column: 3; max-width: 170px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar__inner--secondary .week-nav { flex: 1 1 70%; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-help { flex-basis: 100%; }
+  :is(#ratingsTable, .adv-table) thead .delta-cell { font-size: 0 !important; }
+  :is(#ratingsTable, .adv-table) thead .delta-cell::after { content: "Δ"; font-size: 9px; }
+}
+@media (max-width: 640px) {
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .row-count { grid-column: 3; grid-row: 1; justify-self: end; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .filter-box,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .conference-filter { grid-row: 2; }
 }
 
-/* Compact masthead. */
-body:has(#ratingsTable) .site-header__inner {
-  min-height: 54px;
-  max-width: 1240px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-body:has(#ratingsTable) .logotype::before { font-size: 30px; }
-body:has(#ratingsTable) .logotype::after { font-size: 11px; }
-body:has(#ratingsTable) .site-header__right::after { font-size: 22px; }
-body:has(#ratingsTable) .site-header::after {
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 0 32px 7px;
-  font-size: 8px;
-  line-height: 1;
-  letter-spacing: .25em;
-}
+/* Shared navigation and advanced controls. */
+.nav-coming { margin-left: 7px; color: #cbb988; font-size: 8px; letter-spacing: .02em; }
+body:has(#advancedTable) .week-range { width: auto; display: flex; gap: 7px; }
+body:has(#advancedTable) .week-range select { min-height: 30px; padding: 3px 8px; font-size: 11px; border-radius: 2px; background: #faf8f2; }
+body:has(#advancedTable) .tab-bar { display: flex; align-items: center; gap: 20px; padding-block: 0; border-top: 1px solid #d9d3c2; }
+body:has(#advancedTable) .tab-nav { gap: 18px; border: 0; margin: 0; padding: 0; flex-shrink: 0; }
+body:has(#advancedTable) .tab-nav button { min-height: 32px; min-width: 0; margin: 0; padding: 6px 0; font-size: 10px; }
+body:has(#advancedTable) .adv-note { padding: 5px 0; margin-left: auto; font-size: 10px; }
+:is(#ratingsTable, .adv-table) td { vertical-align: middle; }
 
-/* Small title strip instead of a hero. */
-body:has(#ratingsTable) .ratings-hero {
-  max-width: 1240px;
-  min-height: 0;
-  padding-top: 9px;
-  padding-bottom: 7px;
-  align-items: center;
-}
-body:has(#ratingsTable) .ratings-hero__copy {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 12px;
-  row-gap: 1px;
-  align-items: baseline;
-}
-body:has(#ratingsTable) .ratings-hero .eyebrow {
-  grid-column: 1;
-  grid-row: 1;
-  font-size: 9px;
-  letter-spacing: .16em;
-  white-space: nowrap;
-}
-body:has(#ratingsTable) .ratings-hero h1 {
-  grid-column: 2;
-  grid-row: 1;
-  margin: 0;
-  font-size: 28px;
-  line-height: 1;
-  letter-spacing: -.035em;
-}
-body:has(#ratingsTable) .ratings-hero__description {
-  grid-column: 2;
-  grid-row: 2;
-  margin-top: 1px;
-  font-size: 11.5px;
-  line-height: 1.2;
-}
+@media (max-width: 640px) {
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav .container { gap: 14px; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a { min-height: 42px; font-size: 9px; letter-spacing: .025em; }
+  .site-nav a[href="/predictions"] { flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; }
+  .nav-coming { margin-left: 0; font-size: 7px; }
+  body:has(#advancedTable) .week-range { flex: 1; }
+  body:has(#advancedTable) .week-range select { min-width: 0; width: 100%; height: 34px; font-size: 16px; }
+  body:has(#advancedTable) .tab-bar { display: block; }
+  body:has(#advancedTable) .adv-note { margin: 0; font-size: 9px; }
 
-/* Put conference + season/week controls on one compact row. */
-body:has(#ratingsTable) .mockup-controls {
-  display: grid;
-  grid-template-columns: auto minmax(420px, 1fr);
-  align-items: center;
-  gap: 12px;
-  max-width: 1240px;
-  padding-top: 0;
-  padding-bottom: 8px;
-}
-body:has(#ratingsTable) .conference-pills {
-  margin: 0;
-  gap: 5px;
-  overflow: visible;
-}
-body:has(#ratingsTable) .conference-pills button {
-  min-width: 54px;
-  min-height: 34px;
-  padding: 0 12px;
-  border-radius: 7px;
-  font-size: 11px;
-}
-body:has(#ratingsTable) .mockup-select-row {
-  display: grid;
-  grid-template-columns: minmax(150px, .75fr) minmax(180px, 1fr) auto;
-  gap: 7px;
-}
-body:has(#ratingsTable) .mockup-select select {
-  min-height: 34px;
-  padding: 0 32px 0 10px;
-  border-radius: 7px;
-  font-size: 11px;
-}
-body:has(#ratingsTable) .mockup-updated {
-  font-size: 9px;
-  line-height: 1.25;
-}
+  /* Center the logo beside the complete two-line identity, not its first line. */
+  :is(#ratingsTable, .adv-table) .team-cell-stack { position: relative; padding-left: 25px; min-height: 26px; display: flex; flex-direction: column; justify-content: center; }
+  :is(#ratingsTable, .adv-table) .team-link { display: block; line-height: 1.25; }
+  :is(#ratingsTable, .adv-table) .team-logo { position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
+  :is(#ratingsTable, .adv-table) .team-conf-label { margin: 2px 0 0; line-height: 1.1; }
 
-/* Wider, denser table. */
-body:has(#ratingsTable) .table-main {
-  max-width: 1240px;
+  #advancedTable .adv-table { min-width: 390px !important; }
+  #advancedTable .adv-table .rank-cell { width: 6% !important; }
+  #advancedTable .adv-table .team-cell { width: 22% !important; }
+  #advancedTable .adv-table .record-cell { width: 8% !important; }
+  #advancedTable .adv-table .metric-cell { width: 10.666% !important; }
+  #advancedTable .adv-table[data-view="offense"], #advancedTable .adv-table[data-view="defense"] { min-width: 480px !important; }
+  #advancedTable .adv-table[data-view="offense"] .metric-cell, #advancedTable .adv-table[data-view="defense"] .metric-cell { width: 9.14% !important; }
+  #advancedTable .adv-table thead th { white-space: normal; overflow-wrap: normal; }
+  #advancedTable .adv-table thead .metric-cell { font-size: 8px !important; }
 }
-body:has(#ratingsTable) .table-scroll {
-  border-radius: 7px;
-  box-shadow: none;
-}
-body:has(#ratingsTable) .data-table th,
-body:has(#ratingsTable) .data-table td {
-  height: 31px;
-  padding: 3px 8px;
-}
-body:has(#ratingsTable) .data-table thead th {
-  height: 30px;
-  font-size: 9.5px;
-}
-body:has(#ratingsTable) .data-table td {
-  font-size: 11.5px;
-}
-body:has(#ratingsTable) .data-table td.team-cell {
-  padding-top: 2px;
-  padding-bottom: 2px;
-}
-body:has(#ratingsTable) .team-logo {
-  width: 25px;
-  height: 25px;
-}
-body:has(#ratingsTable) .team-link {
-  gap: 7px;
-  font-size: 11.5px;
-}
-body:has(#ratingsTable) .team-conf-label {
-  margin-left: 32px;
-  margin-top: -6px;
-  font-size: 8.5px;
-}
-body:has(#ratingsTable) .data-table th.delta-cell,
-body:has(#ratingsTable) .data-table td.delta-cell {
-  width: 28px;
-  min-width: 28px;
-  max-width: 28px;
-  font-size: 7.5px;
-}
-body:has(#ratingsTable) .data-table td.stat-cell {
-  font-size: 11px;
-}
-body:has(#ratingsTable) .data-table td.stat-cell.primary {
-  font-size: 11.5px;
-}
-body:has(#ratingsTable) .rank-sub {
-  display: inline-block;
-  margin: 0 0 0 4px;
-  font-size: 7.5px;
-  vertical-align: baseline;
-}
-
-/* Keep conversion content below the ratings instead of competing above fold. */
-body:has(#ratingsTable) .premium-teaser {
-  margin-top: 8px;
-}
-
-@media (max-width: 760px) {
-  body:has(#ratingsTable) .container {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
-  body:has(#ratingsTable) .site-header__inner {
-    min-height: 48px;
-    padding: 7px 12px;
-  }
-  body:has(#ratingsTable) .site-header::after {
-    padding: 0 12px 5px;
-    font-size: 6.5px;
-    letter-spacing: .2em;
-  }
-  body:has(#ratingsTable) .logotype::before { font-size: 27px; }
-  body:has(#ratingsTable) .logotype::after { font-size: 9px; }
-  body:has(#ratingsTable) .site-header__right::after { font-size: 19px; }
-
-  body:has(#ratingsTable) .ratings-hero {
-    padding: 6px 10px 5px;
-  }
-  body:has(#ratingsTable) .ratings-hero__copy {
-    display: block;
-  }
-  body:has(#ratingsTable) .ratings-hero .eyebrow {
-    display: none;
-  }
-  body:has(#ratingsTable) .ratings-hero h1 {
-    font-size: 22px;
-    line-height: 1.02;
-  }
-  body:has(#ratingsTable) .ratings-hero__description {
-    margin-top: 2px;
-    font-size: 10px;
-    line-height: 1.15;
-  }
-
-  body:has(#ratingsTable) .mockup-controls {
-    display: block;
-    padding: 0 10px 6px;
-  }
-  body:has(#ratingsTable) .conference-pills {
-    gap: 3px;
-    margin-bottom: 5px;
-  }
-  body:has(#ratingsTable) .conference-pills button {
-    flex: 1 1 0;
-    min-width: 0;
-    min-height: 28px;
-    padding: 0 4px;
-    border-radius: 6px;
-    font-size: 9px;
-  }
-  body:has(#ratingsTable) .mockup-select-row {
-    grid-template-columns: .9fr 1.1fr auto;
-    gap: 4px;
-  }
-  body:has(#ratingsTable) .mockup-select select {
-    min-height: 28px;
-    padding: 0 22px 0 7px;
-    border-radius: 6px;
-    font-size: 9px;
-  }
-  body:has(#ratingsTable) .mockup-updated {
-    font-size: 7px;
-  }
-
-  /* mobile-fit.css handles the all-columns-visible widths; this only raises density. */
-  body:has(#ratingsTable) #ratingsTable th,
-  body:has(#ratingsTable) #ratingsTable td {
-    height: 38px !important;
-    padding-top: 2px !important;
-    padding-bottom: 2px !important;
-  }
-  body:has(#ratingsTable) #ratingsTable thead th {
-    height: 28px !important;
-    font-size: 7.5px !important;
-  }
-  body:has(#ratingsTable) #ratingsTable .team-logo {
-    width: 21px !important;
-    height: 21px !important;
-    flex-basis: 21px !important;
-  }
-  body:has(#ratingsTable) #ratingsTable .team-link {
-    gap: 4px;
-  }
-  body:has(#ratingsTable) #ratingsTable .team-link .team-name {
-    font-size: 9px !important;
-  }
-  body:has(#ratingsTable) #ratingsTable .team-conf-label {
-    margin: -3px 0 0 25px !important;
-    font-size: 7px !important;
-  }
-  body:has(#ratingsTable) #ratingsTable td.rank-cell {
-    font-size: 10px !important;
-  }
-  body:has(#ratingsTable) #ratingsTable td.record-cell {
-    font-size: 9px !important;
-  }
-  body:has(#ratingsTable) #ratingsTable td.stat-cell {
-    font-size: 9px !important;
-  }
-  body:has(#ratingsTable) #ratingsTable td.stat-cell.primary {
-    font-size: 9.5px !important;
-  }
-  body:has(#ratingsTable) #ratingsTable .rank-sub {
-    display: block;
-    margin: 1px 0 0;
-    font-size: 6.5px !important;
-  }
+@media (max-width: 640px) {
+  #advancedTable .adv-table .column-sort { padding-block: 3px; }
+  #advancedTable .adv-table thead .rank-cell { white-space: nowrap; }
+  #advancedTable .adv-table[data-view="offense"] .metric-cell,
+  #advancedTable .adv-table[data-view="defense"] .metric-cell { width: 8% !important; }
+  #advancedTable .adv-table [data-metric-key="offPassRate"],
+  #advancedTable .adv-table [data-metric-key="defPassRate"] { width: 16% !important; }
 }

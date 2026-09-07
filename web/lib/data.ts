@@ -1,8 +1,8 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import type { AdvancedSeason, PredictionsWeek, RankingsSeason, SearchIndexEntry, SiteMeta } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const res = await fetch(path);
+  const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
   if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -14,6 +14,7 @@ async function fetchJson<T>(path: string): Promise<T> {
 // to a season you've already viewed -- a year button, a tab, a week range --
 // renders instantly instead of re-showing a loading skeleton.
 const listeners = new Set<() => void>();
+const dataErrors = new Map<string, Error>();
 function notify() {
   listeners.forEach((l) => l());
 }
@@ -32,12 +33,12 @@ let metaPromise: Promise<SiteMeta> | null = null;
 let searchIndexPromise: Promise<SearchIndexEntry[]> | null = null;
 
 export function getMeta(): Promise<SiteMeta> {
-  if (!metaPromise) metaPromise = fetchJson<SiteMeta>("/data/meta.json");
+  if (!metaPromise) metaPromise = fetchJson<SiteMeta>("/data/meta.json").catch((error) => { metaPromise = null; throw error; });
   return metaPromise;
 }
 
 export function getSearchIndex(): Promise<SearchIndexEntry[]> {
-  if (!searchIndexPromise) searchIndexPromise = fetchJson<SearchIndexEntry[]>("/data/search-index.json");
+  if (!searchIndexPromise) searchIndexPromise = fetchJson<SearchIndexEntry[]>("/data/search-index.json").catch((error) => { searchIndexPromise = null; throw error; });
   return searchIndexPromise;
 }
 
@@ -52,10 +53,17 @@ export function getRankingsSeason(year: number | string): Promise<RankingsSeason
   let entry = rankingsInflight.get(key);
   if (!entry) {
     entry = fetchJson<RankingsSeason>(`/data/rankings/${key}.json`).then((season) => {
+      dataErrors.delete(`rankings:${key}`);
       rankingsData.set(key, season);
       rankingsInflight.delete(key);
       notify();
       return season;
+    });
+    entry = entry.catch((error: Error) => {
+      rankingsInflight.delete(key);
+      dataErrors.set(`rankings:${key}`, error);
+      notify();
+      throw error;
     });
     rankingsInflight.set(key, entry);
   }
@@ -73,10 +81,17 @@ export function getAdvancedSeason(year: number | string): Promise<AdvancedSeason
   let entry = advancedInflight.get(key);
   if (!entry) {
     entry = fetchJson<AdvancedSeason>(`/data/advanced/${key}.json`).then((season) => {
+      dataErrors.delete(`advanced:${key}`);
       advancedData.set(key, season);
       advancedInflight.delete(key);
       notify();
       return season;
+    });
+    entry = entry.catch((error: Error) => {
+      advancedInflight.delete(key);
+      dataErrors.set(`advanced:${key}`, error);
+      notify();
+      throw error;
     });
     advancedInflight.set(key, entry);
   }
@@ -101,25 +116,38 @@ export function prefetchAllAdvanced(years: (number | string)[]): void {
  * instant it's available (synchronously, with no render flicker, if it was
  * already fetched/prefetched) and re-renders when it arrives otherwise. */
 export function useRankingsSeason(year: string | null): RankingsSeason | undefined {
+  useEffect(() => {
+    if (year) getRankingsSeason(year).catch(() => {});
+  }, [year]);
   return useSyncExternalStore(
     subscribe,
-    () => (year ? rankingsData.get(year) : undefined),
+    () => {
+      const error = year ? dataErrors.get(`rankings:${year}`) : undefined;
+      if (error) throw error;
+      return year ? rankingsData.get(year) : undefined;
+    },
     () => undefined
   );
 }
 
 export function useAdvancedSeason(year: string | null): AdvancedSeason | undefined {
+  useEffect(() => {
+    if (year) getAdvancedSeason(year).catch(() => {});
+  }, [year]);
   return useSyncExternalStore(
     subscribe,
-    () => (year ? advancedData.get(year) : undefined),
+    () => {
+      const error = year ? dataErrors.get(`advanced:${year}`) : undefined;
+      if (error) throw error;
+      return year ? advancedData.get(year) : undefined;
+    },
     () => undefined
   );
 }
 
 export async function getPredictionsWeek(season: number | string, week: number | string): Promise<PredictionsWeek | null> {
-  try {
-    return await fetchJson<PredictionsWeek>(`/data/predictions/${season}-${week}.json`);
-  } catch {
-    return null;
-  }
+  const response = await fetch(`/data/predictions/${season}-${week}.json`, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error("Predictions are temporarily unavailable");
+  return response.json() as Promise<PredictionsWeek>;
 }

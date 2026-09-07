@@ -5,7 +5,6 @@ import "@/styles/ratings.css";
 import "@/styles/advanced.css";
 import "@/styles/team.css";
 import "@/styles/mobile-tables.css";
-import "@/styles/mockup-light.css";
 import "./additions.css";
 import "@/styles/mobile-fit.css";
 import "@/styles/dense-ratings.css";
@@ -20,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#172438" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font -- this is the

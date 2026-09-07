@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 const LINKS = [
   { href: "/", label: "Ratings" },
   { href: "/advanced", label: "Advanced Analytics", pro: true },
-  { href: "/predictions", label: "Predictions" },
+  { href: "/predictions", label: "Predictions", coming: "Coming Week 4" },
 ];
 
 export default function SiteNav() {
@@ -26,6 +26,7 @@ export default function SiteNav() {
             >
               {link.label}
               {link.pro ? <span className="nav-pro-badge">PRO</span> : null}
+              {link.coming ? <span className="nav-coming">{link.coming}</span> : null}
             </Link>
           );
         })}
