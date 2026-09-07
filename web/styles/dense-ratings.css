@@ -1,0 +1,277 @@
+/* Density pass for the ratings route.
+   Goal: behave like KenPom — the data table is the product, not the hero. */
+
+/* Scope these overrides to pages that contain the main ratings table. */
+body:has(#ratingsTable) {
+  background: #fff;
+}
+
+/* Compact masthead. */
+body:has(#ratingsTable) .site-header__inner {
+  min-height: 54px;
+  max-width: 1240px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+body:has(#ratingsTable) .logotype::before { font-size: 30px; }
+body:has(#ratingsTable) .logotype::after { font-size: 11px; }
+body:has(#ratingsTable) .site-header__right::after { font-size: 22px; }
+body:has(#ratingsTable) .site-header::after {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 32px 7px;
+  font-size: 8px;
+  line-height: 1;
+  letter-spacing: .25em;
+}
+
+/* Small title strip instead of a hero. */
+body:has(#ratingsTable) .ratings-hero {
+  max-width: 1240px;
+  min-height: 0;
+  padding-top: 9px;
+  padding-bottom: 7px;
+  align-items: center;
+}
+body:has(#ratingsTable) .ratings-hero__copy {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  row-gap: 1px;
+  align-items: baseline;
+}
+body:has(#ratingsTable) .ratings-hero .eyebrow {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 9px;
+  letter-spacing: .16em;
+  white-space: nowrap;
+}
+body:has(#ratingsTable) .ratings-hero h1 {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+body:has(#ratingsTable) .ratings-hero__description {
+  grid-column: 2;
+  grid-row: 2;
+  margin-top: 1px;
+  font-size: 11.5px;
+  line-height: 1.2;
+}
+
+/* Put conference + season/week controls on one compact row. */
+body:has(#ratingsTable) .mockup-controls {
+  display: grid;
+  grid-template-columns: auto minmax(420px, 1fr);
+  align-items: center;
+  gap: 12px;
+  max-width: 1240px;
+  padding-top: 0;
+  padding-bottom: 8px;
+}
+body:has(#ratingsTable) .conference-pills {
+  margin: 0;
+  gap: 5px;
+  overflow: visible;
+}
+body:has(#ratingsTable) .conference-pills button {
+  min-width: 54px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 7px;
+  font-size: 11px;
+}
+body:has(#ratingsTable) .mockup-select-row {
+  display: grid;
+  grid-template-columns: minmax(150px, .75fr) minmax(180px, 1fr) auto;
+  gap: 7px;
+}
+body:has(#ratingsTable) .mockup-select select {
+  min-height: 34px;
+  padding: 0 32px 0 10px;
+  border-radius: 7px;
+  font-size: 11px;
+}
+body:has(#ratingsTable) .mockup-updated {
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+/* Wider, denser table. */
+body:has(#ratingsTable) .table-main {
+  max-width: 1240px;
+}
+body:has(#ratingsTable) .table-scroll {
+  border-radius: 7px;
+  box-shadow: none;
+}
+body:has(#ratingsTable) .data-table th,
+body:has(#ratingsTable) .data-table td {
+  height: 31px;
+  padding: 3px 8px;
+}
+body:has(#ratingsTable) .data-table thead th {
+  height: 30px;
+  font-size: 9.5px;
+}
+body:has(#ratingsTable) .data-table td {
+  font-size: 11.5px;
+}
+body:has(#ratingsTable) .data-table td.team-cell {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+body:has(#ratingsTable) .team-logo {
+  width: 25px;
+  height: 25px;
+}
+body:has(#ratingsTable) .team-link {
+  gap: 7px;
+  font-size: 11.5px;
+}
+body:has(#ratingsTable) .team-conf-label {
+  margin-left: 32px;
+  margin-top: -6px;
+  font-size: 8.5px;
+}
+body:has(#ratingsTable) .data-table th.delta-cell,
+body:has(#ratingsTable) .data-table td.delta-cell {
+  width: 28px;
+  min-width: 28px;
+  max-width: 28px;
+  font-size: 7.5px;
+}
+body:has(#ratingsTable) .data-table td.stat-cell {
+  font-size: 11px;
+}
+body:has(#ratingsTable) .data-table td.stat-cell.primary {
+  font-size: 11.5px;
+}
+body:has(#ratingsTable) .rank-sub {
+  display: inline-block;
+  margin: 0 0 0 4px;
+  font-size: 7.5px;
+  vertical-align: baseline;
+}
+
+/* Keep conversion content below the ratings instead of competing above fold. */
+body:has(#ratingsTable) .premium-teaser {
+  margin-top: 8px;
+}
+
+@media (max-width: 760px) {
+  body:has(#ratingsTable) .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  body:has(#ratingsTable) .site-header__inner {
+    min-height: 48px;
+    padding: 7px 12px;
+  }
+  body:has(#ratingsTable) .site-header::after {
+    padding: 0 12px 5px;
+    font-size: 6.5px;
+    letter-spacing: .2em;
+  }
+  body:has(#ratingsTable) .logotype::before { font-size: 27px; }
+  body:has(#ratingsTable) .logotype::after { font-size: 9px; }
+  body:has(#ratingsTable) .site-header__right::after { font-size: 19px; }
+
+  body:has(#ratingsTable) .ratings-hero {
+    padding: 6px 10px 5px;
+  }
+  body:has(#ratingsTable) .ratings-hero__copy {
+    display: block;
+  }
+  body:has(#ratingsTable) .ratings-hero .eyebrow {
+    display: none;
+  }
+  body:has(#ratingsTable) .ratings-hero h1 {
+    font-size: 22px;
+    line-height: 1.02;
+  }
+  body:has(#ratingsTable) .ratings-hero__description {
+    margin-top: 2px;
+    font-size: 10px;
+    line-height: 1.15;
+  }
+
+  body:has(#ratingsTable) .mockup-controls {
+    display: block;
+    padding: 0 10px 6px;
+  }
+  body:has(#ratingsTable) .conference-pills {
+    gap: 3px;
+    margin-bottom: 5px;
+  }
+  body:has(#ratingsTable) .conference-pills button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 28px;
+    padding: 0 4px;
+    border-radius: 6px;
+    font-size: 9px;
+  }
+  body:has(#ratingsTable) .mockup-select-row {
+    grid-template-columns: .9fr 1.1fr auto;
+    gap: 4px;
+  }
+  body:has(#ratingsTable) .mockup-select select {
+    min-height: 28px;
+    padding: 0 22px 0 7px;
+    border-radius: 6px;
+    font-size: 9px;
+  }
+  body:has(#ratingsTable) .mockup-updated {
+    font-size: 7px;
+  }
+
+  /* mobile-fit.css handles the all-columns-visible widths; this only raises density. */
+  body:has(#ratingsTable) #ratingsTable th,
+  body:has(#ratingsTable) #ratingsTable td {
+    height: 38px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+  }
+  body:has(#ratingsTable) #ratingsTable thead th {
+    height: 28px !important;
+    font-size: 7.5px !important;
+  }
+  body:has(#ratingsTable) #ratingsTable .team-logo {
+    width: 21px !important;
+    height: 21px !important;
+    flex-basis: 21px !important;
+  }
+  body:has(#ratingsTable) #ratingsTable .team-link {
+    gap: 4px;
+  }
+  body:has(#ratingsTable) #ratingsTable .team-link .team-name {
+    font-size: 9px !important;
+  }
+  body:has(#ratingsTable) #ratingsTable .team-conf-label {
+    margin: -3px 0 0 25px !important;
+    font-size: 7px !important;
+  }
+  body:has(#ratingsTable) #ratingsTable td.rank-cell {
+    font-size: 10px !important;
+  }
+  body:has(#ratingsTable) #ratingsTable td.record-cell {
+    font-size: 9px !important;
+  }
+  body:has(#ratingsTable) #ratingsTable td.stat-cell {
+    font-size: 9px !important;
+  }
+  body:has(#ratingsTable) #ratingsTable td.stat-cell.primary {
+    font-size: 9.5px !important;
+  }
+  body:has(#ratingsTable) #ratingsTable .rank-sub {
+    display: block;
+    margin: 1px 0 0;
+    font-size: 6.5px !important;
+  }
+}
