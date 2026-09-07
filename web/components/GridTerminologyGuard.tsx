@@ -18,6 +18,9 @@ const REPLACEMENTS: Array<[string, string]> = [
 ];
 
 function replaceBrandTerms(value: string) {
+  const trimmed = value.trim();
+  if (trimmed === "CFF") return value.replace("CFF", "RPI");
+  if (trimmed === "ARA") return value.replace("ARA", "GRID");
   return REPLACEMENTS.reduce((next, [from, to]) => next.replaceAll(from, to), value);
 }
 
