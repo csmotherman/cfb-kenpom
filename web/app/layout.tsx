@@ -12,6 +12,7 @@ import "@/styles/mobile-fit.css";
 import "@/styles/dense-ratings.css";
 import "@/styles/ara-polish.css";
 import "@/styles/grid-brand.css";
+import "@/styles/team-logo-align.css";
 
 export const metadata: Metadata = {
   title: "GRID | College Football Analytics",
