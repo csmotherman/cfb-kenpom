@@ -1,0 +1,776 @@
+/* ==========================================================================
+   ARA — Adjusted Ratings & Analytics
+   Final alignment and brand polish. Loaded last so this file is the single
+   source of truth for the public-facing finish without disturbing data logic.
+   ========================================================================== */
+
+:root {
+  --color-paper: #f6f4ee;
+  --color-paper-raised: #eee9de;
+  --color-paper-soft: #fbfaf6;
+  --color-ink: #172033;
+  --color-ink-secondary: #4f5969;
+  --color-ink-tertiary: #777c84;
+  --color-navy: #142742;
+  --color-navy-light: #203654;
+  --color-gold: #b88a2a;
+  --color-gold-dark: #936c1f;
+  --color-hairline: #e0dbcf;
+  --color-hairline-strong: #c9c2b3;
+  --color-up: #2f7a4c;
+  --color-down: #a43b3b;
+  --container-width: 1420px;
+}
+
+html { background: #f3f0e8; }
+body {
+  background: #f3f0e8;
+  color: var(--color-ink);
+}
+
+/* One shared horizontal rhythm everywhere. */
+.container,
+.site-header__inner,
+.site-nav .container,
+.control-bar__inner,
+.breadcrumbs,
+.advanced-intro {
+  width: 100%;
+  max-width: var(--container-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .container,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar__inner {
+  max-width: var(--container-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+/* Header ------------------------------------------------------------------ */
+.site-header {
+  background: #fbfaf6;
+  border-bottom: 1px solid #d8d2c6;
+}
+
+.site-header__inner,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 28px;
+  min-height: 56px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.logotype {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  color: var(--color-navy);
+  font-family: var(--font-body);
+  font-size: inherit;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.logotype span { color: inherit; }
+
+.logotype__mark {
+  display: inline-block;
+  color: var(--color-navy) !important;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: .035em;
+  line-height: .9;
+  transform: skewX(-7deg);
+  transform-origin: center;
+}
+
+.logotype__name {
+  color: #26364d !important;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .075em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.site-header__right {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+}
+
+.site-header__tagline,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__tagline {
+  justify-self: center;
+  color: #6d6e6a;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.site-search { justify-self: end; }
+.site-search__input,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__input {
+  width: 188px;
+  min-height: 31px;
+  height: 31px;
+  border: 1px solid #cfc8b9;
+  border-radius: 3px;
+  background: #fffefa;
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+.site-search__input:focus {
+  border-color: #7c899b;
+  box-shadow: 0 0 0 2px rgba(20, 39, 66, .08);
+}
+
+.site-search__results {
+  border-radius: 3px;
+  box-shadow: 0 12px 30px rgba(20, 39, 66, .12);
+}
+
+/* Navigation --------------------------------------------------------------- */
+.site-nav {
+  background: var(--color-navy);
+  border-bottom: 1px solid #0d1c31;
+}
+
+.site-nav .container,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav .container {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+.site-nav a,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+  min-height: 38px;
+  font-size: 10px;
+  letter-spacing: .07em;
+}
+
+.nav-pro-badge {
+  margin-left: 6px;
+  border-color: rgba(184, 138, 42, .8);
+  color: #d4ad55;
+}
+
+.nav-coming {
+  margin-left: 6px;
+  color: #aeb8c7;
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+
+/* Ratings / advanced hero -------------------------------------------------- */
+.ratings-hero,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero {
+  width: 100%;
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 11px 22px 9px;
+  align-items: center;
+  gap: 24px;
+}
+
+.ratings-hero__copy { flex: 1 1 auto; }
+
+.ratings-hero .eyebrow,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero .eyebrow {
+  color: var(--color-gold-dark);
+  font-size: 9px;
+  letter-spacing: .12em;
+}
+
+body:has(#ratingsTable) .ratings-hero .eyebrow,
+body:has(#advancedTable) .ratings-hero .eyebrow {
+  font-size: 0;
+}
+
+body:has(#ratingsTable) .ratings-hero .eyebrow::after {
+  content: "ARA Ratings";
+  font-size: 9px;
+}
+
+body:has(#advancedTable) .ratings-hero .eyebrow::after {
+  content: "ARA Advanced Analytics";
+  font-size: 9px;
+}
+
+.ratings-hero h1,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero h1 {
+  margin-top: 2px;
+  color: var(--color-navy);
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: .005em;
+}
+
+.ratings-hero__description,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__description {
+  margin-top: 4px;
+  max-width: 720px;
+  color: #5f6670;
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.ratings-hero__meta,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__meta {
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 12px;
+  padding-bottom: 0;
+  color: #6c716f;
+  font-size: 9.5px;
+  text-align: right;
+}
+
+.ratings-status {
+  color: #394659;
+  font-size: 9.5px;
+}
+
+.utility-link { font-size: 9.5px; }
+.data-updated { color: #86877f; font-size: 8.5px; }
+
+/* Controls ---------------------------------------------------------------- */
+.control-bar {
+  background: #eee9dd;
+  border-top: 1px solid #d5cfc1;
+  border-bottom: 1px solid #cbc4b4;
+}
+
+body:has(#ratingsTable) .control-bar__inner:not(.control-bar__inner--secondary) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(170px, 220px) minmax(145px, 175px) auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 6px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+body:has(#ratingsTable) .control-bar__inner--secondary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.control-label,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-label {
+  color: #6f6e67;
+  font-size: 8.5px;
+  letter-spacing: .1em;
+}
+
+.year-nav,
+.week-nav {
+  min-width: 0;
+  gap: 1px;
+}
+
+.year-nav button,
+.week-nav button,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .year-nav button,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .week-nav button {
+  min-height: 27px;
+  padding: 3px 6px;
+  color: #4e5560;
+  font-size: 9.5px;
+}
+
+.year-nav button.active,
+.week-nav button.active {
+  color: var(--color-navy);
+  background: #faf8f2;
+  border-bottom-color: var(--color-gold);
+}
+
+body:has(#ratingsTable) .filter-box,
+body:has(#ratingsTable) .conference-filter {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+.filter-box input,
+.conference-filter select,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .filter-box input,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .conference-filter select {
+  width: 100%;
+  min-height: 31px;
+  height: 31px;
+  border-radius: 3px;
+  background: #faf8f2;
+  font-size: 10.5px;
+}
+
+.row-count,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .row-count {
+  margin-left: 0;
+  color: #7f7c73;
+  font-size: 9px;
+  text-align: right;
+}
+
+.control-help,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-help {
+  width: auto;
+  margin-left: auto;
+  color: #777871;
+  font-size: 9px;
+}
+
+/* Tables ------------------------------------------------------------------- */
+.table-main,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .table-main {
+  width: 100%;
+  max-width: var(--container-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.table-scroll,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .table-scroll {
+  border-color: #cec7b8;
+  border-top: 0;
+  border-radius: 0;
+  background: #fbfaf6;
+  box-shadow: none;
+}
+
+:is(#ratingsTable, .adv-table) {
+  width: 100%;
+  margin: 0 auto;
+}
+
+:is(#ratingsTable, .adv-table) th,
+:is(#ratingsTable, .adv-table) td {
+  vertical-align: middle;
+}
+
+:is(#ratingsTable, .adv-table) thead th {
+  height: 33px;
+  padding-top: 0;
+  padding-bottom: 0;
+  background: #e9e5dc;
+  color: #344155;
+  border-bottom-color: #bbb4a5;
+  font-size: 9px;
+  text-align: center;
+}
+
+:is(#ratingsTable, .adv-table) thead th.team-cell { text-align: left; }
+:is(#ratingsTable, .adv-table) th.num,
+:is(#ratingsTable, .adv-table) td.num { text-align: center; }
+
+:is(#ratingsTable, .adv-table) td {
+  height: 39px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: 11.5px;
+}
+
+:is(#ratingsTable, .adv-table) .rank-cell {
+  width: 42px;
+  font-weight: 700;
+}
+
+:is(#ratingsTable, .adv-table) .delta-cell {
+  width: 39px;
+  font-size: 8.5px;
+}
+
+:is(#ratingsTable, .adv-table) .team-cell {
+  min-width: 168px;
+  text-align: left;
+}
+
+:is(#ratingsTable, .adv-table) .team-link {
+  gap: 7px;
+  font-size: 11.5px;
+}
+
+:is(#ratingsTable, .adv-table) .team-logo {
+  width: 22px;
+  height: 22px;
+}
+
+:is(#ratingsTable, .adv-table) .team-conf-label {
+  margin-left: 29px;
+  color: #7a7d7a;
+  font-size: 8.5px;
+}
+
+:is(#ratingsTable, .adv-table) .rank-sub {
+  margin-left: 4px;
+  color: #737a82;
+  font-size: 8px;
+}
+
+:is(#ratingsTable, .adv-table) tbody tr {
+  border-bottom-color: #e4ded2;
+}
+
+:is(#ratingsTable, .adv-table) tbody tr:nth-child(even) {
+  background: #f7f4ec;
+}
+
+:is(#ratingsTable, .adv-table) tbody tr:hover {
+  background: #eee9dd;
+}
+
+:is(#ratingsTable, .adv-table) .stat-cell.primary {
+  color: #142742;
+  font-weight: 800;
+}
+
+/* Replace remaining visible legacy CFF labels without touching data keys. */
+body:has(#ratingsTable) .premium-teaser__title {
+  font-size: 0;
+}
+body:has(#ratingsTable) .premium-teaser__title::after {
+  content: "The rating tells you who is good. ARA Advanced Analytics tells you why.";
+  font-size: 12px;
+}
+
+body:has(#advancedTable) .adv-table[data-view="general"] th[data-metric-key="cff"] .column-sort {
+  font-size: 0;
+}
+body:has(#advancedTable) .adv-table[data-view="general"] th[data-metric-key="cff"] .column-sort::before {
+  content: "ARA";
+  font-size: 9px;
+}
+
+/* Advanced / predictions / team page alignment ---------------------------- */
+.breadcrumbs {
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+.advanced-intro {
+  padding-left: 22px;
+  padding-right: 22px;
+  background: #f6f4ee;
+}
+
+.team-hero,
+.team-snapshot,
+.team-history,
+.adv-preview {
+  width: 100%;
+}
+
+.snapshot-grid,
+.adv-preview__locked,
+.predictions-list {
+  border-color: #d2ccbf;
+  box-shadow: none;
+}
+
+body:has(#teamContent) .adv-preview__heading h2 {
+  font-size: 0;
+}
+body:has(#teamContent) .adv-preview__heading h2::after {
+  content: "ARA Advanced Analytics";
+  font-size: 20px;
+}
+
+body:has(#teamContent) .adv-preview__overlay .subscribe-btn {
+  font-size: 0;
+}
+body:has(#teamContent) .adv-preview__overlay .subscribe-btn::after {
+  content: "Preview ARA Advanced";
+  font-size: 10.5px;
+}
+
+/* Footer ------------------------------------------------------------------- */
+.site-footer {
+  border-top: 1px solid #d3ccbe;
+  background: #ebe6da;
+}
+
+.site-footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 15px 22px;
+}
+
+.site-footer__copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.site-footer__brand {
+  flex: 0 0 auto;
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: .04em;
+}
+
+.site-footer__copy p {
+  max-width: 980px;
+  color: #696a66;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.site-footer__links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #33435a;
+}
+
+/* Mobile ------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .site-header__tagline,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__tagline {
+    display: none;
+  }
+
+  .site-header__right { grid-template-columns: 1fr auto; }
+  .ratings-hero__meta { max-width: 330px; flex-wrap: wrap; }
+}
+
+@media (max-width: 640px) {
+  .container,
+  .site-header__inner,
+  .site-nav .container,
+  .control-bar__inner,
+  .breadcrumbs,
+  .advanced-intro,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .container,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar__inner {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .site-header__inner,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner {
+    grid-template-columns: auto 1fr;
+    min-height: 50px;
+    gap: 12px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .logotype { gap: 7px; }
+  .logotype__mark { font-size: 27px; }
+  .logotype__name {
+    max-width: 112px;
+    white-space: normal;
+    font-size: 8px;
+    letter-spacing: .055em;
+  }
+
+  .site-header__right {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search { width: auto; max-width: none; }
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__toggle,
+  .site-search__toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    color: var(--color-navy);
+  }
+
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__box,
+  .site-search__box { display: none !important; }
+
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search--open .site-search__box,
+  .site-search--open .site-search__box {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex !important;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 14px;
+    background: rgba(251, 250, 246, .99);
+  }
+
+  .site-search--open .site-search__input {
+    width: 100%;
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .site-search--open .site-search__close {
+    display: inline-flex !important;
+    color: var(--color-navy);
+  }
+
+  .site-search--open .site-search__results {
+    position: fixed;
+    top: 64px;
+    left: 14px;
+    right: 14px;
+    width: auto;
+    max-height: calc(100vh - 82px);
+  }
+
+  .site-nav .container,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav .container {
+    gap: 18px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .site-nav .container::-webkit-scrollbar { display: none; }
+
+  .site-nav a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+    flex: 0 0 auto;
+    min-height: 35px;
+    font-size: 8.5px;
+  }
+
+  .ratings-hero,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero {
+    display: block;
+    padding: 8px 10px 7px;
+  }
+
+  .ratings-hero h1,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero h1 {
+    font-size: 27px;
+  }
+
+  .ratings-hero__description,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__description {
+    font-size: 10px;
+  }
+
+  .ratings-hero__meta,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__meta {
+    justify-content: flex-start;
+    margin-top: 6px;
+    max-width: none;
+    font-size: 8.5px;
+    text-align: left;
+  }
+
+  body:has(#ratingsTable) .control-bar__inner:not(.control-bar__inner--secondary) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 4px 7px;
+  }
+
+  body:has(#ratingsTable) .control-bar__inner:not(.control-bar__inner--secondary) .filter-box {
+    grid-column: 1 / 3;
+  }
+
+  body:has(#ratingsTable) .control-bar__inner:not(.control-bar__inner--secondary) .conference-filter {
+    grid-column: 3;
+  }
+
+  body:has(#ratingsTable) .control-bar__inner:not(.control-bar__inner--secondary) .row-count {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .filter-box input,
+  .conference-filter select,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .filter-box input,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .conference-filter select {
+    min-height: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  body:has(#ratingsTable) .control-bar__inner--secondary {
+    flex-wrap: wrap;
+  }
+
+  .control-help,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-help {
+    flex-basis: 100%;
+    margin-left: 0;
+    font-size: 8px;
+  }
+
+  /* Preserve the existing all-core-metrics-in-view behavior. */
+  body:has(#ratingsTable) .table-scroll {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: auto !important;
+  }
+
+  #ratingsTable {
+    width: 100% !important;
+    min-width: 380px !important;
+    table-layout: fixed !important;
+  }
+
+  #ratingsTable thead th { height: 30px; font-size: 8px !important; }
+  #ratingsTable td { height: 37px; font-size: 9.5px; }
+  #ratingsTable .team-logo { width: 20px !important; height: 20px !important; flex-basis: 20px; }
+  #ratingsTable .team-conf-label { margin-left: 23px; font-size: 7px; }
+  #ratingsTable .team-link .team-code { font-size: 9px; }
+  #ratingsTable .rank-sub { font-size: 7px; }
+
+  .breadcrumbs { padding-top: 8px; padding-bottom: 8px; }
+
+  .advanced-intro {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .advanced-intro h1 { font-size: 27px; }
+
+  .site-footer__inner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    padding: 13px 10px;
+  }
+
+  .site-footer__copy { gap: 8px; }
+  .site-footer__brand { font-size: 16px; }
+  .site-footer__copy p { font-size: 8.5px; }
+}
