@@ -7,3 +7,8 @@ data/raw/**
 data/processed/**
 !data/processed/.gitkeep
 node_modules/
+
+.env.*
+!.env.example
+.vercel/
+*.tsbuildinfo

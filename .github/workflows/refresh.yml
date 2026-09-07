@@ -2,16 +2,14 @@ name: Refresh rankings data
 
 on:
   schedule:
-    # Every 4 hours, Sun-Fri (day-of-week: 0=Sun ... 6=Sat)
-    - cron: "5 */4 * * 0-5"
-    # Every hour on Saturday (game day)
-    - cron: "5 * * * 6"
+    # Daily at 11:17 UTC (07:17 EDT / 06:17 EST); schedules can be delayed by GitHub.
+    - cron: "17 11 * * *"
   workflow_dispatch:
     inputs:
       season:
-        description: Season to refresh
-        required: true
-        default: "2026"
+        description: 'Season override (blank uses the active football season)'
+        required: false
+        default: ''
 
 concurrency:
   group: refresh-rankings-data
@@ -21,84 +19,118 @@ permissions:
   contents: write
 
 env:
-  SEASON: ${{ github.event.inputs.season || '2026' }}
   CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
-  CFBD_PREDICTIONS_TOKEN: ${{ secrets.CFBD_PREDICTIONS_TOKEN }}
 
 jobs:
   refresh:
+    if: github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select and validate season
+        env:
+          REQUESTED_SEASON: ${{ inputs.season }}
+        run: |
+          python - <<'PY'
+          import os
+          from datetime import datetime, timezone
+          now = datetime.now(timezone.utc)
+          requested = os.environ.get('REQUESTED_SEASON', '').strip()
+          season = int(requested) if requested else now.year - (now.month < 8)
+          if not 2014 <= season <= now.year:
+              raise SystemExit('Season must be between 2014 and the current year')
+          if not os.environ.get('CFBD_API_KEY'):
+              raise SystemExit('Repository secret CFBD_API_KEY is required')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'SEASON={season}\n')
+          PY
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
       - run: pip install -e '.[models]'
+      - name: Test publication gates
+        run: python -m unittest discover -s tests
 
-      - name: Restore raw/processed cache
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: |
             data/raw
             data/processed
-          key: cfb-kenpom-data-${{ env.SEASON }}-${{ github.run_id }}
+          key: cfb-kenpom-data-v2-${{ env.SEASON }}-${{ github.run_id }}
           restore-keys: |
-            cfb-kenpom-data-${{ env.SEASON }}-
+            cfb-kenpom-data-v2-${{ env.SEASON }}-
 
-      - name: Ingest raw CFBD data
-        run: python -m cfb_analytics.pipelines.ingest --season ${{ env.SEASON }}
-
+      # Force refresh is essential: without it, verified cached partitions can
+      # permanently retain incomplete game results and empty future weeks.
+      - name: Refresh source data
+        run: python -m cfb_analytics.pipelines.ingest --season "$SEASON" --force
       - name: Materialize canonical plays
-        run: python -m cfb_analytics.raw.cli canonical-plays --season ${{ env.SEASON }}
-
+        run: python -m cfb_analytics.raw.cli canonical-plays --season "$SEASON"
       - name: Materialize derived drives
-        run: python -m cfb_analytics.raw.cli derived-drives --season ${{ env.SEASON }}
-
-      - name: Ingest FBS membership facts
-        run: python -m cfb_analytics.pipelines.ingest_facts --season ${{ env.SEASON }}
-
-      - name: Derive per-game/per-season metrics
-        run: python -m cfb_analytics.pipelines.calculate_metrics --season ${{ env.SEASON }}
-
-      # dropbacks/rushAttempts/basic-yardage counts aren't computed by
-      # calculate_metrics -- these two propagation scripts back them into
-      # the derived team_games/team_seasons JSON before canonical picks it
-      # up, same as was done by hand for every prior season (2014-2025).
-      - name: Propagate dropback/sack metrics
-        run: python -m cfb_analytics.analytics.dropback_propagation_cli propagate --season ${{ env.SEASON }}
-
-      - name: Propagate basic yardage metrics
-        run: python -m cfb_analytics.derived.basic_yardage_propagation_cli materialize --season ${{ env.SEASON }}
-
-      - name: Build canonical identity + team_games
-        run: python -m cfb_analytics.pipelines.build_canonical --season ${{ env.SEASON }}
-
-      - name: Compute iterative (SRS) ratings
-        run: python -m cfb_analytics.pipelines.calculate_ratings --season ${{ env.SEASON }}
-
-      # Replace only the requested season in the published site payload. The
-      # compiler preserves historical seasons and refuses to publish a season
-      # if the generated final week contains teams but zero calculated ratings.
-      - name: Rebuild rankings table + advanced analytics data
-        run: python scripts/compile_site_data.py --season ${{ env.SEASON }}
-
-      # Re-shapes the same generated site/data.js + site/advanced-data.js into
-      # per-season JSON for the Next.js app (web/) to fetch() at runtime.
-      - name: Export per-season JSON for the Next.js app
+        run: python -m cfb_analytics.raw.cli derived-drives --season "$SEASON"
+      - name: Refresh FBS membership facts
+        run: python -m cfb_analytics.pipelines.ingest_facts --season "$SEASON" --force
+      - name: Derive metrics
+        run: python -m cfb_analytics.pipelines.calculate_metrics --season "$SEASON"
+      - name: Propagate dropback metrics
+        run: python -m cfb_analytics.analytics.dropback_propagation_cli propagate --season "$SEASON"
+      - name: Propagate yardage metrics
+        run: python -m cfb_analytics.derived.basic_yardage_propagation_cli materialize --season "$SEASON"
+      - name: Build canonical team games
+        run: python -m cfb_analytics.pipelines.build_canonical --season "$SEASON"
+      - name: Compute ratings
+        run: python -m cfb_analytics.pipelines.calculate_ratings --season "$SEASON"
+      - name: Compile and validate current season
+        run: python scripts/compile_site_data.py --season "$SEASON"
+      - name: Export Next.js data
         run: python scripts/export_web_data.py
+      - name: Audit every published season
+        run: python scripts/validate_site_data.py
 
-      - name: Commit and push refreshed data
+      # GITHUB_TOKEN commits do not trigger other GitHub push workflows, so
+      # validation must finish in this job before publication.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm run lint && npm run build
+        working-directory: web
+
+      - name: Commit validated changes
+        id: publish
+        env:
+          TARGET_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          git config user.name "cfb-kenpom-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add data/canonical site/data.js site/advanced-data.js web/public/data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "data/canonical/season=$SEASON" site/data.js site/advanced-data.js site/search-index.js web/public/data
           if git diff --staged --quiet; then
-            echo "No valid data changes; skipping commit."
+            echo "No data changes; skipping commit." >> "$GITHUB_STEP_SUMMARY"
           else
-            git commit -m "Automated rankings refresh: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            git push
+            git commit -m "Refresh $SEASON ratings ($(date -u +%Y-%m-%d))"
+            git fetch origin "$TARGET_BRANCH"
+            git rebase "origin/$TARGET_BRANCH"
+            git push origin "HEAD:$TARGET_BRANCH"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Published validated $SEASON ratings." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # Optional after Vercel is connected. A deploy hook avoids depending on
+      # bot-commit deployment behavior and is never exposed to browser code.
+      - name: Notify Vercel of refreshed data
+        if: steps.publish.outputs.changed == 'true'
+        env:
+          DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$DEPLOY_HOOK" ]; then
+            curl --fail --silent --show-error --retry 3 -X POST "$DEPLOY_HOOK" --output /dev/null
           fi
