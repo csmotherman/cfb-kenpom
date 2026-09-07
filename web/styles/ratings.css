@@ -230,7 +230,7 @@
   border-top: none;
   background: var(--color-paper);
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overscroll-behavior-x: contain;
 }
 .data-table { min-width: 900px; }
 .data-table th,
