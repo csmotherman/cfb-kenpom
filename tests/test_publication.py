@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from validate_site_data import validate_season
+from validate_site_data import validate_public_rankings, validate_season
 import build_real_data as builder
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,23 +16,36 @@ ROOT = Path(__file__).resolve().parents[1]
 class PublicationTests(unittest.TestCase):
     def setUp(self):
         self.r = json.loads((ROOT / "web/public/data/rankings/2026.json").read_text())
-        self.a = json.loads((ROOT / "web/public/data/advanced/2026.json").read_text())
+        advanced_path = ROOT / "web/public/data/advanced/2026.json"
+        self.a = json.loads(advanced_path.read_text()) if advanced_path.exists() else None
         self.week = str(self.r["weeks"][-1])
 
+    def require_private_advanced(self):
+        if self.a is None:
+            self.skipTest("private Advanced Analytics fixture is not hydrated in public CI")
+
     def test_published_contract(self):
-        validate_season(self.r, self.a)
+        if self.a is None:
+            validate_public_rankings(self.r)
+        else:
+            validate_season(self.r, self.a)
 
     def test_rejects_wrong_rank(self):
         self.r["byWeek"][self.week][0]["rank"] = 99
         with self.assertRaises(ValueError):
-            validate_season(self.r, self.a)
+            if self.a is None:
+                validate_public_rankings(self.r)
+            else:
+                validate_season(self.r, self.a)
 
     def test_rejects_missing_game_record(self):
+        self.require_private_advanced()
         self.r["byWeek"][self.week][0]["record"] = "99-0"
         with self.assertRaisesRegex(ValueError, "Record/count mismatch"):
             validate_season(self.r, self.a)
 
     def test_rejects_snapshot_mismatch(self):
+        self.require_private_advanced()
         self.a["byWeek"][self.week][0]["cff"] = 999
         with self.assertRaisesRegex(ValueError, "CFF and AdjEM"):
             validate_season(self.r, self.a)
@@ -40,9 +53,13 @@ class PublicationTests(unittest.TestCase):
     def test_rejects_nan(self):
         self.r["byWeek"][self.week][0]["adjEM"] = float("nan")
         with self.assertRaises(ValueError):
-            validate_season(self.r, self.a)
+            if self.a is None:
+                validate_public_rankings(self.r)
+            else:
+                validate_season(self.r, self.a)
 
     def test_rejects_lost_latest_week(self):
+        self.require_private_advanced()
         previous = copy.deepcopy(self.r)
         previous["weeks"].append(999)
         with self.assertRaisesRegex(ValueError, "roll back"):

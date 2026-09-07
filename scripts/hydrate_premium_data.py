@@ -61,6 +61,8 @@ def main() -> None:
     weeks: dict[str, list[int]] = {}
     week_labels: dict[str, dict[str, str]] = {}
     data: dict[str, dict] = {}
+    advanced_dir = REPO / "web" / "public" / "data" / "advanced"
+    advanced_dir.mkdir(parents=True, exist_ok=True)
 
     for row in rows:
         season = int(row["season"])
@@ -70,6 +72,9 @@ def main() -> None:
         weeks[key] = payload["weeks"]
         week_labels[key] = payload.get("weekLabels", {})
         data[key] = payload["byWeek"]
+        (advanced_dir / f"{season}.json").write_text(
+            json.dumps(payload, separators=(",", ":"), allow_nan=False)
+        )
 
     target = REPO / "site" / "advanced-data.js"
     text = (
