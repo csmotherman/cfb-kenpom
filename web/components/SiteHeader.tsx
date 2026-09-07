@@ -73,8 +73,9 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
   return (
     <header className="site-header">
       <div className="site-header__inner">
-        <Link href="/" className="logotype" aria-label="CollegeFootballFocus home">
-          CollegeFootball<span>Focus</span>
+        <Link href="/" className="logotype" aria-label="ARA — Adjusted Ratings & Analytics home">
+          <span className="logotype__mark" aria-hidden="true">ARA</span>
+          <span className="logotype__name">Adjusted Ratings &amp; Analytics</span>
         </Link>
         <div className="site-header__right">
           <span className="eyebrow site-header__tagline">{tagline}</span>
@@ -83,6 +84,7 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
               type="button"
               className="site-search__toggle"
               aria-label="Search teams"
+              aria-expanded={open}
               onClick={() => setOpen((o) => !o)}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
