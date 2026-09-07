@@ -5,6 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_real_data import build_year, YEARS
+from validate_site_data import validate_season
 
 REPO = Path(__file__).resolve().parent.parent
 
@@ -139,12 +140,14 @@ def main():
         built = build_season_payload(year)
         key = str(year)
         if built is None:
-            if args.season and key in main_data and key in adv_data:
-                print(f"season {year}: keeping previously published site data")
-                continue
             raise RuntimeError(f"season {year}: no valid ratings payload available")
 
         week_nums, season_main, season_adv, season_week_labels = built
+        validate_season(
+            {"weeks": week_nums, "byWeek": season_main},
+            {"weeks": week_nums, "byWeek": season_adv},
+            previous={"weeks": main_weeks[key], "byWeek": main_data[key]} if key in main_data else None,
+        )
         main_weeks[key] = week_nums
         adv_weeks[key] = week_nums
         main_data[key] = season_main
@@ -158,7 +161,7 @@ def main():
         "// REAL data. Team identity, records, and per-game stats are sourced from\n"
         "// data/canonical/season=<year>/team_games.json (CFBD-derived, locked metrics).\n"
         "// AdjEM/CFF is the site's own opponent-adjusted Simple Rating System (SRS),\n"
-        "// computed walk-forward (each week uses only games played before it).\n"
+        "// computed through each published week (no later-week games included).\n"
         "// AdjO/AdjD are a schedule-adjusted yards-per-play edge from a RESEARCH-ONLY\n"
         "// model -- independently validated in the source repo but not yet the locked\n"
         "// production rating. SOR (Strength of Record, sor-v1-wins-above-average)\n"
@@ -173,7 +176,7 @@ def main():
         "window.CFB_YEARS = " + json.dumps(published_years) + ";\n"
         "window.CFB_WEEKS = " + json.dumps(main_weeks) + ";\n"
         "window.CFB_WEEK_LABELS = " + json.dumps(week_labels) + ";\n"
-        "window.CFB_DATA = " + json.dumps(main_data, separators=(",", ":")) + ";\n"
+        "window.CFB_DATA = " + json.dumps(main_data, separators=(",", ":"), allow_nan=False) + ";\n"
     )
     (REPO / "site/data.js").write_text(js)
 
@@ -185,7 +188,7 @@ def main():
         "window.CFF_ADV_YEARS = " + json.dumps(published_adv_years) + ";\n"
         "window.CFF_ADV_WEEKS = " + json.dumps(adv_weeks) + ";\n"
         "window.CFF_ADV_WEEK_LABELS = " + json.dumps(week_labels) + ";\n"
-        "window.CFF_ADV_DATA = " + json.dumps(adv_data, separators=(",", ":")) + ";\n"
+        "window.CFF_ADV_DATA = " + json.dumps(adv_data, separators=(",", ":"), allow_nan=False) + ";\n"
     )
     (REPO / "site/advanced-data.js").write_text(adv_js)
 

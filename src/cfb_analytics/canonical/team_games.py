@@ -11,11 +11,24 @@ def build_team_games(
 ) -> list[dict[str, Any]]:
     games = {str(row["id"]): row for row in source_games}
     teams = {row["team"]: row for row in season_teams}
+    derived_rows = list(derived_rows)
+    present = {(str(row.get("gameId")), row.get("team")) for row in derived_rows}
+    # Scores are authoritative even when the play-by-play provider has no data.
+    # Keep those games in records and SRS without inventing efficiency metrics.
+    for game in games.values():
+        if game.get("completed") is not True:
+            continue
+        for side in ("home", "away"):
+            team = game.get(f"{side}Team")
+            if (str(game["id"]), team) not in present:
+                derived_rows.append({"gameId": str(game["id"]), "team": team, "season": game["season"], "week": game["week"], "statsAvailable": False})
     out = []
     for derived in derived_rows:
         game = games.get(str(derived.get("gameId")))
         if game is None:
             raise ValueError(f"team-game lacks authoritative source game: {derived.get('gameId')}")
+        if game.get("completed") is not True:
+            continue
         team = str(derived.get("team"))
         if team == game.get("homeTeam"):
             side, opponent_side = "home", "away"
@@ -30,6 +43,8 @@ def build_team_games(
         row = dict(derived)
         row.update({
             "season_type": game.get("seasonType"),
+            "completed": True,
+            "statsAvailable": derived.get("statsAvailable", bool(derived.get("offensivePlays"))),
             "game_id": str(game["id"]),
             "team_id": game.get(f"{side}Id"),
             "conference": game.get(f"{side}Conference"),

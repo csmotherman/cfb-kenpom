@@ -1,70 +1,72 @@
-"""Re-export the already-built site/data.js, site/advanced-data.js and
-site/search-index.js as per-season JSON under web/public/data/.
+"""Validate and export the compiled site datasets for Next.js.
 
-This does not recompute anything -- it reads the same generated artifacts
-the static site (site/) already serves, and re-shapes them for the Next.js
-app (web/) to fetch() at runtime instead of loading two ~5MB/~12MB <script>
-globals up front. Run this after scripts/compile_site_data.py.
+All inputs are validated before any published file is replaced. Metadata is
+content-versioned, so unchanged runs do not create meaningless daily commits.
 """
+import hashlib
 import json
+import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
-from compile_site_data import read_js_assignment  # noqa: E402
+from compile_site_data import read_js_assignment
+from validate_site_data import require, validate_season
 
 WEB_DATA = REPO / "web/public/data"
 
 
+def encode(value):
+    return json.dumps(value, separators=(",", ":"), allow_nan=False)
+
+
+def atomic_write(path, text):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(text)
+    os.replace(tmp, path)
+
+
 def main():
     site = REPO / "site"
-
-    cfb_weeks = read_js_assignment(site / "data.js", "CFB_WEEKS") or {}
-    cfb_week_labels = read_js_assignment(site / "data.js", "CFB_WEEK_LABELS") or {}
-    cfb_data = read_js_assignment(site / "data.js", "CFB_DATA") or {}
-    cfb_years = read_js_assignment(site / "data.js", "CFB_YEARS") or []
-
-    adv_weeks = read_js_assignment(site / "advanced-data.js", "CFF_ADV_WEEKS") or {}
-    adv_week_labels = read_js_assignment(site / "advanced-data.js", "CFF_ADV_WEEK_LABELS") or {}
-    adv_data = read_js_assignment(site / "advanced-data.js", "CFF_ADV_DATA") or {}
-    adv_years = read_js_assignment(site / "advanced-data.js", "CFF_ADV_YEARS") or []
-
-    search_index = read_js_assignment(site / "search-index.js", "CFF_SEARCH_INDEX") or []
-
-    (WEB_DATA / "rankings").mkdir(parents=True, exist_ok=True)
-    (WEB_DATA / "advanced").mkdir(parents=True, exist_ok=True)
-
-    for year in cfb_years:
+    datasets = {}
+    for kind, filename, prefix in [("rankings", "data.js", "CFB"), ("advanced", "advanced-data.js", "CFF_ADV")]:
+        values = {key: read_js_assignment(site / filename, f"{prefix}_{key}") for key in ("YEARS", "WEEKS", "WEEK_LABELS", "DATA")}
+        require(all(v is not None for v in values.values()), f"Missing required assignments in {filename}")
+        require(values["YEARS"] == sorted(set(values["YEARS"])) and bool(values["YEARS"]), "Invalid season catalog")
+        datasets[kind] = values
+    years = datasets["rankings"]["YEARS"]
+    require(years == datasets["advanced"]["YEARS"], "Season catalogs differ")
+    outputs = {}
+    summaries = {}
+    search = {}
+    for year in years:
         key = str(year)
-        payload = {
-            "weeks": cfb_weeks.get(key, []),
-            "weekLabels": cfb_week_labels.get(key, {}),
-            "byWeek": cfb_data.get(key, {}),
-        }
-        (WEB_DATA / "rankings" / f"{key}.json").write_text(
-            json.dumps(payload, separators=(",", ":"))
-        )
-
-    for year in adv_years:
-        key = str(year)
-        payload = {
-            "weeks": adv_weeks.get(key, []),
-            "weekLabels": adv_week_labels.get(key, {}),
-            "byWeek": adv_data.get(key, {}),
-        }
-        (WEB_DATA / "advanced" / f"{key}.json").write_text(
-            json.dumps(payload, separators=(",", ":"))
-        )
-
-    (WEB_DATA / "meta.json").write_text(json.dumps({
-        "rankingsYears": cfb_years,
-        "advancedYears": adv_years,
-    }, separators=(",", ":")))
-
-    (WEB_DATA / "search-index.json").write_text(json.dumps(search_index, separators=(",", ":")))
-
-    print(f"wrote {len(cfb_years)} rankings season files, {len(adv_years)} advanced season files")
+        payloads = {}
+        for kind, data in datasets.items():
+            payloads[kind] = {"weeks": data["WEEKS"][key], "weekLabels": data["WEEK_LABELS"].get(key, {}), "byWeek": data["DATA"][key]}
+        previous_path = WEB_DATA / "rankings" / f"{key}.json"
+        previous = json.loads(previous_path.read_text()) if previous_path.exists() else None
+        summaries[key] = validate_season(payloads["rankings"], payloads["advanced"], previous=previous)
+        for kind, payload in payloads.items():
+            outputs[f"{kind}/{key}.json"] = encode(payload)
+        latest = payloads["rankings"]
+        for row in latest["byWeek"][str(latest["weeks"][-1])]:
+            search[row["slug"]] = {k: row[k] for k in ("team", "slug", "teamId", "conf")}
+    index = sorted(search.values(), key=lambda row: row["team"])
+    outputs["search-index.json"] = encode(index)
+    version = hashlib.sha256(encode(outputs).encode()).hexdigest()
+    old_meta_path = WEB_DATA / "meta.json"
+    old_meta = json.loads(old_meta_path.read_text()) if old_meta_path.exists() else {}
+    generated = old_meta.get("generatedAt") if old_meta.get("dataVersion") == version else datetime.now(timezone.utc).isoformat()
+    meta = {"rankingsYears": years, "advancedYears": years, "dataVersion": version, "generatedAt": generated, "scope": "Completed FBS-vs-FBS games", "seasons": summaries}
+    for filename, text in outputs.items():
+        atomic_write(WEB_DATA / filename, text)
+    atomic_write(site / "search-index.js", "window.CFF_SEARCH_INDEX = " + encode(index) + ";\n")
+    atomic_write(WEB_DATA / "meta.json", encode(meta))
+    print(f"Validated and exported {len(years)} seasons; {len(index)} searchable teams; version {version[:12]}")
 
 
 if __name__ == "__main__":

@@ -48,7 +48,7 @@ YEARS = [2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025, 2026]
 
 
 def num(v):
-    return isinstance(v, (int, float)) and not isinstance(v, bool)
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
 
 
 def load_canonical_games(year):
@@ -75,7 +75,7 @@ def load_possession_seconds(year):
     a standard, unambiguous derivation, not a new methodology."""
     import glob
     out = defaultdict(lambda: defaultdict(int))  # gameId -> team -> seconds
-    pattern = str(REPO / f"data/raw/cfbd/season={year}/season_type=regular/week=*/drives.json")
+    pattern = str(REPO / f"data/raw/cfbd/season={year}/season_type=*/week=*/drives.json")
     for fp in glob.glob(pattern):
         for d in json.loads(Path(fp).read_text()):
             elapsed = d.get("elapsed")
@@ -106,8 +106,8 @@ def build_site_week_map(year):
     whatever week number CFBD happened to file them under. Every playoff
     round becomes its own site-week in real chronological order; every
     other postseason game (a real, non-playoff bowl -- `playoff` is null)
-    collapses into one final "Bowl Season" site-week, since that's a single
-    recognizable stretch of the calendar, not several.
+    is grouped into chronological bowl blocks between playoff rounds. A
+    late bowl must never enter a snapshot preceding an earlier playoff game.
 
     Returns (site_week_by_game, num_site_weeks, week_labels) where
     week_labels maps a site-week number to a human label (e.g. "CFP
@@ -149,11 +149,15 @@ def build_site_week_map(year):
         clusters.append(current)
     clusters.sort(key=lambda c: c[0][0])
 
-    postseason_clusters = sorted(postseason_by_round.items(), key=lambda kv: min(d for d, _ in kv[1]))
+    postseason_entries = sorted((d, gid, key) for key, entries in postseason_by_round.items() for d, gid in entries)
     week_labels = {}
-    for round_key, entries in postseason_clusters:
-        week_labels[len(clusters)] = "Bowl Season" if round_key == "bowl" else PLAYOFF_LABELS.get(round_key, round_key)
-        clusters.append(entries)
+    last_round = None
+    for d, gid, round_key in postseason_entries:
+        if round_key != last_round:
+            week_labels[len(clusters)] = "Bowl Season" if round_key == "bowl" else PLAYOFF_LABELS.get(round_key, round_key)
+            clusters.append([])
+            last_round = round_key
+        clusters[-1].append((d, gid))
 
     site_week_by_game = {}
     for site_week, cluster in enumerate(clusters):
@@ -168,7 +172,7 @@ def load_iterative(year):
     if not path.exists():
         return {}
     rows = json.loads(path.read_text())
-    return {r["gameId"]: r for r in rows}
+    return {str(r["gameId"]): r for r in rows}
 
 
 def side_prefix(iter_row, team_name):
@@ -203,6 +207,18 @@ def new_acc():
 
 def build_year(year):
     games = load_canonical_games(year)
+    source = {str(g["id"]): g for path in (REPO / f"data/raw/cfbd/season={year}").glob("season_type=*/week=*/games.json") for g in json.loads(path.read_text())}
+    completed = {gid for gid, g in source.items() if g.get("completed") is True}
+    games = [r for r in games if str(r.get("gameId") or r.get("game_id")) in completed]
+    from cfb_analytics.canonical.team_games import build_team_games
+    from cfb_analytics.canonical.teams import build_season_teams
+    source_games = list(source.values())
+    games = build_team_games(games, source_games, build_season_teams(source_games, year))
+    canonical_ids = {str(r.get("gameId") or r.get("game_id")) for r in games}
+    if completed != canonical_ids:
+        raise ValueError(f"Season {year}: {len(completed - canonical_ids)} completed source games lack canonical metrics")
+    from cfb_analytics.validation.integrity import validate_team_games
+    validate_team_games(games)
     iter_by_game = load_iterative(year)
     poss_seconds = load_possession_seconds(year)
     site_week_by_game, _, week_labels = build_site_week_map(year)
@@ -269,6 +285,7 @@ def build_year(year):
             wr["rushAttemptsFaced"] += row.get("rushAttemptsFaced", 0) or 0
             wr["offPlays"] += row.get("offensivePlays", 0) or 0
             wr["games"] += 1
+            wr["offGames"] += int(bool(row.get("offensivePlays")))
 
             game_id = str(row.get("gameId") or row.get("game_id"))
             game_poss = poss_seconds.get(game_id, {})
@@ -345,7 +362,7 @@ def build_year(year):
             # "before this specific game" leakage-safety: schedule strength
             # is about how good the opponent looked AT THE TIME they were
             # played, not revised in hindsight the way cff/off/def now are.
-            iter_row = iter_by_game.get(row.get("gameId") or row.get("game_id"))
+            iter_row = iter_by_game.get(str(row.get("gameId") or row.get("game_id")))
             prefix = side_prefix(iter_row, name)
             if prefix:
                 opp_prefix = "away_" if prefix == "home_" else "home_"
