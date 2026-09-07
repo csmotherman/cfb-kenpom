@@ -121,7 +121,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             <div className="account-section">
               <div className="account-section__heading">
                 <h2>Access</h2>
-                <span>Entitlements are enforced server-side as billing is added.</span>
+                <span>Access levels are read from your GRID account record.</span>
               </div>
               <div className="entitlement-list">
                 <div className="entitlement-row">
