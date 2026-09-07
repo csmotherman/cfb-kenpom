@@ -39,9 +39,6 @@ jobs:
 
       - run: pip install -e '.[models]'
 
-      # data/raw and data/processed are gitignored cache, not committed --
-      # restore the previous run's copy so ingest only fetches genuinely new
-      # weeks instead of the whole season from scratch every run.
       - name: Restore raw/processed cache
         uses: actions/cache@v4
         with:
@@ -52,10 +49,6 @@ jobs:
           restore-keys: |
             cfb-kenpom-data-${{ env.SEASON }}-
 
-      # --- Same chain as cfb-analytics's own season-data-refresh.yml: ---
-      # --- raw -> canonical plays -> derived drives -> facts -> metrics -> ---
-      # --- team_games -> iterative ratings -- verified end to end locally ---
-      # --- against this vendored copy before this file was written. ---
       - name: Ingest raw CFBD data
         run: python -m cfb_analytics.pipelines.ingest --season ${{ env.SEASON }}
 
@@ -77,8 +70,11 @@ jobs:
       - name: Compute iterative (SRS) ratings
         run: python -m cfb_analytics.pipelines.calculate_ratings --season ${{ env.SEASON }}
 
+      # Replace only the requested season in the published site payload. The
+      # compiler preserves historical seasons and refuses to publish a season
+      # if the generated final week contains teams but zero calculated ratings.
       - name: Rebuild rankings table + advanced analytics data
-        run: python scripts/compile_site_data.py
+        run: python scripts/compile_site_data.py --season ${{ env.SEASON }}
 
       - name: Commit and push refreshed data
         run: |
@@ -86,7 +82,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add data/canonical site/data.js site/advanced-data.js
           if git diff --staged --quiet; then
-            echo "No data changes; skipping commit."
+            echo "No valid data changes; skipping commit."
           else
             git commit -m "Automated rankings refresh: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             git push
