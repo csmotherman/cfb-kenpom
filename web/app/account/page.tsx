@@ -7,6 +7,7 @@ import { updateDisplayName } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase/server";
 import {
   configuredTrialDays,
+  PAID_PLAN_MONTHLY_PRICE,
   stripeBillingConfigured,
 } from "@/lib/stripe/plans";
 
@@ -201,7 +202,9 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                       <span className="billing-plan-card__eyebrow">GRID Pro</span>
                       <h3>Advanced analytics</h3>
                       <p>Unlock the advanced team analytics table plus limited weekly predictions.</p>
-                      {trialEligible ? <small>{trialDays}-day trial available for eligible new subscribers.</small> : null}
+                      <strong className="billing-plan-card__price">
+                        {trialEligible ? `${trialDays} days free, then ` : ""}{PAID_PLAN_MONTHLY_PRICE.pro}
+                      </strong>
                     </div>
                     <form action="/api/stripe/checkout" method="post">
                       <input type="hidden" name="plan" value="pro" />
@@ -216,7 +219,9 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                       <span className="billing-plan-card__eyebrow">GRID Pro+</span>
                       <h3>Full model access</h3>
                       <p>Everything in GRID Pro plus complete access to weekly model predictions.</p>
-                      {trialEligible ? <small>{trialDays}-day trial available for eligible new subscribers.</small> : null}
+                      <strong className="billing-plan-card__price">
+                        {trialEligible ? `${trialDays} days free, then ` : ""}{PAID_PLAN_MONTHLY_PRICE.pro_plus}
+                      </strong>
                     </div>
                     <form action="/api/stripe/checkout" method="post">
                       <input type="hidden" name="plan" value="pro_plus" />
