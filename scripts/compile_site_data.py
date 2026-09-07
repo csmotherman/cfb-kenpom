@@ -1,3 +1,4 @@
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -17,110 +18,162 @@ def assign_rank(rows, key, out_key, reverse=True):
         r.setdefault(out_key, None)
 
 
+def read_js_assignment(path, variable):
+    """Read a JSON value assigned as `window.<variable> = ...;` from a site file."""
+    if not path.exists():
+        return None
+    text = path.read_text()
+    prefix = f"window.{variable} = "
+    start = text.find(prefix)
+    if start == -1:
+        return None
+    start += len(prefix)
+    value, _ = json.JSONDecoder().raw_decode(text[start:])
+    return value
+
+
+def load_existing_site_data():
+    main_path = REPO / "site/data.js"
+    adv_path = REPO / "site/advanced-data.js"
+    return (
+        read_js_assignment(main_path, "CFB_WEEKS") or {},
+        read_js_assignment(main_path, "CFB_DATA") or {},
+        read_js_assignment(adv_path, "CFF_ADV_WEEKS") or {},
+        read_js_assignment(adv_path, "CFF_ADV_DATA") or {},
+    )
+
+
+def build_season_payload(year):
+    weeks = build_year(year)
+    if not weeks:
+        return None
+
+    week_nums = sorted(weeks.keys())
+    latest_rows = weeks[week_nums[-1]]
+    rated_count = sum(1 for r in latest_rows if r.get("cff") is not None)
+
+    # A refresh with teams but zero calculated ratings is not publishable. This
+    # is exactly what caused the Sep. 6 refresh to blank the site. Let callers
+    # preserve the previously published season instead of shipping nulls.
+    if latest_rows and rated_count == 0:
+        print(
+            f"season {year}: {len(latest_rows)} teams but zero non-null CFF ratings; "
+            "refusing to publish this season"
+        )
+        return None
+
+    season_main = {}
+    season_adv = {}
+    prev_rank_by_slug = {}
+
+    for wk in week_nums:
+        rows = weeks[wk]
+
+        assign_rank(rows, "cff", "rank")
+        assign_rank(rows, "offYardsPerPlay", "adjORank")
+        assign_rank(rows, "defYardsPerPlay", "adjDRank", reverse=True)
+        assign_rank(rows, "sos", "sosRank")
+
+        main_rows = []
+        adv_rows = []
+        for r in rows:
+            rank_change = None
+            if (
+                r["rank"] is not None
+                and r["slug"] in prev_rank_by_slug
+                and prev_rank_by_slug[r["slug"]] is not None
+            ):
+                rank_change = prev_rank_by_slug[r["slug"]] - r["rank"]
+
+            main_rows.append({
+                "team": r["team"], "slug": r["slug"], "teamId": r["teamId"], "conf": r["conf"],
+                "record": r["record"], "rank": r["rank"],
+                "adjEM": r["cff"], "adjO": r["offYardsPerPlay"], "adjD": r["defYardsPerPlay"],
+                "adjORank": r["adjORank"], "adjDRank": r["adjDRank"],
+                "sos": r["sos"], "sosRank": r["sosRank"],
+                "sor": None, "sorRank": None,
+                "rankChange": rank_change,
+            })
+
+            adv_rows.append({
+                "team": r["team"], "slug": r["slug"], "teamId": r["teamId"], "conf": r["conf"],
+                "cff": r["cff"], "fieldPos": r["fieldPos"],
+                "off": r["off"], "def": r["def"],
+                "offExp": r["offExp"], "defExp": r["defExp"],
+                "offFin": r["offFin"], "defFin": r["defFin"],
+                "wk": r["wk"],
+            })
+
+            prev_rank_by_slug[r["slug"]] = r["rank"]
+
+        main_rows.sort(key=lambda r: (r["rank"] is None, r["rank"]))
+        season_main[str(wk)] = main_rows
+        season_adv[str(wk)] = adv_rows
+
+    print(
+        f"season {year}: weeks {week_nums[0]}-{week_nums[-1]}, "
+        f"{len(latest_rows)} teams, {rated_count} rated in final week"
+    )
+    return week_nums, season_main, season_adv
+
+
 def main():
-    main_data = {}   # CFB_DATA
-    main_weeks = {}  # CFB_WEEKS
-    adv_data = {}    # CFF_ADV_DATA
-    adv_weeks = {}   # CFF_ADV_WEEKS
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--season",
+        type=int,
+        help="Refresh only this season and preserve all other published seasons.",
+    )
+    args = parser.parse_args()
 
-    for year in YEARS:
-        weeks = build_year(year)
-        if not weeks:
-            print(f"season {year}: no data, skipping")
-            continue
+    if args.season:
+        main_weeks, main_data, adv_weeks, adv_data = load_existing_site_data()
+        target_years = [args.season]
+    else:
+        main_weeks, main_data, adv_weeks, adv_data = {}, {}, {}, {}
+        target_years = YEARS
 
-        week_nums = sorted(weeks.keys())
-        main_weeks[str(year)] = week_nums
-        adv_weeks[str(year)] = week_nums
+    for year in target_years:
+        built = build_season_payload(year)
+        key = str(year)
+        if built is None:
+            if args.season and key in main_data and key in adv_data:
+                print(f"season {year}: keeping previously published site data")
+                continue
+            raise RuntimeError(f"season {year}: no valid ratings payload available")
 
-        main_data[str(year)] = {}
-        adv_data[str(year)] = {}
+        week_nums, season_main, season_adv = built
+        main_weeks[key] = week_nums
+        adv_weeks[key] = week_nums
+        main_data[key] = season_main
+        adv_data[key] = season_adv
 
-        prev_rank_by_slug = {}
+    published_years = sorted(int(y) for y in main_data.keys())
+    published_adv_years = sorted(int(y) for y in adv_data.keys())
 
-        for wk in week_nums:
-            rows = weeks[wk]
-
-            assign_rank(rows, "cff", "rank")
-            assign_rank(rows, "offYardsPerPlay", "adjORank")
-            assign_rank(rows, "defYardsPerPlay", "adjDRank", reverse=True)  # higher = better defense (model convention)
-            assign_rank(rows, "sos", "sosRank")
-
-            main_rows = []
-            adv_rows = []
-            for r in rows:
-                rank_change = None
-                if r["rank"] is not None and r["slug"] in prev_rank_by_slug and prev_rank_by_slug[r["slug"]] is not None:
-                    rank_change = prev_rank_by_slug[r["slug"]] - r["rank"]
-
-                main_rows.append({
-                    "team": r["team"], "slug": r["slug"], "teamId": r["teamId"], "conf": r["conf"],
-                    "record": r["record"], "rank": r["rank"],
-                    "adjEM": r["cff"], "adjO": r["offYardsPerPlay"], "adjD": r["defYardsPerPlay"],
-                    "adjORank": r["adjORank"], "adjDRank": r["adjDRank"],
-                    "sos": r["sos"], "sosRank": r["sosRank"],
-                    "sor": None, "sorRank": None,
-                    "rankChange": rank_change,
-                })
-
-                # Advanced Analytics: snapshot (model, "as of this week") fields
-                # plus this week's own incremental raw counts (for correct
-                # client-side range summation over [start,end]).
-                adv_rows.append({
-                    "team": r["team"], "slug": r["slug"], "teamId": r["teamId"], "conf": r["conf"],
-                    "cff": r["cff"], "fieldPos": r["fieldPos"],
-                    "off": r["off"], "def": r["def"],
-                    "offExp": r["offExp"], "defExp": r["defExp"],
-                    "offFin": r["offFin"], "defFin": r["defFin"],
-                    "wk": r["wk"],
-                })
-
-                prev_rank_by_slug[r["slug"]] = r["rank"]
-
-            main_rows.sort(key=lambda r: (r["rank"] is None, r["rank"]))
-
-            main_data[str(year)][str(wk)] = main_rows
-            adv_data[str(year)][str(wk)] = adv_rows
-
-        print(f"season {year}: weeks {week_nums[0]}-{week_nums[-1]}, {len(weeks[week_nums[-1]])} teams in final week")
-
-    # ---- write data.js ----
     js = (
         "// REAL data. Team identity, records, and per-game stats are sourced from\n"
         "// data/canonical/season=<year>/team_games.json (CFBD-derived, locked metrics).\n"
         "// AdjEM/CFF is the site's own opponent-adjusted Simple Rating System (SRS),\n"
         "// computed walk-forward (each week uses only games played before it).\n"
         "// AdjO/AdjD are a schedule-adjusted yards-per-play edge from a RESEARCH-ONLY\n"
-        "// model -- independently validated in the source repo (6-12% MAE improvement\n"
-        "// over naive baselines on 2025 and 2018 held-out weeks) but not a locked\n"
-        "// production rating.\n"
-        "// SOR has no defined methodology and is intentionally left null rather than\n"
-        "// invented. Values are null wherever a team has not yet played enough games\n"
-        "// for that computation -- not a bug.\n"
-        "window.CFB_YEARS = " + json.dumps(YEARS) + ";\n"
+        "// model -- independently validated in the source repo but not yet the locked\n"
+        "// production rating. SOR remains intentionally null until validated.\n"
+        "window.CFB_YEARS = " + json.dumps(published_years) + ";\n"
         "window.CFB_WEEKS = " + json.dumps(main_weeks) + ";\n"
         "window.CFB_DATA = " + json.dumps(main_data, separators=(",", ":")) + ";\n"
     )
-    with open(REPO / "site/data.js", "w") as f:
-        f.write(js)
+    (REPO / "site/data.js").write_text(js)
 
     adv_js = (
         "// REAL data -- see data.js header for methodology and validation notes.\n"
-        "// Each entry has snapshot fields (cff/fieldPos/off/def/offExp/defExp/\n"
-        "// offFin/defFin) from the walk-forward research model -- these reflect\n"
-        "// the END of whatever week range is selected, since a model fit can't be\n"
-        "// algebraically split into a sub-range. `wk` holds this single week's own\n"
-        "// raw counts (wins/losses, success/pass/rush counts, plays, opponent SRS)\n"
-        "// which the page sums across the selected range for genuinely rangeable\n"
-        "// stats (Success/Pass/Run rates, Pace, SOS, record). Pace is real\n"
-        "// (plays per game); Special Teams (st) has no real source and is\n"
-        "// intentionally left out.\n"
-        "window.CFF_ADV_YEARS = " + json.dumps(YEARS) + ";\n"
+        "// Snapshot model fields reflect the selected end week; `wk` contains the\n"
+        "// single-week raw counts used for genuinely rangeable Advanced metrics.\n"
+        "window.CFF_ADV_YEARS = " + json.dumps(published_adv_years) + ";\n"
         "window.CFF_ADV_WEEKS = " + json.dumps(adv_weeks) + ";\n"
         "window.CFF_ADV_DATA = " + json.dumps(adv_data, separators=(",", ":")) + ";\n"
     )
-    with open(REPO / "site/advanced-data.js", "w") as f:
-        f.write(adv_js)
+    (REPO / "site/advanced-data.js").write_text(adv_js)
 
     print("wrote site/data.js and site/advanced-data.js")
 
