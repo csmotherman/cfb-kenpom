@@ -94,9 +94,23 @@
   font-size: 8.5px;
 }
 
+.premium-error-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.premium-error-actions .auth-button {
+  min-width: 118px;
+  text-decoration: none;
+}
+
 @media (max-width: 640px) {
   .billing-plan-grid { grid-template-columns: 1fr; }
   .billing-plan-card { min-height: 0; }
   .billing-manage { grid-template-columns: 1fr; }
   .billing-manage .auth-button--secondary { width: 100%; }
+  .premium-error-actions { flex-direction: column; }
+  .premium-error-actions .auth-button { width: 100%; }
 }
