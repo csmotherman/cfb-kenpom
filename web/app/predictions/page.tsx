@@ -21,6 +21,8 @@ export default function PredictionsPage() {
   const [season, setSeason] = useState<number | null>(null);
   const [week, setWeek] = useState<number | null>(null);
   const [games, setGames] = useState<PredictionGame[]>([]);
+  const [predictionAccess, setPredictionAccess] = useState<"limited" | "full">("full");
+  const [totalGames, setTotalGames] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,6 +45,8 @@ export default function PredictionsPage() {
         setStatus("no-data");
       } else {
         setGames(predictions.games);
+        setPredictionAccess(predictions.access ?? "full");
+        setTotalGames(predictions.totalGames ?? predictions.games.length);
         setStatus("ready");
       }
     })().catch((error: Error) => { if (!cancelled) setLoadError(error); });
@@ -100,6 +104,14 @@ export default function PredictionsPage() {
             {games.map((g) => (
               <PredictionRow key={g.gameId} game={g} />
             ))}
+            {predictionAccess === "limited" && totalGames > games.length ? (
+              <div className="predictions-cta">
+                <span>
+                  GRID Pro includes {games.length} of {totalGames} published predictions this week.
+                </span>
+                <Link className="auth-button" href="/account">Unlock all with Pro+</Link>
+              </div>
+            ) : null}
           </div>
         )}
       </main>
@@ -118,10 +130,10 @@ function PredictionRow({ game }: { game: PredictionGame }) {
         <TeamChip team={game.homeTeam} teamId={game.homeTeamId} />
       </div>
 
-        <div className="predictions-row__pick">
-          <strong>{game.predictedWinner}</strong>
-          <span className="mono">{signedMargin(game.predictedMargin)}</span>
-        </div>
+      <div className="predictions-row__pick">
+        <strong>{game.predictedWinner}</strong>
+        <span className="mono">{signedMargin(game.predictedMargin)}</span>
+      </div>
     </div>
   );
 }
