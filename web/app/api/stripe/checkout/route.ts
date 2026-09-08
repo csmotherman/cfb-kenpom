@@ -15,8 +15,18 @@ import {
 
 export const runtime = "nodejs";
 
-function accountRedirect(request: NextRequest, key: "error" | "message", message: string) {
-  const url = new URL("/account", request.url);
+function safeReturnTo(value: FormDataEntryValue | null) {
+  const path = String(value ?? "").trim();
+  return path.startsWith("/") && !path.startsWith("//") ? path : "/account";
+}
+
+function feedbackRedirect(
+  request: NextRequest,
+  destination: string,
+  key: "error" | "message" | "checkout",
+  message: string
+) {
+  const url = new URL(destination, request.url);
   url.searchParams.set(key, message);
   return NextResponse.redirect(url, 303);
 }
@@ -26,20 +36,28 @@ function siteOrigin(request: NextRequest) {
   return configured || request.nextUrl.origin;
 }
 
+function destinationWithPlan(request: NextRequest, destination: string, plan: string) {
+  const url = new URL(destination, request.url);
+  url.searchParams.set("plan", plan);
+  return `${url.pathname}${url.search}`;
+}
+
 export async function POST(request: NextRequest) {
+  const formData = await request.formData();
+  const requestedPlan = String(formData.get("plan") ?? "");
+  const returnTo = safeReturnTo(formData.get("return_to"));
+
   if (!stripeBillingConfigured()) {
-    return accountRedirect(
+    return feedbackRedirect(
       request,
+      returnTo,
       "error",
-      "Stripe checkout is not enabled until billing secrets, prices, and the verified webhook are configured."
+      "Paid checkout is not live yet. Stripe products, prices, and the verified webhook still need to be configured."
     );
   }
 
-  const formData = await request.formData();
-  const requestedPlan = String(formData.get("plan") ?? "");
-
   if (!isPaidPlan(requestedPlan)) {
-    return accountRedirect(request, "error", "Choose a valid GRID plan.");
+    return feedbackRedirect(request, returnTo, "error", "Choose a valid GRID plan.");
   }
 
   const supabase = await createClient();
@@ -49,7 +67,8 @@ export async function POST(request: NextRequest) {
 
   if (!userId) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("message", "Sign in before starting GRID billing.");
+    loginUrl.searchParams.set("message", "Sign in to continue with the GRID plan you selected.");
+    loginUrl.searchParams.set("next", destinationWithPlan(request, returnTo, requestedPlan));
     return NextResponse.redirect(loginUrl, 303);
   }
 
@@ -67,8 +86,9 @@ export async function POST(request: NextRequest) {
   ]);
 
   if (localSubscription?.status === "active" || localSubscription?.status === "trialing") {
-    return accountRedirect(
+    return feedbackRedirect(
       request,
+      "/account",
       "message",
       "You already have GRID access. Use Manage billing to change your plan."
     );
@@ -105,8 +125,9 @@ export async function POST(request: NextRequest) {
 
     if (existingLiveSubscription) {
       await syncStripeSubscription(existingLiveSubscription);
-      return accountRedirect(
+      return feedbackRedirect(
         request,
+        "/account",
         "message",
         "An existing Stripe subscription was found and synced to your GRID account."
       );
@@ -116,6 +137,9 @@ export async function POST(request: NextRequest) {
       !profile?.trial_used_at && existingSubscriptions.data.length === 0;
     const trialDays = eligibleForTrial ? configuredTrialDays() : 0;
     const origin = siteOrigin(request);
+    const cancelUrl = new URL(returnTo, origin);
+    cancelUrl.searchParams.set("checkout", "canceled");
+    cancelUrl.searchParams.set("plan", requestedPlan);
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -123,7 +147,7 @@ export async function POST(request: NextRequest) {
       client_reference_id: userId,
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/account?checkout=success`,
-      cancel_url: `${origin}/account?checkout=canceled`,
+      cancel_url: cancelUrl.toString(),
       allow_promotion_codes: process.env.STRIPE_ALLOW_PROMOTION_CODES === "true",
       metadata: {
         user_id: userId,
@@ -139,8 +163,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session.url) {
-      return accountRedirect(
+      return feedbackRedirect(
         request,
+        returnTo,
         "error",
         `Stripe could not start checkout for ${PAID_PLAN_LABELS[requestedPlan]}.`
       );
@@ -149,8 +174,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect(session.url, 303);
   } catch (error) {
     console.error("GRID Stripe checkout error", error);
-    return accountRedirect(
+    return feedbackRedirect(
       request,
+      returnTo,
       "error",
       "Stripe checkout is not available yet. Billing configuration still needs to be completed."
     );
