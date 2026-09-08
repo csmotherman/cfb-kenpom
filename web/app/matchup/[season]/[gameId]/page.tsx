@@ -1,14 +1,27 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { TipTrigger } from "@/components/Tooltip";
-import { getRankingsSeason, getScheduleSeason, getTeamStatsWeeklySeason } from "@/lib/data";
-import { logoUrl, teamCode } from "@/lib/teamCode";
-import type { RankingsRow, RankingsSeason, ScheduleGame, ScheduleSeason, TeamStatsRow, TeamStatsWeeklySeason } from "@/lib/types";
+import {
+  getRankingsSeason,
+  getScheduleSeason,
+  getTeamStatsWeeklySeason,
+} from "@/lib/data";
+import { logoUrl } from "@/lib/teamCode";
+import type {
+  AdvancedRow,
+  AdvancedSeason,
+  RankingsRow,
+  RankingsSeason,
+  ScheduleGame,
+  ScheduleSeason,
+  TeamStatsRow,
+  TeamStatsWeeklySeason,
+} from "@/lib/types";
 
 function na(v: unknown): v is null | undefined {
   return v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
@@ -19,8 +32,14 @@ function pct(n: number | null | undefined): string {
   return `${(n * 100).toFixed(1)}%`;
 }
 
-function signed(value: number | null | undefined, digits = 1): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return "—";
+function pctEdge(n: number | null | undefined): string {
+  if (na(n)) return "—";
+  const value = n * 100;
+  return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
+}
+
+function signed(value: number | null | undefined, digits = 2): string {
+  if (na(value)) return "—";
   return `${value >= 0 ? "+" : ""}${value.toFixed(digits)}`;
 }
 
@@ -28,17 +47,14 @@ function rankText(value: number | null | undefined): string {
   return value === null || value === undefined ? "—" : `#${value}`;
 }
 
-// Rank is already direction-normalized everywhere it's computed (rank 1 is
-// always the best value for that stat, whichever raw direction "best"
-// means), so tiering by rank/totalTeams alone is safe for every row here.
-function tier(rank: number | null | undefined, totalTeams: number): string | null {
-  if (rank === null || rank === undefined || !totalTeams) return null;
-  const pctile = rank / totalTeams;
-  if (pctile <= 0.15) return "high";
-  if (pctile <= 0.4) return "mid-high";
-  if (pctile >= 0.85) return "low";
-  if (pctile >= 0.6) return "mid-low";
-  return null;
+function rankBand(rank: number | null | undefined, totalTeams: number): string | null {
+  if (rank === null || rank === undefined || totalTeams <= 0) return null;
+  const rankShare = rank / totalTeams;
+  if (rankShare <= 0.2) return "elite";
+  if (rankShare <= 0.4) return "good";
+  if (rankShare <= 0.6) return "middle";
+  if (rankShare <= 0.8) return "poor";
+  return "bad";
 }
 
 function pregameRatingWeek(rankings: RankingsSeason, gameWeek: number): number | null {
@@ -60,13 +76,62 @@ function gameTime(game: ScheduleGame): string {
   const date = new Date(game.startDate);
   if (Number.isNaN(date.getTime())) return "Time TBA";
   return date.toLocaleString("en-US", {
-    weekday: "long",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
   });
 }
+
+async function getMatchupAdvancedSeason(year: number): Promise<AdvancedSeason | null> {
+  const response = await fetch(`/api/matchup-advanced/${year}`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(20000),
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Failed to load matchup analytics: ${response.status}`);
+  return response.json() as Promise<AdvancedSeason>;
+}
+
+function advancedNumber(row: AdvancedRow | undefined, key: keyof AdvancedRow): number | null {
+  if (!row) return null;
+  const value = row[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+type RankInfo = { rank: number | null; total: number };
+
+function advancedRankInfo(
+  rows: AdvancedRow[],
+  slug: string,
+  key: keyof AdvancedRow,
+  lowerBetter = false,
+): RankInfo {
+  const ranked = rows
+    .map((row) => ({ slug: row.slug, value: advancedNumber(row, key) }))
+    .filter((row): row is { slug: string; value: number } => row.value !== null)
+    .sort((a, b) => lowerBetter ? a.value - b.value : b.value - a.value);
+  const index = ranked.findIndex((row) => row.slug === slug);
+  return { rank: index >= 0 ? index + 1 : null, total: ranked.length };
+}
+
+type StatDatum = {
+  value: string;
+  rank: number | null | undefined;
+  totalTeams: number;
+};
+
+type SideRow = {
+  label: string;
+  offense: StatDatum;
+  defense: StatDatum;
+};
+
+type HeadlineRow = {
+  label: string;
+  left: StatDatum;
+  right: StatDatum;
+};
 
 export default function MatchupPage({ params }: { params: Promise<{ season: string; gameId: string }> }) {
   const { season: seasonParam, gameId } = use(params);
@@ -75,6 +140,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
   const [schedule, setSchedule] = useState<ScheduleSeason | null | undefined>(undefined);
   const [rankings, setRankings] = useState<RankingsSeason | null>(null);
   const [teamStatsWeekly, setTeamStatsWeekly] = useState<TeamStatsWeeklySeason | null>(null);
+  const [advanced, setAdvanced] = useState<AdvancedSeason | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,16 +152,24 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
         cancelled = true;
       };
     }
-    Promise.all([getScheduleSeason(season), getRankingsSeason(season), getTeamStatsWeeklySeason(season)])
-      .then(([scheduleData, rankingData, teamStatsData]) => {
+
+    Promise.all([
+      getScheduleSeason(season),
+      getRankingsSeason(season),
+      getTeamStatsWeeklySeason(season),
+      getMatchupAdvancedSeason(season),
+    ])
+      .then(([scheduleData, rankingData, teamStatsData, advancedData]) => {
         if (cancelled) return;
         setSchedule(scheduleData);
         setRankings(rankingData);
         setTeamStatsWeekly(teamStatsData);
+        setAdvanced(advancedData);
       })
       .catch((error: Error) => {
         if (!cancelled) setLoadError(error);
       });
+
     return () => {
       cancelled = true;
     };
@@ -116,9 +190,6 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
     };
   }, [rankings, ratingWeek, game]);
 
-  // Same pregame week as the RPI snapshot above -- team-stats-weekly is
-  // published per week specifically so this join can never pull in a later
-  // week's (or the current, still-in-progress week's) results.
   const teamStats = useMemo(() => {
     if (!teamStatsWeekly || ratingWeek === null || !game) return { away: undefined, home: undefined };
     const rows = teamStatsWeekly.byWeek[String(ratingWeek)] || [];
@@ -128,15 +199,25 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
     };
   }, [teamStatsWeekly, ratingWeek, game]);
 
+  const advancedRows = useMemo(() => {
+    if (!advanced || ratingWeek === null) return [];
+    return advanced.byWeek[String(ratingWeek)] || [];
+  }, [advanced, ratingWeek]);
+
+  const advancedTeams = useMemo(() => {
+    if (!game) return { away: undefined, home: undefined };
+    return {
+      away: advancedRows.find((row) => row.slug === game.awaySlug),
+      home: advancedRows.find((row) => row.slug === game.homeSlug),
+    };
+  }, [advancedRows, game]);
+
   useEffect(() => {
     if (game) document.title = `${game.awayTeam} vs ${game.homeTeam} | GRID`;
   }, [game]);
 
-  // Percentile tiering needs a denominator -- how many teams that week's
-  // rank could possibly be drawn from. Rankings and team-stats-weekly are
-  // separately published snapshots, so each gets its own count.
   const totalRated = rankings && ratingWeek !== null
-    ? (rankings.byWeek[String(ratingWeek)] || []).filter((r) => r.rank !== null).length
+    ? (rankings.byWeek[String(ratingWeek)] || []).filter((row) => row.rank !== null).length
     : 0;
   const totalStatted = teamStatsWeekly && ratingWeek !== null
     ? (teamStatsWeekly.byWeek[String(ratingWeek)] || []).length
@@ -171,201 +252,313 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
   const weekName = schedule.weekLabels?.[String(game.week)] || `Week ${game.week}`;
   const separator = game.neutralSite ? "vs" : "@";
 
+  const awaySideRows = teamSideRows({
+    advanced: advancedTeams.away,
+    advancedRows,
+    slug: game.awaySlug,
+  });
+  const homeSideRows = teamSideRows({
+    advanced: advancedTeams.home,
+    advancedRows,
+    slug: game.homeSlug,
+  });
+  const headlineRows = headlineComparisonRows({
+    awayRating: ratings.away,
+    homeRating: ratings.home,
+    awayStats: teamStats.away,
+    homeStats: teamStats.home,
+    awayAdvanced: advancedTeams.away,
+    homeAdvanced: advancedTeams.home,
+    advancedRows,
+    awaySlug: game.awaySlug,
+    homeSlug: game.homeSlug,
+    totalRated,
+    totalStatted,
+  });
+
   return (
     <>
       <a className="skip-link" href="#matchupContent">Skip to matchup</a>
       <SiteHeader tagline="College Football Matchup Analysis" />
       <SiteNav />
 
-      <nav className="breadcrumbs" aria-label="Breadcrumb">
-        <Link href="/this-week">This Week</Link>
-        <span className="crumb-sep">/</span>
-        <span className="crumb-current">{game.awayTeam} {separator} {game.homeTeam}</span>
-      </nav>
+      <main id="matchupContent" className="container matchup-v2-main">
+        <section className="matchup-v2-gamebar" aria-label="Game information">
+          <div className="matchup-v2-gamebar__meta">
+            <strong>{season} · {weekName}</strong>
+            <span>{gameTime(game)}{game.venue ? ` · ${game.venue}` : ""}</span>
+          </div>
 
-      <main id="matchupContent" className="container matchup-main">
-        <section className="matchup-hero">
-          <div className="matchup-hero__meta">
-            <span className="eyebrow">{season} · {weekName}</span>
-            <span>{gameTime(game)}</span>
+          <div className="matchup-v2-gamebar__matchup">
+            <img src={logoUrl(game.awayTeamId, 64)} alt="" />
+            <strong>{game.awayTeam}</strong>
+            <span>{separator}</span>
+            <strong>{game.homeTeam}</strong>
+            <img src={logoUrl(game.homeTeamId, 64)} alt="" />
           </div>
-          <div className="matchup-hero__teams">
-            <MatchupTeam game={game} side="away" rating={ratings.away} />
-            <span className="matchup-hero__separator">{separator}</span>
-            <MatchupTeam game={game} side="home" rating={ratings.home} />
+
+          <div className="matchup-v2-gamebar__snapshot">
+            {ratingWeek === null ? "No pregame snapshot" : `Pregame through Week ${ratingWeek}`}
           </div>
-          <p className="matchup-hero__context">
-            {ratingWeek === null
-              ? "No GRID rating existed before the opening week, so this page only shows schedule context."
-              : `Pregame snapshot through Week ${ratingWeek}. These numbers do not use results from this game week.`}
-          </p>
         </section>
 
-        <section className="matchup-panels">
-          <div className="weekly-section-heading">
-            <div>
-              <span className="eyebrow">Free Matchup View</span>
-              <h2>Where the teams stand</h2>
-            </div>
-            <span>Value · national rank</span>
-          </div>
+        <div className="matchup-v2-grid matchup-v2-grid--scouting">
+          <TeamSideCard
+            area="away"
+            team={game.awayTeam}
+            teamId={game.awayTeamId}
+            slug={game.awaySlug}
+            record={ratings.away?.record || "—"}
+            rank={ratings.away?.rank}
+            rows={awaySideRows}
+          />
 
-          <div className="matchup-panel-grid">
-            <MatchupPanel
-              title="Overall"
+          <div className="matchup-v2-center">
+            <HeadlineComparison
               left={{ team: game.awayTeam, teamId: game.awayTeamId }}
               right={{ team: game.homeTeam, teamId: game.homeTeamId }}
-              totalTeams={totalRated}
-              rows={overallRows(ratings.away, ratings.home)}
-            />
-            <MatchupPanel
-              title={`${teamCode(game.awayTeam)} Off vs ${teamCode(game.homeTeam)} Def`}
-              left={{ team: game.awayTeam, teamId: game.awayTeamId }}
-              right={{ team: game.homeTeam, teamId: game.homeTeamId }}
-              totalTeams={totalStatted}
-              rows={offenseVsDefenseRows(teamStats.away, teamStats.home)}
-            />
-            <MatchupPanel
-              title={`${teamCode(game.homeTeam)} Off vs ${teamCode(game.awayTeam)} Def`}
-              left={{ team: game.homeTeam, teamId: game.homeTeamId }}
-              right={{ team: game.awayTeam, teamId: game.awayTeamId }}
-              totalTeams={totalStatted}
-              rows={offenseVsDefenseRows(teamStats.home, teamStats.away)}
+              rows={headlineRows}
             />
           </div>
-        </section>
 
-        <section className="matchup-next">
-          <div>
-            <span className="eyebrow">Where GRID is going</span>
-            <h2>From comparison to matchup intelligence</h2>
-            <p>
-              This free page is the baseline: team quality, offense, defense, schedule context and how each side&rsquo;s offense lines up against the other&rsquo;s defense. The deeper matchup engine will add down-and-distance splits, situational edges and eventually full matchup intelligence without hiding the core team profile.
-            </p>
-          </div>
-          <Link href="/this-week" className="utility-link">Back to the full slate →</Link>
-        </section>
+          <TeamSideCard
+            area="home"
+            team={game.homeTeam}
+            teamId={game.homeTeamId}
+            slug={game.homeSlug}
+            record={ratings.home?.record || "—"}
+            rank={ratings.home?.rank}
+            rows={homeSideRows}
+          />
+        </div>
       </main>
 
-      <SiteFooter note="Matchup pages use the most recent GRID rating snapshot strictly before the selected game week. RPI, RPI-O and RPI-D describe opponent-adjusted performance; they are not a betting line or a game prediction." />
+      <SiteFooter note="Matchup pages use the most recent GRID snapshot strictly before the selected game week. Rank colors are based on national rank among teams with available data. Defensive EPA and success values are allowed values, so lower is better." />
     </>
   );
 }
 
-function MatchupTeam({ game, side, rating }: { game: ScheduleGame; side: "away" | "home"; rating?: RankingsRow }) {
-  const team = side === "away" ? game.awayTeam : game.homeTeam;
-  const teamId = side === "away" ? game.awayTeamId : game.homeTeamId;
-  const slug = side === "away" ? game.awaySlug : game.homeSlug;
+function TeamSideCard({
+  area,
+  team,
+  teamId,
+  slug,
+  record,
+  rank,
+  rows,
+}: {
+  area: "away" | "home";
+  team: string;
+  teamId: number;
+  slug: string;
+  record: string;
+  rank: number | null | undefined;
+  rows: SideRow[];
+}) {
   return (
-    <Link href={`/team/${encodeURIComponent(slug)}`} className="matchup-team" prefetch={false}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={logoUrl(teamId, 256)} alt="" decoding="async" />
-      <span>
-        <small>{rating?.rank ? `#${rating.rank}` : "Unranked"}</small>
-        <strong>{team}</strong>
-        <em className="mono">{rating?.record || "—"}</em>
-      </span>
-    </Link>
+    <aside className={`matchup-v2-side matchup-v2-side--${area}`} aria-label={`${team} detailed team stats`}>
+      <div className="matchup-v2-side__head">
+        <span>
+          <strong>{team}</strong>
+          <small>{record} · {rank ? `#${rank} GRID` : "Unranked"}</small>
+        </span>
+        <img src={logoUrl(teamId, 96)} alt="" decoding="async" />
+      </div>
+
+      <TeamStatSection title="Offense" rows={rows} side="offense" />
+      <TeamStatSection title="Defense" rows={rows} side="defense" />
+
+      <Link href={`/team/${encodeURIComponent(slug)}`} className="matchup-v2-side__link" prefetch={false}>
+        Full profile →
+      </Link>
+    </aside>
   );
 }
 
-type PanelRowSpec = {
-  label: React.ReactNode;
-  leftValue: string;
-  leftRank: number | null | undefined;
-  rightValue: string;
-  rightRank: number | null | undefined;
-};
-
-function overallRows(away?: RankingsRow, home?: RankingsRow): PanelRowSpec[] {
-  return [
-    { label: "RPI (AdjEM)", leftValue: signed(away?.adjEM), leftRank: away?.rank, rightValue: signed(home?.adjEM), rightRank: home?.rank },
-    { label: "RPI-O", leftValue: signed(away?.adjO, 2), leftRank: away?.adjORank, rightValue: signed(home?.adjO, 2), rightRank: home?.adjORank },
-    { label: "RPI-D", leftValue: signed(away?.adjD, 2), leftRank: away?.adjDRank, rightValue: signed(home?.adjD, 2), rightRank: home?.adjDRank },
-    { label: "Strength of Schedule", leftValue: signed(away?.sos), leftRank: away?.sosRank, rightValue: signed(home?.sos), rightRank: home?.sosRank },
-    { label: "Strength of Record", leftValue: signed(away?.sor), leftRank: away?.sorRank, rightValue: signed(home?.sor), rightRank: home?.sorRank },
-  ];
-}
-
-function offenseVsDefenseRows(offense?: TeamStatsRow, defense?: TeamStatsRow): PanelRowSpec[] {
-  return [
-    {
-      label: <>Success rate<TipTrigger text="Raw season-to-date success rate, not opponent-adjusted." /></>,
-      leftValue: pct(offense?.successRate), leftRank: offense?.successRateRank,
-      rightValue: pct(defense?.successRateAllowed), rightRank: defense?.successRateAllowedRank,
-    },
-    {
-      label: <>Rush success<TipTrigger text="Raw season-to-date rushing success rate, not opponent-adjusted." /></>,
-      leftValue: pct(offense?.rushSuccessRate), leftRank: offense?.rushSuccessRateRank,
-      rightValue: pct(defense?.rushSuccessRateAllowed), rightRank: defense?.rushSuccessRateAllowedRank,
-    },
-    {
-      label: <>Pass success<TipTrigger text="Raw season-to-date passing success rate, not opponent-adjusted." /></>,
-      leftValue: pct(offense?.passSuccessRate), leftRank: offense?.passSuccessRateRank,
-      rightValue: pct(defense?.passSuccessRateAllowed), rightRank: defense?.passSuccessRateAllowedRank,
-    },
-    {
-      label: <>Yards / play<TipTrigger text="Raw season-to-date yards per play, not opponent-adjusted." /></>,
-      leftValue: signed(offense?.yardsPerPlay, 2), leftRank: offense?.yardsPerPlayRank,
-      rightValue: signed(defense?.yardsPerPlayAllowed, 2), rightRank: defense?.yardsPerPlayAllowedRank,
-    },
-    {
-      label: <>Explosiveness (adj.)<TipTrigger text="GRID's opponent-adjusted explosiveness edge, a research-stage model snapshot -- not the raw explosive-play rate." /></>,
-      leftValue: signed(offense?.adjustedExplosivenessOffense, 2), leftRank: offense?.adjustedExplosivenessOffenseRank,
-      rightValue: signed(defense?.adjustedExplosivenessDefense, 2), rightRank: defense?.adjustedExplosivenessDefenseRank,
-    },
-    {
-      label: <>Finishing drives (adj.)<TipTrigger text="GRID's opponent-adjusted finishing model, a research-stage snapshot -- how efficiently scoring opportunities turn into points." /></>,
-      leftValue: signed(offense?.adjustedFinishingOffense, 2), leftRank: offense?.adjustedFinishingOffenseRank,
-      rightValue: signed(defense?.adjustedFinishingDefense, 2), rightRank: defense?.adjustedFinishingDefenseRank,
-    },
-    {
-      label: <>Havoc (adj.)<TipTrigger text="GRID's opponent-adjusted model of TFLs, sacks and turnovers -- higher is better for both sides here, since each is framed as beating expectation." /></>,
-      leftValue: signed(offense?.adjustedHavocOffense, 3), leftRank: offense?.adjustedHavocOffenseRank,
-      rightValue: signed(defense?.adjustedHavocDefense, 3), rightRank: defense?.adjustedHavocDefenseRank,
-    },
-  ];
-}
-
-function MatchupPanel({
+function TeamStatSection({
   title,
+  rows,
+  side,
+}: {
+  title: "Offense" | "Defense";
+  rows: SideRow[];
+  side: "offense" | "defense";
+}) {
+  return (
+    <section className="matchup-v2-team-section" aria-label={title}>
+      <div className="matchup-v2-team-section__title">{title}</div>
+      {rows.map((row) => (
+        <div className="matchup-v2-team-section__row" key={`${side}-${row.label}`}>
+          <span>{row.label}</span>
+          <StatCell {...row[side]} compact />
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function HeadlineComparison({
   left,
   right,
   rows,
-  totalTeams,
 }: {
-  title: string;
   left: { team: string; teamId: number };
   right: { team: string; teamId: number };
-  rows: PanelRowSpec[];
-  totalTeams: number;
+  rows: HeadlineRow[];
 }) {
   return (
-    <div className="matchup-panel" role="table" aria-label={title}>
-      <div className="matchup-panel__head" role="row">
-        <span className="matchup-panel__title">{title}</span>
-        <span className="matchup-panel__head-logo" role="columnheader">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoUrl(left.teamId, 64)} alt={left.team} decoding="async" />
-        </span>
-        <span className="matchup-panel__head-logo" role="columnheader">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoUrl(right.teamId, 64)} alt={right.team} decoding="async" />
-        </span>
+    <section className="matchup-v2-comparison matchup-v2-comparison--headline" aria-label={`${left.team} versus ${right.team} headline comparison`}>
+      <div className="matchup-v2-comparison__head matchup-v2-comparison__head--teams">
+        <ComparisonTeam team={left.team} teamId={left.teamId} label="Team" />
+        <span className="matchup-v2-comparison__vs">vs</span>
+        <ComparisonTeam team={right.team} teamId={right.teamId} label="Team" defense />
       </div>
-      {rows.map((row, index) => (
-        <div className="matchup-panel__row" role="row" key={index}>
-          <div className="matchup-panel__label" role="rowheader">{row.label}</div>
-          <div className={`matchup-panel__cell${tier(row.leftRank, totalTeams) ? ` matchup-panel__cell--${tier(row.leftRank, totalTeams)}` : ""}`} role="cell">
-            <strong className="mono">{row.leftValue}</strong>
-            <em className="mono">{rankText(row.leftRank)}</em>
-          </div>
-          <div className={`matchup-panel__cell${tier(row.rightRank, totalTeams) ? ` matchup-panel__cell--${tier(row.rightRank, totalTeams)}` : ""}`} role="cell">
-            <strong className="mono">{row.rightValue}</strong>
-            <em className="mono">{rankText(row.rightRank)}</em>
-          </div>
+
+      <div className="matchup-v2-table-head" aria-hidden="true">
+        <span>{left.team}</span>
+        <span>Headline metric</span>
+        <span>{right.team}</span>
+      </div>
+
+      {rows.map((row) => (
+        <div className="matchup-v2-table-row matchup-v2-table-row--headline" key={row.label}>
+          <StatCell {...row.left} />
+          <div className="matchup-v2-table-row__metric">{row.label}</div>
+          <StatCell {...row.right} />
         </div>
       ))}
+    </section>
+  );
+}
+
+function ComparisonTeam({ team, teamId, label, defense = false }: { team: string; teamId: number; label: string; defense?: boolean }) {
+  return (
+    <div className={`matchup-v2-comparison-team${defense ? " matchup-v2-comparison-team--defense" : ""}`}>
+      <img src={logoUrl(teamId, 64)} alt="" decoding="async" />
+      <span>
+        <strong>{team}</strong>
+        <small>{label}</small>
+      </span>
     </div>
   );
+}
+
+function StatCell({
+  value,
+  rank,
+  totalTeams,
+  compact = false,
+}: StatDatum & { compact?: boolean }) {
+  const band = rankBand(rank, totalTeams);
+  return (
+    <span className={`matchup-v2-stat${compact ? " matchup-v2-stat--compact" : ""}`}>
+      <strong>{value}</strong>
+      <em className={band ? `matchup-v2-rank matchup-v2-rank--${band}` : "matchup-v2-rank"}>{rankText(rank)}</em>
+    </span>
+  );
+}
+
+function advancedDatum(
+  row: AdvancedRow | undefined,
+  rows: AdvancedRow[],
+  slug: string,
+  key: keyof AdvancedRow,
+  lowerBetter: boolean,
+  formatter: (value: number | null) => string,
+): StatDatum {
+  const info = advancedRankInfo(rows, slug, key, lowerBetter);
+  return {
+    value: formatter(advancedNumber(row, key)),
+    rank: info.rank,
+    totalTeams: info.total,
+  };
+}
+
+function teamSideRows({
+  advanced,
+  advancedRows,
+  slug,
+}: {
+  advanced: AdvancedRow | undefined;
+  advancedRows: AdvancedRow[];
+  slug: string;
+}): SideRow[] {
+  const makeRow = (
+    label: string,
+    offenseKey: keyof AdvancedRow,
+    defenseKey: keyof AdvancedRow,
+    formatter: (value: number | null) => string = (value) => signed(value, 3),
+  ): SideRow => ({
+    label,
+    offense: advancedDatum(advanced, advancedRows, slug, offenseKey, false, formatter),
+    defense: advancedDatum(advanced, advancedRows, slug, defenseKey, true, formatter),
+  });
+
+  return [
+    makeRow("EPA / Pass", "passEpaAdj", "passEpaAdjAllowed"),
+    makeRow("EPA / Rush", "rushEpaAdj", "rushEpaAdjAllowed"),
+    makeRow("SR / Pass", "passSuccessAdj", "passSuccessAdjAllowed", pctEdge),
+    makeRow("SR / Rush", "rushSuccessAdj", "rushSuccessAdjAllowed", pctEdge),
+  ];
+}
+
+function headlineComparisonRows({
+  awayRating,
+  homeRating,
+  awayStats,
+  homeStats,
+  awayAdvanced,
+  homeAdvanced,
+  advancedRows,
+  awaySlug,
+  homeSlug,
+  totalRated,
+  totalStatted,
+}: {
+  awayRating: RankingsRow | undefined;
+  homeRating: RankingsRow | undefined;
+  awayStats: TeamStatsRow | undefined;
+  homeStats: TeamStatsRow | undefined;
+  awayAdvanced: AdvancedRow | undefined;
+  homeAdvanced: AdvancedRow | undefined;
+  advancedRows: AdvancedRow[];
+  awaySlug: string;
+  homeSlug: string;
+  totalRated: number;
+  totalStatted: number;
+}): HeadlineRow[] {
+  const awayEpaOff = advancedDatum(awayAdvanced, advancedRows, awaySlug, "epaAdj", false, (value) => signed(value, 3));
+  const homeEpaOff = advancedDatum(homeAdvanced, advancedRows, homeSlug, "epaAdj", false, (value) => signed(value, 3));
+  const awayEpaDef = advancedDatum(awayAdvanced, advancedRows, awaySlug, "epaAdjAllowed", true, (value) => signed(value, 3));
+  const homeEpaDef = advancedDatum(homeAdvanced, advancedRows, homeSlug, "epaAdjAllowed", true, (value) => signed(value, 3));
+
+  return [
+    {
+      label: "Overall Rating",
+      left: { value: signed(awayRating?.adjEM, 1), rank: awayRating?.rank, totalTeams: totalRated },
+      right: { value: signed(homeRating?.adjEM, 1), rank: homeRating?.rank, totalTeams: totalRated },
+    },
+    {
+      label: "Offense Rating",
+      left: { value: signed(awayRating?.adjO, 2), rank: awayRating?.adjORank, totalTeams: totalRated },
+      right: { value: signed(homeRating?.adjO, 2), rank: homeRating?.adjORank, totalTeams: totalRated },
+    },
+    {
+      label: "Defense Rating",
+      left: { value: signed(awayRating?.adjD, 2), rank: awayRating?.adjDRank, totalTeams: totalRated },
+      right: { value: signed(homeRating?.adjD, 2), rank: homeRating?.adjDRank, totalTeams: totalRated },
+    },
+    { label: "EPA / Play · Offense", left: awayEpaOff, right: homeEpaOff },
+    { label: "EPA / Play · Defense", left: awayEpaDef, right: homeEpaDef },
+    {
+      label: "Success Rate · Offense",
+      left: { value: pct(awayStats?.successRate), rank: awayStats?.successRateRank, totalTeams: totalStatted },
+      right: { value: pct(homeStats?.successRate), rank: homeStats?.successRateRank, totalTeams: totalStatted },
+    },
+    {
+      label: "Success Rate · Defense",
+      left: { value: pct(awayStats?.successRateAllowed), rank: awayStats?.successRateAllowedRank, totalTeams: totalStatted },
+      right: { value: pct(homeStats?.successRateAllowed), rank: homeStats?.successRateAllowedRank, totalTeams: totalStatted },
+    },
+  ];
 }

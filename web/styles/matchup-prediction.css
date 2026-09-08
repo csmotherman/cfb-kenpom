@@ -1,0 +1,121 @@
+/* Matchup prediction block: intentionally separate from the stat-sheet layout. */
+
+.matchup-prediction {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--color-hairline-strong);
+  border-top: 3px solid var(--color-navy);
+  background: rgba(255, 255, 255, .48);
+  text-align: center;
+}
+
+.matchup-prediction__eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+
+.matchup-prediction__eyebrow em {
+  padding: 2px 6px;
+  border: 1px solid var(--color-gold);
+  border-radius: 3px;
+  font-style: normal;
+  color: var(--color-navy);
+  background: rgba(255, 203, 5, .14);
+}
+
+.matchup-prediction__hook,
+.matchup-prediction__pick {
+  display: block;
+  color: var(--color-navy);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.matchup-prediction--locked p {
+  max-width: 430px;
+  margin: 7px auto 12px;
+  color: var(--color-ink-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.matchup-prediction__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 3px;
+  background: var(--color-navy);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.matchup-prediction__cta:hover {
+  text-decoration: none;
+  filter: brightness(1.08);
+}
+
+.matchup-prediction__result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  max-width: 360px;
+  margin: 12px auto 8px;
+  border: 1px solid var(--color-hairline-strong);
+  background: var(--color-hairline-strong);
+}
+
+.matchup-prediction__result-grid > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 8px;
+  background: var(--color-paper);
+}
+
+.matchup-prediction__result-grid small {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+
+.matchup-prediction__result-grid strong {
+  font-size: 16px;
+  color: var(--color-navy);
+}
+
+.matchup-prediction__fineprint {
+  color: var(--color-ink-tertiary);
+  font-size: 9px;
+}
+
+@media (max-width: 700px) {
+  .matchup-prediction {
+    margin-top: 12px;
+    padding: 14px 12px;
+  }
+
+  .matchup-prediction__hook,
+  .matchup-prediction__pick {
+    font-size: 16px;
+  }
+
+  .matchup-prediction--locked p {
+    font-size: 11px;
+  }
+}

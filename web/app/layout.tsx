@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { TooltipProvider } from "@/components/Tooltip";
 import BrandTitleGuard from "@/components/BrandTitleGuard";
 import GridTerminologyGuard from "@/components/GridTerminologyGuard";
+import MatchupPredictionPortal from "@/components/MatchupPredictionPortal";
 import "@/styles/theme.css";
 import "@/styles/ratings.css";
 import "@/styles/advanced.css";
@@ -17,6 +18,9 @@ import "@/styles/team-logo-align.css";
 import "@/styles/auth.css";
 import "@/styles/billing.css";
 import "@/styles/this-week.css";
+import "@/styles/matchup-v2.css";
+import "@/styles/matchup-scouting.css";
+import "@/styles/matchup-prediction.css";
 import "@/styles/team-profile-public.css";
 import "@/styles/methodology.css";
 import "@/styles/upgrade.css";
@@ -47,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <BrandTitleGuard />
         <GridTerminologyGuard />
         <TooltipProvider>{children}</TooltipProvider>
+        <MatchupPredictionPortal />
       </body>
     </html>
   );
