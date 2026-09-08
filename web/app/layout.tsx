@@ -18,6 +18,7 @@ import "@/styles/auth.css";
 import "@/styles/billing.css";
 import "@/styles/this-week.css";
 import "@/styles/matchup-v2.css";
+import "@/styles/matchup-scouting.css";
 import "@/styles/team-profile-public.css";
 import "@/styles/methodology.css";
 import "@/styles/upgrade.css";
