@@ -298,6 +298,16 @@ def build_year(year):
             wr["yppDen"] += row.get("offensivePlays", 0) or 0
             wr["yppNumA"] += row.get("defensiveYardsAllowed", 0) or 0
             wr["yppDenA"] += row.get("defensivePlays", 0) or 0
+            wr["finNum"] += row.get("opportunityPoints", 0) or 0
+            wr["finDen"] += row.get("resolvedPointOpportunities", 0) or 0
+            wr["finNumA"] += row.get("opportunityPointsAllowed", 0) or 0
+            wr["finDenA"] += row.get("resolvedPointOpportunitiesAllowed", 0) or 0
+            if num(row.get("averageStartYardsToGoal")) and row.get("fieldPositionPossessions"):
+                wr["fieldPosSum"] += row["averageStartYardsToGoal"] * row["fieldPositionPossessions"]
+                wr["fieldPosCount"] += row["fieldPositionPossessions"]
+            if num(row.get("averageStartYardsToGoalAllowed")) and row.get("fieldPositionPossessionsAllowed"):
+                wr["fieldPosSumA"] += row["averageStartYardsToGoalAllowed"] * row["fieldPositionPossessionsAllowed"]
+                wr["fieldPosCountA"] += row["fieldPositionPossessionsAllowed"]
             wr["dropbacks"] += row.get("dropbacks", 0) or 0
             wr["rushAttempts"] += row.get("rushAttempts", 0) or 0
             wr["dropbacksFaced"] += row.get("dropbacksFaced", 0) or 0

@@ -207,6 +207,10 @@ def _team_stats_rows_through_week(advanced_payload, upto_week):
             "passRateAgainst": _rate(pass_faced, pass_faced + rush_faced),
             "pace": _rate(wk.get("offPlays", 0), wk.get("offGames", 0)),
             "fieldPositionEdge": snapshot.get("fieldPos"),
+            "fieldPositionRaw": _rate(wk.get("fieldPosSum", 0), wk.get("fieldPosCount", 0)),
+            "fieldPositionRawAllowed": _rate(wk.get("fieldPosSumA", 0), wk.get("fieldPosCountA", 0)),
+            "finishingRate": _rate(wk.get("finNum", 0), wk.get("finDen", 0)),
+            "finishingRateAllowed": _rate(wk.get("finNumA", 0), wk.get("finDenA", 0)),
             "adjustedExplosivenessOffense": snapshot.get("offExp"),
             "adjustedExplosivenessDefense": snapshot.get("defExp"),
             "adjustedFinishingOffense": snapshot.get("offFin"),
@@ -225,6 +229,14 @@ def _team_stats_rows_through_week(advanced_payload, upto_week):
         ("explosivePlayRate", "explosivePlayRateRank", True),
         ("explosivePlayRateAllowed", "explosivePlayRateAllowedRank", False),
         ("fieldPositionEdge", "fieldPositionEdgeRank", True),
+        # Raw field position is yards-to-goal at drive start: lower is a
+        # better starting spot for the offense, higher is better forced
+        # onto the opponent by the defense -- opposite direction from each
+        # other, and opposite the adjusted "edge" framing above.
+        ("fieldPositionRaw", "fieldPositionRawRank", False),
+        ("fieldPositionRawAllowed", "fieldPositionRawAllowedRank", True),
+        ("finishingRate", "finishingRateRank", True),
+        ("finishingRateAllowed", "finishingRateAllowedRank", False),
         ("adjustedExplosivenessOffense", "adjustedExplosivenessOffenseRank", True),
         ("adjustedExplosivenessDefense", "adjustedExplosivenessDefenseRank", True),
         ("adjustedFinishingOffense", "adjustedFinishingOffenseRank", True),

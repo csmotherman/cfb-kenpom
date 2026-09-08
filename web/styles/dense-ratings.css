@@ -143,16 +143,33 @@ body:has(#advancedTable) .adv-note { padding: 5px 0; margin-left: auto; font-siz
   #advancedTable .adv-table .team-cell { width: 22% !important; }
   #advancedTable .adv-table .record-cell { width: 8% !important; }
   #advancedTable .adv-table .metric-cell { width: 10.666% !important; }
-  #advancedTable .adv-table[data-view="offense"], #advancedTable .adv-table[data-view="defense"] { min-width: 480px !important; }
-  #advancedTable .adv-table[data-view="offense"] .metric-cell, #advancedTable .adv-table[data-view="defense"] .metric-cell { width: 9.14% !important; }
+  /* Offense/Defense now carry too many columns (raw + opponent-adjusted
+     side by side) to fit a phone width without either scrolling or
+     unreadably squashing every cell -- squashing lost, so these two views
+     fall back to the same wide/scrollable/content-sized pattern
+     mobile-tables.css already established for #ratingsTable, instead of
+     the fixed-percentage columns tuned for the old, shorter column set. */
+  #advancedTable .adv-table[data-view="offense"], #advancedTable .adv-table[data-view="defense"] {
+    min-width: max-content !important;
+    width: max-content !important;
+    table-layout: auto !important;
+  }
+  #advancedTable .adv-table[data-view="offense"] .metric-cell,
+  #advancedTable .adv-table[data-view="defense"] .metric-cell {
+    width: auto !important;
+    min-width: 76px;
+    padding-inline: 6px;
+  }
+  #advancedTable .adv-table[data-view="offense"] .rank-cell,
+  #advancedTable .adv-table[data-view="defense"] .rank-cell { width: 40px !important; }
+  #advancedTable .adv-table[data-view="offense"] .team-cell,
+  #advancedTable .adv-table[data-view="defense"] .team-cell { width: 140px !important; }
+  #advancedTable .adv-table[data-view="offense"] .record-cell,
+  #advancedTable .adv-table[data-view="defense"] .record-cell { width: 56px !important; }
   #advancedTable .adv-table thead th { white-space: normal; overflow-wrap: normal; }
-  #advancedTable .adv-table thead .metric-cell { font-size: 8px !important; }
+  #advancedTable .adv-table[data-view="general"] thead .metric-cell { font-size: 8px !important; }
 }
 @media (max-width: 640px) {
   #advancedTable .adv-table .column-sort { padding-block: 3px; }
   #advancedTable .adv-table thead .rank-cell { white-space: nowrap; }
-  #advancedTable .adv-table[data-view="offense"] .metric-cell,
-  #advancedTable .adv-table[data-view="defense"] .metric-cell { width: 8% !important; }
-  #advancedTable .adv-table [data-metric-key="offPassRate"],
-  #advancedTable .adv-table [data-metric-key="defPassRate"] { width: 16% !important; }
 }

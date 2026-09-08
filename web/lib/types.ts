@@ -82,6 +82,14 @@ export type TeamStatsRow = {
   pace: number | null;
   fieldPositionEdge: number | null;
   fieldPositionEdgeRank: number | null;
+  fieldPositionRaw: number | null;
+  fieldPositionRawRank: number | null;
+  fieldPositionRawAllowed: number | null;
+  fieldPositionRawAllowedRank: number | null;
+  finishingRate: number | null;
+  finishingRateRank: number | null;
+  finishingRateAllowed: number | null;
+  finishingRateAllowedRank: number | null;
   adjustedExplosivenessOffense: number | null;
   adjustedExplosivenessOffenseRank: number | null;
   adjustedExplosivenessDefense: number | null;

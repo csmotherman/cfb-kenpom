@@ -394,13 +394,15 @@ function offenseRows(t: TeamStatsRow): MetricRowData[] {
     },
     {
       label: "Finishing drives",
-      tip: "Opponent-adjusted edge in converting scoring opportunities into points, as of the current week. Research-stage model; no raw counterpart is published yet.",
-      raw: null, adjusted: signed(t.adjustedFinishingOffense, 2), adjustedRank: t.adjustedFinishingOffenseRank,
+      tip: "Raw is points scored per resolved scoring opportunity. The adjusted edge is GRID's opponent-adjusted finishing model, a research-stage snapshot.",
+      raw: plain(t.finishingRate, 2), rawRank: t.finishingRateRank,
+      adjusted: signed(t.adjustedFinishingOffense, 2), adjustedRank: t.adjustedFinishingOffenseRank,
     },
     {
       label: "Field position",
-      tip: "Opponent-adjusted starting field position edge, as of the current week. Research-stage model; no raw counterpart is published yet.",
-      raw: null, adjusted: signed(t.fieldPositionEdge, 1), adjustedRank: t.fieldPositionEdgeRank,
+      tip: "Raw is average starting field position in yards from the opponent's goal line (lower is better -- it means starting closer to scoring). The adjusted edge is GRID's opponent-adjusted model, a research-stage snapshot.",
+      raw: plain(t.fieldPositionRaw, 1), rawRank: t.fieldPositionRawRank,
+      adjusted: signed(t.fieldPositionEdge, 1), adjustedRank: t.fieldPositionEdgeRank,
     },
   ];
 }
@@ -419,8 +421,14 @@ function defenseRows(t: TeamStatsRow): MetricRowData[] {
     },
     {
       label: "Finishing drives allowed",
-      tip: "Opponent-adjusted edge in preventing opponents from converting scoring opportunities, as of the current week. Research-stage model; no raw counterpart is published yet.",
-      raw: null, adjusted: signed(t.adjustedFinishingDefense, 2), adjustedRank: t.adjustedFinishingDefenseRank,
+      tip: "Raw is points allowed per opponent scoring opportunity (lower is better). The adjusted edge is GRID's opponent-adjusted finishing model, a research-stage snapshot.",
+      raw: plain(t.finishingRateAllowed, 2), rawRank: t.finishingRateAllowedRank,
+      adjusted: signed(t.adjustedFinishingDefense, 2), adjustedRank: t.adjustedFinishingDefenseRank,
+    },
+    {
+      label: "Field position allowed",
+      tip: "Raw is the opponent's average starting field position in yards from GRID's goal line (higher is better -- it means forcing opponents to start further away).",
+      raw: plain(t.fieldPositionRawAllowed, 1), rawRank: t.fieldPositionRawAllowedRank, adjusted: null,
     },
   ];
 }
