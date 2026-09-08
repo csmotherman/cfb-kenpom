@@ -1,8 +1,15 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { AdvancedSeason, PredictionsWeek, RankingsSeason, SearchIndexEntry, SiteMeta } from "./types";
+import type { AdvancedSeason, PredictionsWeek, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
+  if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
+  return res.json() as Promise<T>;
+}
+
+async function fetchOptionalJson<T>(path: string): Promise<T | null> {
+  const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
+  if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -68,6 +75,9 @@ const rankingsInflight = new Map<string, Promise<RankingsSeason>>();
 const advancedData = new Map<string, AdvancedSeason>();
 const advancedInflight = new Map<string, Promise<AdvancedSeason>>();
 
+const scheduleData = new Map<string, ScheduleSeason | null>();
+const scheduleInflight = new Map<string, Promise<ScheduleSeason | null>>();
+
 let metaPromise: Promise<SiteMeta> | null = null;
 let searchIndexPromise: Promise<SearchIndexEntry[]> | null = null;
 
@@ -105,6 +115,25 @@ export function getRankingsSeason(year: number | string): Promise<RankingsSeason
       throw error;
     });
     rankingsInflight.set(key, entry);
+  }
+  return entry;
+}
+
+export function getScheduleSeason(year: number | string): Promise<ScheduleSeason | null> {
+  const key = String(year);
+  if (scheduleData.has(key)) return Promise.resolve(scheduleData.get(key) ?? null);
+  let entry = scheduleInflight.get(key);
+  if (!entry) {
+    entry = fetchOptionalJson<ScheduleSeason>(`/data/schedule/${key}.json`).then((season) => {
+      scheduleData.set(key, season);
+      scheduleInflight.delete(key);
+      return season;
+    });
+    entry = entry.catch((error: Error) => {
+      scheduleInflight.delete(key);
+      throw error;
+    });
+    scheduleInflight.set(key, entry);
   }
   return entry;
 }
