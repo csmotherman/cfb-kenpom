@@ -33,7 +33,7 @@ function findGame(schedule: ScheduleSeason, gameId: string): ScheduleGame | null
 
 function gameTime(game: ScheduleGame): string {
   if (game.completed) return "Final";
-  if (!game.startDate) return "Time TBA";
+  if (game.startTimeTBD || !game.startDate) return "Time TBA";
   const date = new Date(game.startDate);
   if (Number.isNaN(date.getTime())) return "Time TBA";
   return date.toLocaleString("en-US", {

@@ -98,20 +98,25 @@ def build_schedule_payload(year):
             continue
 
         completed = bool(game.get("completed"))
+        start_time_tbd = bool(game.get("startTimeTBD"))
         games.append({
             "gameId": game_id,
             "week": int(week),
             "seasonType": str(game.get("seasonType") or "regular"),
             "startDate": game.get("startDate"),
+            "startTimeTBD": start_time_tbd,
             "completed": completed,
             "neutralSite": bool(game.get("neutralSite")),
             "conferenceGame": bool(game.get("conferenceGame")),
+            "venue": game.get("venue"),
             "homeTeam": home["team"],
             "homeTeamId": int(home["team_id"]),
             "homeSlug": home["slug"],
+            "homeConference": game.get("homeConference"),
             "awayTeam": away["team"],
             "awayTeamId": int(away["team_id"]),
             "awaySlug": away["slug"],
+            "awayConference": game.get("awayConference"),
             "homePoints": game.get("homePoints") if completed else None,
             "awayPoints": game.get("awayPoints") if completed else None,
         })
@@ -119,7 +124,9 @@ def build_schedule_payload(year):
     if not games:
         return None
 
-    games.sort(key=lambda row: (row.get("startDate") or "9999", row["gameId"]))
+    # Scheduled games sort by kickoff; games with no confirmed time (TBD, or
+    # simply not yet announced) sort after every scheduled game that week.
+    games.sort(key=lambda row: (row["week"], bool(row["startTimeTBD"] or not row.get("startDate")), row.get("startDate") or "9999", row["gameId"]))
     by_week = {}
     for game in games:
         by_week.setdefault(str(game["week"]), []).append(game)

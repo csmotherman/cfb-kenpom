@@ -438,6 +438,12 @@
     border-left: 0;
   }
   .weekly-controls { gap: 8px; }
+  /* .control-label is shared with the Ratings/Advanced filter bars, whose
+     legacy mobile layout (ratings.css) forces it to width:100% -- those
+     pages counter it via a body:has(#ratingsTable...) override that this
+     page's DOM never matches, so it needs its own override here. */
+  .weekly-controls .control-label { width: auto; flex: 0 0 auto; }
+  .weekly-week-nav { flex: 1 1 auto; }
   .weekly-game-count { display: none; }
   .weekly-section-heading { align-items: flex-start; }
   .weekly-section-heading > span { max-width: 260px; }
