@@ -5,9 +5,19 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { getRankingsSeason, getScheduleSeason } from "@/lib/data";
+import { TipTrigger } from "@/components/Tooltip";
+import { getRankingsSeason, getScheduleSeason, getTeamStatsWeeklySeason } from "@/lib/data";
 import { logoUrl } from "@/lib/teamCode";
-import type { RankingsRow, RankingsSeason, ScheduleGame, ScheduleSeason } from "@/lib/types";
+import type { RankingsRow, RankingsSeason, ScheduleGame, ScheduleSeason, TeamStatsRow, TeamStatsWeeklySeason } from "@/lib/types";
+
+function na(v: unknown): v is null | undefined {
+  return v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
+}
+
+function pct(n: number | null | undefined): string {
+  if (na(n)) return "—";
+  return `${(n * 100).toFixed(1)}%`;
+}
 
 function signed(value: number | null | undefined, digits = 1): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "—";
@@ -51,6 +61,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [schedule, setSchedule] = useState<ScheduleSeason | null | undefined>(undefined);
   const [rankings, setRankings] = useState<RankingsSeason | null>(null);
+  const [teamStatsWeekly, setTeamStatsWeekly] = useState<TeamStatsWeeklySeason | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,11 +73,12 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
         cancelled = true;
       };
     }
-    Promise.all([getScheduleSeason(season), getRankingsSeason(season)])
-      .then(([scheduleData, rankingData]) => {
+    Promise.all([getScheduleSeason(season), getRankingsSeason(season), getTeamStatsWeeklySeason(season)])
+      .then(([scheduleData, rankingData, teamStatsData]) => {
         if (cancelled) return;
         setSchedule(scheduleData);
         setRankings(rankingData);
+        setTeamStatsWeekly(teamStatsData);
       })
       .catch((error: Error) => {
         if (!cancelled) setLoadError(error);
@@ -90,6 +102,18 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
       home: rows.find((row) => row.slug === game.homeSlug),
     };
   }, [rankings, ratingWeek, game]);
+
+  // Same pregame week as the RPI snapshot above -- team-stats-weekly is
+  // published per week specifically so this join can never pull in a later
+  // week's (or the current, still-in-progress week's) results.
+  const teamStats = useMemo(() => {
+    if (!teamStatsWeekly || ratingWeek === null || !game) return { away: undefined, home: undefined };
+    const rows = teamStatsWeekly.byWeek[String(ratingWeek)] || [];
+    return {
+      away: rows.find((row) => row.slug === game.awaySlug),
+      home: rows.find((row) => row.slug === game.homeSlug),
+    };
+  }, [teamStatsWeekly, ratingWeek, game]);
 
   useEffect(() => {
     if (game) document.title = `${game.awayTeam} vs ${game.homeTeam} | GRID`;
@@ -201,12 +225,25 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
           </div>
         </section>
 
+        <PositionalMatchup
+          offenseTeam={game.awayTeam}
+          defenseTeam={game.homeTeam}
+          offense={teamStats.away}
+          defense={teamStats.home}
+        />
+        <PositionalMatchup
+          offenseTeam={game.homeTeam}
+          defenseTeam={game.awayTeam}
+          offense={teamStats.home}
+          defense={teamStats.away}
+        />
+
         <section className="matchup-next">
           <div>
             <span className="eyebrow">Where GRID is going</span>
             <h2>From comparison to matchup intelligence</h2>
             <p>
-              This free page is the baseline: team quality, offense, defense and schedule context. The deeper matchup engine will layer in rushing, passing, explosiveness, down-and-distance and other validated edges without hiding the core team profile.
+              This free page is the baseline: team quality, offense, defense, schedule context and how each side&rsquo;s offense lines up against the other&rsquo;s defense. The deeper matchup engine will add down-and-distance splits, situational edges and eventually full matchup intelligence without hiding the core team profile.
             </p>
           </div>
           <Link href="/this-week" className="utility-link">Back to the full slate →</Link>
@@ -244,7 +281,7 @@ function MatchupRow({
   leftTag,
   rightTag,
 }: {
-  label: string;
+  label: React.ReactNode;
   leftValue: string;
   leftRank: number | null | undefined;
   rightValue: string;
@@ -266,5 +303,77 @@ function MatchupRow({
         <em className="mono">{rankText(rightRank)}</em>
       </div>
     </div>
+  );
+}
+
+function PositionalMatchup({
+  offenseTeam,
+  defenseTeam,
+  offense,
+  defense,
+}: {
+  offenseTeam: string;
+  defenseTeam: string;
+  offense?: TeamStatsRow;
+  defense?: TeamStatsRow;
+}) {
+  return (
+    <section className="matchup-comparison matchup-positional">
+      <div className="weekly-section-heading">
+        <div>
+          <span className="eyebrow">Free Matchup View</span>
+          <h2>{offenseTeam} offense vs {defenseTeam} defense</h2>
+        </div>
+        <span>Value · national rank</span>
+      </div>
+
+      <div className="matchup-table" role="table" aria-label={`${offenseTeam} offense vs ${defenseTeam} defense`}>
+        <MatchupRow
+          label={<>Success rate<TipTrigger text="Raw season-to-date success rate, not opponent-adjusted." /></>}
+          leftValue={pct(offense?.successRate)}
+          leftRank={offense?.successRateRank}
+          rightValue={pct(defense?.successRateAllowed)}
+          rightRank={defense?.successRateAllowedRank}
+          leftTag="Off"
+          rightTag="Def"
+        />
+        <MatchupRow
+          label={<>Rush success<TipTrigger text="Raw season-to-date rushing success rate, not opponent-adjusted." /></>}
+          leftValue={pct(offense?.rushSuccessRate)}
+          leftRank={offense?.rushSuccessRateRank}
+          rightValue={pct(defense?.rushSuccessRateAllowed)}
+          rightRank={defense?.rushSuccessRateAllowedRank}
+          leftTag="Off"
+          rightTag="Def"
+        />
+        <MatchupRow
+          label={<>Pass success<TipTrigger text="Raw season-to-date passing success rate, not opponent-adjusted." /></>}
+          leftValue={pct(offense?.passSuccessRate)}
+          leftRank={offense?.passSuccessRateRank}
+          rightValue={pct(defense?.passSuccessRateAllowed)}
+          rightRank={defense?.passSuccessRateAllowedRank}
+          leftTag="Off"
+          rightTag="Def"
+        />
+        <MatchupRow
+          label={<>Yards / play<TipTrigger text="Raw season-to-date yards per play, not opponent-adjusted." /></>}
+          leftValue={signed(offense?.yardsPerPlay, 2)}
+          leftRank={offense?.yardsPerPlayRank}
+          rightValue={signed(defense?.yardsPerPlayAllowed, 2)}
+          rightRank={defense?.yardsPerPlayAllowedRank}
+          leftTag="Off"
+          rightTag="Def"
+        />
+        <MatchupRow
+          label={<>Explosiveness (opponent-adjusted)<TipTrigger text="GRID's opponent-adjusted explosiveness edge, a research-stage model snapshot -- not the raw explosive-play rate." /></>}
+          leftValue={signed(offense?.adjustedExplosivenessOffense, 2)}
+          leftRank={offense?.adjustedExplosivenessOffenseRank}
+          rightValue={signed(defense?.adjustedExplosivenessDefense, 2)}
+          rightRank={defense?.adjustedExplosivenessDefenseRank}
+          leftTag="Off"
+          rightTag="Def"
+        />
+      </div>
+    </section>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { AdvancedSeason, PredictionsWeek, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason } from "./types";
+import type { AdvancedSeason, PredictionsWeek, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
@@ -81,6 +81,9 @@ const scheduleInflight = new Map<string, Promise<ScheduleSeason | null>>();
 const teamStatsData = new Map<string, TeamStatsSeason | null>();
 const teamStatsInflight = new Map<string, Promise<TeamStatsSeason | null>>();
 
+const teamStatsWeeklyData = new Map<string, TeamStatsWeeklySeason | null>();
+const teamStatsWeeklyInflight = new Map<string, Promise<TeamStatsWeeklySeason | null>>();
+
 let metaPromise: Promise<SiteMeta> | null = null;
 let searchIndexPromise: Promise<SearchIndexEntry[]> | null = null;
 
@@ -156,6 +159,25 @@ export function getTeamStatsSeason(year: number | string): Promise<TeamStatsSeas
       throw error;
     });
     teamStatsInflight.set(key, entry);
+  }
+  return entry;
+}
+
+export function getTeamStatsWeeklySeason(year: number | string): Promise<TeamStatsWeeklySeason | null> {
+  const key = String(year);
+  if (teamStatsWeeklyData.has(key)) return Promise.resolve(teamStatsWeeklyData.get(key) ?? null);
+  let entry = teamStatsWeeklyInflight.get(key);
+  if (!entry) {
+    entry = fetchOptionalJson<TeamStatsWeeklySeason>(`/data/team-stats-weekly/${key}.json`).then((season) => {
+      teamStatsWeeklyData.set(key, season);
+      teamStatsWeeklyInflight.delete(key);
+      return season;
+    });
+    entry = entry.catch((error: Error) => {
+      teamStatsWeeklyInflight.delete(key);
+      throw error;
+    });
+    teamStatsWeeklyInflight.set(key, entry);
   }
   return entry;
 }

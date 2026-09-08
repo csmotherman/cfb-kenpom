@@ -290,6 +290,14 @@ def build_year(year):
             wr["rushSuccessDen"] += row.get("rushSuccessEligiblePlays", 0) or 0
             wr["rushSuccessNumA"] += row.get("rushSuccessfulPlaysAllowed", 0) or 0
             wr["rushSuccessDenA"] += row.get("rushSuccessEligiblePlaysAllowed", 0) or 0
+            wr["explosiveNum"] += row.get("explosivePlays", 0) or 0
+            wr["explosiveDen"] += row.get("explosiveEligiblePlays", 0) or 0
+            wr["explosiveNumA"] += row.get("explosivePlaysAllowed", 0) or 0
+            wr["explosiveDenA"] += row.get("explosiveEligiblePlaysAllowed", 0) or 0
+            wr["yppNum"] += row.get("offensiveYards", 0) or 0
+            wr["yppDen"] += row.get("offensivePlays", 0) or 0
+            wr["yppNumA"] += row.get("defensiveYardsAllowed", 0) or 0
+            wr["yppDenA"] += row.get("defensivePlays", 0) or 0
             wr["dropbacks"] += row.get("dropbacks", 0) or 0
             wr["rushAttempts"] += row.get("rushAttempts", 0) or 0
             wr["dropbacksFaced"] += row.get("dropbacksFaced", 0) or 0

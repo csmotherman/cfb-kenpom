@@ -151,22 +151,20 @@ def _assign_public_rank(rows, key, out_key, *, higher_better=True):
         row.setdefault(out_key, None)
 
 
-def build_team_stats_payload(advanced_payload):
-    """Publish a free season-to-date team profile, not the Pro split builder.
-
-    The private Advanced dataset stores single-week raw counts so arbitrary
-    ranges can be rebuilt after entitlement checks. For the public team page we
-    collapse those counts into one season-to-date snapshot and expose only a
-    deliberate set of core fan-facing metrics.
+def _team_stats_rows_through_week(advanced_payload, upto_week):
+    """Cumulative, ranked public team-stat rows using only games through
+    upto_week -- shared by the season-to-date payload (upto_week = the final
+    week) and the per-week payload (upto_week = each published week), which
+    is what makes the per-week version safe to use as a pregame snapshot for
+    a game played in a later week: it genuinely stops at upto_week rather
+    than re-deriving from the season's current totals.
     """
-    weeks = advanced_payload["weeks"]
-    if not weeks:
-        return None
-    final_week = weeks[-1]
-    snapshots = {row["slug"]: row for row in advanced_payload["byWeek"].get(str(final_week), [])}
+    snapshots = {row["slug"]: row for row in advanced_payload["byWeek"].get(str(upto_week), [])}
     totals = {}
 
-    for week in weeks:
+    for week in advanced_payload["weeks"]:
+        if week > upto_week:
+            break
         for row in advanced_payload["byWeek"].get(str(week), []):
             slug = row["slug"]
             if slug not in totals:
@@ -236,10 +234,56 @@ def build_team_stats_payload(advanced_payload):
         _assign_public_rank(rows, key, out_key, higher_better=higher_better)
 
     rows.sort(key=lambda row: row["team"])
+    return rows
+
+
+def build_team_stats_payload(advanced_payload):
+    """Publish a free season-to-date team profile, not the Pro split builder.
+
+    The private Advanced dataset stores single-week raw counts so arbitrary
+    ranges can be rebuilt after entitlement checks. For the public team page we
+    collapse those counts into one season-to-date snapshot and expose only a
+    deliberate set of core fan-facing metrics.
+    """
+    weeks = advanced_payload["weeks"]
+    if not weeks:
+        return None
+    final_week = weeks[-1]
+    rows = _team_stats_rows_through_week(advanced_payload, final_week)
+    if not rows:
+        return None
     return {
         "week": final_week,
         "weekLabel": advanced_payload.get("weekLabels", {}).get(str(final_week), f"Week {final_week}"),
         "teams": rows,
+    }
+
+
+def build_team_stats_weekly_payload(advanced_payload):
+    """Per-week cumulative team-stat snapshots, shaped like rankings.json
+    ({weeks, weekLabels, byWeek}) so matchup/weekly pages can look up a
+    team's stats as of the week strictly before a given game -- the same
+    pregame-snapshot pattern already used for RPI/RPI-O/RPI-D. Publishing
+    only the final week (as build_team_stats_payload does) would leak a
+    later week's totals into an earlier game's matchup page once the season
+    moves on; this keeps every week's numbers frozen at what was actually
+    known through that week.
+    """
+    weeks = advanced_payload["weeks"]
+    if not weeks:
+        return None
+    by_week = {}
+    for week in weeks:
+        rows = _team_stats_rows_through_week(advanced_payload, week)
+        if rows:
+            by_week[str(week)] = rows
+    if not by_week:
+        return None
+    published_weeks = sorted(int(w) for w in by_week)
+    return {
+        "weeks": published_weeks,
+        "weekLabels": {k: v for k, v in advanced_payload.get("weekLabels", {}).items() if int(k) in published_weeks},
+        "byWeek": by_week,
     }
 
 
@@ -274,6 +318,10 @@ def main():
         public_team_stats = build_team_stats_payload(payloads["advanced"])
         if public_team_stats is not None:
             outputs[f"team-stats/{key}.json"] = encode(public_team_stats)
+
+        team_stats_weekly = build_team_stats_weekly_payload(payloads["advanced"])
+        if team_stats_weekly is not None:
+            outputs[f"team-stats-weekly/{key}.json"] = encode(team_stats_weekly)
 
         schedule = build_schedule_payload(year)
         if schedule is not None:

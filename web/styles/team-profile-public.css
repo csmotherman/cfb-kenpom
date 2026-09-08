@@ -58,7 +58,7 @@
 }
 .team-profile-context {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   border-bottom: 1px solid var(--color-hairline-strong);
 }
 .team-profile-context__item {
@@ -160,4 +160,77 @@
   }
   .team-pro-tools span:last-child { border-bottom: 0; }
   .team-pro-tools__link { width: 100%; }
+}
+
+/* ---------- Team detail tabs (Overall / Offense / Defense / Schedule) ---------- */
+.team-detail {
+  padding: var(--space-4) 0 var(--space-6);
+}
+.team-detail .tab-nav {
+  margin-bottom: var(--space-4);
+}
+.team-overall {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.team-overall__note {
+  max-width: 900px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--color-ink-secondary);
+}
+.team-overall__note b { color: var(--color-navy); }
+
+.metric-table-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.metric-table th, .metric-table td { font-size: 11.5px; }
+.metric-table td:first-child { display: flex; align-items: center; gap: 4px; }
+
+/* ---------- Schedule tab ---------- */
+.schedule-table td, .schedule-table th { font-size: 11.5px; }
+.schedule-opp {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-navy);
+  text-decoration: none;
+}
+.schedule-opp:hover { text-decoration: underline; }
+.schedule-opp img { width: 20px; height: 20px; object-fit: contain; flex: 0 0 20px; }
+.schedule-win { color: var(--color-ink); }
+.schedule-loss { color: var(--color-ink-tertiary); }
+
+@media (max-width: 640px) {
+  .team-detail { padding-inline: var(--space-4); }
+}
+
+/* ---------- Fit metric/schedule tables on mobile without horizontal scroll ----------
+   .data-table's base min-width:900px assumes the #ratingsTable/.adv-table
+   mobile treatment elsewhere in the cascade, which these two tables don't
+   have -- without their own override they'd silently require a horizontal
+   swipe with zero visual hint that Raw/Opponent Adjusted are off-screen. */
+@media (max-width: 640px) {
+  .metric-table, .schedule-table {
+    min-width: 0;
+    width: 100%;
+    table-layout: fixed;
+  }
+  .metric-table th, .metric-table td,
+  .schedule-table th, .schedule-table td {
+    padding: 7px 6px;
+    white-space: normal;
+  }
+  .metric-table th:first-child, .metric-table td:first-child { width: 42%; }
+  .metric-table th:not(:first-child), .metric-table td:not(:first-child) { width: 29%; }
+  .metric-table td:first-child { flex-wrap: wrap; }
+  .schedule-table th:nth-child(1), .schedule-table td:nth-child(1) { width: 14%; }
+  .schedule-table th:nth-child(2), .schedule-table td:nth-child(2) { width: 40%; }
+  .schedule-table th:nth-child(3), .schedule-table td:nth-child(3) { width: 24%; }
+  .schedule-table th:nth-child(4), .schedule-table td:nth-child(4) { width: 22%; }
+  .schedule-opp span { overflow: hidden; text-overflow: ellipsis; }
 }
