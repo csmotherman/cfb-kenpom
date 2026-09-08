@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 
 const LINKS = [
   { href: "/", label: "Ratings" },
+  { href: "/this-week", label: "This Week" },
+  { href: "/methodology", label: "Methodology" },
   { href: "/advanced", label: "Advanced Analytics", pro: true },
-  { href: "/predictions", label: "Predictions", pro: true, coming: "Coming Week 4" },
+  { href: "/predictions", label: "Predictions", pro: true, coming: "Week 4" },
 ];
 
 export default function SiteNav() {
