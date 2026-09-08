@@ -11,6 +11,7 @@ import "./additions.css";
 import "@/styles/mobile-fit.css";
 import "@/styles/dense-ratings.css";
 import "@/styles/ara-polish.css";
+import "@/styles/advanced-table-polish.css";
 import "@/styles/grid-brand.css";
 import "@/styles/team-logo-align.css";
 import "@/styles/auth.css";
