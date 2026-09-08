@@ -16,6 +16,7 @@ import "@/styles/team-logo-align.css";
 import "@/styles/auth.css";
 import "@/styles/billing.css";
 import "@/styles/this-week.css";
+import "@/styles/team-profile-public.css";
 
 export const metadata: Metadata = {
   title: "GRID | College Football Analytics",
