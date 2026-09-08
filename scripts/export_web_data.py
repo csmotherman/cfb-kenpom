@@ -30,6 +30,10 @@ def atomic_write(path, text):
     os.replace(tmp, path)
 
 
+def _rate(num, den):
+    return num / den if den else None
+
+
 def _schedule_team_maps(year):
     path = REPO / f"data/canonical/season={year}/teams.json"
     if not path.exists():
@@ -131,6 +135,107 @@ def build_schedule_payload(year):
     }
 
 
+def _assign_public_rank(rows, key, out_key, *, higher_better=True):
+    ranked = [row for row in rows if row.get(key) is not None]
+    ranked.sort(key=lambda row: row[key], reverse=higher_better)
+    for index, row in enumerate(ranked, start=1):
+        row[out_key] = index
+    for row in rows:
+        row.setdefault(out_key, None)
+
+
+def build_team_stats_payload(advanced_payload):
+    """Publish a free season-to-date team profile, not the Pro split builder.
+
+    The private Advanced dataset stores single-week raw counts so arbitrary
+    ranges can be rebuilt after entitlement checks. For the public team page we
+    collapse those counts into one season-to-date snapshot and expose only a
+    deliberate set of core fan-facing metrics.
+    """
+    weeks = advanced_payload["weeks"]
+    if not weeks:
+        return None
+    final_week = weeks[-1]
+    snapshots = {row["slug"]: row for row in advanced_payload["byWeek"].get(str(final_week), [])}
+    totals = {}
+
+    for week in weeks:
+        for row in advanced_payload["byWeek"].get(str(week), []):
+            slug = row["slug"]
+            if slug not in totals:
+                totals[slug] = {
+                    "team": row["team"],
+                    "slug": slug,
+                    "teamId": row["teamId"],
+                    "conf": row["conf"],
+                    "wk": {},
+                }
+            acc = totals[slug]["wk"]
+            for key, value in (row.get("wk") or {}).items():
+                if isinstance(value, (int, float)) and not isinstance(value, bool):
+                    acc[key] = acc.get(key, 0) + value
+
+    rows = []
+    for slug, base in totals.items():
+        wk = base["wk"]
+        snapshot = snapshots.get(slug, {})
+        pass_plays = wk.get("dropbacks", 0)
+        rush_plays = wk.get("rushAttempts", 0)
+        pass_faced = wk.get("dropbacksFaced", 0)
+        rush_faced = wk.get("rushAttemptsFaced", 0)
+        rows.append({
+            "team": base["team"],
+            "slug": slug,
+            "teamId": base["teamId"],
+            "conf": base["conf"],
+            "successRate": _rate(wk.get("successNum", 0), wk.get("successDen", 0)),
+            "passSuccessRate": _rate(wk.get("passSuccessNum", 0), wk.get("passSuccessDen", 0)),
+            "rushSuccessRate": _rate(wk.get("rushSuccessNum", 0), wk.get("rushSuccessDen", 0)),
+            "successRateAllowed": _rate(wk.get("successNumA", 0), wk.get("successDenA", 0)),
+            "passSuccessRateAllowed": _rate(wk.get("passSuccessNumA", 0), wk.get("passSuccessDenA", 0)),
+            "rushSuccessRateAllowed": _rate(wk.get("rushSuccessNumA", 0), wk.get("rushSuccessDenA", 0)),
+            "yardsPerPlay": _rate(wk.get("yppNum", 0), wk.get("yppDen", 0)),
+            "yardsPerPlayAllowed": _rate(wk.get("yppNumA", 0), wk.get("yppDenA", 0)),
+            "explosivePlayRate": _rate(wk.get("explosiveNum", 0), wk.get("explosiveDen", 0)),
+            "explosivePlayRateAllowed": _rate(wk.get("explosiveNumA", 0), wk.get("explosiveDenA", 0)),
+            "passRate": _rate(pass_plays, pass_plays + rush_plays),
+            "passRateAgainst": _rate(pass_faced, pass_faced + rush_faced),
+            "pace": _rate(wk.get("offPlays", 0), wk.get("offGames", 0)),
+            "fieldPositionEdge": snapshot.get("fieldPos"),
+            "adjustedExplosivenessOffense": snapshot.get("offExp"),
+            "adjustedExplosivenessDefense": snapshot.get("defExp"),
+            "adjustedFinishingOffense": snapshot.get("offFin"),
+            "adjustedFinishingDefense": snapshot.get("defFin"),
+        })
+
+    rank_defs = (
+        ("successRate", "successRateRank", True),
+        ("passSuccessRate", "passSuccessRateRank", True),
+        ("rushSuccessRate", "rushSuccessRateRank", True),
+        ("successRateAllowed", "successRateAllowedRank", False),
+        ("passSuccessRateAllowed", "passSuccessRateAllowedRank", False),
+        ("rushSuccessRateAllowed", "rushSuccessRateAllowedRank", False),
+        ("yardsPerPlay", "yardsPerPlayRank", True),
+        ("yardsPerPlayAllowed", "yardsPerPlayAllowedRank", False),
+        ("explosivePlayRate", "explosivePlayRateRank", True),
+        ("explosivePlayRateAllowed", "explosivePlayRateAllowedRank", False),
+        ("fieldPositionEdge", "fieldPositionEdgeRank", True),
+        ("adjustedExplosivenessOffense", "adjustedExplosivenessOffenseRank", True),
+        ("adjustedExplosivenessDefense", "adjustedExplosivenessDefenseRank", True),
+        ("adjustedFinishingOffense", "adjustedFinishingOffenseRank", True),
+        ("adjustedFinishingDefense", "adjustedFinishingDefenseRank", True),
+    )
+    for key, out_key, higher_better in rank_defs:
+        _assign_public_rank(rows, key, out_key, higher_better=higher_better)
+
+    rows.sort(key=lambda row: row["team"])
+    return {
+        "week": final_week,
+        "weekLabel": advanced_payload.get("weekLabels", {}).get(str(final_week), f"Week {final_week}"),
+        "teams": rows,
+    }
+
+
 def main():
     site = REPO / "site"
     datasets = {}
@@ -158,6 +263,10 @@ def main():
         latest = payloads["rankings"]
         for row in latest["byWeek"][str(latest["weeks"][-1])]:
             search[row["slug"]] = {k: row[k] for k in ("team", "slug", "teamId", "conf")}
+
+        public_team_stats = build_team_stats_payload(payloads["advanced"])
+        if public_team_stats is not None:
+            outputs[f"team-stats/{key}.json"] = encode(public_team_stats)
 
         schedule = build_schedule_payload(year)
         if schedule is not None:
