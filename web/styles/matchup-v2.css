@@ -391,6 +391,16 @@
   color: var(--color-ink-tertiary);
 }
 
+.matchup-v2-access-status {
+  min-height: 18px;
+  padding: 3px 5px;
+  border-bottom: 1px solid var(--color-hairline);
+  font-family: var(--font-mono);
+  font-size: 6.8px;
+  text-align: center;
+  color: var(--color-ink-tertiary);
+}
+
 .matchup-v2-unlock-strip {
   display: flex;
   align-items: center;
