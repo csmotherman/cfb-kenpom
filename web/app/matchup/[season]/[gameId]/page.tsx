@@ -489,20 +489,19 @@ function ComparisonTable({
         <span>Defense</span>
       </div>
 
-      {!accessResolved ? (
-        <div className="matchup-v2-access-loading">Checking access…</div>
-      ) : advancedLoading ? (
-        <div className="matchup-v2-access-loading">Loading adjusted splits…</div>
-      ) : (
-        rows.map((row, index) => (
+      {rows.map((row, index) => {
+        const premiumWaiting = Boolean(row.premium && ultimateAccess && advancedLoading);
+        return (
           <ComparisonMetricRow
             row={row}
             locked={Boolean(row.premium && locked)}
+            loading={premiumWaiting}
             key={`${view}-${index}`}
           />
-        ))
-      )}
+        );
+      })}
 
+      {!accessResolved ? <div className="matchup-v2-access-status">Checking Ultimate access…</div> : null}
       {hasPremium && locked ? (
         <div className="matchup-v2-unlock-strip">
           <span><b>Ultimate</b> adjusted values blurred</span>
@@ -525,24 +524,25 @@ function ComparisonTeam({ team, teamId, label, defense = false }: { team: string
   );
 }
 
-function ComparisonMetricRow({ row, locked = false }: { row: ComparisonRow; locked?: boolean }) {
+function ComparisonMetricRow({ row, locked = false, loading = false }: { row: ComparisonRow; locked?: boolean; loading?: boolean }) {
+  const conceal = locked || loading;
   return (
     <div className={`matchup-v2-table-row${locked ? " matchup-v2-table-row--locked" : ""}`}>
       <StatCell
-        value={locked ? "+0.000" : row.leftValue}
-        rank={locked ? 42 : row.leftRank}
-        totalTeams={locked ? 134 : row.totalTeams}
-        locked={locked}
+        value={conceal ? "+0.000" : row.leftValue}
+        rank={conceal ? 42 : row.leftRank}
+        totalTeams={conceal ? 134 : row.totalTeams}
+        locked={conceal}
       />
       <div className="matchup-v2-table-row__metric">
         {row.label}
         {row.premium ? <span className="matchup-v2-row-badge">U</span> : null}
       </div>
       <StatCell
-        value={locked ? "-0.000" : row.rightValue}
-        rank={locked ? 42 : row.rightRank}
-        totalTeams={locked ? 134 : row.totalTeams}
-        locked={locked}
+        value={conceal ? "-0.000" : row.rightValue}
+        rank={conceal ? 42 : row.rightRank}
+        totalTeams={conceal ? 134 : row.totalTeams}
+        locked={conceal}
       />
     </div>
   );
