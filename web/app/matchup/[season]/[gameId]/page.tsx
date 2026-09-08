@@ -1,12 +1,11 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { use, useEffect, useMemo, useState, type ReactNode } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { TipTrigger } from "@/components/Tooltip";
 import {
   getRankingsSeason,
   getScheduleSeason,
@@ -42,11 +41,6 @@ function pctEdge(n: number | null | undefined): string {
 function signed(value: number | null | undefined, digits = 2): string {
   if (na(value)) return "—";
   return `${value >= 0 ? "+" : ""}${value.toFixed(digits)}`;
-}
-
-function plain(value: number | null | undefined, digits = 1): string {
-  if (na(value)) return "—";
-  return value.toFixed(digits);
 }
 
 function rankText(value: number | null | undefined): string {
@@ -121,52 +115,24 @@ function advancedRankInfo(
   return { rank: index >= 0 ? index + 1 : null, total: ranked.length };
 }
 
-function derivedAdvancedRankInfo(
-  rows: AdvancedRow[],
-  slug: string,
-  getter: (row: AdvancedRow) => number | null,
-  lowerBetter = false,
-): RankInfo {
-  const ranked = rows
-    .map((row) => ({ slug: row.slug, value: getter(row) }))
-    .filter((row): row is { slug: string; value: number } => row.value !== null && Number.isFinite(row.value))
-    .sort((a, b) => lowerBetter ? a.value - b.value : b.value - a.value);
-  const index = ranked.findIndex((row) => row.slug === slug);
-  return { rank: index >= 0 ? index + 1 : null, total: ranked.length };
-}
+type StatDatum = {
+  value: string;
+  rank: number | null | undefined;
+  totalTeams: number;
+};
 
 type SideRow = {
   group?: string;
-  label: ReactNode;
-  value: string;
-  rank?: number | null;
-  totalTeams: number;
-};
-
-type MiniStat = {
   label: string;
-  value: string;
-  rank: number | null;
-  totalTeams: number;
+  offense: StatDatum;
+  defense: StatDatum;
 };
 
-type ComparisonRow =
-  | {
-      kind: "single";
-      label: ReactNode;
-      leftValue: string;
-      leftRank: number | null;
-      leftTotal: number;
-      rightValue: string;
-      rightRank: number | null;
-      rightTotal: number;
-    }
-  | {
-      kind: "split";
-      label: ReactNode;
-      left: MiniStat[];
-      right: MiniStat[];
-    };
+type HeadlineRow = {
+  label: string;
+  left: StatDatum;
+  right: StatDatum;
+};
 
 export default function MatchupPage({ params }: { params: Promise<{ season: string; gameId: string }> }) {
   const { season: seasonParam, gameId } = use(params);
@@ -286,42 +252,28 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
 
   const weekName = schedule.weekLabels?.[String(game.week)] || `Week ${game.week}`;
   const separator = game.neutralSite ? "vs" : "@";
+
   const awaySideRows = teamSideRows({
-    rating: ratings.away,
-    stats: teamStats.away,
     advanced: advancedTeams.away,
     advancedRows,
     slug: game.awaySlug,
-    totalRated,
-    totalStatted,
   });
   const homeSideRows = teamSideRows({
-    rating: ratings.home,
-    stats: teamStats.home,
     advanced: advancedTeams.home,
     advancedRows,
     slug: game.homeSlug,
+  });
+  const headlineRows = headlineComparisonRows({
+    awayRating: ratings.away,
+    homeRating: ratings.home,
+    awayStats: teamStats.away,
+    homeStats: teamStats.home,
+    awayAdvanced: advancedTeams.away,
+    homeAdvanced: advancedTeams.home,
+    advancedRows,
+    awaySlug: game.awaySlug,
+    homeSlug: game.homeSlug,
     totalRated,
-    totalStatted,
-  });
-  const awayRows = comparisonRows({
-    offense: advancedTeams.away,
-    defense: advancedTeams.home,
-    offenseStats: teamStats.away,
-    defenseStats: teamStats.home,
-    advancedRows,
-    offenseSlug: game.awaySlug,
-    defenseSlug: game.homeSlug,
-    totalStatted,
-  });
-  const homeRows = comparisonRows({
-    offense: advancedTeams.home,
-    defense: advancedTeams.away,
-    offenseStats: teamStats.home,
-    defenseStats: teamStats.away,
-    advancedRows,
-    offenseSlug: game.homeSlug,
-    defenseSlug: game.awaySlug,
     totalStatted,
   });
 
@@ -351,7 +303,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
           </div>
         </section>
 
-        <div className="matchup-v2-grid">
+        <div className="matchup-v2-grid matchup-v2-grid--scouting">
           <TeamSideCard
             area="away"
             team={game.awayTeam}
@@ -363,16 +315,10 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
           />
 
           <div className="matchup-v2-center">
-            <ComparisonTable
-              offense={{ team: game.awayTeam, teamId: game.awayTeamId }}
-              defense={{ team: game.homeTeam, teamId: game.homeTeamId }}
-              rows={awayRows}
-            />
-
-            <ComparisonTable
-              offense={{ team: game.homeTeam, teamId: game.homeTeamId }}
-              defense={{ team: game.awayTeam, teamId: game.awayTeamId }}
-              rows={homeRows}
+            <HeadlineComparison
+              left={{ team: game.awayTeam, teamId: game.awayTeamId }}
+              right={{ team: game.homeTeam, teamId: game.homeTeamId }}
+              rows={headlineRows}
             />
           </div>
 
@@ -388,7 +334,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
         </div>
       </main>
 
-      <SiteFooter note="Matchup pages use the most recent GRID snapshot strictly before the selected game week. Rank colors are based on each metric's national rank among teams with available data. Defensive EPA and success values are allowed values, so lower is better." />
+      <SiteFooter note="Matchup pages use the most recent GRID snapshot strictly before the selected game week. Rank colors are based on national rank among teams with available data. Defensive EPA and success values are allowed values, so lower is better." />
     </>
   );
 }
@@ -411,7 +357,7 @@ function TeamSideCard({
   rows: SideRow[];
 }) {
   return (
-    <aside className={`matchup-v2-side matchup-v2-side--${area}`} aria-label={`${team} team snapshot`}>
+    <aside className={`matchup-v2-side matchup-v2-side--${area}`} aria-label={`${team} detailed team stats`}>
       <div className="matchup-v2-side__head">
         <span>
           <strong>{team}</strong>
@@ -419,18 +365,27 @@ function TeamSideCard({
         </span>
         <img src={logoUrl(teamId, 96)} alt="" decoding="async" />
       </div>
+
+      <div className="matchup-v2-side__columns" aria-hidden="true">
+        <span>Metric</span>
+        <span>Off</span>
+        <span>Def</span>
+      </div>
+
       {rows.map((row, index) => {
         const showGroup = Boolean(row.group && (index === 0 || row.group !== rows[index - 1]?.group));
         return (
-          <div key={index} className="matchup-v2-side__row-wrap">
+          <div key={`${row.group || "row"}-${row.label}`} className="matchup-v2-side__row-wrap">
             {showGroup ? <div className="matchup-v2-side__group-title">{row.group}</div> : null}
-            <div className="matchup-v2-side-row">
+            <div className="matchup-v2-side-row matchup-v2-side-row--pair">
               <span className="matchup-v2-side-row__label">{row.label}</span>
-              <StatCell value={row.value} rank={row.rank} totalTeams={row.totalTeams} />
+              <StatCell {...row.offense} compact />
+              <StatCell {...row.defense} compact />
             </div>
           </div>
         );
       })}
+
       <Link href={`/team/${encodeURIComponent(slug)}`} className="matchup-v2-side__link" prefetch={false}>
         Full profile →
       </Link>
@@ -438,30 +393,36 @@ function TeamSideCard({
   );
 }
 
-function ComparisonTable({
-  offense,
-  defense,
+function HeadlineComparison({
+  left,
+  right,
   rows,
 }: {
-  offense: { team: string; teamId: number };
-  defense: { team: string; teamId: number };
-  rows: ComparisonRow[];
+  left: { team: string; teamId: number };
+  right: { team: string; teamId: number };
+  rows: HeadlineRow[];
 }) {
   return (
-    <section className="matchup-v2-comparison" aria-label={`${offense.team} offense versus ${defense.team} defense`}>
-      <div className="matchup-v2-comparison__head">
-        <ComparisonTeam team={offense.team} teamId={offense.teamId} label="Offense" />
+    <section className="matchup-v2-comparison matchup-v2-comparison--headline" aria-label={`${left.team} versus ${right.team} headline comparison`}>
+      <div className="matchup-v2-comparison__head matchup-v2-comparison__head--teams">
+        <ComparisonTeam team={left.team} teamId={left.teamId} label="Team" />
         <span className="matchup-v2-comparison__vs">vs</span>
-        <ComparisonTeam team={defense.team} teamId={defense.teamId} label="Defense" defense />
+        <ComparisonTeam team={right.team} teamId={right.teamId} label="Team" defense />
       </div>
 
       <div className="matchup-v2-table-head" aria-hidden="true">
-        <span>Offense</span>
-        <span>Matchup metric</span>
-        <span>Defense</span>
+        <span>{left.team}</span>
+        <span>Headline metric</span>
+        <span>{right.team}</span>
       </div>
 
-      {rows.map((row, index) => <ComparisonMetricRow row={row} key={index} />)}
+      {rows.map((row) => (
+        <div className="matchup-v2-table-row matchup-v2-table-row--headline" key={row.label}>
+          <StatCell {...row.left} />
+          <div className="matchup-v2-table-row__metric">{row.label}</div>
+          <StatCell {...row.right} />
+        </div>
+      ))}
     </section>
   );
 }
@@ -478,246 +439,138 @@ function ComparisonTeam({ team, teamId, label, defense = false }: { team: string
   );
 }
 
-function ComparisonMetricRow({ row }: { row: ComparisonRow }) {
-  return (
-    <div className={`matchup-v2-table-row${row.kind === "split" ? " matchup-v2-table-row--split" : ""}`}>
-      {row.kind === "single" ? (
-        <StatCell value={row.leftValue} rank={row.leftRank} totalTeams={row.leftTotal} />
-      ) : (
-        <SplitStatCell stats={row.left} />
-      )}
-      <div className="matchup-v2-table-row__metric">{row.label}</div>
-      {row.kind === "single" ? (
-        <StatCell value={row.rightValue} rank={row.rightRank} totalTeams={row.rightTotal} />
-      ) : (
-        <SplitStatCell stats={row.right} />
-      )}
-    </div>
-  );
-}
-
-function StatCell({ value, rank, totalTeams }: { value: string; rank?: number | null; totalTeams: number }) {
+function StatCell({
+  value,
+  rank,
+  totalTeams,
+  compact = false,
+}: StatDatum & { compact?: boolean }) {
   const band = rankBand(rank, totalTeams);
   return (
-    <span className="matchup-v2-stat">
+    <span className={`matchup-v2-stat${compact ? " matchup-v2-stat--compact" : ""}`}>
       <strong>{value}</strong>
-      {rank !== undefined ? (
-        <em className={band ? `matchup-v2-rank matchup-v2-rank--${band}` : "matchup-v2-rank"}>{rankText(rank)}</em>
-      ) : null}
+      <em className={band ? `matchup-v2-rank matchup-v2-rank--${band}` : "matchup-v2-rank"}>{rankText(rank)}</em>
     </span>
   );
 }
 
-function SplitStatCell({ stats }: { stats: MiniStat[] }) {
-  return (
-    <span className="matchup-v2-split-stat">
-      {stats.map((stat) => {
-        const band = rankBand(stat.rank, stat.totalTeams);
-        return (
-          <span className="matchup-v2-split-stat__item" key={stat.label}>
-            <small>{stat.label}</small>
-            <strong>{stat.value}</strong>
-            <em className={band ? `matchup-v2-rank matchup-v2-rank--${band}` : "matchup-v2-rank"}>{rankText(stat.rank)}</em>
-          </span>
-        );
-      })}
-    </span>
-  );
+function advancedDatum(
+  row: AdvancedRow | undefined,
+  rows: AdvancedRow[],
+  slug: string,
+  key: keyof AdvancedRow,
+  lowerBetter: boolean,
+  formatter: (value: number | null) => string,
+): StatDatum {
+  const info = advancedRankInfo(rows, slug, key, lowerBetter);
+  return {
+    value: formatter(advancedNumber(row, key)),
+    rank: info.rank,
+    totalTeams: info.total,
+  };
 }
 
 function teamSideRows({
-  rating,
-  stats,
   advanced,
   advancedRows,
   slug,
-  totalRated,
-  totalStatted,
 }: {
-  rating: RankingsRow | undefined;
-  stats: TeamStatsRow | undefined;
   advanced: AdvancedRow | undefined;
   advancedRows: AdvancedRow[];
   slug: string;
-  totalRated: number;
-  totalStatted: number;
 }): SideRow[] {
-  const epaOffRank = advancedRankInfo(advancedRows, slug, "epaAdj");
-  const epaDefRank = advancedRankInfo(advancedRows, slug, "epaAdjAllowed", true);
-  const netEpa = advancedNumber(advanced, "epaAdj") !== null && advancedNumber(advanced, "epaAdjAllowed") !== null
-    ? (advancedNumber(advanced, "epaAdj") as number) - (advancedNumber(advanced, "epaAdjAllowed") as number)
-    : null;
-  const netEpaRank = derivedAdvancedRankInfo(
-    advancedRows,
-    slug,
-    (row) => {
-      const offense = advancedNumber(row, "epaAdj");
-      const defense = advancedNumber(row, "epaAdjAllowed");
-      return offense === null || defense === null ? null : offense - defense;
-    },
-  );
-
-  return [
-    { group: "Adjusted EPA", label: "Net Adj EPA / Play", value: signed(netEpa, 3), rank: netEpaRank.rank, totalTeams: netEpaRank.total },
-    { group: "Adjusted EPA", label: "Offense", value: signed(advancedNumber(advanced, "epaAdj"), 3), rank: epaOffRank.rank, totalTeams: epaOffRank.total },
-    { group: "Adjusted EPA", label: "Defense", value: signed(advancedNumber(advanced, "epaAdjAllowed"), 3), rank: epaDefRank.rank, totalTeams: epaDefRank.total },
-
-    { group: "Offense Success", label: "Overall", value: pct(stats?.successRate), rank: stats?.successRateRank, totalTeams: totalStatted },
-    { group: "Offense Success", label: "Pass", value: pct(stats?.passSuccessRate), rank: stats?.passSuccessRateRank, totalTeams: totalStatted },
-    { group: "Offense Success", label: "Rush", value: pct(stats?.rushSuccessRate), rank: stats?.rushSuccessRateRank, totalTeams: totalStatted },
-
-    { group: "Defense Success", label: "Overall", value: pct(stats?.successRateAllowed), rank: stats?.successRateAllowedRank, totalTeams: totalStatted },
-    { group: "Defense Success", label: "Pass", value: pct(stats?.passSuccessRateAllowed), rank: stats?.passSuccessRateAllowedRank, totalTeams: totalStatted },
-    { group: "Defense Success", label: "Rush", value: pct(stats?.rushSuccessRateAllowed), rank: stats?.rushSuccessRateAllowedRank, totalTeams: totalStatted },
-
-    { group: "Profile", label: "Yards / Play", value: plain(stats?.yardsPerPlay, 2), rank: stats?.yardsPerPlayRank, totalTeams: totalStatted },
-    { group: "Profile", label: "YPP Allowed", value: plain(stats?.yardsPerPlayAllowed, 2), rank: stats?.yardsPerPlayAllowedRank, totalTeams: totalStatted },
-    { group: "Profile", label: "Explosive %", value: pct(stats?.explosivePlayRate), rank: stats?.explosivePlayRateRank, totalTeams: totalStatted },
-    { group: "Profile", label: "Explosive Allowed", value: pct(stats?.explosivePlayRateAllowed), rank: stats?.explosivePlayRateAllowedRank, totalTeams: totalStatted },
-
-    { group: "Scoring & Havoc", label: "Finishing", value: plain(stats?.finishingRate, 1), rank: stats?.finishingRateRank, totalTeams: totalStatted },
-    { group: "Scoring & Havoc", label: "Finishing Allowed", value: plain(stats?.finishingRateAllowed, 1), rank: stats?.finishingRateAllowedRank, totalTeams: totalStatted },
-    { group: "Scoring & Havoc", label: "Havoc Allowed", value: pct(stats?.havocRateAllowed), rank: stats?.havocRateAllowedRank, totalTeams: totalStatted },
-    { group: "Scoring & Havoc", label: "Havoc Forced", value: pct(stats?.havocRateForced), rank: stats?.havocRateForcedRank, totalTeams: totalStatted },
-
-    { group: "Context", label: "GRID Rating", value: signed(rating?.adjEM, 1), rank: rating?.rank, totalTeams: totalRated },
-    { group: "Context", label: "SOS", value: signed(rating?.sos, 1), rank: rating?.sosRank, totalTeams: totalRated },
-    { group: "Context", label: "Field Position", value: signed(stats?.fieldPositionEdge, 1), rank: stats?.fieldPositionEdgeRank, totalTeams: totalStatted },
-  ];
-}
-
-function comparisonRows({
-  offense,
-  defense,
-  offenseStats,
-  defenseStats,
-  advancedRows,
-  offenseSlug,
-  defenseSlug,
-  totalStatted,
-}: {
-  offense: AdvancedRow | undefined;
-  defense: AdvancedRow | undefined;
-  offenseStats: TeamStatsRow | undefined;
-  defenseStats: TeamStatsRow | undefined;
-  advancedRows: AdvancedRow[];
-  offenseSlug: string;
-  defenseSlug: string;
-  totalStatted: number;
-}): ComparisonRow[] {
-  const advRow = (
-    label: ReactNode,
+  const makeRow = (
+    group: string | undefined,
+    label: string,
     offenseKey: keyof AdvancedRow,
     defenseKey: keyof AdvancedRow,
     formatter: (value: number | null) => string = (value) => signed(value, 3),
-  ): ComparisonRow => {
-    const leftRank = advancedRankInfo(advancedRows, offenseSlug, offenseKey);
-    const rightRank = advancedRankInfo(advancedRows, defenseSlug, defenseKey, true);
-    return {
-      kind: "single",
-      label,
-      leftValue: formatter(advancedNumber(offense, offenseKey)),
-      leftRank: leftRank.rank,
-      leftTotal: leftRank.total,
-      rightValue: formatter(advancedNumber(defense, defenseKey)),
-      rightRank: rightRank.rank,
-      rightTotal: rightRank.total,
-    };
-  };
-
-  const splitRow = (
-    label: ReactNode,
-    metrics: Array<{ label: string; offenseKey: keyof AdvancedRow; defenseKey: keyof AdvancedRow }>,
-    formatter: (value: number | null) => string = (value) => signed(value, 3),
-  ): ComparisonRow => ({
-    kind: "split",
+  ): SideRow => ({
+    group,
     label,
-    left: metrics.map((metric) => {
-      const info = advancedRankInfo(advancedRows, offenseSlug, metric.offenseKey);
-      return {
-        label: metric.label,
-        value: formatter(advancedNumber(offense, metric.offenseKey)),
-        rank: info.rank,
-        totalTeams: info.total,
-      };
-    }),
-    right: metrics.map((metric) => {
-      const info = advancedRankInfo(advancedRows, defenseSlug, metric.defenseKey, true);
-      return {
-        label: metric.label,
-        value: formatter(advancedNumber(defense, metric.defenseKey)),
-        rank: info.rank,
-        totalTeams: info.total,
-      };
-    }),
+    offense: advancedDatum(advanced, advancedRows, slug, offenseKey, false, formatter),
+    defense: advancedDatum(advanced, advancedRows, slug, defenseKey, true, formatter),
   });
 
   return [
-    advRow(<>EPA / Play<TipTrigger text="Opponent-adjusted EPA per play. Higher is better on offense; lower EPA allowed is better on defense." /></>, "epaAdj", "epaAdjAllowed"),
-    advRow("EPA / Pass", "passEpaAdj", "passEpaAdjAllowed"),
-    advRow("EPA / Rush", "rushEpaAdj", "rushEpaAdjAllowed"),
-    advRow(<>Success Edge<TipTrigger text="Opponent-adjusted success-rate edge. Higher is better on offense; lower allowed is better on defense." /></>, "successAdj", "successAdjAllowed", pctEdge),
-    advRow("Pass Success Edge", "passSuccessAdj", "passSuccessAdjAllowed", pctEdge),
-    advRow("Rush Success Edge", "rushSuccessAdj", "rushSuccessAdjAllowed", pctEdge),
+    makeRow("Play Type", "Pass EPA", "passEpaAdj", "passEpaAdjAllowed"),
+    makeRow("Play Type", "Rush EPA", "rushEpaAdj", "rushEpaAdjAllowed"),
+    makeRow("Play Type", "Pass Success", "passSuccessAdj", "passSuccessAdjAllowed", pctEdge),
+    makeRow("Play Type", "Rush Success", "rushSuccessAdj", "rushSuccessAdjAllowed", pctEdge),
+
+    makeRow("Passing by Down", "EPA · 1st", "passEpaDown1Adj", "passEpaDown1AdjAllowed"),
+    makeRow("Passing by Down", "EPA · 2nd", "passEpaDown2Adj", "passEpaDown2AdjAllowed"),
+    makeRow("Passing by Down", "EPA · 3rd", "passEpaDown3Adj", "passEpaDown3AdjAllowed"),
+    makeRow("Passing by Down", "Success · 1st", "passSuccessDown1Adj", "passSuccessDown1AdjAllowed", pctEdge),
+    makeRow("Passing by Down", "Success · 2nd", "passSuccessDown2Adj", "passSuccessDown2AdjAllowed", pctEdge),
+    makeRow("Passing by Down", "Success · 3rd", "passSuccessDown3Adj", "passSuccessDown3AdjAllowed", pctEdge),
+
+    makeRow("Rushing by Down", "EPA · 1st", "rushEpaDown1Adj", "rushEpaDown1AdjAllowed"),
+    makeRow("Rushing by Down", "EPA · 2nd", "rushEpaDown2Adj", "rushEpaDown2AdjAllowed"),
+    makeRow("Rushing by Down", "EPA · 3rd", "rushEpaDown3Adj", "rushEpaDown3AdjAllowed"),
+    makeRow("Rushing by Down", "Success · 1st", "rushSuccessDown1Adj", "rushSuccessDown1AdjAllowed", pctEdge),
+    makeRow("Rushing by Down", "Success · 2nd", "rushSuccessDown2Adj", "rushSuccessDown2AdjAllowed", pctEdge),
+    makeRow("Rushing by Down", "Success · 3rd", "rushSuccessDown3Adj", "rushSuccessDown3AdjAllowed", pctEdge),
+  ];
+}
+
+function headlineComparisonRows({
+  awayRating,
+  homeRating,
+  awayStats,
+  homeStats,
+  awayAdvanced,
+  homeAdvanced,
+  advancedRows,
+  awaySlug,
+  homeSlug,
+  totalRated,
+  totalStatted,
+}: {
+  awayRating: RankingsRow | undefined;
+  homeRating: RankingsRow | undefined;
+  awayStats: TeamStatsRow | undefined;
+  homeStats: TeamStatsRow | undefined;
+  awayAdvanced: AdvancedRow | undefined;
+  homeAdvanced: AdvancedRow | undefined;
+  advancedRows: AdvancedRow[];
+  awaySlug: string;
+  homeSlug: string;
+  totalRated: number;
+  totalStatted: number;
+}): HeadlineRow[] {
+  const awayEpaOff = advancedDatum(awayAdvanced, advancedRows, awaySlug, "epaAdj", false, (value) => signed(value, 3));
+  const homeEpaOff = advancedDatum(homeAdvanced, advancedRows, homeSlug, "epaAdj", false, (value) => signed(value, 3));
+  const awayEpaDef = advancedDatum(awayAdvanced, advancedRows, awaySlug, "epaAdjAllowed", true, (value) => signed(value, 3));
+  const homeEpaDef = advancedDatum(homeAdvanced, advancedRows, homeSlug, "epaAdjAllowed", true, (value) => signed(value, 3));
+
+  return [
     {
-      kind: "single",
-      label: "Yards / Play",
-      leftValue: plain(offenseStats?.yardsPerPlay, 2),
-      leftRank: offenseStats?.yardsPerPlayRank ?? null,
-      leftTotal: totalStatted,
-      rightValue: plain(defenseStats?.yardsPerPlayAllowed, 2),
-      rightRank: defenseStats?.yardsPerPlayAllowedRank ?? null,
-      rightTotal: totalStatted,
+      label: "Overall Rating",
+      left: { value: signed(awayRating?.adjEM, 1), rank: awayRating?.rank, totalTeams: totalRated },
+      right: { value: signed(homeRating?.adjEM, 1), rank: homeRating?.rank, totalTeams: totalRated },
     },
     {
-      kind: "single",
-      label: "Explosiveness Adj.",
-      leftValue: signed(offenseStats?.adjustedExplosivenessOffense, 2),
-      leftRank: offenseStats?.adjustedExplosivenessOffenseRank ?? null,
-      leftTotal: totalStatted,
-      rightValue: signed(defenseStats?.adjustedExplosivenessDefense, 2),
-      rightRank: defenseStats?.adjustedExplosivenessDefenseRank ?? null,
-      rightTotal: totalStatted,
+      label: "Offense Rating",
+      left: { value: signed(awayRating?.adjO, 2), rank: awayRating?.adjORank, totalTeams: totalRated },
+      right: { value: signed(homeRating?.adjO, 2), rank: homeRating?.adjORank, totalTeams: totalRated },
     },
     {
-      kind: "single",
-      label: "Finishing Adj.",
-      leftValue: signed(offenseStats?.adjustedFinishingOffense, 2),
-      leftRank: offenseStats?.adjustedFinishingOffenseRank ?? null,
-      leftTotal: totalStatted,
-      rightValue: signed(defenseStats?.adjustedFinishingDefense, 2),
-      rightRank: defenseStats?.adjustedFinishingDefenseRank ?? null,
-      rightTotal: totalStatted,
+      label: "Defense Rating",
+      left: { value: signed(awayRating?.adjD, 2), rank: awayRating?.adjDRank, totalTeams: totalRated },
+      right: { value: signed(homeRating?.adjD, 2), rank: homeRating?.adjDRank, totalTeams: totalRated },
+    },
+    { label: "EPA / Play · Offense", left: awayEpaOff, right: homeEpaOff },
+    { label: "EPA / Play · Defense", left: awayEpaDef, right: homeEpaDef },
+    {
+      label: "Success Rate · Offense",
+      left: { value: pct(awayStats?.successRate), rank: awayStats?.successRateRank, totalTeams: totalStatted },
+      right: { value: pct(homeStats?.successRate), rank: homeStats?.successRateRank, totalTeams: totalStatted },
     },
     {
-      kind: "single",
-      label: "Havoc Adj.",
-      leftValue: signed(offenseStats?.adjustedHavocOffense, 3),
-      leftRank: offenseStats?.adjustedHavocOffenseRank ?? null,
-      leftTotal: totalStatted,
-      rightValue: signed(defenseStats?.adjustedHavocDefense, 3),
-      rightRank: defenseStats?.adjustedHavocDefenseRank ?? null,
-      rightTotal: totalStatted,
+      label: "Success Rate · Defense",
+      left: { value: pct(awayStats?.successRateAllowed), rank: awayStats?.successRateAllowedRank, totalTeams: totalStatted },
+      right: { value: pct(homeStats?.successRateAllowed), rank: homeStats?.successRateAllowedRank, totalTeams: totalStatted },
     },
-    splitRow("Pass EPA by Down", [
-      { label: "1D", offenseKey: "passEpaDown1Adj", defenseKey: "passEpaDown1AdjAllowed" },
-      { label: "2D", offenseKey: "passEpaDown2Adj", defenseKey: "passEpaDown2AdjAllowed" },
-      { label: "3D", offenseKey: "passEpaDown3Adj", defenseKey: "passEpaDown3AdjAllowed" },
-    ]),
-    splitRow("Pass Success by Down", [
-      { label: "1D", offenseKey: "passSuccessDown1Adj", defenseKey: "passSuccessDown1AdjAllowed" },
-      { label: "2D", offenseKey: "passSuccessDown2Adj", defenseKey: "passSuccessDown2AdjAllowed" },
-      { label: "3D", offenseKey: "passSuccessDown3Adj", defenseKey: "passSuccessDown3AdjAllowed" },
-    ], pctEdge),
-    splitRow("Rush EPA by Down", [
-      { label: "1D", offenseKey: "rushEpaDown1Adj", defenseKey: "rushEpaDown1AdjAllowed" },
-      { label: "2D", offenseKey: "rushEpaDown2Adj", defenseKey: "rushEpaDown2AdjAllowed" },
-      { label: "3D", offenseKey: "rushEpaDown3Adj", defenseKey: "rushEpaDown3AdjAllowed" },
-    ]),
-    splitRow("Rush Success by Down", [
-      { label: "1D", offenseKey: "rushSuccessDown1Adj", defenseKey: "rushSuccessDown1AdjAllowed" },
-      { label: "2D", offenseKey: "rushSuccessDown2Adj", defenseKey: "rushSuccessDown2AdjAllowed" },
-      { label: "3D", offenseKey: "rushSuccessDown3Adj", defenseKey: "rushSuccessDown3AdjAllowed" },
-    ], pctEdge),
   ];
 }
