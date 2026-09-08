@@ -32,6 +32,14 @@ SPECS = (
     ("YardsPerPossession", "offensiveYards", "validatedPossessions"),
     ("Finishing", "opportunityPoints", "resolvedPointOpportunities"),
     ("FieldPosition", "startOwnYardLineTotal", "fieldPositionPossessions"),
+    # Locked Havoc v1 (havoc_propagation_cli). Unlike the specs above, the
+    # numerator/denominator here are already this team's DEFENSIVE rate
+    # (havoc plays their defense created / plays their defense faced), not
+    # an offensive one -- so the fitted "offense" output is actually the
+    # opponent-adjusted defensive havoc-creation edge, and "defense" is the
+    # opponent-adjusted offensive havoc-avoidance edge. Callers must swap
+    # the off/def labels accordingly; see build_real_data.py.
+    ("Havoc", "havocPlays", "havocEligiblePlaysFaced"),
 )
 
 ITERATIVE_FEATURES = tuple(

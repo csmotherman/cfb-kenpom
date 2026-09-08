@@ -17,6 +17,7 @@ function na(v: unknown): v is null | undefined {
 const FORMATTERS: Record<string, (v: number | null) => string> = {
   signed1: (v) => (na(v) ? "—" : (v >= 0 ? "+" : "") + v.toFixed(1)),
   signed2: (v) => (na(v) ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2)),
+  signed3: (v) => (na(v) ? "—" : (v >= 0 ? "+" : "") + v.toFixed(3)),
   plain1: (v) => (na(v) ? "—" : v.toFixed(1)),
   pct1: (v) => (na(v) ? "—" : (v * 100).toFixed(1) + "%"),
 };
@@ -66,6 +67,8 @@ const TABS: Record<string, Tab> = {
       { key: "offFinRaw", label: "Fin (Pts/Opp)", fmt: "plain1", rankable: true, kind: "rate", num: ["finNum"], den: ["finDen"], tooltip: "Real points scored per resolved scoring opportunity in the selected weeks (raw)" },
       { key: "fieldPos", label: "Field Pos (Adj)", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Real opponent-adjusted starting field position edge, as of the end week. Research-stage model" },
       { key: "offFieldPosRaw", label: "Field Pos (Raw)", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["fieldPosSum"], den: ["fieldPosCount"], tooltip: "Real average starting field position in the selected weeks, in yards from the opponent's goal line (raw). Lower is better." },
+      { key: "offHavoc", label: "Havoc Allowed (Adj)", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Real opponent-adjusted edge in avoiding TFLs, sacks and turnovers, as of the end week. Research-stage model" },
+      { key: "offHavocRaw", label: "Havoc Allowed %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["havocAllowedNum"], den: ["havocAllowedDen"], tooltip: "Real locked Havoc v1 rate — share of this offense's plays that gave up a TFL, sack or turnover in the selected weeks (raw). Lower is better." },
     ],
   },
   defense: {
@@ -83,6 +86,8 @@ const TABS: Record<string, Tab> = {
       { key: "defFin", label: "Fin (Adj)", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Real schedule-adjusted finishing-drives-allowed edge. Higher is better. Research-stage model" },
       { key: "defFinRaw", label: "Fin (Pts/Opp)", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["finNumA"], den: ["finDenA"], tooltip: "Real points allowed per opponent scoring opportunity in the selected weeks (raw). Lower is better." },
       { key: "defFieldPosRaw", label: "Field Pos (Raw)", fmt: "plain1", rankable: true, kind: "rate", num: ["fieldPosSumA"], den: ["fieldPosCountA"], tooltip: "Real average opponent starting field position in the selected weeks, in yards from GRID's goal line (raw). Higher is better — it means forcing opponents to start further away." },
+      { key: "defHavoc", label: "Havoc Forced (Adj)", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Real opponent-adjusted edge in forcing TFLs, sacks and turnovers, as of the end week. Research-stage model" },
+      { key: "defHavocRaw", label: "Havoc Forced %", fmt: "pct1", rankable: true, kind: "rate", num: ["havocForcedNum"], den: ["havocForcedDen"], tooltip: "Real locked Havoc v1 rate — share of the opponent's plays this defense turned into a TFL, sack or turnover in the selected weeks (raw)." },
     ],
   },
 };

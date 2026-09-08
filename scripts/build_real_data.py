@@ -198,6 +198,7 @@ def new_acc():
         "yppNumA": 0, "yppDenA": 0, "yppoNumA": 0, "yppoDenA": 0,
         "finNumA": 0, "finDenA": 0, "fieldPosSumA": 0.0, "fieldPosCountA": 0,
         "passSuccessNumA": 0, "passSuccessDenA": 0, "rushSuccessNumA": 0, "rushSuccessDenA": 0,
+        "havocAllowedNum": 0, "havocAllowedDen": 0, "havocForcedNum": 0, "havocForcedDen": 0,
         "gamesPlayed": 0,
         "slug": None, "teamId": None, "conf": None,
     }
@@ -315,6 +316,10 @@ def build_year(year):
             wr["offPlays"] += row.get("offensivePlays", 0) or 0
             wr["games"] += 1
             wr["offGames"] += int(bool(row.get("offensivePlays")))
+            wr["havocAllowedNum"] += row.get("havocPlaysAllowed", 0) or 0
+            wr["havocAllowedDen"] += row.get("havocEligiblePlays", 0) or 0
+            wr["havocForcedNum"] += row.get("havocPlays", 0) or 0
+            wr["havocForcedDen"] += row.get("havocEligiblePlaysFaced", 0) or 0
 
             game_id = str(row.get("gameId") or row.get("game_id"))
             game_poss = poss_seconds.get(game_id, {})
@@ -364,6 +369,15 @@ def build_year(year):
             acc["dropbacks"] += row.get("dropbacks", 0) or 0
             acc["rushAttempts"] += row.get("rushAttempts", 0) or 0
             acc["offPlaysTotal"] += row.get("offensivePlays", 0) or 0
+            # Locked Havoc v1: havocPlaysAllowed/havocEligiblePlays is a
+            # TFL/sack/takeaway forced against THIS team's own offense --
+            # an offensive liability, so it belongs in this offense-side
+            # block even though the "A" (Allowed) name looks defense-ish
+            # at a glance. havocPlays/havocEligiblePlaysFaced (this team's
+            # defense forcing it against the opponent) is accumulated
+            # below in the defensive block. See havoc_propagation_cli.py.
+            acc["havocAllowedNum"] += row.get("havocPlaysAllowed", 0) or 0
+            acc["havocAllowedDen"] += row.get("havocEligiblePlays", 0) or 0
 
             acc["successNumA"] += row.get("successfulPlaysAllowed", 0) or 0
             acc["successDenA"] += row.get("successEligiblePlaysAllowed", 0) or 0
@@ -384,6 +398,8 @@ def build_year(year):
             acc["rushSuccessDenA"] += row.get("rushSuccessEligiblePlaysAllowed", 0) or 0
             acc["dropbacksFaced"] += row.get("dropbacksFaced", 0) or 0
             acc["rushAttemptsFaced"] += row.get("rushAttemptsFaced", 0) or 0
+            acc["havocForcedNum"] += row.get("havocPlays", 0) or 0
+            acc["havocForcedDen"] += row.get("havocEligiblePlaysFaced", 0) or 0
 
             # The Advanced page's SOS still reports a per-week raw rate (so
             # an arbitrary [start,end] range can be summed client-side) --
@@ -452,6 +468,10 @@ def build_year(year):
             off_exp, def_exp = metric("Explosive", "offense", name), metric("Explosive", "defense", name)
             off_fin, def_fin = metric("Finishing", "offense", name), metric("Finishing", "defense", name)
             field_pos = metric("FieldPosition", "offense", name)
+            # Swapped on purpose -- see the Havoc SPECS comment. The fitted
+            # "offense" side is this team's defense forcing havoc; "defense"
+            # is this team's offense avoiding it.
+            def_havoc, off_havoc = metric("Havoc", "offense", name), metric("Havoc", "defense", name)
 
             week_rows.append({
                 "team": name, "slug": acc["slug"], "teamId": acc["teamId"], "conf": acc["conf"],
@@ -471,6 +491,7 @@ def build_year(year):
                 "offPassRate": rate(acc["dropbacks"], acc["dropbacks"] + acc["rushAttempts"]),
                 "offExp": round(off_exp, 2) if num(off_exp) else None,
                 "offFin": round(off_fin, 2) if num(off_fin) else None,
+                "offHavoc": round(off_havoc, 4) if num(off_havoc) else None,
                 "def": round(def_ypp, 2) if num(def_ypp) else None,
                 "defSuccess": rate(acc["successNumA"], acc["successDenA"]),
                 "defYardsPerPlay": round(def_yppl, 3) if num(def_yppl) else None,
@@ -479,6 +500,7 @@ def build_year(year):
                 "defPassRate": rate(acc["dropbacksFaced"], acc["dropbacksFaced"] + acc["rushAttemptsFaced"]),
                 "defExp": round(def_exp, 2) if num(def_exp) else None,
                 "defFin": round(def_fin, 2) if num(def_fin) else None,
+                "defHavoc": round(def_havoc, 4) if num(def_havoc) else None,
                 # This week's own (non-cumulative) raw counts, for correct
                 # client-side summing over an arbitrary [start,end] range.
                 "wk": dict(wk_raw.get(name, {})),

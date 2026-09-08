@@ -404,6 +404,12 @@ function offenseRows(t: TeamStatsRow): MetricRowData[] {
       raw: plain(t.fieldPositionRaw, 1), rawRank: t.fieldPositionRawRank,
       adjusted: signed(t.fieldPositionEdge, 1), adjustedRank: t.fieldPositionEdgeRank,
     },
+    {
+      label: "Havoc rate allowed",
+      tip: "Raw is the share of this offense's plays that gave up a TFL, sack or turnover (lower is better). The adjusted edge is GRID's opponent-adjusted model -- higher is better there, since it's framed as beating expectation at avoiding havoc.",
+      raw: pct(t.havocRateAllowed), rawRank: t.havocRateAllowedRank,
+      adjusted: signed(t.adjustedHavocOffense, 3), adjustedRank: t.adjustedHavocOffenseRank,
+    },
   ];
 }
 
@@ -429,6 +435,12 @@ function defenseRows(t: TeamStatsRow): MetricRowData[] {
       label: "Field position allowed",
       tip: "Raw is the opponent's average starting field position in yards from GRID's goal line (higher is better -- it means forcing opponents to start further away).",
       raw: plain(t.fieldPositionRawAllowed, 1), rawRank: t.fieldPositionRawAllowedRank, adjusted: null,
+    },
+    {
+      label: "Havoc rate forced",
+      tip: "Raw is the share of the opponent's plays this defense turned into a TFL, sack or turnover (higher is better). The adjusted edge is GRID's opponent-adjusted model.",
+      raw: pct(t.havocRateForced), rawRank: t.havocRateForcedRank,
+      adjusted: signed(t.adjustedHavocDefense, 3), adjustedRank: t.adjustedHavocDefenseRank,
     },
   ];
 }

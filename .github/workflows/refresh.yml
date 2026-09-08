@@ -91,6 +91,8 @@ jobs:
         run: python -m cfb_analytics.analytics.dropback_propagation_cli propagate --season "$SEASON"
       - name: Propagate yardage metrics
         run: python -m cfb_analytics.derived.basic_yardage_propagation_cli materialize --season "$SEASON"
+      - name: Propagate havoc metrics
+        run: python -m cfb_analytics.derived.havoc_propagation_cli materialize --season "$SEASON"
       - name: Build canonical team games
         run: python -m cfb_analytics.pipelines.build_canonical --season "$SEASON"
       - name: Compute ratings

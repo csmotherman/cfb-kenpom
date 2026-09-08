@@ -43,6 +43,8 @@ export type AdvancedRow = {
   defExp: number | null;
   offFin: number | null;
   defFin: number | null;
+  offHavoc: number | null;
+  defHavoc: number | null;
   wk: AdvancedWeekCounts;
 };
 
@@ -98,6 +100,14 @@ export type TeamStatsRow = {
   adjustedFinishingOffenseRank: number | null;
   adjustedFinishingDefense: number | null;
   adjustedFinishingDefenseRank: number | null;
+  havocRateForced: number | null;
+  havocRateForcedRank: number | null;
+  havocRateAllowed: number | null;
+  havocRateAllowedRank: number | null;
+  adjustedHavocOffense: number | null;
+  adjustedHavocOffenseRank: number | null;
+  adjustedHavocDefense: number | null;
+  adjustedHavocDefenseRank: number | null;
 };
 
 export type TeamStatsSeason = {

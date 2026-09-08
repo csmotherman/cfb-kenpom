@@ -104,6 +104,7 @@ def build_season_payload(year):
                 "off": r["off"], "def": r["def"],
                 "offExp": r["offExp"], "defExp": r["defExp"],
                 "offFin": r["offFin"], "defFin": r["defFin"],
+                "offHavoc": r["offHavoc"], "defHavoc": r["defHavoc"],
                 "wk": r["wk"],
             })
 

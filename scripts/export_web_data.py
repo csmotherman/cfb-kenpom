@@ -211,10 +211,18 @@ def _team_stats_rows_through_week(advanced_payload, upto_week):
             "fieldPositionRawAllowed": _rate(wk.get("fieldPosSumA", 0), wk.get("fieldPosCountA", 0)),
             "finishingRate": _rate(wk.get("finNum", 0), wk.get("finDen", 0)),
             "finishingRateAllowed": _rate(wk.get("finNumA", 0), wk.get("finDenA", 0)),
+            # Raw Havoc v1 (TFL/sack/takeaway rate, locked definition).
+            # "Forced" is this team's defense; "Allowed" is this team's
+            # offense giving one up -- opposite of the successRate/yppNum
+            # naming above, where the unsuffixed field is already offense.
+            "havocRateForced": _rate(wk.get("havocForcedNum", 0), wk.get("havocForcedDen", 0)),
+            "havocRateAllowed": _rate(wk.get("havocAllowedNum", 0), wk.get("havocAllowedDen", 0)),
             "adjustedExplosivenessOffense": snapshot.get("offExp"),
             "adjustedExplosivenessDefense": snapshot.get("defExp"),
             "adjustedFinishingOffense": snapshot.get("offFin"),
             "adjustedFinishingDefense": snapshot.get("defFin"),
+            "adjustedHavocOffense": snapshot.get("offHavoc"),
+            "adjustedHavocDefense": snapshot.get("defHavoc"),
         })
 
     rank_defs = (
@@ -241,6 +249,10 @@ def _team_stats_rows_through_week(advanced_payload, upto_week):
         ("adjustedExplosivenessDefense", "adjustedExplosivenessDefenseRank", True),
         ("adjustedFinishingOffense", "adjustedFinishingOffenseRank", True),
         ("adjustedFinishingDefense", "adjustedFinishingDefenseRank", True),
+        ("havocRateForced", "havocRateForcedRank", True),
+        ("havocRateAllowed", "havocRateAllowedRank", False),
+        ("adjustedHavocOffense", "adjustedHavocOffenseRank", True),
+        ("adjustedHavocDefense", "adjustedHavocDefenseRank", True),
     )
     for key, out_key, higher_better in rank_defs:
         _assign_public_rank(rows, key, out_key, higher_better=higher_better)
