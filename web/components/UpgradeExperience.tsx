@@ -225,6 +225,7 @@ export default function UpgradeExperience({
                     <form action="/api/stripe/checkout" method="post">
                       <input type="hidden" name="plan" value={plan} />
                       <input type="hidden" name="return_to" value={returnTo} />
+                      <input type="hidden" name="source" value={feature} />
                       <button className="auth-button upgrade-plan__button" type="submit">
                         {actionLabel}
                       </button>
@@ -317,7 +318,7 @@ export default function UpgradeExperience({
         <div className="upgrade-faq__grid">
           <div>
             <strong>What stays free?</strong>
-            <p>GRID's core ratings, public team profiles, This Week schedule and basic matchup context remain available without a subscription.</p>
+            <p>GRID&apos;s core ratings, public team profiles, This Week schedule and basic matchup context remain available without a subscription.</p>
           </div>
           <div>
             <strong>What happens after the trial?</strong>
