@@ -5,9 +5,9 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { getMeta, getRankingsSeason, prefetchAllRankings } from "@/lib/data";
+import { getMeta, getRankingsSeason, getTeamStatsSeason, prefetchAllRankings } from "@/lib/data";
 import { logoUrl } from "@/lib/teamCode";
-import type { RankingsRow } from "@/lib/types";
+import type { RankingsRow, TeamStatsRow } from "@/lib/types";
 
 function na(v: unknown): v is null | undefined {
   return v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
@@ -16,6 +16,16 @@ function na(v: unknown): v is null | undefined {
 function signed(n: number | null | undefined, digits = 1): string {
   if (na(n)) return "—";
   return (n >= 0 ? "+" : "") + n.toFixed(digits);
+}
+
+function pct(n: number | null | undefined): string {
+  if (na(n)) return "—";
+  return `${(n * 100).toFixed(1)}%`;
+}
+
+function plain(n: number | null | undefined, digits = 1): string {
+  if (na(n)) return "—";
+  return n.toFixed(digits);
 }
 
 type SeasonRow = RankingsRow & { year: number; finalWeek: number; finalWeekLabel: string };
@@ -36,6 +46,8 @@ export default function TeamPage({ params }: { params: Promise<{ slug: string }>
 function TeamProfile({ slug }: { slug: string }) {
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [seasons, setSeasons] = useState<SeasonRow[] | null>(null);
+  const [teamStats, setTeamStats] = useState<TeamStatsRow | null | undefined>(undefined);
+  const [teamStatsLabel, setTeamStatsLabel] = useState<string | null>(null);
   const [historyMetric, setHistoryMetric] = useState<string>("adjEM");
 
   useEffect(() => {
@@ -44,10 +56,10 @@ function TeamProfile({ slug }: { slug: string }) {
       const sortedYears = meta.rankingsYears.slice().sort((a, b) => b - a);
       if (cancelled) return;
       prefetchAllRankings(sortedYears);
-      // Fetch every season in parallel (most are already cached -- from this
-      // prefetch, or from having visited the Home page first) rather than
-      // one at a time, so this doesn't wait on 12 sequential round-trips.
-      const allSeasons = await Promise.all(sortedYears.map((year) => getRankingsSeason(year)));
+      const [allSeasons, publicStats] = await Promise.all([
+        Promise.all(sortedYears.map((year) => getRankingsSeason(year))),
+        sortedYears.length ? getTeamStatsSeason(sortedYears[0]) : Promise.resolve(null),
+      ]);
       if (cancelled) return;
       const results: SeasonRow[] = [];
       allSeasons.forEach((season, i) => {
@@ -59,6 +71,8 @@ function TeamProfile({ slug }: { slug: string }) {
         if (match) results.push({ ...match, year, finalWeek, finalWeekLabel });
       });
       setSeasons(results);
+      setTeamStats(publicStats?.teams.find((row) => row.slug === slug) ?? null);
+      setTeamStatsLabel(publicStats?.weekLabel ?? null);
     }).catch((error: Error) => { if (!cancelled) setLoadError(error); });
     return () => {
       cancelled = true;
@@ -162,6 +176,47 @@ function TeamProfile({ slug }: { slug: string }) {
           </div>
         </section>
 
+        {teamStats ? (
+          <section className="team-free-profile">
+            <div className="section-heading">
+              <h2>Team Profile</h2>
+              <span>{teamStatsLabel ? `Season-to-date through ${teamStatsLabel}` : "Season-to-date"} · core stats stay free</span>
+            </div>
+            <div className="team-profile-columns">
+              <ProfileGroup
+                title="Offense"
+                rows={[
+                  ["Success rate", pct(teamStats.successRate), teamStats.successRateRank],
+                  ["Pass success", pct(teamStats.passSuccessRate), teamStats.passSuccessRateRank],
+                  ["Rush success", pct(teamStats.rushSuccessRate), teamStats.rushSuccessRateRank],
+                  ["Yards / play", plain(teamStats.yardsPerPlay, 2), teamStats.yardsPerPlayRank],
+                  ["Explosive rate", pct(teamStats.explosivePlayRate), teamStats.explosivePlayRateRank],
+                ]}
+              />
+              <ProfileGroup
+                title="Defense"
+                rows={[
+                  ["Success allowed", pct(teamStats.successRateAllowed), teamStats.successRateAllowedRank],
+                  ["Pass success allowed", pct(teamStats.passSuccessRateAllowed), teamStats.passSuccessRateAllowedRank],
+                  ["Rush success allowed", pct(teamStats.rushSuccessRateAllowed), teamStats.rushSuccessRateAllowedRank],
+                  ["Yards / play allowed", plain(teamStats.yardsPerPlayAllowed, 2), teamStats.yardsPerPlayAllowedRank],
+                  ["Explosive rate allowed", pct(teamStats.explosivePlayRateAllowed), teamStats.explosivePlayRateAllowedRank],
+                ]}
+              />
+            </div>
+            <div className="team-profile-context">
+              <ProfileContext label="Pass rate" value={pct(teamStats.passRate)} />
+              <ProfileContext label="Pace" value={plain(teamStats.pace, 1)} suffix="plays/g" />
+              <ProfileContext label="Field position edge" value={signed(teamStats.fieldPositionEdge, 1)} rank={teamStats.fieldPositionEdgeRank} />
+              <ProfileContext label="Adj. finishing O" value={signed(teamStats.adjustedFinishingOffense, 2)} rank={teamStats.adjustedFinishingOffenseRank} />
+              <ProfileContext label="Adj. finishing D" value={signed(teamStats.adjustedFinishingDefense, 2)} rank={teamStats.adjustedFinishingDefenseRank} />
+            </div>
+            <p className="team-profile-method-note">
+              Success, yards/play, explosiveness and tendencies are season-to-date raw results. RPI and the labeled adjusted edges use GRID&rsquo;s opponent-adjusted model snapshots.
+            </p>
+          </section>
+        ) : null}
+
         <section className="team-history">
           <div className="section-heading">
             <h2>Season History</h2>
@@ -212,25 +267,23 @@ function TeamProfile({ slug }: { slug: string }) {
           </div>
         </section>
 
-        <section className="adv-preview">
+        <section className="adv-preview adv-preview--workbench">
           <div className="adv-preview__heading">
-            <h2>GRID Pro</h2>
+            <h2>GRID Pro Workbench</h2>
             <span className="adv-preview__badge">PRO</span>
           </div>
-          <p className="adv-preview__note">Go beyond the overall rating and isolate how this team wins: efficiency, explosiveness, finishing drives, field position, pace and custom week ranges.</p>
-          <div className="adv-preview__locked">
-            <div className="adv-preview__grid">
-              {["Success Rate", "Explosiveness", "Finishing", "Field Position", "Pace", "Week Splits"].map((label) => (
-                <div className="adv-preview__metric" key={label}>
-                  <span>{label}</span>
-                  <strong className="adv-preview__blur-value">••••</strong>
-                </div>
-              ))}
-            </div>
-            <div className="adv-preview__overlay">
-              <Link className="subscribe-btn" href="/advanced">Preview GRID Pro</Link>
-            </div>
+          <p className="adv-preview__note">
+            The core team profile above stays public. Pro is for doing the work yourself: custom week ranges, offense/defense tables, deeper splits and eventually full matchup intelligence.
+          </p>
+          <div className="team-pro-tools">
+            {[
+              "Custom week ranges",
+              "Advanced offense / defense tables",
+              "Situational split builder",
+              "Full matchup intelligence",
+            ].map((label) => <span key={label}>{label}</span>)}
           </div>
+          <Link className="subscribe-btn team-pro-tools__link" href="/advanced">Open Advanced Analytics</Link>
         </section>
       </main>
 
@@ -239,23 +292,36 @@ function TeamProfile({ slug }: { slug: string }) {
   );
 }
 
-function HistoryStat({
-  value,
-  rank,
-  digits,
-  primary,
-  selected,
-}: {
-  value: number | null;
-  rank?: number | null;
-  digits: number;
-  primary?: boolean;
-  selected: boolean;
-}) {
+function ProfileGroup({ title, rows }: { title: string; rows: [string, string, number | null][] }) {
   return (
-    <td className={"num stat-cell history-metric-cell" + (primary ? " primary" : "") + (selected ? " mobile-selected-history-metric" : "")}>
-      {signed(value, digits)}
-      {!na(rank) ? <span className="rank-sub">({rank})</span> : null}
+    <div className="team-profile-group">
+      <h3>{title}</h3>
+      {rows.map(([label, value, rank]) => (
+        <div className="team-profile-row" key={label}>
+          <span>{label}</span>
+          <strong className="mono">{value}</strong>
+          <em className="mono">{rank === null ? "—" : `#${rank}`}</em>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ProfileContext({ label, value, rank, suffix }: { label: string; value: string; rank?: number | null; suffix?: string }) {
+  return (
+    <div className="team-profile-context__item">
+      <span>{label}</span>
+      <strong className="mono">{value}{suffix ? ` ${suffix}` : ""}</strong>
+      {rank !== undefined ? <em className="mono">{rank === null ? "—" : `#${rank}`}</em> : null}
+    </div>
+  );
+}
+
+function HistoryStat({ value, rank, digits, primary, selected }: { value: number | null; rank?: number | null; digits: number; primary?: boolean; selected?: boolean }) {
+  return (
+    <td className={(primary ? "num mono primary-stat history-metric-cell" : "num mono history-metric-cell") + (selected ? " mobile-selected-history-metric" : "")}>
+      {na(value) ? "—" : signed(value, digits)}
+      {!primary && !na(rank) ? <span className="rank-sub">#{rank}</span> : null}
     </td>
   );
 }

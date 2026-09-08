@@ -52,6 +52,77 @@ export type AdvancedSeason = {
   byWeek: Record<string, AdvancedRow[]>;
 };
 
+export type TeamStatsRow = {
+  team: string;
+  slug: string;
+  teamId: number;
+  conf: string;
+  successRate: number | null;
+  successRateRank: number | null;
+  passSuccessRate: number | null;
+  passSuccessRateRank: number | null;
+  rushSuccessRate: number | null;
+  rushSuccessRateRank: number | null;
+  successRateAllowed: number | null;
+  successRateAllowedRank: number | null;
+  passSuccessRateAllowed: number | null;
+  passSuccessRateAllowedRank: number | null;
+  rushSuccessRateAllowed: number | null;
+  rushSuccessRateAllowedRank: number | null;
+  yardsPerPlay: number | null;
+  yardsPerPlayRank: number | null;
+  yardsPerPlayAllowed: number | null;
+  yardsPerPlayAllowedRank: number | null;
+  explosivePlayRate: number | null;
+  explosivePlayRateRank: number | null;
+  explosivePlayRateAllowed: number | null;
+  explosivePlayRateAllowedRank: number | null;
+  passRate: number | null;
+  passRateAgainst: number | null;
+  pace: number | null;
+  fieldPositionEdge: number | null;
+  fieldPositionEdgeRank: number | null;
+  adjustedExplosivenessOffense: number | null;
+  adjustedExplosivenessOffenseRank: number | null;
+  adjustedExplosivenessDefense: number | null;
+  adjustedExplosivenessDefenseRank: number | null;
+  adjustedFinishingOffense: number | null;
+  adjustedFinishingOffenseRank: number | null;
+  adjustedFinishingDefense: number | null;
+  adjustedFinishingDefenseRank: number | null;
+};
+
+export type TeamStatsSeason = {
+  week: number;
+  weekLabel: string;
+  teams: TeamStatsRow[];
+};
+
+export type ScheduleGame = {
+  gameId: string;
+  week: number;
+  seasonType: string;
+  startDate: string | null;
+  completed: boolean;
+  neutralSite: boolean;
+  conferenceGame: boolean;
+  homeTeam: string;
+  homeTeamId: number;
+  homeSlug: string;
+  awayTeam: string;
+  awayTeamId: number;
+  awaySlug: string;
+  homePoints: number | null;
+  awayPoints: number | null;
+};
+
+export type ScheduleSeason = {
+  weeks: number[];
+  weekLabels: WeekLabels;
+  currentWeek: number;
+  byWeek: Record<string, ScheduleGame[]>;
+};
+
 export type SearchIndexEntry = {
   team: string;
   slug: string;
@@ -65,6 +136,7 @@ export type SiteMeta = {
   scope?: string;
   rankingsYears: number[];
   advancedYears: number[];
+  scheduleYears?: number[];
 };
 
 export type PredictionGame = {
