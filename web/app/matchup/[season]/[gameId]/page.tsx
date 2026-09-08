@@ -55,7 +55,9 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
   useEffect(() => {
     let cancelled = false;
     if (!Number.isFinite(season)) {
-      setSchedule(null);
+      Promise.resolve().then(() => {
+        if (!cancelled) setSchedule(null);
+      });
       return () => {
         cancelled = true;
       };
