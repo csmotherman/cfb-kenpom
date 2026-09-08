@@ -32,11 +32,39 @@ REPO = Path(__file__).resolve().parent.parent
 # early-season SOS/CFF stay null.
 SOR_VERSION = "sor-v1-wins-above-average"
 
+# Generic FCS opponent strength for SOS/SOR -- not a per-team FCS rating (no
+# FCS team ever enters the core FBS rating graph; see the metric_history/
+# srs_games_by_id guard below), just a single scalar "how good is a typical
+# FCS opponent" on the same SRS point-margin scale (0 = average FBS team).
+# Recalibrated fresh every site-week from that week's own games: solve for
+# the constant fcs_baseline such that, averaged across every FBS-vs-FCS
+# result played so far this season, "fbs_srs - fcs_baseline" reproduces the
+# FBS team's real margin. Requires at least this many graded results
+# league-wide before trusting the average -- below that, FCS games are
+# excluded from SOS/SOR exactly like any other not-enough-data-yet case.
+FCS_BASELINE_MIN_GAMES = 10
+
 
 def _ncdf(x):
     """Standard normal CDF via erf -- same probit form already used for
     win probability in profiles/historical_tournament.py's _win_prob."""
     return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def calibrate_fcs_baseline(fcs_games_log, srs_ratings, min_games=FCS_BASELINE_MIN_GAMES):
+    """Solve for the single scalar fcs_baseline (see FCS_BASELINE_MIN_GAMES
+    above) from every {"team", "margin"} result an FBS team has posted
+    against an FCS/lower-division opponent so far. Returns None below
+    min_games, same as any other not-enough-data-yet case in this file."""
+    errors = [
+        srs_ratings[g["team"]] - g["margin"]
+        for g in fcs_games_log
+        if num(srs_ratings.get(g["team"]))
+    ]
+    if len(errors) < min_games:
+        return None
+    return sum(errors) / len(errors)
+
 
 CONF_ABBR = {
     "ACC": "ACC", "American Athletic": "AAC", "Big 12": "B12", "Big Ten": "B1G",
@@ -266,6 +294,12 @@ def build_year(year):
     # that one really would leak if it looked ahead.)
     team_game_log = defaultdict(list)
 
+    # Every FBS team's result against an FCS/lower-division opponent this
+    # season, walk-forward like team_game_log above. Used only to calibrate
+    # a generic FCS opponent strength for SOS/SOR below -- never enters the
+    # core rating graph.
+    fcs_games_log = []
+
     for wk in weeks_present:
         # Per-week-only (not cumulative) raw counts, so the client can sum an
         # arbitrary [start,end] range correctly. Model-based (schedule-adjusted)
@@ -274,7 +308,16 @@ def build_year(year):
         wk_raw = defaultdict(lambda: defaultdict(float))
 
         for row in (r for r in games if r["_siteWeek"] == wk):
+            if row.get("classification") != "fbs":
+                # This is the FCS/lower-division opponent's OWN row for an
+                # FBS-vs-FCS game -- present here because validate_team_games
+                # above requires both symmetric sides of every game, but this
+                # site only ever tracks FBS teams as first-class rows. The
+                # FBS side's row for this same game (below) is what records
+                # the result and feeds fcs_games_log/team_game_log.
+                continue
             name = row["team"]
+            is_fbs_opponent = row.get("opponent_classification") == "fbs"
             acc = cum[name]
             wr = wk_raw[name]
             wr["wins"] += row.get("win", 0) or 0
@@ -315,6 +358,13 @@ def build_year(year):
             wr["rushAttemptsFaced"] += row.get("rushAttemptsFaced", 0) or 0
             wr["offPlays"] += row.get("offensivePlays", 0) or 0
             wr["games"] += 1
+            # An FBS-vs-FCS game only has one FBS-team row (see the
+            # classification skip above), unlike FBS-vs-FBS which has two --
+            # so summing every team's "games" and halving it (validate_site_
+            # data.py's season game count) would undercount real games
+            # unless FCS games are tracked separately and added back once,
+            # not halved.
+            wr["gamesVsNonFbs"] += int(not is_fbs_opponent)
             wr["offGames"] += int(bool(row.get("offensivePlays")))
             wr["havocAllowedNum"] += row.get("havocPlaysAllowed", 0) or 0
             wr["havocAllowedDen"] += row.get("havocEligiblePlays", 0) or 0
@@ -333,14 +383,31 @@ def build_year(year):
             # canonical shape); fit_srs wants one row per game, so only the
             # home side's row is kept (deduped by gameId, which also makes
             # this idempotent if a game were ever seen from both sides).
-            metric_history.append(row)
-            if row.get("home_away") == "home":
-                srs_games_by_id[game_id] = {
-                    "gameId": game_id,
-                    "homeTeam": row["team"],
-                    "awayTeam": row.get("opponent"),
-                    "target_margin": (row.get("points_for") or 0) - (row.get("points_against") or 0),
-                }
+            #
+            # FBS-vs-FCS games are deliberately excluded from both fits: the
+            # FCS opponent is skipped above and never has its own row here,
+            # so it would enter these graphs as a single-observation phantom
+            # node. fit_metric_ratings recenters every team's rating around
+            # the mean of ALL graph nodes each iteration, so a handful of
+            # 1-game FCS nodes would measurably shift every real FBS team's
+            # offense/defense edges and CFF/SRS -- contamination, not signal.
+            # Record-keeping and SOS/SOR still see these games below; only
+            # the core opponent-adjusted rating graph stays a closed
+            # FBS-vs-FBS universe.
+            if is_fbs_opponent:
+                metric_history.append(row)
+                if row.get("home_away") == "home":
+                    srs_games_by_id[game_id] = {
+                        "gameId": game_id,
+                        "homeTeam": row["team"],
+                        "awayTeam": row.get("opponent"),
+                        "target_margin": (row.get("points_for") or 0) - (row.get("points_against") or 0),
+                    }
+            else:
+                fcs_games_log.append({
+                    "team": name,
+                    "margin": (row.get("points_for") or 0) - (row.get("points_against") or 0),
+                })
 
             acc["slug"] = row.get("team_slug")
             acc["teamId"] = row.get("team_id")
@@ -417,7 +484,7 @@ def build_year(year):
 
             # The ratings page's cumulative SOS/SOR are resolved below, once
             # per site-week, against every game logged here.
-            team_game_log[name].append((row.get("opponent"), bool(row.get("win", 0))))
+            team_game_log[name].append((row.get("opponent"), bool(row.get("win", 0)), is_fbs_opponent))
 
         # League-wide re-solve using every game played through this site-week
         # (see the comment above the loop). One fit_srs + one fit_all_ratings
@@ -437,6 +504,8 @@ def build_year(year):
         sigma = srs_fit.get("fitRmse") if srs_fit else None
         well_determined = bool(srs_fit) and srs_fit["games"] > srs_fit["teams"] and num(sigma) and sigma > 0
 
+        fcs_baseline = calibrate_fcs_baseline(fcs_games_log, srs_ratings) if well_determined else None
+
         def metric(spec, side, team):
             v = metric_ratings.get(spec, {}).get(side, {}).get(team)
             return v if num(v) else None
@@ -454,8 +523,8 @@ def build_year(year):
             srs_sum = srs_count = 0.0
             sor_actual = sor_expected = sor_games = 0.0
             if well_determined:
-                for opponent, won in team_game_log[name]:
-                    opp_srs = srs_ratings.get(opponent)
+                for opponent, won, is_fbs_opp in team_game_log[name]:
+                    opp_srs = srs_ratings.get(opponent) if is_fbs_opp else fcs_baseline
                     if not num(opp_srs):
                         continue
                     srs_sum += opp_srs

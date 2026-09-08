@@ -63,6 +63,7 @@ def validate_season(rankings, advanced, *, previous=None):
     last = {}
     games = 0
     games_with_stats = 0
+    fcs_games = 0
     for week in weeks:
         rows = rankings["byWeek"][str(week)]
         adv = advanced["byWeek"][str(week)]
@@ -86,6 +87,7 @@ def validate_season(rankings, advanced, *, previous=None):
             a = adv_by_slug[row["slug"]]
             games += a["wk"].get("games", 0)
             games_with_stats += a["wk"].get("offGames", a["wk"].get("games", 0))
+            fcs_games += a["wk"].get("gamesVsNonFbs", 0)
             require(all(row[k] == a[k] for k in ("team", "teamId", "conf")), "Team identity differs across tables")
             require(row["adjEM"] == a["cff"], "CFF and AdjEM disagree")
             record = row["record"].split("-")
@@ -111,7 +113,13 @@ def validate_season(rankings, advanced, *, previous=None):
             require(sum(map(int, current["record"].split("-"))) >= sum(map(int, row["record"].split("-"))), "Refresh would drop completed games")
             for metric in METRICS:
                 require(row[metric] is None or current[metric] is not None, f"Refresh would erase {metric} for {row['slug']}")
-    return {"weeks": len(weeks), "teams": len(last), "rated": sum(r["rank"] is not None for r in last.values()), "games": int(games / 2), "teamGamesWithoutPlayStats": int(games - games_with_stats), "premiumCrossCheck": True}
+    # An FBS-vs-FCS game only has one FBS-side "wk.games" row (the FCS
+    # opponent is never tracked as a team), unlike FBS-vs-FBS which has two --
+    # halving the raw sum alone would undercount real games played. Each FCS
+    # game already counted once toward `games` needs adding back once more
+    # (not halved) instead of being halved away like a symmetric FBS pairing.
+    real_games = int((games + fcs_games) / 2)
+    return {"weeks": len(weeks), "teams": len(last), "rated": sum(r["rank"] is not None for r in last.values()), "games": real_games, "teamGamesWithoutPlayStats": int(games - games_with_stats), "premiumCrossCheck": True}
 
 
 def main():

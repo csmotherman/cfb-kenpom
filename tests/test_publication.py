@@ -119,3 +119,58 @@ class RatingMathTests(unittest.TestCase):
         self.assertTrue(all("offensivePlays" not in r for r in rows))
         game["completed"] = False
         self.assertEqual(build_team_games([], [game], []), [])
+
+
+class FcsOpponentTests(unittest.TestCase):
+    def test_ingestion_keeps_fbs_vs_fcs_drops_non_fbs_vs_non_fbs(self):
+        from cfb_analytics.raw.acquire import _fbs_participant_games
+        from cfb_analytics.sources.cfbd.client import CfbdResponse
+        payload = [
+            {"id": 1, "homeClassification": "fbs", "awayClassification": "fbs"},
+            {"id": 2, "homeClassification": "fbs", "awayClassification": "fcs"},
+            {"id": 3, "homeClassification": "fcs", "awayClassification": "fcs"},
+        ]
+        response = CfbdResponse("https://x", 200, payload, b"[]", {})
+        filtered, game_ids = _fbs_participant_games(response)
+        self.assertEqual(game_ids, {"1", "2"})
+        self.assertEqual({g["id"] for g in filtered.payload}, {1, 2})
+
+    def test_fcs_baseline_calibration_matches_hand_solved_average(self):
+        # Team A (srs=20) beat an FCS opponent by 45; Team B (srs=5) beat one
+        # by 30. Implied FCS strength per game: 20-45=-25 and 5-30=-25 -- a
+        # consistent single baseline the calibration should recover exactly.
+        fcs_games_log = [{"team": "A", "margin": 45}, {"team": "B", "margin": 30}]
+        srs_ratings = {"A": 20.0, "B": 5.0}
+        baseline = builder.calibrate_fcs_baseline(fcs_games_log, srs_ratings, min_games=2)
+        self.assertAlmostEqual(baseline, -25.0)
+
+    def test_fcs_baseline_returns_none_below_min_sample(self):
+        fcs_games_log = [{"team": "A", "margin": 45}]
+        srs_ratings = {"A": 20.0}
+        self.assertIsNone(builder.calibrate_fcs_baseline(fcs_games_log, srs_ratings, min_games=10))
+
+    def test_fcs_baseline_ignores_games_for_teams_with_no_srs_yet(self):
+        # A team playing its FCS opponent before any FBS game (so it has no
+        # SRS rating yet) must not contribute a garbage data point.
+        fcs_games_log = [{"team": "A", "margin": 45}, {"team": "unrated", "margin": 10}]
+        srs_ratings = {"A": 20.0}
+        baseline = builder.calibrate_fcs_baseline(fcs_games_log, srs_ratings, min_games=1)
+        self.assertAlmostEqual(baseline, -25.0)
+
+    def test_fcs_opponent_gets_a_display_identity_without_entering_rating_universe(self):
+        from cfb_analytics.canonical.team_games import build_team_games
+        from cfb_analytics.canonical.teams import build_season_teams
+        game = {"id": 1, "season": 2026, "week": 1, "seasonType": "regular", "completed": True,
+                "homeId": 1, "awayId": 2, "homeTeam": "Real FBS", "awayTeam": "Tiny FCS",
+                "homeClassification": "fbs", "awayClassification": "fcs",
+                "homePoints": 45, "awayPoints": 3}
+        teams = build_season_teams([game], 2026)
+        by_class = {row["classification"]: row for row in teams}
+        self.assertEqual(by_class["fbs"]["team"], "Real FBS")
+        self.assertEqual(by_class["fcs"]["team"], "Tiny FCS")
+        self.assertIsNotNone(by_class["fcs"]["slug"])
+        rows = build_team_games([], [game], teams)
+        self.assertEqual({r["team"] for r in rows}, {"Real FBS", "Tiny FCS"})
+        fbs_row = next(r for r in rows if r["team"] == "Real FBS")
+        self.assertEqual(fbs_row["opponent_classification"], "fcs")
+        self.assertEqual(fbs_row["win"], 1)

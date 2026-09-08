@@ -36,13 +36,15 @@ def _rate(num, den):
 
 
 def _schedule_team_maps(year):
+    # Includes non-FBS teams too (an FCS opponent still needs a name/slug to
+    # display) -- build_schedule_payload below is what actually restricts
+    # published games to ones with at least one FBS side.
     path = REPO / f"data/canonical/season={year}/teams.json"
     if not path.exists():
         return {}, {}
     rows = json.loads(path.read_text())
-    fbs = [row for row in rows if str(row.get("classification", "")).lower() == "fbs"]
-    by_id = {str(row["team_id"]): row for row in fbs if row.get("team_id") is not None}
-    by_name = {str(row["team"]): row for row in fbs if row.get("team")}
+    by_id = {str(row["team_id"]): row for row in rows if row.get("team_id") is not None}
+    by_name = {str(row["team"]): row for row in rows if row.get("team")}
     return by_id, by_name
 
 
@@ -93,9 +95,14 @@ def build_schedule_payload(year):
 
         home = _resolve_schedule_team(game, "home", by_id, by_name)
         away = _resolve_schedule_team(game, "away", by_id, by_name)
-        # The ratings universe is FBS-vs-FBS, so the weekly page uses the same
-        # comparison universe rather than mixing unrated FCS opponents into it.
+        # A real, played FBS result still belongs on that team's schedule and
+        # in the weekly slate even when the opponent is FCS -- only games with
+        # no FBS side at all (out of this corpus's scope to begin with) drop.
+        # The ratings/RPI universe itself stays FBS-vs-FBS-only regardless;
+        # this is display only.
         if home is None or away is None:
+            continue
+        if home.get("classification") != "fbs" and away.get("classification") != "fbs":
             continue
 
         completed = bool(game.get("completed"))

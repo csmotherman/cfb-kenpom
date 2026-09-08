@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Iterable
 
+from cfb_analytics.ingestion.games import has_fbs_participant
 from cfb_analytics.raw.storage import partition_dir, store_response, verify_manifest
 from cfb_analytics.sources.cfbd.client import CfbdClient, CfbdResponse
 
@@ -35,15 +36,15 @@ def _json_response_like(response: CfbdResponse, payload: list[dict]) -> CfbdResp
     return CfbdResponse(response.url, response.status_code, payload, raw, response.headers)
 
 
-def _fbs_vs_fbs_games(response: CfbdResponse) -> tuple[CfbdResponse, set[str]]:
+def _fbs_participant_games(response: CfbdResponse) -> tuple[CfbdResponse, set[str]]:
+    """Keep any game with at least one FBS side (FBS-vs-FBS or an FBS team's
+    real result against an FCS/lower-division opponent -- a "buy game" that
+    still counts in that FBS team's actual record). Drops only games with no
+    FBS participant at all, which are outside this corpus's scope entirely.
+    """
     if not isinstance(response.payload, list):
         raise ValueError("Unexpected games payload")
-    games = [
-        game
-        for game in response.payload
-        if str(game.get("homeClassification", "")).lower() == "fbs"
-        and str(game.get("awayClassification", "")).lower() == "fbs"
-    ]
+    games = [game for game in response.payload if has_fbs_participant(game)]
     game_ids = {str(game["id"]) for game in games}
     return _json_response_like(response, games), game_ids
 
@@ -64,12 +65,13 @@ def acquire_week(
     *,
     refresh: bool = False,
 ) -> list[dict]:
-    """Acquire one authoritative FBS-vs-FBS partition.
+    """Acquire one authoritative FBS-participant partition (FBS-vs-FBS and
+    FBS-vs-non-FBS; a game with no FBS side at all is out of scope).
 
     Games establish the allowed universe. Drives and plays are then restricted
     to those exact game IDs even though the CFBD requests also ask for FBS data.
-    This prevents an ambiguous upstream classification filter from allowing an
-    FBS-vs-FCS game into the historical corpus.
+    This prevents an ambiguous upstream classification filter from allowing a
+    genuinely out-of-scope (non-FBS-vs-non-FBS) game into the historical corpus.
     """
     manifests: list[dict] = []
     directory = partition_dir(root, season, season_type, week)
@@ -79,17 +81,17 @@ def acquire_week(
     games_path = directory / "games.json"
     if not refresh and verify_manifest(directory, "games"):
         games_payload = json.loads(games_path.read_text(encoding="utf-8"))
-        non_fbs = [g for g in games_payload if str(g.get("homeClassification", "")).lower() != "fbs" or str(g.get("awayClassification", "")).lower() != "fbs"]
-        if non_fbs:
+        no_fbs_side = [g for g in games_payload if not has_fbs_participant(g)]
+        if no_fbs_side:
             # Old broad-scope partitions must be intentionally refreshed rather
             # than silently trusted under the new corpus contract.
             raise ValueError(
-                f"Existing {season} {season_type} week {week} games include non-FBS-vs-FBS records; rerun with --refresh"
+                f"Existing {season} {season_type} week {week} games include records with no FBS participant; rerun with --refresh"
             )
         game_ids = {str(g["id"]) for g in games_payload}
         manifests.append(json.loads((directory / "games.manifest.json").read_text(encoding="utf-8")))
     else:
-        games_response, game_ids = _fbs_vs_fbs_games(client.games(season, week, season_type))
+        games_response, game_ids = _fbs_participant_games(client.games(season, week, season_type))
         manifests.append(store_response(root, season=season, season_type=season_type, week=week, entity="games", response=games_response, refresh=refresh))
 
     for entity in ("drives", "plays"):
@@ -98,7 +100,7 @@ def acquire_week(
             outside = [row for row in payload if str(row.get("gameId")) not in game_ids]
             if outside:
                 raise ValueError(
-                    f"Existing {season} {season_type} week {week} {entity} contain records outside the FBS-vs-FBS game universe; rerun with --refresh"
+                    f"Existing {season} {season_type} week {week} {entity} contain records outside the FBS-participant game universe; rerun with --refresh"
                 )
             manifests.append(json.loads((directory / f"{entity}.manifest.json").read_text(encoding="utf-8")))
             continue
