@@ -1,0 +1,213 @@
+/* Compact scouting-sheet refinements for matchup pages. */
+
+.matchup-v2-grid--scouting {
+  grid-template-columns: 330px minmax(500px, 600px) 330px;
+  gap: 22px;
+}
+
+.matchup-v2-side__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 86px 86px;
+  align-items: center;
+  min-height: 16px;
+  padding: 0 3px;
+  border-bottom: 1px solid var(--color-hairline-strong);
+  font-family: var(--font-mono);
+  font-size: 5.8px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+
+.matchup-v2-side__columns span:nth-child(2),
+.matchup-v2-side__columns span:nth-child(3) {
+  text-align: center;
+}
+
+.matchup-v2-side-row--pair {
+  grid-template-columns: minmax(0, 1fr) 86px 86px;
+  gap: 4px;
+  min-height: 21px;
+}
+
+.matchup-v2-side-row--pair .matchup-v2-side-row__label {
+  font-size: 7.7px;
+}
+
+.matchup-v2-stat--compact {
+  width: 86px;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 29px;
+  min-height: 17px;
+}
+
+.matchup-v2-stat--compact > strong {
+  overflow: hidden;
+  padding: 0 3px 0 1px;
+  font-size: 6.9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matchup-v2-stat--compact .matchup-v2-rank {
+  min-width: 29px;
+  padding-inline: 1px;
+  font-size: 5.7px;
+}
+
+.matchup-v2-comparison--headline {
+  margin-bottom: 0;
+}
+
+.matchup-v2-comparison--headline .matchup-v2-comparison__head {
+  min-height: 46px;
+  padding-block: 5px;
+}
+
+.matchup-v2-comparison--headline .matchup-v2-comparison-team img {
+  width: 31px;
+  height: 31px;
+}
+
+.matchup-v2-comparison--headline .matchup-v2-comparison-team strong {
+  font-size: 14px;
+}
+
+.matchup-v2-comparison--headline .matchup-v2-comparison-team small {
+  display: none;
+}
+
+.matchup-v2-comparison--headline .matchup-v2-table-head {
+  min-height: 18px;
+  font-size: 6px;
+}
+
+.matchup-v2-table-row--headline {
+  min-height: 31px;
+}
+
+.matchup-v2-table-row--headline .matchup-v2-table-row__metric {
+  font-size: 8.8px;
+  font-weight: 750;
+}
+
+.matchup-v2-table-row--headline .matchup-v2-stat {
+  min-width: 102px;
+  grid-template-columns: auto 38px;
+  min-height: 23px;
+}
+
+.matchup-v2-table-row--headline .matchup-v2-stat > strong {
+  padding-right: 7px;
+  font-size: 9.1px;
+}
+
+.matchup-v2-table-row--headline .matchup-v2-rank {
+  min-width: 38px;
+  font-size: 7px;
+}
+
+@media (max-width: 1280px) {
+  .matchup-v2-grid--scouting {
+    grid-template-columns: 280px minmax(470px, 560px) 280px;
+    gap: 16px;
+  }
+
+  .matchup-v2-side__columns,
+  .matchup-v2-side-row--pair {
+    grid-template-columns: minmax(0, 1fr) 71px 71px;
+  }
+
+  .matchup-v2-stat--compact {
+    width: 71px;
+    grid-template-columns: minmax(0, 1fr) 25px;
+  }
+
+  .matchup-v2-stat--compact .matchup-v2-rank {
+    min-width: 25px;
+    font-size: 5.3px;
+  }
+
+  .matchup-v2-stat--compact > strong {
+    font-size: 6.4px;
+  }
+}
+
+@media (max-width: 1040px) {
+  .matchup-v2-grid--scouting {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "away home"
+      "center center";
+  }
+
+  .matchup-v2-side__columns,
+  .matchup-v2-side-row--pair {
+    grid-template-columns: minmax(0, 1fr) 82px 82px;
+  }
+
+  .matchup-v2-stat--compact {
+    width: 82px;
+    grid-template-columns: minmax(0, 1fr) 28px;
+  }
+
+  .matchup-v2-stat--compact .matchup-v2-rank {
+    min-width: 28px;
+  }
+}
+
+@media (max-width: 650px) {
+  .matchup-v2-side__columns,
+  .matchup-v2-side-row--pair {
+    grid-template-columns: minmax(0, 1fr) 79px 79px;
+  }
+
+  .matchup-v2-side__columns {
+    padding-inline: 6px;
+  }
+
+  .matchup-v2-side-row--pair {
+    padding-inline: 6px;
+  }
+
+  .matchup-v2-stat--compact {
+    width: 79px;
+    grid-template-columns: minmax(0, 1fr) 27px;
+  }
+
+  .matchup-v2-stat--compact .matchup-v2-rank {
+    min-width: 27px;
+  }
+
+  .matchup-v2-comparison--headline .matchup-v2-comparison__head {
+    min-height: 42px;
+  }
+
+  .matchup-v2-comparison--headline .matchup-v2-comparison-team img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .matchup-v2-comparison--headline .matchup-v2-comparison-team strong {
+    font-size: 11px;
+  }
+
+  .matchup-v2-table-row--headline {
+    min-height: 28px;
+  }
+
+  .matchup-v2-table-row--headline .matchup-v2-stat {
+    min-width: 78px;
+    grid-template-columns: auto 29px;
+  }
+
+  .matchup-v2-table-row--headline .matchup-v2-stat > strong {
+    font-size: 7.7px;
+  }
+
+  .matchup-v2-table-row--headline .matchup-v2-rank {
+    min-width: 29px;
+    font-size: 6px;
+  }
+}
