@@ -122,7 +122,6 @@ type StatDatum = {
 };
 
 type SideRow = {
-  group?: string;
   label: string;
   offense: StatDatum;
   defense: StatDatum;
@@ -366,30 +365,35 @@ function TeamSideCard({
         <img src={logoUrl(teamId, 96)} alt="" decoding="async" />
       </div>
 
-      <div className="matchup-v2-side__columns" aria-hidden="true">
-        <span>Metric</span>
-        <span>Offense</span>
-        <span>Defense</span>
-      </div>
-
-      {rows.map((row, index) => {
-        const showGroup = Boolean(row.group && (index === 0 || row.group !== rows[index - 1]?.group));
-        return (
-          <div key={`${row.group || "row"}-${row.label}`} className="matchup-v2-side__row-wrap">
-            {showGroup ? <div className="matchup-v2-side__group-title">{row.group}</div> : null}
-            <div className="matchup-v2-side-row matchup-v2-side-row--pair">
-              <span className="matchup-v2-side-row__label">{row.label}</span>
-              <StatCell {...row.offense} compact />
-              <StatCell {...row.defense} compact />
-            </div>
-          </div>
-        );
-      })}
+      <TeamStatSection title="Offense" rows={rows} side="offense" />
+      <TeamStatSection title="Defense" rows={rows} side="defense" />
 
       <Link href={`/team/${encodeURIComponent(slug)}`} className="matchup-v2-side__link" prefetch={false}>
         Full profile →
       </Link>
     </aside>
+  );
+}
+
+function TeamStatSection({
+  title,
+  rows,
+  side,
+}: {
+  title: "Offense" | "Defense";
+  rows: SideRow[];
+  side: "offense" | "defense";
+}) {
+  return (
+    <section className="matchup-v2-team-section" aria-label={title}>
+      <div className="matchup-v2-team-section__title">{title}</div>
+      {rows.map((row) => (
+        <div className="matchup-v2-team-section__row" key={`${side}-${row.label}`}>
+          <span>{row.label}</span>
+          <StatCell {...row[side]} compact />
+        </div>
+      ))}
+    </section>
   );
 }
 
@@ -480,25 +484,21 @@ function teamSideRows({
   slug: string;
 }): SideRow[] {
   const makeRow = (
-    group: string | undefined,
     label: string,
     offenseKey: keyof AdvancedRow,
     defenseKey: keyof AdvancedRow,
     formatter: (value: number | null) => string = (value) => signed(value, 3),
   ): SideRow => ({
-    group,
     label,
     offense: advancedDatum(advanced, advancedRows, slug, offenseKey, false, formatter),
     defense: advancedDatum(advanced, advancedRows, slug, defenseKey, true, formatter),
   });
 
   return [
-    makeRow("Efficiency", "EPA / Play", "epaAdj", "epaAdjAllowed"),
-    makeRow("Efficiency", "EPA / Pass", "passEpaAdj", "passEpaAdjAllowed"),
-    makeRow("Efficiency", "EPA / Rush", "rushEpaAdj", "rushEpaAdjAllowed"),
-    makeRow("Success Rate", "Overall", "successAdj", "successAdjAllowed", pctEdge),
-    makeRow("Success Rate", "Pass", "passSuccessAdj", "passSuccessAdjAllowed", pctEdge),
-    makeRow("Success Rate", "Rush", "rushSuccessAdj", "rushSuccessAdjAllowed", pctEdge),
+    makeRow("EPA / Pass", "passEpaAdj", "passEpaAdjAllowed"),
+    makeRow("EPA / Rush", "rushEpaAdj", "rushEpaAdjAllowed"),
+    makeRow("SR / Pass", "passSuccessAdj", "passSuccessAdjAllowed", pctEdge),
+    makeRow("SR / Rush", "rushSuccessAdj", "rushSuccessAdjAllowed", pctEdge),
   ];
 }
 
