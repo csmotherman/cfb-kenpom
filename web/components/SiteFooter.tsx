@@ -20,8 +20,9 @@ export default function SiteFooter({ note }: { note: string }) {
           <p>{brandedNote}</p>
         </div>
         <div className="site-footer__links">
-          <Link href="/advanced">Advanced Analytics</Link>
+          <Link href="/methodology">Methodology</Link>
           <Link href="/predictions">Predictions</Link>
+          <Link href="/upgrade">GRID Pro</Link>
         </div>
       </div>
     </footer>

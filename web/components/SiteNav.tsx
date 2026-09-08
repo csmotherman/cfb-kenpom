@@ -6,10 +6,7 @@ import { usePathname } from "next/navigation";
 const LINKS = [
   { href: "/", label: "Ratings" },
   { href: "/this-week", label: "This Week" },
-  { href: "/methodology", label: "Methodology" },
-  { href: "/advanced", label: "Advanced Analytics", pro: true },
-  { href: "/predictions", label: "Predictions", pro: true, coming: "Week 4" },
-  { href: "/upgrade", label: "GRID Pro" },
+  { href: "/advanced", label: "Advanced", pro: true },
 ];
 
 export default function SiteNav() {
@@ -29,7 +26,6 @@ export default function SiteNav() {
             >
               {link.label}
               {link.pro ? <span className="nav-pro-badge">PRO</span> : null}
-              {link.coming ? <span className="nav-coming">{link.coming}</span> : null}
             </Link>
           );
         })}
