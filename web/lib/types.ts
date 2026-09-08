@@ -52,6 +52,31 @@ export type AdvancedSeason = {
   byWeek: Record<string, AdvancedRow[]>;
 };
 
+export type ScheduleGame = {
+  gameId: string;
+  week: number;
+  seasonType: string;
+  startDate: string | null;
+  completed: boolean;
+  neutralSite: boolean;
+  conferenceGame: boolean;
+  homeTeam: string;
+  homeTeamId: number;
+  homeSlug: string;
+  awayTeam: string;
+  awayTeamId: number;
+  awaySlug: string;
+  homePoints: number | null;
+  awayPoints: number | null;
+};
+
+export type ScheduleSeason = {
+  weeks: number[];
+  weekLabels: WeekLabels;
+  currentWeek: number;
+  byWeek: Record<string, ScheduleGame[]>;
+};
+
 export type SearchIndexEntry = {
   team: string;
   slug: string;
@@ -65,6 +90,7 @@ export type SiteMeta = {
   scope?: string;
   rankingsYears: number[];
   advancedYears: number[];
+  scheduleYears?: number[];
 };
 
 export type PredictionGame = {
