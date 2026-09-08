@@ -1,0 +1,181 @@
+name: Apply advanced margin view
+
+on:
+  push:
+    branches: [advanced-table-polish]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: advanced-table-polish
+      - name: Apply margin view
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('web/app/advanced/page.tsx')
+          text = path.read_text()
+
+          if 'type Perspective = "offense" | "defense" | "margin" | "both";' in text:
+              print('Margin view already applied')
+              raise SystemExit(0)
+
+          text = text.replace(
+              'type Perspective = "offense" | "defense" | "both";',
+              'type Perspective = "offense" | "defense" | "margin" | "both";'
+          )
+
+          old_defense = '''      const defense: AdvColumn = {
+        key: `${metric.prefix}AdjAllowed`,
+        label: perspective === "both" ? `${metric.label} Def` : metric.label,
+        fmt,
+        primary: sectionIndex === 0 && metricIndex === 0 && perspective === "defense",
+        rankable: true,
+        lowerBetter: true,
+        kind: "snapshot",
+        tooltip: `${metric.tip} Defense allowed. Lower is better. ${CONFIDENCE_TIP}`,
+      };
+      if (perspective === "offense") return [offense];
+      if (perspective === "defense") return [defense];
+      return [offense, defense];'''
+
+          new_defense = '''      const defense: AdvColumn = {
+        key: `${metric.prefix}AdjAllowed`,
+        label: perspective === "both" ? `${metric.label} Def` : metric.label,
+        fmt,
+        primary: sectionIndex === 0 && metricIndex === 0 && perspective === "defense",
+        rankable: true,
+        lowerBetter: true,
+        kind: "snapshot",
+        tooltip: `${metric.tip} Defense allowed. Lower is better. ${CONFIDENCE_TIP}`,
+      };
+      const margin: AdvColumn = {
+        key: `${metric.prefix}Margin`,
+        label: metric.label,
+        fmt,
+        primary: sectionIndex === 0 && metricIndex === 0 && perspective === "margin",
+        rankable: true,
+        kind: "snapshot",
+        tooltip: `${metric.tip} Margin = offense adjusted value minus defense adjusted allowed value. Higher is better. ${CONFIDENCE_TIP}`,
+      };
+      if (perspective === "offense") return [offense];
+      if (perspective === "defense") return [defense];
+      if (perspective === "margin") return [margin];
+      return [offense, defense];'''
+          if old_defense not in text:
+              raise SystemExit('Expected pairedSections block not found')
+          text = text.replace(old_defense, new_defense)
+
+          old_primary = '''  const primaryKey = isEpa
+    ? (perspective === "defense" ? "epaAdjAllowed" : "epaAdj")
+    : (perspective === "defense" ? "successAdjAllowed" : "successAdj");
+  const directionNote = perspective === "offense"
+    ? "Offense: higher is better."
+    : perspective === "defense"
+      ? "Defense: lower is better."
+      : "Offense: higher is better. Defense: lower is better.";'''
+
+          new_primary = '''  const primaryKey = isEpa
+    ? perspective === "defense" ? "epaAdjAllowed" : perspective === "margin" ? "epaMargin" : "epaAdj"
+    : perspective === "defense" ? "successAdjAllowed" : perspective === "margin" ? "successMargin" : "successAdj";
+  const directionNote = perspective === "offense"
+    ? "Offense: higher is better."
+    : perspective === "defense"
+      ? "Defense: lower is better."
+      : perspective === "margin"
+        ? "Margin = offense adjusted value minus defense adjusted allowed value. Higher is better."
+        : "Offense: higher is better. Defense: lower is better.";'''
+          if old_primary not in text:
+              raise SystemExit('Expected specialTab direction block not found')
+          text = text.replace(old_primary, new_primary)
+
+          old_all_cols = '''const EPA_ALL_COLUMNS = pairedSections(EPA_METRICS, "both").flatMap((section) => section.columns);
+const SUCCESS_ALL_COLUMNS = pairedSections(SUCCESS_METRICS, "both").flatMap((section) => section.columns);
+const ALL_COLUMNS: AdvColumn[] = [
+  ...STATIC_TABS.general.columns,
+  ...STATIC_TABS.offense.columns,
+  ...STATIC_TABS.defense.columns,
+  ...EPA_ALL_COLUMNS,
+  ...SUCCESS_ALL_COLUMNS,
+];'''
+
+          new_all_cols = '''const EPA_ALL_COLUMNS = pairedSections(EPA_METRICS, "both").flatMap((section) => section.columns);
+const SUCCESS_ALL_COLUMNS = pairedSections(SUCCESS_METRICS, "both").flatMap((section) => section.columns);
+const MARGIN_METRICS = [...EPA_METRICS, ...SUCCESS_METRICS].flatMap((section) => section.metrics);
+const ALL_COLUMNS: AdvColumn[] = [
+  ...STATIC_TABS.general.columns,
+  ...STATIC_TABS.offense.columns,
+  ...STATIC_TABS.defense.columns,
+  ...EPA_ALL_COLUMNS,
+  ...SUCCESS_ALL_COLUMNS,
+];'''
+          if old_all_cols not in text:
+              raise SystemExit('Expected ALL_COLUMNS block not found')
+          text = text.replace(old_all_cols, new_all_cols)
+
+          old_aggregation = '''      ALL_COLUMNS.forEach((col) => {
+        if (col.kind === "snapshot") {
+          const value = snap ? (snap as unknown as Record<string, unknown>)[col.key] : null;
+          out[col.key] = na(value) ? null : value;
+        } else {
+          const num = sumField(acc.wk, col.num!);
+          const den = sumField(acc.wk, col.den!);
+          out[col.key] = rate(num, den);
+        }
+      });
+      return out;'''
+
+          new_aggregation = '''      ALL_COLUMNS.forEach((col) => {
+        if (col.kind === "snapshot") {
+          const value = snap ? (snap as unknown as Record<string, unknown>)[col.key] : null;
+          out[col.key] = na(value) ? null : value;
+        } else {
+          const num = sumField(acc.wk, col.num!);
+          const den = sumField(acc.wk, col.den!);
+          out[col.key] = rate(num, den);
+        }
+      });
+      MARGIN_METRICS.forEach((metric) => {
+        const offenseValue = out[`${metric.prefix}Adj`] as number | null;
+        const defenseAllowedValue = out[`${metric.prefix}AdjAllowed`] as number | null;
+        out[`${metric.prefix}Margin`] = na(offenseValue) || na(defenseAllowedValue)
+          ? null
+          : offenseValue - defenseAllowedValue;
+      });
+      return out;'''
+          if old_aggregation not in text:
+              raise SystemExit('Expected aggregation block not found')
+          text = text.replace(old_aggregation, new_aggregation)
+
+          old_selector = '''                {(["offense", "defense", "both"] as Perspective[]).map((view) => ('''
+          new_selector = '''                {(["offense", "defense", "margin"] as Perspective[]).map((view) => ('''
+          if old_selector not in text:
+              raise SystemExit('Expected perspective selector not found')
+          text = text.replace(old_selector, new_selector)
+
+          old_label = '''                    {view === "offense" ? "Offense" : view === "defense" ? "Defense" : "Both"}'''
+          new_label = '''                    {view === "offense" ? "Offense" : view === "defense" ? "Defense" : "Margin"}'''
+          if old_label not in text:
+              raise SystemExit('Expected perspective label not found')
+          text = text.replace(old_label, new_label)
+
+          path.write_text(text)
+          PY
+
+          if git diff --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/app/advanced/page.tsx
+          git commit -m "Replace both view with offense-defense margin"
+          git push origin advanced-table-polish
