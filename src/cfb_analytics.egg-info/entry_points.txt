@@ -1,5 +1,0 @@
-[console_scripts]
-cfb-adjusted-ratings = cfb_analytics.analytics.schedule_adjusted.cli:main
-cfb-darren-pack = cfb_analytics.analytics.schedule_adjusted.darren_data_pack:main
-cfb-drive-forensics = cfb_analytics.derived.drive_forensics_cli:main
-cfb-raw = cfb_analytics.raw.cli:main

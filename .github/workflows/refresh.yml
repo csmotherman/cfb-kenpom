@@ -149,7 +149,7 @@ jobs:
           else
             git commit -m "Refresh $SEASON ratings ($(date -u +%Y-%m-%d))"
             git fetch origin "$TARGET_BRANCH"
-            git rebase "origin/$TARGET_BRANCH" || { echo "--- git status ---"; git status; echo "--- git diff ---"; git diff; exit 1; }
+            git rebase "origin/$TARGET_BRANCH"
             git push origin "HEAD:$TARGET_BRANCH"
             echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "Published validated $SEASON public ratings; premium data stayed in Supabase." >> "$GITHUB_STEP_SUMMARY"
