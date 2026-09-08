@@ -191,3 +191,26 @@ export type PredictionsWeek = {
   access?: "limited" | "full";
   totalGames?: number;
 };
+
+// A week's predictions are only "graded" once every game GRID can verify
+// (gameId matched against the public schedule, with a final score) has
+// finished -- so `games` and `graded` can differ for an in-progress week,
+// and accuracySU/avgAbsMarginError are null (not 0) until at least one game
+// in that week is gradeable, so an unplayed week never reads as "wrong."
+export type PredictionRecordStats = {
+  games: number;
+  graded: number;
+  correct: number;
+  accuracySU: number | null;
+  avgAbsMarginError: number | null;
+};
+
+export type PredictionWeekRecord = PredictionRecordStats & { week: number };
+
+export type PredictionsTrackRecord = {
+  season: number;
+  modelVersion: string;
+  generatedAt: string;
+  weeks: PredictionWeekRecord[];
+  overall: PredictionRecordStats;
+};

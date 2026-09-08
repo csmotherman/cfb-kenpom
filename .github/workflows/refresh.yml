@@ -99,6 +99,12 @@ jobs:
         run: python -m cfb_analytics.pipelines.calculate_ratings --season "$SEASON"
       - name: Compile and validate current season
         run: python scripts/compile_site_data.py --season "$SEASON"
+      # No-ops until the one-time historical model freeze has been run
+      # (prospective/2026/prediction-v2-2026-frozen.json does not exist yet).
+      # Once frozen, this scores the next unscored early week from data
+      # already on disk -- no CFBD_API_KEY needed at this step.
+      - name: Score weekly predictions
+        run: python -m cfb_analytics.pipelines.weekly_predictions
       - name: Export Next.js data
         run: python scripts/export_web_data.py
       - name: Audit every published season
@@ -130,7 +136,14 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "data/canonical/season=$SEASON" site/data.js site/search-index.js web/public/data
+          # Prediction snapshots are exclusive-create (never overwritten) --
+          # committing them is what makes that immutability durable across
+          # runs instead of depending on ephemeral CI cache retention, and is
+          # also how weekly_predictions.py knows which weeks are already
+          # scored. mkdir ensures the path exists even before the one-time
+          # model freeze, so git add never fails on a missing directory.
+          mkdir -p "prospective/$SEASON/predictions"
+          git add "data/canonical/season=$SEASON" site/data.js site/search-index.js web/public/data "prospective/$SEASON/predictions"
           if git diff --staged --quiet; then
             echo "No public data changes; skipping commit." >> "$GITHUB_STEP_SUMMARY"
           else

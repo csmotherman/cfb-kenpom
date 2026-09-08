@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { AdvancedSeason, PredictionsWeek, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
+import type { AdvancedSeason, PredictionsTrackRecord, PredictionsWeek, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
@@ -83,6 +83,9 @@ const teamStatsInflight = new Map<string, Promise<TeamStatsSeason | null>>();
 
 const teamStatsWeeklyData = new Map<string, TeamStatsWeeklySeason | null>();
 const teamStatsWeeklyInflight = new Map<string, Promise<TeamStatsWeeklySeason | null>>();
+
+const predictionsTrackRecordData = new Map<string, PredictionsTrackRecord | null>();
+const predictionsTrackRecordInflight = new Map<string, Promise<PredictionsTrackRecord | null>>();
 
 let metaPromise: Promise<SiteMeta> | null = null;
 let searchIndexPromise: Promise<SearchIndexEntry[]> | null = null;
@@ -255,6 +258,28 @@ export function useAdvancedSeason(year: string | null): AdvancedSeason | undefin
     },
     () => undefined
   );
+}
+
+// Public and ungated, unlike getPredictionsWeek's picks -- this is aggregate
+// accuracy only (no game-by-game predictions), so it's meant to be shown to
+// visitors who haven't subscribed yet, e.g. on the /upgrade paywall itself.
+export function getPredictionsTrackRecord(year: number | string): Promise<PredictionsTrackRecord | null> {
+  const key = String(year);
+  if (predictionsTrackRecordData.has(key)) return Promise.resolve(predictionsTrackRecordData.get(key) ?? null);
+  let entry = predictionsTrackRecordInflight.get(key);
+  if (!entry) {
+    entry = fetchOptionalJson<PredictionsTrackRecord>(`/data/prediction-track-record/${key}.json`).then((record) => {
+      predictionsTrackRecordData.set(key, record);
+      predictionsTrackRecordInflight.delete(key);
+      return record;
+    });
+    entry = entry.catch((error: Error) => {
+      predictionsTrackRecordInflight.delete(key);
+      throw error;
+    });
+    predictionsTrackRecordInflight.set(key, entry);
+  }
+  return entry;
 }
 
 export async function getPredictionsWeek(season: number | string, week: number | string): Promise<PredictionsWeek | null> {

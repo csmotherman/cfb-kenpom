@@ -6,6 +6,7 @@ import {
   PAID_PLAN_LABELS,
   PAID_PLAN_MONTHLY_PRICE,
 } from "@/lib/stripe/plans";
+import PredictionsTrackRecord from "./PredictionsTrackRecord";
 
 export type UpgradeFeature = "advanced" | "predictions" | "matchup" | "general";
 
@@ -124,6 +125,8 @@ export default function UpgradeExperience({
 
       {error ? <p className="upgrade-alert upgrade-alert--error">{error}</p> : null}
       {message ? <p className="upgrade-alert">{message}</p> : null}
+
+      {feature === "predictions" ? <PredictionsTrackRecord /> : null}
 
       <section className="upgrade-plans" aria-labelledby="upgradePlansTitle">
         <div className="upgrade-section-heading upgrade-section-heading--compact">

@@ -17,6 +17,7 @@ from compile_site_data import read_js_assignment
 from validate_site_data import require, validate_season
 
 WEB_DATA = REPO / "web/public/data"
+PROSPECTIVE_ROOT = REPO / "prospective"
 
 
 def encode(value):
@@ -139,6 +140,140 @@ def build_schedule_payload(year):
         "weekLabels": {str(week): label for week, label in week_labels.items() if week in weeks},
         "currentWeek": current_week,
         "byWeek": by_week,
+    }
+
+
+def _load_prediction_snapshots(year):
+    """Immutable frozen-model prediction snapshots for one season, one file
+    per scored week (written by cfb_analytics.pipelines.weekly_predictions).
+    Returns [] when the one-time historical model freeze hasn't happened yet
+    -- callers must treat that as "no predictions to publish," not an error.
+    """
+    directory = PROSPECTIVE_ROOT / str(year) / "predictions"
+    if not directory.exists():
+        return []
+    snapshots = []
+    for path in sorted(directory.glob("week-*.json")):
+        payload = json.loads(path.read_text())
+        if int(payload.get("season", -1)) == year:
+            snapshots.append(payload)
+    return snapshots
+
+
+def build_predictions_week_payloads(year, schedule_payload, snapshots):
+    """Convert frozen-model prediction snapshots into the public, per-week
+    payload the site's gated Predictions page/API expect -- every FBS game
+    the model scored that week, not just the Michigan-only slice published
+    separately by publish_predictions.py. `confidence` is left null: the
+    frozen model's win probability is explicitly NOT_CALIBRATED, so nothing
+    is fabricated to fill it.
+    """
+    if not snapshots or schedule_payload is None:
+        return {}
+    by_game_id = {
+        game["gameId"]: game
+        for games in schedule_payload["byWeek"].values()
+        for game in games
+    }
+    payloads = {}
+    for snapshot in snapshots:
+        week = int(snapshot["week"])
+        games = []
+        for row in snapshot.get("predictions", []):
+            resolved = by_game_id.get(str(row["gameId"]))
+            if resolved is None:
+                continue
+            games.append({
+                "gameId": str(row["gameId"]),
+                "week": week,
+                "homeTeam": resolved["homeTeam"],
+                "homeTeamId": resolved["homeTeamId"],
+                "awayTeam": resolved["awayTeam"],
+                "awayTeamId": resolved["awayTeamId"],
+                "predictedWinner": row["predictedWinner"],
+                # The frozen model's raw output is the home team's margin
+                # (signed, negative when the away team is favored). Reframed
+                # here as the predicted winner's margin of victory so it
+                # reads unambiguously next to predictedWinner.
+                "predictedMargin": round(abs(float(row["predictedMargin"])), 1),
+                "confidence": None,
+            })
+        if not games:
+            continue
+        games.sort(key=lambda g: g["gameId"])
+        payloads[f"{year}-{week}"] = {
+            "season": year,
+            "week": week,
+            "generatedAt": snapshot.get("asOf") or datetime.now(timezone.utc).isoformat(),
+            "games": games,
+        }
+    return payloads
+
+
+def build_prediction_track_record_payload(year, schedule_payload, snapshots):
+    """Public, ungated accuracy record: straight-up record and average
+    absolute margin error, graded only against games GRID can verify
+    (matched by gameId against the public schedule, with a final score).
+    A week with no gradeable games yet reports null accuracy rather than 0,
+    so an in-progress week never reads as a wrong one.
+    """
+    if not snapshots or schedule_payload is None:
+        return None
+    by_game_id = {
+        game["gameId"]: game
+        for games in schedule_payload["byWeek"].values()
+        for game in games
+    }
+    freeze_versions = {snapshot.get("freezeVersion") for snapshot in snapshots}
+    require(len(freeze_versions) == 1, "Prediction snapshots span more than one frozen model version")
+    model_version = freeze_versions.pop()
+
+    week_records = []
+    totals = {"games": 0, "graded": 0, "correct": 0, "abs_error_sum": 0.0}
+    for snapshot in snapshots:
+        week = int(snapshot["week"])
+        stats = {"games": 0, "graded": 0, "correct": 0, "abs_error_sum": 0.0}
+        for row in snapshot.get("predictions", []):
+            stats["games"] += 1
+            resolved = by_game_id.get(str(row["gameId"]))
+            if resolved is None or not resolved.get("completed"):
+                continue
+            home_points, away_points = resolved.get("homePoints"), resolved.get("awayPoints")
+            if home_points is None or away_points is None:
+                continue
+            actual_home_margin = home_points - away_points
+            if actual_home_margin == 0:
+                continue  # a tie has no straight-up winner to grade against
+            stats["graded"] += 1
+            actual_winner = resolved["homeTeam"] if actual_home_margin > 0 else resolved["awayTeam"]
+            if row.get("predictedWinner") == actual_winner:
+                stats["correct"] += 1
+            stats["abs_error_sum"] += abs(float(row["predictedMargin"]) - actual_home_margin)
+
+        week_records.append({
+            "week": week,
+            "games": stats["games"],
+            "graded": stats["graded"],
+            "correct": stats["correct"],
+            "accuracySU": round(stats["correct"] / stats["graded"], 4) if stats["graded"] else None,
+            "avgAbsMarginError": round(stats["abs_error_sum"] / stats["graded"], 2) if stats["graded"] else None,
+        })
+        for key in totals:
+            totals[key] += stats[key]
+
+    week_records.sort(key=lambda record: record["week"])
+    return {
+        "season": year,
+        "modelVersion": model_version,
+        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "weeks": week_records,
+        "overall": {
+            "games": totals["games"],
+            "graded": totals["graded"],
+            "correct": totals["correct"],
+            "accuracySU": round(totals["correct"] / totals["graded"], 4) if totals["graded"] else None,
+            "avgAbsMarginError": round(totals["abs_error_sum"] / totals["graded"], 2) if totals["graded"] else None,
+        },
     }
 
 
@@ -351,6 +486,14 @@ def main():
         if schedule is not None:
             outputs[f"schedule/{key}.json"] = encode(schedule)
             schedule_years.append(year)
+
+        prediction_snapshots = _load_prediction_snapshots(year)
+        if prediction_snapshots and schedule is not None:
+            for suffix, payload in build_predictions_week_payloads(year, schedule, prediction_snapshots).items():
+                outputs[f"predictions/{suffix}.json"] = encode(payload)
+            track_record = build_prediction_track_record_payload(year, schedule, prediction_snapshots)
+            if track_record is not None:
+                outputs[f"prediction-track-record/{key}.json"] = encode(track_record)
 
     index = sorted(search.values(), key=lambda row: row["team"])
     outputs["search-index.json"] = encode(index)
