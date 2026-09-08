@@ -22,7 +22,9 @@ const FORMATTERS: Record<string, (v: number | null) => string> = {
   pct1: (v) => (na(v) ? "—" : (v * 100).toFixed(1) + "%"),
 };
 
-type ColKind = "snapshot" | "rate" | "split" | "constant-null";
+type ColKind = "snapshot" | "rate" | "split";
+type Perspective = "offense" | "defense" | "both";
+type TabKey = "general" | "offense" | "defense" | "epa" | "successRate";
 
 type AdvColumn = {
   key: string;
@@ -38,154 +40,275 @@ type AdvColumn = {
 };
 
 type AdvSection = { title: string; columns: AdvColumn[] };
-type Tab = { label: string; primaryKey: string; columns: AdvColumn[]; sections?: AdvSection[]; note?: string };
+type Tab = {
+  label: string;
+  primaryKey: string;
+  columns: AdvColumn[];
+  sections: AdvSection[];
+  note?: string;
+  supportsPerspective?: boolean;
+};
 
-// Shared by the EPA and Success Rate tabs: one pair of columns (offense +
-// defense-allowed) per metric, both reading a confidence-blended snapshot
-// field (build_real_data.py's metric_blend). At ~1 game played there's no
-// opponent baseline yet, so this reads as the team's raw rate minus league
-// average (no adjustment); it ramps to a full opponent-adjusted edge by
-// ~5 games. Higher is better for both offense AND defense-allowed here --
-// the defense side is already framed as "how much this defense suppresses
-// the opponent" (see the Havoc/Explosiveness columns elsewhere on this
-// page for the same convention), not a literal "amount allowed."
-function edgePair(prefix: string, label: string, tip: string, fmt: "signed2" | "signed3" = "signed3"): AdvColumn[] {
-  return [
-    { key: `${prefix}Adj`, label: `${label} (Off)`, fmt, rankable: true, kind: "snapshot", tooltip: `${tip} Offense. ${CONFIDENCE_TIP}` },
-    { key: `${prefix}AdjAllowed`, label: `${label} (Def)`, fmt, rankable: true, kind: "snapshot", tooltip: `${tip} Defense (suppressing the opponent's version of this). ${CONFIDENCE_TIP}` },
-  ];
-}
+type MetricDescriptor = {
+  prefix: string;
+  label: string;
+  tip: string;
+  fmt?: "signed2" | "signed3";
+};
+
+type MetricSection = { title: string; metrics: MetricDescriptor[] };
 
 const CONFIDENCE_TIP = "Opponent-adjusted, confidence-weighted by games played -- effectively raw (minus league average) at 1 game, ramping to fully adjusted by 5.";
 
-const EPA_SECTIONS: AdvSection[] = [
+const GENERAL_SECTIONS: AdvSection[] = [
   {
-    title: "Overall",
+    title: "Rating",
     columns: [
-      ...edgePair("epa", "EPA/Play", "GRID's opponent-adjusted EPA per play (CFBD's ppa model, summed over every clean rush/pass snap).", "signed2"),
+      { key: "cff", label: "CFF", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Real Simple Rating System (SRS) score, schedule-adjusted, as of the end week (a model fit can't be split into a sub-range)." },
     ],
   },
   {
-    title: "Passing",
+    title: "Schedule",
     columns: [
-      ...edgePair("passEpa", "EPA/Dropback", "GRID's opponent-adjusted passing EPA per dropback (attempts + sacks)."),
-      ...edgePair("passEpaDown1", "EPA/Pass, 1st Down", "GRID's opponent-adjusted passing EPA per dropback on 1st down."),
-      ...edgePair("passEpaDown2", "EPA/Pass, 2nd Down", "GRID's opponent-adjusted passing EPA per dropback on 2nd down."),
-      ...edgePair("passEpaDown3", "EPA/Pass, 3rd Down", "GRID's opponent-adjusted passing EPA per dropback on 3rd down."),
+      { key: "sos", label: "SOS", fmt: "signed1", rankable: true, kind: "rate", num: ["opponentSrsSum"], den: ["opponentSrsCount"], tooltip: "Strength of schedule: average real SRS of opponents played in the selected weeks." },
     ],
   },
   {
-    title: "Rushing",
+    title: "Game Profile",
     columns: [
-      ...edgePair("rushEpa", "EPA/Rush", "GRID's opponent-adjusted rushing EPA per carry."),
-      ...edgePair("rushEpaDown1", "EPA/Rush, 1st Down", "GRID's opponent-adjusted rushing EPA per carry on 1st down."),
-      ...edgePair("rushEpaDown2", "EPA/Rush, 2nd Down", "GRID's opponent-adjusted rushing EPA per carry on 2nd down."),
-      ...edgePair("rushEpaDown3", "EPA/Rush, 3rd Down", "GRID's opponent-adjusted rushing EPA per carry on 3rd down."),
+      { key: "pace", label: "Pace", fmt: "plain1", rankable: true, kind: "rate", num: ["offPlays"], den: ["offGames"], tooltip: "Offensive plays per game with available play-by-play in the selected weeks." },
+      { key: "top", label: "TOP", fmt: "pct1", rankable: true, kind: "rate", num: ["possessionSeconds"], den: ["possessionSecondsTotal"], tooltip: "Time of possession: share of game clock this team's offense held the ball in the selected weeks." },
     ],
   },
 ];
 
-const SUCCESS_SECTIONS: AdvSection[] = [
+const OFFENSE_SECTIONS: AdvSection[] = [
   {
     title: "Overall",
     columns: [
-      ...edgePair("success", "Success Rate", "GRID's opponent-adjusted success rate (down-scaled yardage thresholds: 50% of distance on 1st down, 70% on 2nd, 100% on 3rd/4th).", "signed2"),
+      { key: "off", label: "Off Adj", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted yards-per-possession edge (offense), as of the end week. Research-stage model." },
+      { key: "offYpp", label: "YPP", fmt: "plain1", rankable: true, kind: "rate", num: ["yppNum"], den: ["yppDen"], tooltip: "Offensive yards per play in the selected weeks (raw, not opponent-adjusted)." },
+      { key: "offSuccess", label: "Success", fmt: "pct1", rankable: true, kind: "rate", num: ["successNum"], den: ["successDen"], tooltip: "Offensive success rate in the selected weeks (raw, not opponent-adjusted)." },
     ],
   },
   {
-    title: "Passing",
+    title: "Style",
     columns: [
-      ...edgePair("passSuccess", "Pass Success Rate", "GRID's opponent-adjusted passing success rate."),
-      ...edgePair("passSuccessDown1", "Pass Success, 1st Down", "GRID's opponent-adjusted passing success rate on 1st down."),
-      ...edgePair("passSuccessDown2", "Pass Success, 2nd Down", "GRID's opponent-adjusted passing success rate on 2nd down."),
-      ...edgePair("passSuccessDown3", "Pass Success, 3rd Down", "GRID's opponent-adjusted passing success rate on 3rd down."),
+      { key: "offPassSuccess", label: "Pass SR", fmt: "pct1", rankable: true, kind: "rate", num: ["passSuccessNum"], den: ["passSuccessDen"], tooltip: "Passing success rate in the selected weeks (raw)." },
+      { key: "offRushSuccess", label: "Rush SR", fmt: "pct1", rankable: true, kind: "rate", num: ["rushSuccessNum"], den: ["rushSuccessDen"], tooltip: "Rushing success rate in the selected weeks (raw)." },
+      { key: "offPassRate", label: "Pass | Run", fmt: "split0", kind: "rate", num: ["dropbacks"], den: ["dropbacks", "rushAttempts"], tooltip: "Offensive tendency: share of plays that were dropbacks vs. rush attempts in the selected weeks." },
     ],
   },
   {
-    title: "Rushing",
+    title: "Explosiveness",
     columns: [
-      ...edgePair("rushSuccess", "Rush Success Rate", "GRID's opponent-adjusted rushing success rate."),
-      ...edgePair("rushSuccessDown1", "Rush Success, 1st Down", "GRID's opponent-adjusted rushing success rate on 1st down."),
-      ...edgePair("rushSuccessDown2", "Rush Success, 2nd Down", "GRID's opponent-adjusted rushing success rate on 2nd down."),
-      ...edgePair("rushSuccessDown3", "Rush Success, 3rd Down", "GRID's opponent-adjusted rushing success rate on 3rd down."),
+      { key: "offExp", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted explosiveness edge (offense), as of the end week. Research-stage model." },
+      { key: "offExpRaw", label: "Raw %", fmt: "pct1", rankable: true, kind: "rate", num: ["explosiveNum"], den: ["explosiveDen"], tooltip: "Explosive-play rate in the selected weeks (raw)." },
+    ],
+  },
+  {
+    title: "Finishing",
+    columns: [
+      { key: "offFin", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted finishing-drives edge (offense), as of the end week. Research-stage model." },
+      { key: "offFinRaw", label: "Pts/Opp", fmt: "plain1", rankable: true, kind: "rate", num: ["finNum"], den: ["finDen"], tooltip: "Points scored per resolved scoring opportunity in the selected weeks (raw)." },
+    ],
+  },
+  {
+    title: "Field Position",
+    columns: [
+      { key: "fieldPos", label: "Adj", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Opponent-adjusted starting field-position edge, as of the end week. Research-stage model." },
+      { key: "offFieldPosRaw", label: "Raw", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["fieldPosSum"], den: ["fieldPosCount"], tooltip: "Average offensive starting field position in yards from the opponent's goal line. Lower is better." },
+    ],
+  },
+  {
+    title: "Havoc",
+    columns: [
+      { key: "offHavoc", label: "Avoid Adj", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Opponent-adjusted edge in avoiding TFLs, sacks, and turnovers, as of the end week." },
+      { key: "offHavocRaw", label: "Allowed %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["havocAllowedNum"], den: ["havocAllowedDen"], tooltip: "Share of offensive plays that gave up a TFL, sack, or turnover in the selected weeks. Lower is better." },
     ],
   },
 ];
 
-EPA_SECTIONS[0].columns[0].primary = true;
-SUCCESS_SECTIONS[0].columns[0].primary = true;
+const DEFENSE_SECTIONS: AdvSection[] = [
+  {
+    title: "Overall",
+    columns: [
+      { key: "def", label: "Def Adj", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted yards-per-possession edge (defense). Higher is better; positive means the defense beat expectation." },
+      { key: "defYpp", label: "YPP Allowed", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["yppNumA"], den: ["yppDenA"], tooltip: "Yards per play allowed in the selected weeks (raw). Lower is better." },
+      { key: "defSuccess", label: "Success Allowed", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["successNumA"], den: ["successDenA"], tooltip: "Opponent success rate allowed in the selected weeks (raw). Lower is better." },
+    ],
+  },
+  {
+    title: "Opponent Style",
+    columns: [
+      { key: "defPassSuccess", label: "Pass SR Allowed", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["passSuccessNumA"], den: ["passSuccessDenA"], tooltip: "Passing success rate allowed in the selected weeks (raw). Lower is better." },
+      { key: "defRushSuccess", label: "Rush SR Allowed", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["rushSuccessNumA"], den: ["rushSuccessDenA"], tooltip: "Rushing success rate allowed in the selected weeks (raw). Lower is better." },
+      { key: "defPassRate", label: "Pass | Run", fmt: "split0", kind: "rate", num: ["dropbacksFaced"], den: ["dropbacksFaced", "rushAttemptsFaced"], tooltip: "Opponent tendency against this defense in the selected weeks." },
+    ],
+  },
+  {
+    title: "Explosiveness",
+    columns: [
+      { key: "defExp", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted explosiveness-suppression edge. Higher is better." },
+      { key: "defExpRaw", label: "Allowed %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["explosiveNumA"], den: ["explosiveDenA"], tooltip: "Explosive-play rate allowed in the selected weeks (raw). Lower is better." },
+    ],
+  },
+  {
+    title: "Finishing",
+    columns: [
+      { key: "defFin", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted finishing-drives suppression edge. Higher is better." },
+      { key: "defFinRaw", label: "Pts/Opp", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["finNumA"], den: ["finDenA"], tooltip: "Points allowed per opponent scoring opportunity in the selected weeks. Lower is better." },
+    ],
+  },
+  {
+    title: "Field Position",
+    columns: [
+      { key: "defFieldPosRaw", label: "Opp Start", fmt: "plain1", rankable: true, kind: "rate", num: ["fieldPosSumA"], den: ["fieldPosCountA"], tooltip: "Average opponent starting field position in yards from GRID's goal line. Higher is better because opponents start farther away." },
+    ],
+  },
+  {
+    title: "Havoc",
+    columns: [
+      { key: "defHavoc", label: "Forced Adj", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Opponent-adjusted edge in forcing TFLs, sacks, and turnovers, as of the end week." },
+      { key: "defHavocRaw", label: "Forced %", fmt: "pct1", rankable: true, kind: "rate", num: ["havocForcedNum"], den: ["havocForcedDen"], tooltip: "Share of opponent plays turned into a TFL, sack, or turnover in the selected weeks." },
+    ],
+  },
+];
 
-const TABS: Record<string, Tab> = {
-  general: {
-    label: "General",
-    primaryKey: "cff",
-    columns: [
-      { key: "cff", label: "CFF", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Real Simple Rating System (SRS) score, schedule-adjusted, as of the end week (a model fit can't be split into a sub-range)" },
-      { key: "sos", label: "SOS", fmt: "signed1", rankable: true, kind: "rate", num: ["opponentSrsSum"], den: ["opponentSrsCount"], tooltip: "Strength of schedule: average real SRS of opponents played in the selected weeks" },
-      { key: "pace", label: "Pace", fmt: "plain1", rankable: true, kind: "rate", num: ["offPlays"], den: ["offGames"], tooltip: "Offensive plays per game with available play-by-play in the selected weeks" },
-      { key: "top", label: "TOP", fmt: "pct1", rankable: true, kind: "rate", num: ["possessionSeconds"], den: ["possessionSecondsTotal"], tooltip: "Time of possession — real share of game clock this team's offense held the ball, summed from actual drive lengths, in the selected weeks" },
-      { key: "st", label: "ST", fmt: "signed1", kind: "constant-null", tooltip: "Special-teams ratings are not yet available" },
+const EPA_METRICS: MetricSection[] = [
+  {
+    title: "Overall",
+    metrics: [
+      { prefix: "epa", label: "EPA/Play", fmt: "signed2", tip: "GRID's opponent-adjusted EPA per play (CFBD's ppa model, summed over every clean rush/pass snap)." },
     ],
   },
-  offense: {
-    label: "Offense",
-    primaryKey: "off",
-    columns: [
-      { key: "off", label: "Off (Adj)", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Real schedule-adjusted yards-per-possession edge (offense), as of the end week. Research-stage model" },
-      { key: "offYpp", label: "YPP", fmt: "plain1", rankable: true, kind: "rate", num: ["yppNum"], den: ["yppDen"], tooltip: "Real offensive yards per play in the selected weeks (raw, not opponent-adjusted)" },
-      { key: "offSuccess", label: "Success", fmt: "pct1", rankable: true, kind: "rate", num: ["successNum"], den: ["successDen"], tooltip: "Real offensive success rate in the selected weeks (raw, not opponent-adjusted)" },
-      { key: "offPassSuccess", label: "Pass", fmt: "pct1", rankable: true, kind: "rate", num: ["passSuccessNum"], den: ["passSuccessDen"], tooltip: "Real passing success rate in the selected weeks (raw)" },
-      { key: "offRushSuccess", label: "Run", fmt: "pct1", rankable: true, kind: "rate", num: ["rushSuccessNum"], den: ["rushSuccessDen"], tooltip: "Real rushing success rate in the selected weeks (raw)" },
-      { key: "offPassRate", label: "Pass | Run Split", fmt: "split0", kind: "rate", num: ["dropbacks"], den: ["dropbacks", "rushAttempts"], tooltip: "Real offensive tendency — share of real plays that were dropbacks vs. rush attempts in the selected weeks" },
-      { key: "offExp", label: "Exp (Adj)", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Real schedule-adjusted explosiveness edge (offense), as of the end week. Research-stage model" },
-      { key: "offExpRaw", label: "Exp %", fmt: "pct1", rankable: true, kind: "rate", num: ["explosiveNum"], den: ["explosiveDen"], tooltip: "Real explosive-play rate in the selected weeks (raw) — share of offensive plays that gain an explosive amount of yardage" },
-      { key: "offFin", label: "Fin (Adj)", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Real schedule-adjusted finishing-drives edge (offense), as of the end week. Research-stage model" },
-      { key: "offFinRaw", label: "Fin (Pts/Opp)", fmt: "plain1", rankable: true, kind: "rate", num: ["finNum"], den: ["finDen"], tooltip: "Real points scored per resolved scoring opportunity in the selected weeks (raw)" },
-      { key: "fieldPos", label: "Field Pos (Adj)", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Real opponent-adjusted starting field position edge, as of the end week. Research-stage model" },
-      { key: "offFieldPosRaw", label: "Field Pos (Raw)", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["fieldPosSum"], den: ["fieldPosCount"], tooltip: "Real average starting field position in the selected weeks, in yards from the opponent's goal line (raw). Lower is better." },
-      { key: "offHavoc", label: "Havoc Allowed (Adj)", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Real opponent-adjusted edge in avoiding TFLs, sacks and turnovers, as of the end week. Research-stage model" },
-      { key: "offHavocRaw", label: "Havoc Allowed %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["havocAllowedNum"], den: ["havocAllowedDen"], tooltip: "Real locked Havoc v1 rate — share of this offense's plays that gave up a TFL, sack or turnover in the selected weeks (raw). Lower is better." },
+  {
+    title: "Passing",
+    metrics: [
+      { prefix: "passEpa", label: "EPA/Dropback", tip: "GRID's opponent-adjusted passing EPA per dropback (attempts + sacks)." },
+      { prefix: "passEpaDown1", label: "1st Down", tip: "GRID's opponent-adjusted passing EPA per dropback on 1st down." },
+      { prefix: "passEpaDown2", label: "2nd Down", tip: "GRID's opponent-adjusted passing EPA per dropback on 2nd down." },
+      { prefix: "passEpaDown3", label: "3rd Down", tip: "GRID's opponent-adjusted passing EPA per dropback on 3rd down." },
     ],
   },
-  defense: {
-    label: "Defense",
-    primaryKey: "def",
-    columns: [
-      { key: "def", label: "Def (Adj)", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Real schedule-adjusted yards-per-possession edge (defense). Higher is better — a positive value means the defense beat expectation. Research-stage model" },
-      { key: "defYpp", label: "YPP", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["yppNumA"], den: ["yppDenA"], tooltip: "Real yards per play allowed in the selected weeks (raw). Lower is better." },
-      { key: "defSuccess", label: "Success", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["successNumA"], den: ["successDenA"], tooltip: "Real success rate allowed in the selected weeks (raw, not opponent-adjusted)" },
-      { key: "defPassSuccess", label: "Pass", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["passSuccessNumA"], den: ["passSuccessDenA"], tooltip: "Real passing success rate allowed in the selected weeks (raw)" },
-      { key: "defRushSuccess", label: "Run", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["rushSuccessNumA"], den: ["rushSuccessDenA"], tooltip: "Real rushing success rate allowed in the selected weeks (raw)" },
-      { key: "defPassRate", label: "Pass | Run Split", fmt: "split0", kind: "rate", num: ["dropbacksFaced"], den: ["dropbacksFaced", "rushAttemptsFaced"], tooltip: "Real opponent tendency against this defense in the selected weeks" },
-      { key: "defExp", label: "Exp (Adj)", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Real schedule-adjusted explosiveness-allowed edge. Higher is better. Research-stage model" },
-      { key: "defExpRaw", label: "Exp %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["explosiveNumA"], den: ["explosiveDenA"], tooltip: "Real explosive-play rate allowed in the selected weeks (raw). Lower is better." },
-      { key: "defFin", label: "Fin (Adj)", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Real schedule-adjusted finishing-drives-allowed edge. Higher is better. Research-stage model" },
-      { key: "defFinRaw", label: "Fin (Pts/Opp)", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["finNumA"], den: ["finDenA"], tooltip: "Real points allowed per opponent scoring opportunity in the selected weeks (raw). Lower is better." },
-      { key: "defFieldPosRaw", label: "Field Pos (Raw)", fmt: "plain1", rankable: true, kind: "rate", num: ["fieldPosSumA"], den: ["fieldPosCountA"], tooltip: "Real average opponent starting field position in the selected weeks, in yards from GRID's goal line (raw). Higher is better — it means forcing opponents to start further away." },
-      { key: "defHavoc", label: "Havoc Forced (Adj)", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Real opponent-adjusted edge in forcing TFLs, sacks and turnovers, as of the end week. Research-stage model" },
-      { key: "defHavocRaw", label: "Havoc Forced %", fmt: "pct1", rankable: true, kind: "rate", num: ["havocForcedNum"], den: ["havocForcedDen"], tooltip: "Real locked Havoc v1 rate — share of the opponent's plays this defense turned into a TFL, sack or turnover in the selected weeks (raw)." },
+  {
+    title: "Rushing",
+    metrics: [
+      { prefix: "rushEpa", label: "EPA/Rush", tip: "GRID's opponent-adjusted rushing EPA per carry." },
+      { prefix: "rushEpaDown1", label: "1st Down", tip: "GRID's opponent-adjusted rushing EPA per carry on 1st down." },
+      { prefix: "rushEpaDown2", label: "2nd Down", tip: "GRID's opponent-adjusted rushing EPA per carry on 2nd down." },
+      { prefix: "rushEpaDown3", label: "3rd Down", tip: "GRID's opponent-adjusted rushing EPA per carry on 3rd down." },
     ],
   },
-  epa: {
-    label: "EPA",
-    primaryKey: "epaAdj",
-    sections: EPA_SECTIONS,
-    columns: EPA_SECTIONS.flatMap((s) => s.columns),
-    note: `${CONFIDENCE_TIP} Raw EPA per play is available in the General/Offense/Defense tabs' underlying data; every number here is the opponent-adjusted edge, since that's the point of this tab.`,
+];
+
+const SUCCESS_METRICS: MetricSection[] = [
+  {
+    title: "Overall",
+    metrics: [
+      { prefix: "success", label: "Success Rate", fmt: "signed2", tip: "GRID's opponent-adjusted success rate using down-scaled yardage thresholds." },
+    ],
   },
-  successRate: {
-    label: "Success Rate",
-    primaryKey: "successAdj",
-    sections: SUCCESS_SECTIONS,
-    columns: SUCCESS_SECTIONS.flatMap((s) => s.columns),
-    note: CONFIDENCE_TIP,
+  {
+    title: "Passing",
+    metrics: [
+      { prefix: "passSuccess", label: "Pass Success", tip: "GRID's opponent-adjusted passing success rate." },
+      { prefix: "passSuccessDown1", label: "1st Down", tip: "GRID's opponent-adjusted passing success rate on 1st down." },
+      { prefix: "passSuccessDown2", label: "2nd Down", tip: "GRID's opponent-adjusted passing success rate on 2nd down." },
+      { prefix: "passSuccessDown3", label: "3rd Down", tip: "GRID's opponent-adjusted passing success rate on 3rd down." },
+    ],
   },
+  {
+    title: "Rushing",
+    metrics: [
+      { prefix: "rushSuccess", label: "Rush Success", tip: "GRID's opponent-adjusted rushing success rate." },
+      { prefix: "rushSuccessDown1", label: "1st Down", tip: "GRID's opponent-adjusted rushing success rate on 1st down." },
+      { prefix: "rushSuccessDown2", label: "2nd Down", tip: "GRID's opponent-adjusted rushing success rate on 2nd down." },
+      { prefix: "rushSuccessDown3", label: "3rd Down", tip: "GRID's opponent-adjusted rushing success rate on 3rd down." },
+    ],
+  },
+];
+
+function pairedSections(source: MetricSection[], perspective: Perspective): AdvSection[] {
+  return source.map((section, sectionIndex) => ({
+    title: section.title,
+    columns: section.metrics.flatMap((metric, metricIndex) => {
+      const fmt = metric.fmt ?? "signed3";
+      const offense: AdvColumn = {
+        key: `${metric.prefix}Adj`,
+        label: perspective === "both" ? `${metric.label} Off` : metric.label,
+        fmt,
+        primary: sectionIndex === 0 && metricIndex === 0 && perspective !== "defense",
+        rankable: true,
+        kind: "snapshot",
+        tooltip: `${metric.tip} Offense. ${CONFIDENCE_TIP}`,
+      };
+      const defense: AdvColumn = {
+        key: `${metric.prefix}AdjAllowed`,
+        label: perspective === "both" ? `${metric.label} Def` : metric.label,
+        fmt,
+        primary: sectionIndex === 0 && metricIndex === 0 && perspective === "defense",
+        rankable: true,
+        kind: "snapshot",
+        tooltip: `${metric.tip} Defense, framed as suppression relative to expectation. Higher is better. ${CONFIDENCE_TIP}`,
+      };
+      if (perspective === "offense") return [offense];
+      if (perspective === "defense") return [defense];
+      return [offense, defense];
+    }),
+  }));
+}
+
+function staticTab(label: string, primaryKey: string, sections: AdvSection[], note?: string): Tab {
+  return { label, primaryKey, sections, columns: sections.flatMap((section) => section.columns), note };
+}
+
+const STATIC_TABS: Record<"general" | "offense" | "defense", Tab> = {
+  general: staticTab("General", "cff", GENERAL_SECTIONS),
+  offense: staticTab("Offense", "off", OFFENSE_SECTIONS),
+  defense: staticTab("Defense", "def", DEFENSE_SECTIONS),
 };
+
+const TAB_LABELS: Array<{ key: TabKey; label: string }> = [
+  { key: "general", label: "General" },
+  { key: "offense", label: "Offense" },
+  { key: "defense", label: "Defense" },
+  { key: "epa", label: "EPA" },
+  { key: "successRate", label: "Success Rate" },
+];
+
+function specialTab(key: "epa" | "successRate", perspective: Perspective): Tab {
+  const isEpa = key === "epa";
+  const sections = pairedSections(isEpa ? EPA_METRICS : SUCCESS_METRICS, perspective);
+  const primaryKey = isEpa
+    ? (perspective === "defense" ? "epaAdjAllowed" : "epaAdj")
+    : (perspective === "defense" ? "successAdjAllowed" : "successAdj");
+  return {
+    label: isEpa ? "EPA" : "Success Rate",
+    primaryKey,
+    sections,
+    columns: sections.flatMap((section) => section.columns),
+    supportsPerspective: true,
+    note: isEpa
+      ? `${CONFIDENCE_TIP} Every number in this tab is an opponent-adjusted edge.`
+      : CONFIDENCE_TIP,
+  };
+}
+
+const EPA_ALL_COLUMNS = pairedSections(EPA_METRICS, "both").flatMap((section) => section.columns);
+const SUCCESS_ALL_COLUMNS = pairedSections(SUCCESS_METRICS, "both").flatMap((section) => section.columns);
+const ALL_COLUMNS: AdvColumn[] = [
+  ...STATIC_TABS.general.columns,
+  ...STATIC_TABS.offense.columns,
+  ...STATIC_TABS.defense.columns,
+  ...EPA_ALL_COLUMNS,
+  ...SUCCESS_ALL_COLUMNS,
+];
 
 function sumField(wk: Record<string, number>, fields: string[]): number {
   let total = 0;
-  fields.forEach((f) => {
-    if (wk[f] !== undefined) total += wk[f];
+  fields.forEach((field) => {
+    if (wk[field] !== undefined) total += wk[field];
   });
   return total;
 }
@@ -195,13 +318,15 @@ function rate(num: number, den: number): number | null {
 }
 
 type Aggregated = {
-  team: string; slug: string; teamId: number; conf: string;
-  record: string; wins: number;
+  team: string;
+  slug: string;
+  teamId: number;
+  conf: string;
+  record: string;
+  wins: number;
   [key: string]: unknown;
 };
 
-// Stable empty fallbacks -- `season?.weeks ?? []` would otherwise create a
-// new array/object every render while unloaded, defeating memoization below.
 const EMPTY_WEEKS: number[] = [];
 const EMPTY_BY_WEEK: Record<string, AdvancedRow[]> = {};
 
@@ -212,7 +337,8 @@ export default function AdvancedPage() {
   const [year, setYear] = useState<string>("");
   const [startWeek, setStartWeek] = useState<number | null>(null);
   const [endWeek, setEndWeek] = useState<number | null>(null);
-  const [tab, setTab] = useState<keyof typeof TABS>("general");
+  const [tab, setTab] = useState<TabKey>("general");
+  const [perspective, setPerspective] = useState<Perspective>("offense");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filter, setFilter] = useState("");
@@ -226,18 +352,15 @@ export default function AdvancedPage() {
     }).catch(setLoadError);
   }, []);
 
-  // Reads the cache reactively: renders instantly whenever this season was
-  // already prefetched or previously viewed, with no fetch or flicker.
   const season = useAdvancedSeason(year || null);
   const loading = !season;
   const weeks = season?.weeks ?? EMPTY_WEEKS;
   const seasonByWeek = season?.byWeek ?? EMPTY_BY_WEEK;
 
-  // Postseason site-weeks are named by CFBD's own playoff round (e.g. "CFP
-  // Semifinal") instead of just numbered -- see lib/types.ts's WeekLabels.
   function weekLabel(w: number): string {
     return season?.weekLabels?.[String(w)] || `Week ${w}`;
   }
+
   function weekRangeLabel(start: number, end: number): string {
     if (start === end) return weekLabel(start);
     return `${weekLabel(start)}–${weekLabel(end)}`;
@@ -246,15 +369,11 @@ export default function AdvancedPage() {
   const snapshotBySlug = useMemo(() => {
     if (!season) return {};
     const endRows = season.byWeek[String(endWeek)] || [];
-    const snap: Record<string, AdvancedRow> = {};
-    endRows.forEach((r) => (snap[r.slug] = r));
-    return snap;
+    const snapshot: Record<string, AdvancedRow> = {};
+    endRows.forEach((row) => (snapshot[row.slug] = row));
+    return snapshot;
   }, [season, endWeek]);
 
-  // Switching years always resets to the full week range, matching the
-  // original site. Adjusted during render rather than in an effect (React's
-  // documented pattern for this) so it applies the instant `season` is
-  // available -- no extra render, no flicker.
   const [rangeYear, setRangeYear] = useState(year);
   if (year !== rangeYear && season) {
     setRangeYear(year);
@@ -264,118 +383,134 @@ export default function AdvancedPage() {
 
   const teams = useMemo<Aggregated[]>(() => {
     if (startWeek === null || endWeek === null) return [];
-    const selectedWeeks = weeks.filter((w) => w >= startWeek && w <= endWeek);
+    const selectedWeeks = weeks.filter((week) => week >= startWeek && week <= endWeek);
     const byTeam = new Map<string, { team: string; slug: string; teamId: number; conf: string; wk: Record<string, number> }>();
 
-    selectedWeeks.forEach((wk) => {
-      const rows = seasonByWeek[String(wk)] || [];
-      rows.forEach((r) => {
-        let acc = byTeam.get(r.slug);
+    selectedWeeks.forEach((week) => {
+      const rows = seasonByWeek[String(week)] || [];
+      rows.forEach((row) => {
+        let acc = byTeam.get(row.slug);
         if (!acc) {
-          acc = { team: r.team, slug: r.slug, teamId: r.teamId, conf: r.conf, wk: {} };
-          byTeam.set(r.slug, acc);
+          acc = { team: row.team, slug: row.slug, teamId: row.teamId, conf: row.conf, wk: {} };
+          byTeam.set(row.slug, acc);
         }
-        const wkData = r.wk || {};
-        Object.keys(wkData).forEach((k) => {
-          acc!.wk[k] = (acc!.wk[k] || 0) + wkData[k];
+        const wkData = row.wk || {};
+        Object.keys(wkData).forEach((key) => {
+          acc!.wk[key] = (acc!.wk[key] || 0) + wkData[key];
         });
       });
     });
-
-    const allCols = ([] as AdvColumn[]).concat(TABS.general.columns, TABS.offense.columns, TABS.defense.columns, TABS.epa.columns, TABS.successRate.columns);
 
     return Array.from(byTeam.values()).map((acc) => {
       const snap = snapshotBySlug[acc.slug];
       const wins = acc.wk.wins || 0;
       const losses = acc.wk.losses || 0;
       const out: Aggregated = {
-        team: acc.team, slug: acc.slug, teamId: acc.teamId, conf: acc.conf,
-        record: `${wins}-${losses}`, wins,
+        team: acc.team,
+        slug: acc.slug,
+        teamId: acc.teamId,
+        conf: acc.conf,
+        record: `${wins}-${losses}`,
+        wins,
       };
-      allCols.forEach((col) => {
+
+      ALL_COLUMNS.forEach((col) => {
         if (col.kind === "snapshot") {
-          const v = snap ? (snap as unknown as Record<string, unknown>)[col.key] : null;
-          out[col.key] = na(v) ? null : v;
-        } else if (col.kind === "rate") {
+          const value = snap ? (snap as unknown as Record<string, unknown>)[col.key] : null;
+          out[col.key] = na(value) ? null : value;
+        } else {
           const num = sumField(acc.wk, col.num!);
           const den = sumField(acc.wk, col.den!);
           out[col.key] = rate(num, den);
-        } else {
-          out[col.key] = null;
         }
       });
       return out;
     });
   }, [seasonByWeek, snapshotBySlug, weeks, startWeek, endWeek]);
 
+  const tabDef = useMemo<Tab>(() => {
+    if (tab === "epa" || tab === "successRate") return specialTab(tab, perspective);
+    return STATIC_TABS[tab];
+  }, [tab, perspective]);
+
   const rankedTeams = useMemo(() => {
-    const tabDef = TABS[tab];
-    const withRanks = teams.map((t) => ({ ...t }));
+    const withRanks = teams.map((team) => ({ ...team }));
     tabDef.columns.forEach((col) => {
       if (!col.rankable) return;
-      const ranked = withRanks.filter((t) => !na(t[col.key] as number | null));
+      const ranked = withRanks.filter((team) => !na(team[col.key] as number | null));
       ranked.sort((a, b) => {
         const av = a[col.key] as number;
         const bv = b[col.key] as number;
         return col.lowerBetter ? av - bv : bv - av;
       });
-      ranked.forEach((t, i) => {
-        t[`_rank_${col.key}`] = i + 1;
+      ranked.forEach((team, index) => {
+        team[`_rank_${col.key}`] = index + 1;
       });
-      withRanks.forEach((t) => {
-        if (t[`_rank_${col.key}`] === undefined) t[`_rank_${col.key}`] = null;
+      withRanks.forEach((team) => {
+        if (team[`_rank_${col.key}`] === undefined) team[`_rank_${col.key}`] = null;
       });
     });
-    const primaryCol = tabDef.columns.find((c) => c.primary)!;
-    withRanks.forEach((t) => {
-      t._rank = t[`_rank_${primaryCol.key}`];
+    withRanks.forEach((team) => {
+      team._rank = team[`_rank_${tabDef.primaryKey}`];
     });
     return withRanks;
-  }, [teams, tab]);
+  }, [teams, tabDef]);
 
   const visibleTeams = useMemo(() => {
     const needle = filter.trim().toLowerCase();
-    let out = conference ? rankedTeams.filter((t) => t.conf === conference) : rankedTeams;
+    let out = conference ? rankedTeams.filter((team) => team.conf === conference) : rankedTeams;
     if (needle) {
-      out = out.filter((t) => t.team.toLowerCase().includes(needle) || t.conf.toLowerCase().includes(needle));
+      out = out.filter((team) => team.team.toLowerCase().includes(needle) || team.conf.toLowerCase().includes(needle));
     }
     const key = sortKey || "rank";
-    const dir = sortDir === "asc" ? 1 : -1;
-    out = out.slice().sort((a, b) => {
+    const direction = sortDir === "asc" ? 1 : -1;
+    return out.slice().sort((a, b) => {
       const av = key === "rank" ? a._rank : a[key];
       const bv = key === "rank" ? b._rank : b[key];
       if (na(av as number | null)) return na(bv as number | null) ? 0 : 1;
       if (na(bv as number | null)) return -1;
-      if (typeof av === "string") return av.localeCompare(bv as string) * dir;
-      return ((av as number) - (bv as number)) * dir;
+      if (typeof av === "string") return av.localeCompare(bv as string) * direction;
+      return ((av as number) - (bv as number)) * direction;
     });
-    return out;
   }, [rankedTeams, filter, conference, sortKey, sortDir]);
 
-  // Each rankable column gets its own min/max color scale, computed against
-  // every team in the tab (not the filtered/searched subset) so a team's
-  // shade stays meaningful when narrowing to one conference.
   const columnRanges = useMemo(() => {
-    const out: Record<string, { min: number; max: number }> = {};
-    TABS[tab].columns.forEach((col) => {
+    const ranges: Record<string, { min: number; max: number }> = {};
+    tabDef.columns.forEach((col) => {
       if (!col.rankable) return;
-      out[col.key] = columnRange(teams.map((t) => t[col.key] as number | null));
+      ranges[col.key] = columnRange(teams.map((team) => team[col.key] as number | null));
     });
-    return out;
-  }, [teams, tab]);
+    return ranges;
+  }, [teams, tabDef]);
+
+  const sectionStartKeys = useMemo(
+    () => new Set(tabDef.sections.map((section) => section.columns[0]?.key).filter(Boolean)),
+    [tabDef],
+  );
+
+  const conferences = useMemo(() => [...new Set(teams.map((team) => team.conf))].filter(Boolean).sort(), [teams]);
 
   function onHeaderClick(key: string) {
     if ((sortKey || "rank") === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDir((direction) => (direction === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      const column = TABS[tab].columns.find((col) => col.key === key);
+      const column = tabDef.columns.find((col) => col.key === key);
       setSortDir(["rank", "team", "conf"].includes(key) || column?.lowerBetter ? "asc" : "desc");
     }
   }
 
-  const tabDef = TABS[tab];
-  const conferences = useMemo(() => [...new Set(teams.map((t) => t.conf))].filter(Boolean).sort(), [teams]);
+  function selectTab(nextTab: TabKey) {
+    setTab(nextTab);
+    setSortKey(null);
+    setSortDir("asc");
+  }
+
+  function selectPerspective(nextPerspective: Perspective) {
+    setPerspective(nextPerspective);
+    setSortKey(null);
+    setSortDir("asc");
+  }
 
   if (loadError) throw loadError;
 
@@ -390,12 +525,12 @@ export default function AdvancedPage() {
           <div className="ratings-hero__copy">
             <span className="eyebrow">CFF Advanced Analytics</span>
             <h1 id="advancedTitle">{year} College Football Analytics</h1>
-            <p className="ratings-hero__description">Explore team efficiency, success rate, explosiveness, and field position across selected FBS-vs-FBS games.</p>
+            <p className="ratings-hero__description">Compare opponent-adjusted efficiency, success rate, explosiveness, field position, and situational performance across FBS teams.</p>
           </div>
           <div className="ratings-hero__meta">
             <span className="ratings-status">{loading ? "Loading season…" : `${year} • ${startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : ""} • ${teams.length} teams`}</span>
             <a className="utility-link" href="#methodology">Methodology ↗</a>
-          {updatedAt ? <time className="data-updated" dateTime={updatedAt}>Data updated {new Date(updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} UTC</time> : null}
+            {updatedAt ? <time className="data-updated" dateTime={updatedAt}>Data updated {new Date(updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} UTC</time> : null}
           </div>
         </section>
 
@@ -403,34 +538,27 @@ export default function AdvancedPage() {
           <div className="control-bar__inner">
             <span className="control-label">Season</span>
             <nav className="year-nav" aria-label="Season">
-              {[...years].reverse().map((y) => (
+              {[...years].reverse().map((seasonYear) => (
                 <button
-                  key={y}
+                  key={seasonYear}
                   type="button"
-                  className={String(y) === year ? "active" : undefined}
-                  aria-pressed={String(y) === year}
-                  onClick={() => { setYear(String(y)); setConference(""); }}
+                  className={String(seasonYear) === year ? "active" : undefined}
+                  aria-pressed={String(seasonYear) === year}
+                  onClick={() => { setYear(String(seasonYear)); setConference(""); }}
                 >
-                  {y}
+                  {seasonYear}
                 </button>
               ))}
             </nav>
             <div className="filter-box">
               <label className="sr-only" htmlFor="filterInput">Search advanced analytics</label>
-              <input
-                id="filterInput"
-                type="search"
-                placeholder="Search team…"
-                autoComplete="off"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-              />
+              <input id="filterInput" type="search" placeholder="Search team…" autoComplete="off" value={filter} onChange={(event) => setFilter(event.target.value)} />
             </div>
             <div className="conference-filter">
               <label className="sr-only" htmlFor="conferenceSelect">Conference</label>
-              <select id="conferenceSelect" value={conference} onChange={(e) => setConference(e.target.value)}>
+              <select id="conferenceSelect" value={conference} onChange={(event) => setConference(event.target.value)}>
                 <option value="">All conferences</option>
-                {conferences.map((c) => <option key={c} value={c}>{c}</option>)}
+                {conferences.map((conf) => <option key={conf} value={conf}>{conf}</option>)}
               </select>
             </div>
             <span className="row-count" aria-live="polite">
@@ -438,159 +566,165 @@ export default function AdvancedPage() {
             </span>
           </div>
 
-          <div className="control-bar__inner control-bar__inner--secondary">
+          <div className="control-bar__inner control-bar__inner--secondary advanced-range-row">
             <span className="control-label">Weeks</span>
             <div className="week-range">
               <span className="control-label week-range__label">Start</span>
               <select
                 aria-label="Start week"
                 value={startWeek ?? ""}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setStartWeek(v);
-                  if (endWeek !== null && v > endWeek) setEndWeek(v);
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  setStartWeek(value);
+                  if (endWeek !== null && value > endWeek) setEndWeek(value);
                 }}
               >
-                {weeks.map((w) => (
-                  <option key={w} value={w}>{weekLabel(w)}</option>
-                ))}
+                {weeks.map((week) => <option key={week} value={week}>{weekLabel(week)}</option>)}
               </select>
-              <span className="week-range__sep">&ndash;</span>
+              <span className="week-range__sep">–</span>
               <span className="control-label week-range__label">End</span>
               <select
                 aria-label="End week"
                 value={endWeek ?? ""}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setEndWeek(v);
-                  if (startWeek !== null && v < startWeek) setStartWeek(v);
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  setEndWeek(value);
+                  if (startWeek !== null && value < startWeek) setStartWeek(value);
                 }}
               >
-                {weeks.map((w) => (
-                  <option key={w} value={w}>{weekLabel(w)}</option>
-                ))}
+                {weeks.map((week) => <option key={week} value={week}>{weekLabel(week)}</option>)}
               </select>
             </div>
           </div>
 
-          <div className="container tab-bar">
-            <nav className="tab-nav" aria-label="Analytics phase">
-              {Object.entries(TABS).map(([key, def]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={tab === key ? "active" : undefined}
-                  aria-pressed={tab === key}
-                  onClick={() => {
-                    setTab(key as keyof typeof TABS);
-                    setSortKey(null);
-                    setSortDir("asc");
-                  }}
-                >
-                  {def.label}
+          <div className="container tab-bar advanced-tab-bar">
+            <nav className="tab-nav" aria-label="Analytics category">
+              {TAB_LABELS.map(({ key, label }) => (
+                <button key={key} type="button" className={tab === key ? "active" : undefined} aria-pressed={tab === key} onClick={() => selectTab(key)}>
+                  {label}
                 </button>
               ))}
             </nav>
+
+            {tabDef.supportsPerspective ? (
+              <div className="advanced-perspective" role="group" aria-label={`${tabDef.label} perspective`}>
+                <span className="advanced-perspective__label">View</span>
+                {(["offense", "defense", "both"] as Perspective[]).map((view) => (
+                  <button
+                    key={view}
+                    type="button"
+                    className={perspective === view ? "active" : undefined}
+                    aria-pressed={perspective === view}
+                    onClick={() => selectPerspective(view)}
+                  >
+                    {view === "offense" ? "Offense" : view === "defense" ? "Defense" : "Both"}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
             <p className="adv-note">{tabDef.note ?? "Rate stats use exactly the selected week range. Opponent-adjusted model stats are snapshots as of the selected end week."}</p>
           </div>
         </div>
 
         <main id="advancedTable" className="table-main container">
-          <div className="table-scroll" role="region" aria-label="Advanced CFF analytics table" tabIndex={0}>
-            <table className="data-table adv-table" data-view={tab}>
-              <caption className="sr-only">Advanced CollegeFootballFocus team analytics</caption>
-              <thead>
-                {tabDef.sections ? (
-                  <tr className="adv-section-row" aria-hidden="true">
-                    <th scope="col" colSpan={3} className="adv-section-spacer" />
+          <div className="advanced-table-shell">
+            <div className="advanced-table-summary" aria-hidden="true">
+              <span>{tabDef.label}</span>
+              <span>{tabDef.sections.map((section) => section.title).join(" • ")}</span>
+            </div>
+            <div className="table-scroll" role="region" aria-label="Advanced CFF analytics table" tabIndex={0}>
+              <table className="data-table adv-table" data-view={tab} data-perspective={tabDef.supportsPerspective ? perspective : undefined}>
+                <caption className="sr-only">Advanced CollegeFootballFocus team analytics</caption>
+                <thead>
+                  <tr className="adv-section-row">
+                    <th scope="colgroup" colSpan={3} className="adv-section-spacer">Team</th>
                     {tabDef.sections.map((section) => (
                       <th key={section.title} scope="colgroup" colSpan={section.columns.length} className="adv-section-heading">
                         {section.title}
                       </th>
                     ))}
                   </tr>
-                ) : null}
-                <tr>
-                  <th scope="col" className="num rank-cell sortable" aria-sort={sortKey === "rank" || !sortKey ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                    <button type="button" className="column-sort" onClick={() => onHeaderClick("rank")}>Rk</button>
-                    <TipTrigger text={`Rank by ${tabDef.label} primary rating`} />
-                    <span className="sort-indicator">{(sortKey === "rank" || !sortKey) ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
-                  </th>
-                  <th scope="col" className="team-cell sortable" aria-sort={sortKey === "team" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                    <button type="button" className="column-sort" onClick={() => onHeaderClick("team")}>Team</button>
-                    <span className="sort-indicator">{sortKey === "team" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
-                  </th>
-                  <th scope="col" className="num record-cell sortable" aria-sort={sortKey === "wins" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                    <button type="button" className="column-sort" onClick={() => onHeaderClick("wins")}>W-L</button>
-                    <TipTrigger text="Real record within the selected week range" />
-                    <span className="sort-indicator">{sortKey === "wins" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
-                  </th>
-                  {tabDef.columns.map((col) => (
-                    <th
-                      key={col.key}
-                      scope="col"
-                      className={"num metric-cell" + (col.rankable ? " sortable" : "")}
-                      data-metric-key={col.key}
-                      aria-sort={sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
-                    >
-                      {col.rankable ? <button type="button" className="column-sort" onClick={() => onHeaderClick(col.key)}>{col.label}</button> : <span>{col.label}</span>}
-                      <TipTrigger text={col.tooltip} />
-                      {col.rankable ? (
-                        <span className="sort-indicator">{sortKey === col.key ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
-                      ) : null}
+                  <tr className="adv-column-row">
+                    <th scope="col" className="num rank-cell sortable" aria-sort={sortKey === "rank" || !sortKey ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                      <button type="button" className="column-sort" onClick={() => onHeaderClick("rank")}>Rk</button>
+                      <TipTrigger text={`Rank by ${tabDef.label} primary rating`} />
+                      <span className="sort-indicator">{(sortKey === "rank" || !sortKey) ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  Array.from({ length: 14 }).map((_, i) => (
-                    <tr key={i} className="skeleton-row">
-                      {Array.from({ length: 3 + tabDef.columns.length }).map((__, c) => (
-                        <td key={c}>
-                          <span className="skeleton-bar" style={{ width: (c === 1 ? 75 : 45 + ((c * 11) % 30)) + "%" }} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                ) : visibleTeams.length === 0 ? (
-                  <tr className="empty-row">
-                    <td colSpan={3 + tabDef.columns.length}>No teams match &ldquo;{filter}&rdquo;.</td>
+                    <th scope="col" className="team-cell sortable" aria-sort={sortKey === "team" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                      <button type="button" className="column-sort" onClick={() => onHeaderClick("team")}>Team</button>
+                      <span className="sort-indicator">{sortKey === "team" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
+                    </th>
+                    <th scope="col" className="num record-cell sortable" aria-sort={sortKey === "wins" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                      <button type="button" className="column-sort" onClick={() => onHeaderClick("wins")}>W-L</button>
+                      <TipTrigger text="Record within the selected week range" />
+                      <span className="sort-indicator">{sortKey === "wins" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
+                    </th>
+                    {tabDef.columns.map((col) => (
+                      <th
+                        key={col.key}
+                        scope="col"
+                        className={`num metric-cell${col.rankable ? " sortable" : ""}${sectionStartKeys.has(col.key) ? " section-start" : ""}`}
+                        data-metric-key={col.key}
+                        aria-sort={sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+                      >
+                        {col.rankable ? <button type="button" className="column-sort" onClick={() => onHeaderClick(col.key)}>{col.label}</button> : <span>{col.label}</span>}
+                        <TipTrigger text={col.tooltip} />
+                        {col.rankable ? <span className="sort-indicator">{sortKey === col.key ? (sortDir === "asc" ? "▲" : "▼") : ""}</span> : null}
+                      </th>
+                    ))}
                   </tr>
-                ) : (
-                  visibleTeams.map((t) => (
-                    <tr key={t.slug}>
-                      <td className="num rank-cell">{t._rank ? String(t._rank) : "—"}</td>
-                      <td className="team-cell">
-                        <div className="team-cell-stack">
-                          <TeamLink team={t.team} teamId={t.teamId} slug={t.slug} />
-                          <span className="team-conf-label">{t.conf}</span>
-                        </div>
-                      </td>
-                      <td className="num record-cell">{t.record}</td>
-                      {tabDef.columns.map((col) => (
-                        <td
-                          key={col.key}
-                          className={"num stat-cell metric-cell" + (col.primary ? " primary" : "")}
-                          data-metric-key={col.key}
-                          style={col.rankable ? { backgroundColor: heatBackground(t[col.key] as number | null, columnRanges[col.key], col.lowerBetter) } : undefined}
-                        >
-                          {col.fmt === "split0" ? splitText(t[col.key] as number | null) : FORMATTERS[col.fmt](t[col.key] as number | null)}
-                          {col.rankable ? (
-                            <span className="rank-sub">{t[`_rank_${col.key}`] ? ` (${t[`_rank_${col.key}`]})` : ""}</span>
-                          ) : null}
-                        </td>
-                      ))}
+                </thead>
+                <tbody>
+                  {loading ? (
+                    Array.from({ length: 14 }).map((_, rowIndex) => (
+                      <tr key={rowIndex} className="skeleton-row">
+                        {Array.from({ length: 3 + tabDef.columns.length }).map((__, cellIndex) => (
+                          <td key={cellIndex}><span className="skeleton-bar" style={{ width: (cellIndex === 1 ? 75 : 45 + ((cellIndex * 11) % 30)) + "%" }} /></td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : visibleTeams.length === 0 ? (
+                    <tr className="empty-row">
+                      <td colSpan={3 + tabDef.columns.length}>No teams match &ldquo;{filter}&rdquo;.</td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    visibleTeams.map((team) => (
+                      <tr key={team.slug}>
+                        <td className="num rank-cell">{team._rank ? String(team._rank) : "—"}</td>
+                        <td className="team-cell">
+                          <div className="team-cell-stack">
+                            <TeamLink team={team.team} teamId={team.teamId} slug={team.slug} />
+                            <span className="team-conf-label">{team.conf}</span>
+                          </div>
+                        </td>
+                        <td className="num record-cell">{team.record}</td>
+                        {tabDef.columns.map((col) => {
+                          const value = team[col.key] as number | null;
+                          const rank = team[`_rank_${col.key}`] as number | null;
+                          return (
+                            <td
+                              key={col.key}
+                              className={`num stat-cell metric-cell${col.primary ? " primary" : ""}${sectionStartKeys.has(col.key) ? " section-start" : ""}`}
+                              data-metric-key={col.key}
+                              style={col.rankable ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined}
+                            >
+                              <span className="metric-value">{col.fmt === "split0" ? splitText(value) : FORMATTERS[col.fmt](value)}</span>
+                              {col.rankable && rank ? <span className="rank-sub">#{rank}</span> : null}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </main>
 
         <div id="methodology" tabIndex={-1}>
-        <SiteFooter note="Records and metrics include completed FBS-vs-FBS games only. Advanced CFF combines selected-range rate statistics with end-week opponent-adjusted model snapshots. Special teams remains blank until a real source and validated definition are added." />
+          <SiteFooter note="Records and metrics include completed FBS-vs-FBS games only. Advanced CFF combines selected-range rate statistics with end-week opponent-adjusted model snapshots." />
         </div>
       </div>
     </>
@@ -599,6 +733,6 @@ export default function AdvancedPage() {
 
 function splitText(v: number | null): string {
   if (na(v)) return "—";
-  const p = Math.round(v * 100);
-  return `${p}% | ${100 - p}%`;
+  const pass = Math.round(v * 100);
+  return `${pass}% | ${100 - pass}%`;
 }
