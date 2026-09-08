@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { AdvancedSeason, PredictionsTrackRecord, PredictionsWeek, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
+import type { AdvancedSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
@@ -86,6 +86,9 @@ const teamStatsWeeklyInflight = new Map<string, Promise<TeamStatsWeeklySeason | 
 
 const predictionsTrackRecordData = new Map<string, PredictionsTrackRecord | null>();
 const predictionsTrackRecordInflight = new Map<string, Promise<PredictionsTrackRecord | null>>();
+
+const preseasonPowerData = new Map<string, PreseasonPower | null>();
+const preseasonPowerInflight = new Map<string, Promise<PreseasonPower | null>>();
 
 let metaPromise: Promise<SiteMeta> | null = null;
 let searchIndexPromise: Promise<SearchIndexEntry[]> | null = null;
@@ -278,6 +281,28 @@ export function getPredictionsTrackRecord(year: number | string): Promise<Predic
       throw error;
     });
     predictionsTrackRecordInflight.set(key, entry);
+  }
+  return entry;
+}
+
+// Public and ungated -- the model itself (a full-field ranking from prior
+// results, recruiting and QB continuity), not the weekly picks derived
+// from it, which stay behind getPredictionsWeek's gate.
+export function getPreseasonPower(year: number | string): Promise<PreseasonPower | null> {
+  const key = String(year);
+  if (preseasonPowerData.has(key)) return Promise.resolve(preseasonPowerData.get(key) ?? null);
+  let entry = preseasonPowerInflight.get(key);
+  if (!entry) {
+    entry = fetchOptionalJson<PreseasonPower>(`/data/preseason-power-${key}.json`).then((record) => {
+      preseasonPowerData.set(key, record);
+      preseasonPowerInflight.delete(key);
+      return record;
+    });
+    entry = entry.catch((error: Error) => {
+      preseasonPowerInflight.delete(key);
+      throw error;
+    });
+    preseasonPowerInflight.set(key, entry);
   }
   return entry;
 }

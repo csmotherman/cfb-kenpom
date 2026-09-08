@@ -211,6 +211,30 @@ export type PredictionGame = {
   confidence: number | null;
 };
 
+export type PreseasonPowerTeam = {
+  team: string;
+  teamId: number | null;
+  slug: string | null;
+  conf: string | null;
+  powerScore: number;
+  rank: number;
+};
+
+export type PreseasonPowerBacktest = {
+  description: string;
+  n: number;
+  mae: number;
+  winnerPct: number;
+};
+
+export type PreseasonPower = {
+  season: number;
+  freezeVersion: string;
+  generatedAt: string;
+  backtest: PreseasonPowerBacktest;
+  teams: PreseasonPowerTeam[];
+};
+
 export type PredictionsWeek = {
   season: number;
   week: number;

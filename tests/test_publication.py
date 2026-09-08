@@ -268,3 +268,88 @@ class EpaDerivedLayerTests(unittest.TestCase):
         self.assertEqual(out["rushDown1SuccessfulPlays"], 1)
         self.assertEqual(out["passDown3SuccessEligiblePlays"], 1)
         self.assertEqual(out["passDown3SuccessfulPlays"], 1)
+
+
+class EarlySeasonBlendTests(unittest.TestCase):
+    def test_prior_weight_matches_prediction_v2_taper_exactly(self):
+        from cfb_analytics.analytics.preseason_power.early_season_blend import prior_weight
+        from cfb_analytics.analytics.prediction_v2_2026_freeze import PRIOR_WEIGHTS
+        for games, expected in PRIOR_WEIGHTS.items():
+            self.assertEqual(prior_weight(games), expected)
+        self.assertEqual(prior_weight(99), PRIOR_WEIGHTS[4])  # caps, doesn't extrapolate past 4
+
+    def test_blended_margin_uses_min_games_played_of_the_two_teams(self):
+        from cfb_analytics.analytics.preseason_power.early_season_blend import blended_margin
+        # home has 0 games (100% prior), away has 4 (0% prior) -> the pair
+        # is gated by the LESS-informed side (0 games -> pure preseason).
+        value = blended_margin(
+            preseason_home=10.0, preseason_away=0.0,
+            raw_home=None, games_home=0,
+            raw_away=99.0, games_away=4,
+            home_field_coef=2.0, neutral=False,
+        )
+        self.assertAlmostEqual(value, 10.0 + 2.0)  # preseason diff + home field, raw ignored
+
+    def test_blended_margin_none_when_no_preseason_rating(self):
+        from cfb_analytics.analytics.preseason_power.early_season_blend import blended_margin
+        self.assertIsNone(blended_margin(
+            preseason_home=None, preseason_away=5.0,
+            raw_home=1.0, games_home=2, raw_away=1.0, games_away=2,
+            home_field_coef=2.0, neutral=False,
+        ))
+
+    def test_blended_margin_neutral_site_skips_home_field(self):
+        from cfb_analytics.analytics.preseason_power.early_season_blend import blended_margin
+        value = blended_margin(
+            preseason_home=5.0, preseason_away=5.0,
+            raw_home=None, games_home=0, raw_away=None, games_away=0,
+            home_field_coef=2.0, neutral=True,
+        )
+        self.assertAlmostEqual(value, 0.0)
+
+    def test_raw_margin_through_week_only_counts_strictly_earlier_weeks(self):
+        from cfb_analytics.analytics.preseason_power.early_season_blend import raw_margin_through_week
+        rows_by_team = {
+            "A": [
+                {"week": 1, "points_for": 30, "points_against": 10},
+                {"week": 2, "points_for": 7, "points_against": 21},
+            ],
+        }
+        margin, games = raw_margin_through_week(rows_by_team, "A", before_week=2)
+        self.assertEqual(games, 1)
+        self.assertAlmostEqual(margin, 20.0)  # only the week-1 game
+        margin3, games3 = raw_margin_through_week(rows_by_team, "A", before_week=3)
+        self.assertEqual(games3, 2)
+        self.assertAlmostEqual(margin3, (20.0 + (7 - 21)) / 2)
+
+
+class EarlySeasonPredictionsEligibilityTests(unittest.TestCase):
+    def test_week_is_fully_complete_handles_missing_partial_and_complete(self):
+        import cfb_analytics.pipelines.early_season_predictions as esp
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(esp, "RAW_ROOT", Path(tmp)):
+                self.assertIsNone(esp._week_is_fully_complete(1))  # not ingested yet
+                path = Path(tmp) / "cfbd" / "season=2026" / "season_type=regular" / "week=01" / "games.json"
+                path.parent.mkdir(parents=True)
+                path.write_text(json.dumps([{"completed": True}, {"completed": False}]))
+                self.assertFalse(esp._week_is_fully_complete(1))
+                path.write_text(json.dumps([{"completed": True}, {"completed": True}]))
+                self.assertTrue(esp._week_is_fully_complete(1))
+
+    def test_write_prospective_snapshot_refuses_to_overwrite_an_existing_week(self):
+        import cfb_analytics.pipelines.early_season_predictions as esp
+        with tempfile.TemporaryDirectory() as tmp:
+            existing = Path(tmp) / "week-02.json"
+            existing.parent.mkdir(parents=True, exist_ok=True)
+            existing.write_text("{}")
+            with patch.object(esp, "PROSPECTIVE_PREDICTIONS_ROOT", Path(tmp)):
+                self.assertIsNone(esp.write_prospective_snapshot(2))
+            self.assertEqual(existing.read_text(), "{}")  # untouched
+
+    def test_write_prospective_snapshot_waits_for_prior_week_to_finish(self):
+        import cfb_analytics.pipelines.early_season_predictions as esp
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(esp, "PROSPECTIVE_PREDICTIONS_ROOT", Path(tmp) / "predictions"), \
+                 patch.object(esp, "_week_is_fully_complete", return_value=False):
+                self.assertIsNone(esp.write_prospective_snapshot(2))
+                self.assertFalse((Path(tmp) / "predictions" / "week-02.json").exists())

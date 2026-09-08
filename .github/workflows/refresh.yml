@@ -105,6 +105,14 @@ jobs:
       # already on disk -- no CFBD_API_KEY needed at this step.
       - name: Score weekly predictions
         run: python -m cfb_analytics.pipelines.weekly_predictions
+      # Reads the frozen model committed at prospective/2026/preseason-
+      # power-frozen.json (fit once, out of band -- see
+      # scripts/ingest_preseason_power_inputs.py -- never refit here).
+      # Publishes the public preseason-power ranking plus an immutable
+      # snapshot for whichever early-season week is next eligible; a
+      # no-op once nothing new is eligible.
+      - name: Score early-season predictions
+        run: python -m cfb_analytics.pipelines.early_season_predictions publish
       - name: Export Next.js data
         run: python scripts/export_web_data.py
       - name: Audit every published season

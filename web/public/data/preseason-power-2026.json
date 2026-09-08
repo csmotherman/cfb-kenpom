@@ -1,0 +1,1077 @@
+{
+  "backtest": {
+    "description": "Week 2 predictions (preseason prior blended with real Week 1 results) across every prior COMPLETE_SEASON, walk-forward: each season's coefficients are fit only on strictly earlier seasons.",
+    "mae": 13.31,
+    "n": 314,
+    "winnerPct": 74.52
+  },
+  "freezeVersion": "early-season-blend-2026-v1",
+  "generatedAt": "2026-09-08T21:05:09.811810+00:00",
+  "season": 2026,
+  "teams": [
+    {
+      "conf": "Big Ten",
+      "powerScore": 55.07,
+      "rank": 1,
+      "slug": "ohio-state",
+      "team": "Ohio State",
+      "teamId": 194
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 53.91,
+      "rank": 2,
+      "slug": "oregon",
+      "team": "Oregon",
+      "teamId": 2483
+    },
+    {
+      "conf": "FBS Independents",
+      "powerScore": 52.18,
+      "rank": 3,
+      "slug": "notre-dame",
+      "team": "Notre Dame",
+      "teamId": 87
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 51.72,
+      "rank": 4,
+      "slug": "georgia",
+      "team": "Georgia",
+      "teamId": 61
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 49.05,
+      "rank": 5,
+      "slug": "texas",
+      "team": "Texas",
+      "teamId": 251
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 46.49,
+      "rank": 6,
+      "slug": "alabama",
+      "team": "Alabama",
+      "teamId": 333
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 46.4,
+      "rank": 7,
+      "slug": "usc",
+      "team": "USC",
+      "teamId": 30
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 45.79,
+      "rank": 8,
+      "slug": "texas-a-m",
+      "team": "Texas A&M",
+      "teamId": 245
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 45.25,
+      "rank": 9,
+      "slug": "michigan",
+      "team": "Michigan",
+      "teamId": 130
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 44.69,
+      "rank": 10,
+      "slug": "miami",
+      "team": "Miami",
+      "teamId": 2390
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 43.9,
+      "rank": 11,
+      "slug": "ole-miss",
+      "team": "Ole Miss",
+      "teamId": 145
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 43.7,
+      "rank": 12,
+      "slug": "oklahoma",
+      "team": "Oklahoma",
+      "teamId": 201
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 40.47,
+      "rank": 13,
+      "slug": "washington",
+      "team": "Washington",
+      "teamId": 264
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 40.33,
+      "rank": 14,
+      "slug": "tennessee",
+      "team": "Tennessee",
+      "teamId": 2633
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 40.06,
+      "rank": 15,
+      "slug": "indiana",
+      "team": "Indiana",
+      "teamId": 84
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 39.0,
+      "rank": 16,
+      "slug": "south-carolina",
+      "team": "South Carolina",
+      "teamId": 2579
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 38.89,
+      "rank": 17,
+      "slug": "lsu",
+      "team": "LSU",
+      "teamId": 99
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 38.32,
+      "rank": 18,
+      "slug": "texas-tech",
+      "team": "Texas Tech",
+      "teamId": 2641
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 38.3,
+      "rank": 19,
+      "slug": "utah",
+      "team": "Utah",
+      "teamId": 254
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 37.88,
+      "rank": 20,
+      "slug": "penn-state",
+      "team": "Penn State",
+      "teamId": 213
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 36.84,
+      "rank": 21,
+      "slug": "byu",
+      "team": "BYU",
+      "teamId": 252
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 36.23,
+      "rank": 22,
+      "slug": "florida",
+      "team": "Florida",
+      "teamId": 57
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 35.95,
+      "rank": 23,
+      "slug": "auburn",
+      "team": "Auburn",
+      "teamId": 2
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 35.0,
+      "rank": 24,
+      "slug": "iowa",
+      "team": "Iowa",
+      "teamId": 2294
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 34.87,
+      "rank": 25,
+      "slug": "missouri",
+      "team": "Missouri",
+      "teamId": 142
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 34.44,
+      "rank": 26,
+      "slug": "florida-state",
+      "team": "Florida State",
+      "teamId": 52
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 34.32,
+      "rank": 27,
+      "slug": "smu",
+      "team": "SMU",
+      "teamId": 2567
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 34.21,
+      "rank": 28,
+      "slug": "clemson",
+      "team": "Clemson",
+      "teamId": 228
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 33.93,
+      "rank": 29,
+      "slug": "kansas-state",
+      "team": "Kansas State",
+      "teamId": 2306
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 33.12,
+      "rank": 30,
+      "slug": "nc-state",
+      "team": "NC State",
+      "teamId": 152
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 32.33,
+      "rank": 31,
+      "slug": "pittsburgh",
+      "team": "Pittsburgh",
+      "teamId": 221
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 32.32,
+      "rank": 32,
+      "slug": "arizona",
+      "team": "Arizona",
+      "teamId": 12
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 31.65,
+      "rank": 33,
+      "slug": "minnesota",
+      "team": "Minnesota",
+      "teamId": 135
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 31.58,
+      "rank": 34,
+      "slug": "vanderbilt",
+      "team": "Vanderbilt",
+      "teamId": 238
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 31.34,
+      "rank": 35,
+      "slug": "maryland",
+      "team": "Maryland",
+      "teamId": 120
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 30.75,
+      "rank": 36,
+      "slug": "illinois",
+      "team": "Illinois",
+      "teamId": 356
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 30.67,
+      "rank": 37,
+      "slug": "tcu",
+      "team": "TCU",
+      "teamId": 2628
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 30.07,
+      "rank": 38,
+      "slug": "nebraska",
+      "team": "Nebraska",
+      "teamId": 158
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 29.94,
+      "rank": 39,
+      "slug": "georgia-tech",
+      "team": "Georgia Tech",
+      "teamId": 59
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 29.69,
+      "rank": 40,
+      "slug": "houston",
+      "team": "Houston",
+      "teamId": 248
+    },
+    {
+      "conf": "Pac-12",
+      "powerScore": 29.44,
+      "rank": 41,
+      "slug": "boise-state",
+      "team": "Boise State",
+      "teamId": 68
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 29.08,
+      "rank": 42,
+      "slug": "louisville",
+      "team": "Louisville",
+      "teamId": 97
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 28.65,
+      "rank": 43,
+      "slug": "arkansas",
+      "team": "Arkansas",
+      "teamId": 8
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 28.64,
+      "rank": 44,
+      "slug": "wisconsin",
+      "team": "Wisconsin",
+      "teamId": 275
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 28.55,
+      "rank": 45,
+      "slug": "kentucky",
+      "team": "Kentucky",
+      "teamId": 96
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 28.5,
+      "rank": 46,
+      "slug": "west-virginia",
+      "team": "West Virginia",
+      "teamId": 277
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 28.47,
+      "rank": 47,
+      "slug": "arizona-state",
+      "team": "Arizona State",
+      "teamId": 9
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 28.25,
+      "rank": 48,
+      "slug": "iowa-state",
+      "team": "Iowa State",
+      "teamId": 66
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 27.85,
+      "rank": 49,
+      "slug": "rutgers",
+      "team": "Rutgers",
+      "teamId": 164
+    },
+    {
+      "conf": "SEC",
+      "powerScore": 27.82,
+      "rank": 50,
+      "slug": "mississippi-state",
+      "team": "Mississippi State",
+      "teamId": 344
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 27.08,
+      "rank": 51,
+      "slug": "ucla",
+      "team": "UCLA",
+      "teamId": 26
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 26.56,
+      "rank": 52,
+      "slug": "duke",
+      "team": "Duke",
+      "teamId": 150
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 26.17,
+      "rank": 53,
+      "slug": "california",
+      "team": "California",
+      "teamId": 25
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 26.14,
+      "rank": 54,
+      "slug": "kansas",
+      "team": "Kansas",
+      "teamId": 2305
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 25.8,
+      "rank": 55,
+      "slug": "virginia-tech",
+      "team": "Virginia Tech",
+      "teamId": 259
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 25.29,
+      "rank": 56,
+      "slug": "south-florida",
+      "team": "South Florida",
+      "teamId": 58
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 25.07,
+      "rank": 57,
+      "slug": "baylor",
+      "team": "Baylor",
+      "teamId": 239
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 24.83,
+      "rank": 58,
+      "slug": "michigan-state",
+      "team": "Michigan State",
+      "teamId": 127
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 24.79,
+      "rank": 59,
+      "slug": "cincinnati",
+      "team": "Cincinnati",
+      "teamId": 2132
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 24.77,
+      "rank": 60,
+      "slug": "purdue",
+      "team": "Purdue",
+      "teamId": 2509
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 24.62,
+      "rank": 61,
+      "slug": "wake-forest",
+      "team": "Wake Forest",
+      "teamId": 154
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 24.44,
+      "rank": 62,
+      "slug": "north-carolina",
+      "team": "North Carolina",
+      "teamId": 153
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 24.37,
+      "rank": 63,
+      "slug": "virginia",
+      "team": "Virginia",
+      "teamId": 258
+    },
+    {
+      "conf": "Big Ten",
+      "powerScore": 24.28,
+      "rank": 64,
+      "slug": "northwestern",
+      "team": "Northwestern",
+      "teamId": 77
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 23.68,
+      "rank": 65,
+      "slug": "tulane",
+      "team": "Tulane",
+      "teamId": 2655
+    },
+    {
+      "conf": "Pac-12",
+      "powerScore": 23.62,
+      "rank": 66,
+      "slug": "san-diego-state",
+      "team": "San Diego State",
+      "teamId": 21
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 23.19,
+      "rank": 67,
+      "slug": "ucf",
+      "team": "UCF",
+      "teamId": 2116
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 22.86,
+      "rank": 68,
+      "slug": "stanford",
+      "team": "Stanford",
+      "teamId": 24
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 22.78,
+      "rank": 69,
+      "slug": "colorado",
+      "team": "Colorado",
+      "teamId": 38
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 22.7,
+      "rank": 70,
+      "slug": "memphis",
+      "team": "Memphis",
+      "teamId": 235
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 22.65,
+      "rank": 71,
+      "slug": "james-madison",
+      "team": "James Madison",
+      "teamId": 256
+    },
+    {
+      "conf": "Pac-12",
+      "powerScore": 22.2,
+      "rank": 72,
+      "slug": "washington-state",
+      "team": "Washington State",
+      "teamId": 265
+    },
+    {
+      "conf": "Pac-12",
+      "powerScore": 21.88,
+      "rank": 73,
+      "slug": "texas-state",
+      "team": "Texas State",
+      "teamId": 326
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 21.74,
+      "rank": 74,
+      "slug": "syracuse",
+      "team": "Syracuse",
+      "teamId": 183
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 21.71,
+      "rank": 75,
+      "slug": "utsa",
+      "team": "UTSA",
+      "teamId": 2636
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 20.95,
+      "rank": 76,
+      "slug": "east-carolina",
+      "team": "East Carolina",
+      "teamId": 151
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 20.85,
+      "rank": 77,
+      "slug": "toledo",
+      "team": "Toledo",
+      "teamId": 2649
+    },
+    {
+      "conf": "Mountain West",
+      "powerScore": 20.7,
+      "rank": 78,
+      "slug": "unlv",
+      "team": "UNLV",
+      "teamId": 2439
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 20.37,
+      "rank": 79,
+      "slug": "western-michigan",
+      "team": "Western Michigan",
+      "teamId": 2711
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 20.05,
+      "rank": 80,
+      "slug": "troy",
+      "team": "Troy",
+      "teamId": 2653
+    },
+    {
+      "conf": "Pac-12",
+      "powerScore": 19.79,
+      "rank": 81,
+      "slug": "oregon-state",
+      "team": "Oregon State",
+      "teamId": 204
+    },
+    {
+      "conf": "Pac-12",
+      "powerScore": 19.79,
+      "rank": 82,
+      "slug": "utah-state",
+      "team": "Utah State",
+      "teamId": 328
+    },
+    {
+      "conf": "ACC",
+      "powerScore": 19.49,
+      "rank": 83,
+      "slug": "boston-college",
+      "team": "Boston College",
+      "teamId": 103
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 19.12,
+      "rank": 84,
+      "slug": "north-texas",
+      "team": "North Texas",
+      "teamId": 249
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 18.19,
+      "rank": 85,
+      "slug": "old-dominion",
+      "team": "Old Dominion",
+      "teamId": 295
+    },
+    {
+      "conf": "Big 12",
+      "powerScore": 17.88,
+      "rank": 86,
+      "slug": "oklahoma-state",
+      "team": "Oklahoma State",
+      "teamId": 197
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 17.62,
+      "rank": 87,
+      "slug": "south-alabama",
+      "team": "South Alabama",
+      "teamId": 6
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 17.36,
+      "rank": 88,
+      "slug": "louisiana",
+      "team": "Louisiana",
+      "teamId": 309
+    },
+    {
+      "conf": "Conference USA",
+      "powerScore": 17.29,
+      "rank": 89,
+      "slug": "liberty",
+      "team": "Liberty",
+      "teamId": 2335
+    },
+    {
+      "conf": "Pac-12",
+      "powerScore": 17.27,
+      "rank": 90,
+      "slug": "fresno-state",
+      "team": "Fresno State",
+      "teamId": 278
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 17.19,
+      "rank": 91,
+      "slug": "marshall",
+      "team": "Marshall",
+      "teamId": 276
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 17.05,
+      "rank": 92,
+      "slug": "louisiana-tech",
+      "team": "Louisiana Tech",
+      "teamId": 2348
+    },
+    {
+      "conf": "Mountain West",
+      "powerScore": 16.9,
+      "rank": 93,
+      "slug": "hawai-i",
+      "team": "Hawai'i",
+      "teamId": 62
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 16.39,
+      "rank": 94,
+      "slug": "miami-oh",
+      "team": "Miami (OH)",
+      "teamId": 193
+    },
+    {
+      "conf": "Conference USA",
+      "powerScore": 15.91,
+      "rank": 95,
+      "slug": "jacksonville-state",
+      "team": "Jacksonville State",
+      "teamId": 55
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 15.91,
+      "rank": 96,
+      "slug": "ohio",
+      "team": "Ohio",
+      "teamId": 195
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 15.79,
+      "rank": 97,
+      "slug": "florida-atlantic",
+      "team": "Florida Atlantic",
+      "teamId": 2226
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 14.97,
+      "rank": 98,
+      "slug": "eastern-michigan",
+      "team": "Eastern Michigan",
+      "teamId": 2199
+    },
+    {
+      "conf": "Mountain West",
+      "powerScore": 14.95,
+      "rank": 99,
+      "slug": "nevada",
+      "team": "Nevada",
+      "teamId": 2440
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 14.73,
+      "rank": 100,
+      "slug": "tulsa",
+      "team": "Tulsa",
+      "teamId": 202
+    },
+    {
+      "conf": "Conference USA",
+      "powerScore": 13.96,
+      "rank": 101,
+      "slug": "western-kentucky",
+      "team": "Western Kentucky",
+      "teamId": 98
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 13.78,
+      "rank": 102,
+      "slug": "arkansas-state",
+      "team": "Arkansas State",
+      "teamId": 2032
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 13.67,
+      "rank": 103,
+      "slug": "georgia-southern",
+      "team": "Georgia Southern",
+      "teamId": 290
+    },
+    {
+      "conf": "Pac-12",
+      "powerScore": 13.64,
+      "rank": 104,
+      "slug": "colorado-state",
+      "team": "Colorado State",
+      "teamId": 36
+    },
+    {
+      "conf": "FBS Independents",
+      "powerScore": 13.35,
+      "rank": 105,
+      "slug": "uconn",
+      "team": "UConn",
+      "teamId": 41
+    },
+    {
+      "conf": "Mountain West",
+      "powerScore": 12.96,
+      "rank": 106,
+      "slug": "wyoming",
+      "team": "Wyoming",
+      "teamId": 2751
+    },
+    {
+      "conf": "Mountain West",
+      "powerScore": 12.68,
+      "rank": 107,
+      "slug": "northern-illinois",
+      "team": "Northern Illinois",
+      "teamId": 2459
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 12.55,
+      "rank": 108,
+      "slug": "bowling-green",
+      "team": "Bowling Green",
+      "teamId": 189
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 11.6,
+      "rank": 109,
+      "slug": "app-state",
+      "team": "App State",
+      "teamId": 2026
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 11.4,
+      "rank": 110,
+      "slug": "coastal-carolina",
+      "team": "Coastal Carolina",
+      "teamId": 324
+    },
+    {
+      "conf": "Conference USA",
+      "powerScore": 10.98,
+      "rank": 111,
+      "slug": "florida-international",
+      "team": "Florida International",
+      "teamId": 2229
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 10.85,
+      "rank": 112,
+      "slug": "southern-miss",
+      "team": "Southern Miss",
+      "teamId": 2572
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 10.71,
+      "rank": 113,
+      "slug": "buffalo",
+      "team": "Buffalo",
+      "teamId": 2084
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 10.47,
+      "rank": 114,
+      "slug": "temple",
+      "team": "Temple",
+      "teamId": 218
+    },
+    {
+      "conf": "Mountain West",
+      "powerScore": 10.43,
+      "rank": 115,
+      "slug": "san-jose-state",
+      "team": "San Jos\u00e9 State",
+      "teamId": 23
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 10.34,
+      "rank": 116,
+      "slug": "kent-state",
+      "team": "Kent State",
+      "teamId": 2309
+    },
+    {
+      "conf": "Mountain West",
+      "powerScore": 10.06,
+      "rank": 117,
+      "slug": "new-mexico",
+      "team": "New Mexico",
+      "teamId": 167
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 9.99,
+      "rank": 118,
+      "slug": "army",
+      "team": "Army",
+      "teamId": 349
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 9.92,
+      "rank": 119,
+      "slug": "central-michigan",
+      "team": "Central Michigan",
+      "teamId": 2117
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 9.71,
+      "rank": 120,
+      "slug": "ul-monroe",
+      "team": "UL Monroe",
+      "teamId": 2433
+    },
+    {
+      "conf": "Sun Belt",
+      "powerScore": 9.67,
+      "rank": 121,
+      "slug": "georgia-state",
+      "team": "Georgia State",
+      "teamId": 2247
+    },
+    {
+      "conf": "Mountain West",
+      "powerScore": 9.56,
+      "rank": 122,
+      "slug": "utep",
+      "team": "UTEP",
+      "teamId": 2638
+    },
+    {
+      "conf": "Mountain West",
+      "powerScore": 8.91,
+      "rank": 123,
+      "slug": "air-force",
+      "team": "Air Force",
+      "teamId": 2005
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 8.89,
+      "rank": 124,
+      "slug": "charlotte",
+      "team": "Charlotte",
+      "teamId": 2429
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 8.58,
+      "rank": 125,
+      "slug": "rice",
+      "team": "Rice",
+      "teamId": 242
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 7.97,
+      "rank": 126,
+      "slug": "navy",
+      "team": "Navy",
+      "teamId": 2426
+    },
+    {
+      "conf": "Conference USA",
+      "powerScore": 7.12,
+      "rank": 127,
+      "slug": "middle-tennessee",
+      "team": "Middle Tennessee",
+      "teamId": 2393
+    },
+    {
+      "conf": "American Athletic",
+      "powerScore": 6.5,
+      "rank": 128,
+      "slug": "uab",
+      "team": "UAB",
+      "teamId": 5
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 5.7,
+      "rank": 129,
+      "slug": "ball-state",
+      "team": "Ball State",
+      "teamId": 2050
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": 3.96,
+      "rank": 130,
+      "slug": "akron",
+      "team": "Akron",
+      "teamId": 2006
+    },
+    {
+      "conf": "Conference USA",
+      "powerScore": 3.33,
+      "rank": 131,
+      "slug": "sam-houston",
+      "team": "Sam Houston",
+      "teamId": 2534
+    },
+    {
+      "conf": "Conference USA",
+      "powerScore": 1.61,
+      "rank": 132,
+      "slug": "new-mexico-state",
+      "team": "New Mexico State",
+      "teamId": 166
+    },
+    {
+      "conf": "Mid-American",
+      "powerScore": -3.37,
+      "rank": 133,
+      "slug": "massachusetts",
+      "team": "Massachusetts",
+      "teamId": 113
+    }
+  ]
+}

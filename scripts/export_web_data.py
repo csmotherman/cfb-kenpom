@@ -171,9 +171,11 @@ def build_predictions_week_payloads(year, schedule_payload, snapshots):
     """Convert frozen-model prediction snapshots into the public, per-week
     payload the site's gated Predictions page/API expect -- every FBS game
     the model scored that week, not just the Michigan-only slice published
-    separately by publish_predictions.py. `confidence` is left null: the
-    frozen model's win probability is explicitly NOT_CALIBRATED, so nothing
-    is fabricated to fill it.
+    separately by publish_predictions.py. `confidence` is read straight
+    from the snapshot row when the source model actually calibrated one
+    (early_season_predictions.py's blend does); left null otherwise --
+    prediction_v2_2026_freeze's win probability is explicitly
+    NOT_CALIBRATED, so nothing is fabricated to fill it for that model.
     """
     if not snapshots or schedule_payload is None:
         return {}
@@ -203,7 +205,7 @@ def build_predictions_week_payloads(year, schedule_payload, snapshots):
                 # here as the predicted winner's margin of victory so it
                 # reads unambiguously next to predictedWinner.
                 "predictedMargin": round(abs(float(row["predictedMargin"])), 1),
-                "confidence": None,
+                "confidence": row.get("confidence"),
             })
         if not games:
             continue
