@@ -4,7 +4,16 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build_real_data import build_year, YEARS
+from build_real_data import EPA_SUCCESS_METRICS, build_year, YEARS
+
+# Every EPA/Success snapshot key build_real_data.py's week_rows produces per
+# metric: {prefix}Adj, {prefix}AdjAllowed. The matching raw rate isn't
+# duplicated here -- it's already summable client-side from "wk".
+EPA_SUCCESS_ADV_KEYS = [
+    f"{prefix}{suffix}"
+    for prefix, _, _ in EPA_SUCCESS_METRICS
+    for suffix in ("Adj", "AdjAllowed")
+]
 from validate_site_data import validate_season
 
 REPO = Path(__file__).resolve().parent.parent
@@ -105,6 +114,7 @@ def build_season_payload(year):
                 "offExp": r["offExp"], "defExp": r["defExp"],
                 "offFin": r["offFin"], "defFin": r["defFin"],
                 "offHavoc": r["offHavoc"], "defHavoc": r["defHavoc"],
+                **{k: r.get(k) for k in EPA_SUCCESS_ADV_KEYS},
                 "wk": r["wk"],
             })
 

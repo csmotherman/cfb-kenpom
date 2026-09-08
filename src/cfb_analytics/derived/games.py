@@ -9,11 +9,12 @@ from cfb_analytics.canonical.materialize import canonical_partition_dir
 from cfb_analytics.derived.drives import derived_drive_partition_dir
 from cfb_analytics.analytics.success import classify_success,SUCCESS_VERSION
 from cfb_analytics.analytics.explosiveness import classify_explosive,EXPLOSIVENESS_VERSION
+from cfb_analytics.analytics.epa import classify_epa,EPA_VERSION
 from cfb_analytics.analytics.finishing_drives import team_finishing_metrics,FINISHING_DRIVES_VERSION
 from cfb_analytics.analytics.field_position import team_field_position_metrics,FIELD_POSITION_VERSION
 from cfb_analytics.analytics.turnovers import team_turnover_metrics,TURNOVERS_VERSION
 from cfb_analytics.analytics.tfl import team_tfl_metrics,TFL_VERSION
-GAME_SCHEMA_VERSION="team-game-v7-tfl"
+GAME_SCHEMA_VERSION="team-game-v8-epa-downs"
 def derived_game_partition_dir(root:Path,season:int,season_type:str,week:int)->Path:return root/"derived"/"games"/f"season={season}"/f"season_type={season_type}"/f"week={week:02d}"
 def _atomic(path:Path,data:bytes):path.parent.mkdir(parents=True,exist_ok=True);tmp=path.with_suffix(path.suffix+".tmp");tmp.write_bytes(data);os.replace(tmp,path)
 def _sha(b:bytes)->str:return hashlib.sha256(b).hexdigest()
@@ -27,10 +28,12 @@ def _family(p):
 def _metric_counts(plays):
  c=Counter()
  for p in plays:
-  fam=_family(p);success=classify_success(p)
+  fam=_family(p);success=classify_success(p);d=p.get("down")
   if success is not None:
-   c["successEligible"]+=1;c["successful"]+=int(success);d=p.get("down")
-   if fam:c[f"{fam}SuccessEligible"]+=1;c[f"{fam}Successful"]+=int(success)
+   c["successEligible"]+=1;c["successful"]+=int(success)
+   if fam:
+    c[f"{fam}SuccessEligible"]+=1;c[f"{fam}Successful"]+=int(success)
+    if d in (1,2,3):c[f"{fam}Down{d}SuccessEligible"]+=1;c[f"{fam}Down{d}Successful"]+=int(success)
    if d in (1,2,3,4):c[f"down{d}SuccessEligible"]+=1;c[f"down{d}Successful"]+=int(success)
    if success and _num(p.get("analyticsYardsGained")):
     y=p["analyticsYardsGained"];c["successfulYards"]+=y
@@ -39,14 +42,28 @@ def _metric_counts(plays):
   if explosive is not None:
    c["explosiveEligible"]+=1;c["explosive"]+=int(explosive)
    if fam:c[f"{fam}ExplosiveEligible"]+=1;c[f"{fam}Explosive"]+=int(explosive)
+  # EPA is scoped to the same rush/pass scrimmage population as the family
+  # splits above (fam in rush/pass) so "overall EPA plays" reconciles
+  # exactly to "pass EPA plays + rush EPA plays" -- no third bucket of
+  # unclassified scrimmage plays silently included in one but not the other.
+  epa=classify_epa(p)
+  if epa is not None and fam:
+   c["epaPlays"]+=1;c["epaSum"]+=epa
+   c[f"{fam}EpaPlays"]+=1;c[f"{fam}EpaSum"]+=epa
+   if d in (1,2,3):c[f"{fam}Down{d}EpaPlays"]+=1;c[f"{fam}Down{d}EpaSum"]+=epa
  return c
 def _metric_fields(off,deff):
- oc,dc=_metric_counts(off),_metric_counts(deff);out={"successDefinitionVersion":SUCCESS_VERSION,"explosivenessDefinitionVersion":EXPLOSIVENESS_VERSION}
+ oc,dc=_metric_counts(off),_metric_counts(deff);out={"successDefinitionVersion":SUCCESS_VERSION,"explosivenessDefinitionVersion":EXPLOSIVENESS_VERSION,"epaDefinitionVersion":EPA_VERSION}
  for suffix,c in (("",oc),("Allowed",dc)):
   e=c["successEligible"];s=c["successful"];out[f"successEligiblePlays{suffix}"]=e;out[f"successfulPlays{suffix}"]=s;out[f"successRate{suffix}"]=_rate(s,e);out[f"successfulPlayYards{suffix}"]=c["successfulYards"];out[f"yardsPerSuccessfulPlay{suffix}"]=_rate(c["successfulYards"],s)
   ee=c["explosiveEligible"];ex=c["explosive"];out[f"explosiveEligiblePlays{suffix}"]=ee;out[f"explosivePlays{suffix}"]=ex;out[f"explosivePlayRate{suffix}"]=_rate(ex,ee)
+  ep=c["epaPlays"];es=c["epaSum"];out[f"epaPlays{suffix}"]=ep;out[f"epaSum{suffix}"]=es;out[f"epaPerPlay{suffix}"]=_rate(es,ep)
   for fam in ("rush","pass"):
    e=c[f"{fam}SuccessEligible"];s=c[f"{fam}Successful"];out[f"{fam}SuccessEligiblePlays{suffix}"]=e;out[f"{fam}SuccessfulPlays{suffix}"]=s;out[f"{fam}SuccessRate{suffix}"]=_rate(s,e);out[f"{fam}SuccessfulPlayYards{suffix}"]=c[f"{fam}SuccessfulYards"];out[f"{fam}YardsPerSuccessfulPlay{suffix}"]=_rate(c[f"{fam}SuccessfulYards"],s);ee=c[f"{fam}ExplosiveEligible"];ex=c[f"{fam}Explosive"];out[f"{fam}ExplosiveEligiblePlays{suffix}"]=ee;out[f"{fam}ExplosivePlays{suffix}"]=ex;out[f"{fam}ExplosivePlayRate{suffix}"]=_rate(ex,ee)
+   fep=c[f"{fam}EpaPlays"];fes=c[f"{fam}EpaSum"];out[f"{fam}EpaPlays{suffix}"]=fep;out[f"{fam}EpaSum{suffix}"]=fes;out[f"{fam}EpaPerPlay{suffix}"]=_rate(fes,fep)
+   for d in (1,2,3):
+    de=c[f"{fam}Down{d}SuccessEligible"];ds=c[f"{fam}Down{d}Successful"];out[f"{fam}Down{d}SuccessEligiblePlays{suffix}"]=de;out[f"{fam}Down{d}SuccessfulPlays{suffix}"]=ds;out[f"{fam}Down{d}SuccessRate{suffix}"]=_rate(ds,de)
+    dep=c[f"{fam}Down{d}EpaPlays"];des=c[f"{fam}Down{d}EpaSum"];out[f"{fam}Down{d}EpaPlays{suffix}"]=dep;out[f"{fam}Down{d}EpaSum{suffix}"]=des;out[f"{fam}Down{d}EpaPerPlay{suffix}"]=_rate(des,dep)
   for d in (1,2,3,4):
    e=c[f"down{d}SuccessEligible"];s=c[f"down{d}Successful"];out[f"down{d}SuccessEligiblePlays{suffix}"]=e;out[f"down{d}SuccessfulPlays{suffix}"]=s;out[f"down{d}SuccessRate{suffix}"]=_rate(s,e)
  return out
@@ -79,7 +96,7 @@ def game_corpus_audit(raw_root,processed_root,seasons):
  records=[]
  for s in seasons:
   for st,w in discover_partitions(raw_root,s):records.extend(json.loads((derived_game_partition_dir(processed_root,s,st,w)/"team_games.json").read_text()))
- by=Counter(r['gameId'] for r in records);checks={"exactly_two_team_rows_per_game":all(n==2 for n in by.values()),"unique_team_game_rows":len({(r['gameId'],r['team']) for r in records})==len(records),"all_team_rows_have_opponent":all(r.get('opponent') for r in records),"success_offense_defense_eligible_reconciles":sum(r.get('successEligiblePlays',0) for r in records)==sum(r.get('successEligiblePlaysAllowed',0) for r in records),"success_offense_defense_successful_reconciles":sum(r.get('successfulPlays',0) for r in records)==sum(r.get('successfulPlaysAllowed',0) for r in records),"explosive_offense_defense_eligible_reconciles":sum(r.get('explosiveEligiblePlays',0) for r in records)==sum(r.get('explosiveEligiblePlaysAllowed',0) for r in records),"explosive_offense_defense_plays_reconcile":sum(r.get('explosivePlays',0) for r in records)==sum(r.get('explosivePlaysAllowed',0) for r in records),"successful_yards_offense_defense_reconcile":sum(r.get('successfulPlayYards',0) for r in records)==sum(r.get('successfulPlayYardsAllowed',0) for r in records),"finishing_opportunities_reconcile":sum(r.get('scoringOpportunities',0) for r in records)==sum(r.get('scoringOpportunitiesAllowed',0) for r in records),"finishing_points_reconcile":sum(r.get('opportunityPoints',0) for r in records)==sum(r.get('opportunityPointsAllowed',0) for r in records),"field_position_possessions_reconcile":sum(r.get('fieldPositionPossessions',0) for r in records)==sum(r.get('fieldPositionPossessionsAllowed',0) for r in records),"field_position_yards_reconcile":sum(r.get('startYardsToGoalTotal',0) for r in records)==sum(r.get('startYardsToGoalTotalAllowed',0) for r in records),"turnover_giveaways_takeaways_reconcile":sum(r.get('giveaways',0) for r in records)==sum(r.get('takeaways',0) for r in records),"turnover_interceptions_reconcile":sum(r.get('interceptionsThrown',0) for r in records)==sum(r.get('interceptionsMade',0) for r in records),"turnover_fumbles_reconcile":sum(r.get('fumblesLost',0) for r in records)==sum(r.get('fumblesRecovered',0) for r in records),"turnover_margin_sums_zero":sum(r.get('turnoverMargin',0) for r in records)==0,"tfl_offense_defense_reconcile":sum(r.get('tacklesForLoss',0) for r in records)==sum(r.get('tacklesForLossAllowed',0) for r in records)}
+ by=Counter(r['gameId'] for r in records);checks={"exactly_two_team_rows_per_game":all(n==2 for n in by.values()),"unique_team_game_rows":len({(r['gameId'],r['team']) for r in records})==len(records),"all_team_rows_have_opponent":all(r.get('opponent') for r in records),"success_offense_defense_eligible_reconciles":sum(r.get('successEligiblePlays',0) for r in records)==sum(r.get('successEligiblePlaysAllowed',0) for r in records),"success_offense_defense_successful_reconciles":sum(r.get('successfulPlays',0) for r in records)==sum(r.get('successfulPlaysAllowed',0) for r in records),"explosive_offense_defense_eligible_reconciles":sum(r.get('explosiveEligiblePlays',0) for r in records)==sum(r.get('explosiveEligiblePlaysAllowed',0) for r in records),"explosive_offense_defense_plays_reconcile":sum(r.get('explosivePlays',0) for r in records)==sum(r.get('explosivePlaysAllowed',0) for r in records),"successful_yards_offense_defense_reconcile":sum(r.get('successfulPlayYards',0) for r in records)==sum(r.get('successfulPlayYardsAllowed',0) for r in records),"finishing_opportunities_reconcile":sum(r.get('scoringOpportunities',0) for r in records)==sum(r.get('scoringOpportunitiesAllowed',0) for r in records),"finishing_points_reconcile":sum(r.get('opportunityPoints',0) for r in records)==sum(r.get('opportunityPointsAllowed',0) for r in records),"field_position_possessions_reconcile":sum(r.get('fieldPositionPossessions',0) for r in records)==sum(r.get('fieldPositionPossessionsAllowed',0) for r in records),"field_position_yards_reconcile":sum(r.get('startYardsToGoalTotal',0) for r in records)==sum(r.get('startYardsToGoalTotalAllowed',0) for r in records),"turnover_giveaways_takeaways_reconcile":sum(r.get('giveaways',0) for r in records)==sum(r.get('takeaways',0) for r in records),"turnover_interceptions_reconcile":sum(r.get('interceptionsThrown',0) for r in records)==sum(r.get('interceptionsMade',0) for r in records),"turnover_fumbles_reconcile":sum(r.get('fumblesLost',0) for r in records)==sum(r.get('fumblesRecovered',0) for r in records),"turnover_margin_sums_zero":sum(r.get('turnoverMargin',0) for r in records)==0,"tfl_offense_defense_reconcile":sum(r.get('tacklesForLoss',0) for r in records)==sum(r.get('tacklesForLossAllowed',0) for r in records),"epa_offense_defense_plays_reconcile":sum(r.get('epaPlays',0) for r in records)==sum(r.get('epaPlaysAllowed',0) for r in records),"epa_pass_rush_plays_sum_to_overall":sum(r.get('epaPlays',0) for r in records)==sum(r.get('passEpaPlays',0)+r.get('rushEpaPlays',0) for r in records),"epa_pass_rush_sum_matches_overall":abs(sum(r.get('epaSum',0) for r in records)-sum(r.get('passEpaSum',0)+r.get('rushEpaSum',0) for r in records))<1e-6,"epa_down_splits_within_family_total":all(sum(r.get(f'passDown{d}EpaPlays',0) for d in (1,2,3))<=r.get('passEpaPlays',0) and sum(r.get(f'rushDown{d}EpaPlays',0) for d in (1,2,3))<=r.get('rushEpaPlays',0) for r in records)}
  return {"status":"PASS" if all(checks.values()) else "REVIEW","team_game_rows":len(records),"games":len(by),"review_rows":sum(r['gameValidationStatus']!='PASS' for r in records),"success_eligible_plays":sum(r.get('successEligiblePlays',0) for r in records),"successful_plays":sum(r.get('successfulPlays',0) for r in records),"explosive_eligible_plays":sum(r.get('explosiveEligiblePlays',0) for r in records),"explosive_plays":sum(r.get('explosivePlays',0) for r in records),"successful_play_yards":sum(r.get('successfulPlayYards',0) for r in records),"scoring_opportunities":sum(r.get('scoringOpportunities',0) for r in records),"opportunity_points":sum(r.get('opportunityPoints',0) for r in records),"unresolved_point_opportunities":sum(r.get('unresolvedPointOpportunities',0) for r in records),"field_position_possessions":sum(r.get('fieldPositionPossessions',0) for r in records),"giveaways":sum(r.get('giveaways',0) for r in records),"takeaways":sum(r.get('takeaways',0) for r in records),"interceptions":sum(r.get('interceptionsThrown',0) for r in records),"fumbles_lost":sum(r.get('fumblesLost',0) for r in records),"turnover_unresolved_possessions":sum(r.get('turnoverUnresolvedPossessions',0) for r in records),"tackles_for_loss":sum(r.get('tacklesForLoss',0) for r in records),"checks":checks}
 def concise_game_audit(r):
  lines=[f"DERIVED TEAM-GAME CORPUS AUDIT: {r['status']}",f"Games: {r['games']:,}",f"Team-game rows: {r['team_game_rows']:,}",f"Review rows: {r['review_rows']:,}",f"Success eligible plays: {r['success_eligible_plays']:,}",f"Successful plays: {r['successful_plays']:,}",f"Explosive eligible plays: {r['explosive_eligible_plays']:,}",f"Explosive plays: {r['explosive_plays']:,}",f"Successful-play yards: {r['successful_play_yards']:,.0f}",f"Scoring opportunities: {r['scoring_opportunities']:,}",f"Adjudicated opportunity points: {r['opportunity_points']:,}",f"Unresolved point opportunities: {r['unresolved_point_opportunities']:,}",f"Field-position eligible possessions: {r['field_position_possessions']:,}",f"Giveaways: {r['giveaways']:,}",f"Takeaways: {r['takeaways']:,}",f"Interceptions: {r['interceptions']:,}",f"Fumbles lost: {r['fumbles_lost']:,}",f"Turnover-unresolved possessions: {r['turnover_unresolved_possessions']:,}",f"Tackles for loss: {r['tackles_for_loss']:,}","","Checks:"]+[f"{'PASS' if v else 'FAIL'} {k}" for k,v in r['checks'].items()];return "\n".join(lines)

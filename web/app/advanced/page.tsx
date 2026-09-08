@@ -37,7 +37,83 @@ type AdvColumn = {
   tooltip: string;
 };
 
-type Tab = { label: string; primaryKey: string; columns: AdvColumn[] };
+type AdvSection = { title: string; columns: AdvColumn[] };
+type Tab = { label: string; primaryKey: string; columns: AdvColumn[]; sections?: AdvSection[]; note?: string };
+
+// Shared by the EPA and Success Rate tabs: one pair of columns (offense +
+// defense-allowed) per metric, both reading a confidence-blended snapshot
+// field (build_real_data.py's metric_blend). At ~1 game played there's no
+// opponent baseline yet, so this reads as the team's raw rate minus league
+// average (no adjustment); it ramps to a full opponent-adjusted edge by
+// ~5 games. Higher is better for both offense AND defense-allowed here --
+// the defense side is already framed as "how much this defense suppresses
+// the opponent" (see the Havoc/Explosiveness columns elsewhere on this
+// page for the same convention), not a literal "amount allowed."
+function edgePair(prefix: string, label: string, tip: string, fmt: "signed2" | "signed3" = "signed3"): AdvColumn[] {
+  return [
+    { key: `${prefix}Adj`, label: `${label} (Off)`, fmt, rankable: true, kind: "snapshot", tooltip: `${tip} Offense. ${CONFIDENCE_TIP}` },
+    { key: `${prefix}AdjAllowed`, label: `${label} (Def)`, fmt, rankable: true, kind: "snapshot", tooltip: `${tip} Defense (suppressing the opponent's version of this). ${CONFIDENCE_TIP}` },
+  ];
+}
+
+const CONFIDENCE_TIP = "Opponent-adjusted, confidence-weighted by games played -- effectively raw (minus league average) at 1 game, ramping to fully adjusted by 5.";
+
+const EPA_SECTIONS: AdvSection[] = [
+  {
+    title: "Overall",
+    columns: [
+      ...edgePair("epa", "EPA/Play", "GRID's opponent-adjusted EPA per play (CFBD's ppa model, summed over every clean rush/pass snap).", "signed2"),
+    ],
+  },
+  {
+    title: "Passing",
+    columns: [
+      ...edgePair("passEpa", "EPA/Dropback", "GRID's opponent-adjusted passing EPA per dropback (attempts + sacks)."),
+      ...edgePair("passEpaDown1", "EPA/Pass, 1st Down", "GRID's opponent-adjusted passing EPA per dropback on 1st down."),
+      ...edgePair("passEpaDown2", "EPA/Pass, 2nd Down", "GRID's opponent-adjusted passing EPA per dropback on 2nd down."),
+      ...edgePair("passEpaDown3", "EPA/Pass, 3rd Down", "GRID's opponent-adjusted passing EPA per dropback on 3rd down."),
+    ],
+  },
+  {
+    title: "Rushing",
+    columns: [
+      ...edgePair("rushEpa", "EPA/Rush", "GRID's opponent-adjusted rushing EPA per carry."),
+      ...edgePair("rushEpaDown1", "EPA/Rush, 1st Down", "GRID's opponent-adjusted rushing EPA per carry on 1st down."),
+      ...edgePair("rushEpaDown2", "EPA/Rush, 2nd Down", "GRID's opponent-adjusted rushing EPA per carry on 2nd down."),
+      ...edgePair("rushEpaDown3", "EPA/Rush, 3rd Down", "GRID's opponent-adjusted rushing EPA per carry on 3rd down."),
+    ],
+  },
+];
+
+const SUCCESS_SECTIONS: AdvSection[] = [
+  {
+    title: "Overall",
+    columns: [
+      ...edgePair("success", "Success Rate", "GRID's opponent-adjusted success rate (down-scaled yardage thresholds: 50% of distance on 1st down, 70% on 2nd, 100% on 3rd/4th).", "signed2"),
+    ],
+  },
+  {
+    title: "Passing",
+    columns: [
+      ...edgePair("passSuccess", "Pass Success Rate", "GRID's opponent-adjusted passing success rate."),
+      ...edgePair("passSuccessDown1", "Pass Success, 1st Down", "GRID's opponent-adjusted passing success rate on 1st down."),
+      ...edgePair("passSuccessDown2", "Pass Success, 2nd Down", "GRID's opponent-adjusted passing success rate on 2nd down."),
+      ...edgePair("passSuccessDown3", "Pass Success, 3rd Down", "GRID's opponent-adjusted passing success rate on 3rd down."),
+    ],
+  },
+  {
+    title: "Rushing",
+    columns: [
+      ...edgePair("rushSuccess", "Rush Success Rate", "GRID's opponent-adjusted rushing success rate."),
+      ...edgePair("rushSuccessDown1", "Rush Success, 1st Down", "GRID's opponent-adjusted rushing success rate on 1st down."),
+      ...edgePair("rushSuccessDown2", "Rush Success, 2nd Down", "GRID's opponent-adjusted rushing success rate on 2nd down."),
+      ...edgePair("rushSuccessDown3", "Rush Success, 3rd Down", "GRID's opponent-adjusted rushing success rate on 3rd down."),
+    ],
+  },
+];
+
+EPA_SECTIONS[0].columns[0].primary = true;
+SUCCESS_SECTIONS[0].columns[0].primary = true;
 
 const TABS: Record<string, Tab> = {
   general: {
@@ -89,6 +165,20 @@ const TABS: Record<string, Tab> = {
       { key: "defHavoc", label: "Havoc Forced (Adj)", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Real opponent-adjusted edge in forcing TFLs, sacks and turnovers, as of the end week. Research-stage model" },
       { key: "defHavocRaw", label: "Havoc Forced %", fmt: "pct1", rankable: true, kind: "rate", num: ["havocForcedNum"], den: ["havocForcedDen"], tooltip: "Real locked Havoc v1 rate — share of the opponent's plays this defense turned into a TFL, sack or turnover in the selected weeks (raw)." },
     ],
+  },
+  epa: {
+    label: "EPA",
+    primaryKey: "epaAdj",
+    sections: EPA_SECTIONS,
+    columns: EPA_SECTIONS.flatMap((s) => s.columns),
+    note: `${CONFIDENCE_TIP} Raw EPA per play is available in the General/Offense/Defense tabs' underlying data; every number here is the opponent-adjusted edge, since that's the point of this tab.`,
+  },
+  successRate: {
+    label: "Success Rate",
+    primaryKey: "successAdj",
+    sections: SUCCESS_SECTIONS,
+    columns: SUCCESS_SECTIONS.flatMap((s) => s.columns),
+    note: CONFIDENCE_TIP,
   },
 };
 
@@ -192,7 +282,7 @@ export default function AdvancedPage() {
       });
     });
 
-    const allCols = ([] as AdvColumn[]).concat(TABS.general.columns, TABS.offense.columns, TABS.defense.columns);
+    const allCols = ([] as AdvColumn[]).concat(TABS.general.columns, TABS.offense.columns, TABS.defense.columns, TABS.epa.columns, TABS.successRate.columns);
 
     return Array.from(byTeam.values()).map((acc) => {
       const snap = snapshotBySlug[acc.slug];
@@ -401,7 +491,7 @@ export default function AdvancedPage() {
                 </button>
               ))}
             </nav>
-            <p className="adv-note">Rate stats use exactly the selected week range. Opponent-adjusted model stats are snapshots as of the selected end week.</p>
+            <p className="adv-note">{tabDef.note ?? "Rate stats use exactly the selected week range. Opponent-adjusted model stats are snapshots as of the selected end week."}</p>
           </div>
         </div>
 
@@ -410,6 +500,16 @@ export default function AdvancedPage() {
             <table className="data-table adv-table" data-view={tab}>
               <caption className="sr-only">Advanced CollegeFootballFocus team analytics</caption>
               <thead>
+                {tabDef.sections ? (
+                  <tr className="adv-section-row" aria-hidden="true">
+                    <th scope="col" colSpan={3} className="adv-section-spacer" />
+                    {tabDef.sections.map((section) => (
+                      <th key={section.title} scope="colgroup" colSpan={section.columns.length} className="adv-section-heading">
+                        {section.title}
+                      </th>
+                    ))}
+                  </tr>
+                ) : null}
                 <tr>
                   <th scope="col" className="num rank-cell sortable" aria-sort={sortKey === "rank" || !sortKey ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                     <button type="button" className="column-sort" onClick={() => onHeaderClick("rank")}>Rk</button>

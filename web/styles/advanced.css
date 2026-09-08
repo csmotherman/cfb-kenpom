@@ -11,6 +11,27 @@
 .adv-table th.num,
 .adv-table td.num { text-align: center; }
 
+/* Grouped section header (Overall/Passing/Rushing) on the EPA and Success
+   Rate tabs -- sits above the regular sortable column-header row so related
+   columns read as one visual group instead of one flat, unbroken table. */
+.adv-table .adv-section-row th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 5px var(--space-3);
+  background: var(--color-navy-light);
+  border-bottom: 1px solid var(--color-navy);
+  color: var(--color-gold);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  cursor: default;
+}
+.adv-table .adv-section-spacer { background: var(--color-navy-light); }
+.adv-table thead tr.adv-section-row + tr th { top: 27px; }
+
 .advanced-intro {
   display: flex;
   align-items: center;

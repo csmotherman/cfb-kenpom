@@ -45,6 +45,34 @@ export type AdvancedRow = {
   defFin: number | null;
   offHavoc: number | null;
   defHavoc: number | null;
+  // EPA (CFBD ppa) and Success Rate, opponent-adjusted, pass/rush and by
+  // down. Each is a confidence-blended edge -- at ~1 game played it reads
+  // as the team's own raw rate minus league average (no adjustment yet);
+  // confidence ramps up to a full opponent-adjusted edge by ~5 games
+  // played. See EPA_ADJUSTMENT_RAMP_GAMES in build_real_data.py. The raw
+  // (non-adjusted) rate for each of these is summable client-side from
+  // `wk` using the matching Num/Den keys (epaNum/epaDen, passEpaNum/
+  // passEpaDen, passDown1EpaNum/passDown1EpaDen, passSuccessNum/
+  // passSuccessDen, passDown1SuccessNum/passDown1SuccessDen, etc; the
+  // "Allowed"-suffixed pair is the defensive raw rate).
+  successAdj: number | null; successAdjAllowed: number | null;
+  epaAdj: number | null; epaAdjAllowed: number | null;
+  passEpaAdj: number | null; passEpaAdjAllowed: number | null;
+  rushEpaAdj: number | null; rushEpaAdjAllowed: number | null;
+  passEpaDown1Adj: number | null; passEpaDown1AdjAllowed: number | null;
+  passEpaDown2Adj: number | null; passEpaDown2AdjAllowed: number | null;
+  passEpaDown3Adj: number | null; passEpaDown3AdjAllowed: number | null;
+  rushEpaDown1Adj: number | null; rushEpaDown1AdjAllowed: number | null;
+  rushEpaDown2Adj: number | null; rushEpaDown2AdjAllowed: number | null;
+  rushEpaDown3Adj: number | null; rushEpaDown3AdjAllowed: number | null;
+  passSuccessAdj: number | null; passSuccessAdjAllowed: number | null;
+  rushSuccessAdj: number | null; rushSuccessAdjAllowed: number | null;
+  passSuccessDown1Adj: number | null; passSuccessDown1AdjAllowed: number | null;
+  passSuccessDown2Adj: number | null; passSuccessDown2AdjAllowed: number | null;
+  passSuccessDown3Adj: number | null; passSuccessDown3AdjAllowed: number | null;
+  rushSuccessDown1Adj: number | null; rushSuccessDown1AdjAllowed: number | null;
+  rushSuccessDown2Adj: number | null; rushSuccessDown2AdjAllowed: number | null;
+  rushSuccessDown3Adj: number | null; rushSuccessDown3AdjAllowed: number | null;
   wk: AdvancedWeekCounts;
 };
 

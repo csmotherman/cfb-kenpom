@@ -40,6 +40,29 @@ SPECS = (
     # opponent-adjusted offensive havoc-avoidance edge. Callers must swap
     # the off/def labels accordingly; see build_real_data.py.
     ("Havoc", "havocPlays", "havocEligiblePlaysFaced"),
+    # EPA (games.py's epa-v1-cfbd-ppa: CFBD's own play-level ppa, summed).
+    # "Overall" is scoped to the same rush/pass scrimmage population as the
+    # pass/rush splits (see games.py's epa_pass_rush_sum_matches_overall
+    # check), not every scrimmage play, so the three reconcile exactly.
+    ("EPA", "epaSum", "epaPlays"),
+    ("PassEPA", "passEpaSum", "passEpaPlays"),
+    ("RushEPA", "rushEpaSum", "rushEpaPlays"),
+    ("PassEPADown1", "passDown1EpaSum", "passDown1EpaPlays"),
+    ("PassEPADown2", "passDown2EpaSum", "passDown2EpaPlays"),
+    ("PassEPADown3", "passDown3EpaSum", "passDown3EpaPlays"),
+    ("RushEPADown1", "rushDown1EpaSum", "rushDown1EpaPlays"),
+    ("RushEPADown2", "rushDown2EpaSum", "rushDown2EpaPlays"),
+    ("RushEPADown3", "rushDown3EpaSum", "rushDown3EpaPlays"),
+    # Pass/rush and down splits of the same "Success" spec above (success.py,
+    # locked thresholds by down).
+    ("PassSuccess", "passSuccessfulPlays", "passSuccessEligiblePlays"),
+    ("RushSuccess", "rushSuccessfulPlays", "rushSuccessEligiblePlays"),
+    ("PassSuccessDown1", "passDown1SuccessfulPlays", "passDown1SuccessEligiblePlays"),
+    ("PassSuccessDown2", "passDown2SuccessfulPlays", "passDown2SuccessEligiblePlays"),
+    ("PassSuccessDown3", "passDown3SuccessfulPlays", "passDown3SuccessEligiblePlays"),
+    ("RushSuccessDown1", "rushDown1SuccessfulPlays", "rushDown1SuccessEligiblePlays"),
+    ("RushSuccessDown2", "rushDown2SuccessfulPlays", "rushDown2SuccessEligiblePlays"),
+    ("RushSuccessDown3", "rushDown3SuccessfulPlays", "rushDown3SuccessEligiblePlays"),
 )
 
 ITERATIVE_FEATURES = tuple(

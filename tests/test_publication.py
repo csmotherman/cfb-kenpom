@@ -174,3 +174,97 @@ class FcsOpponentTests(unittest.TestCase):
         fbs_row = next(r for r in rows if r["team"] == "Real FBS")
         self.assertEqual(fbs_row["opponent_classification"], "fcs")
         self.assertEqual(fbs_row["win"], 1)
+
+
+class EpaSuccessAdjustmentTests(unittest.TestCase):
+    def test_confidence_is_zero_at_one_game_and_ramps_to_one_by_five(self):
+        self.assertEqual(builder.adjustment_confidence(0), 0.0)
+        self.assertEqual(builder.adjustment_confidence(1), 0.0)
+        self.assertAlmostEqual(builder.adjustment_confidence(2), 0.25)
+        self.assertAlmostEqual(builder.adjustment_confidence(3), 0.5)
+        self.assertAlmostEqual(builder.adjustment_confidence(4), 0.75)
+        self.assertEqual(builder.adjustment_confidence(5), 1.0)
+        self.assertEqual(builder.adjustment_confidence(12), 1.0)  # holds, doesn't overshoot
+
+    def test_blend_is_effectively_raw_at_one_game(self):
+        # league mean 0.20, this team's raw rate 0.50 -> at 1 game the
+        # opponent-specific fitted edge (0.9, wildly opponent-driven) must
+        # be entirely ignored in favor of the team's own raw deviation.
+        value = builder.blend_edge(edge=0.9, league_mean=0.20, raw_rate=0.50, games_played=1)
+        self.assertAlmostEqual(value, 0.30)  # raw_rate - league_mean, not the fitted edge
+
+    def test_blend_is_fully_adjusted_at_five_games(self):
+        value = builder.blend_edge(edge=0.9, league_mean=0.20, raw_rate=0.50, games_played=5)
+        self.assertAlmostEqual(value, 0.9)
+
+    def test_blend_interpolates_at_partial_confidence(self):
+        # 3 games played -> confidence 0.5 -> halfway between the raw
+        # deviation (0.30) and the fitted edge (0.9).
+        value = builder.blend_edge(edge=0.9, league_mean=0.20, raw_rate=0.50, games_played=3)
+        self.assertAlmostEqual(value, 0.60)
+
+    def test_blend_returns_none_when_any_input_is_missing(self):
+        self.assertIsNone(builder.blend_edge(None, 0.2, 0.5, 3))
+        self.assertIsNone(builder.blend_edge(0.9, None, 0.5, 3))
+        self.assertIsNone(builder.blend_edge(0.9, 0.2, None, 3))
+
+
+class EpaDerivedLayerTests(unittest.TestCase):
+    def _play(self, offense="A", defense="B", down=1, distance=10, yards=6, ppa=0.4, play_type="Rush", subtype="RUSH"):
+        return {
+            "offense": offense, "defense": defense, "down": down, "distance": distance,
+            "analyticsYardsGained": yards, "ppa": ppa, "eventSubtype": subtype,
+            "isScrimmagePlay": True, "isOffensivePlay": True,
+            "hasStateTransitionModifier": False, "hasNoPlayContext": False,
+        }
+
+    def test_epa_eligibility_matches_classify_success_gate(self):
+        from cfb_analytics.analytics.epa import classify_epa
+        clean = self._play()
+        self.assertEqual(classify_epa(clean), 0.4)
+        no_ppa = self._play(ppa=None)
+        self.assertIsNone(classify_epa(no_ppa))
+        penalty = {**clean, "hasStateTransitionModifier": True}
+        self.assertIsNone(classify_epa(penalty))
+        not_scrimmage = {**clean, "isScrimmagePlay": False}
+        self.assertIsNone(classify_epa(not_scrimmage))
+
+    def test_pass_rush_epa_sums_reconcile_to_overall_and_down_splits_are_captured(self):
+        from cfb_analytics.derived.games import _metric_fields
+        plays = [
+            self._play(down=1, ppa=0.5, subtype="RUSH"),
+            self._play(down=1, ppa=0.3, subtype="RUSH"),
+            self._play(down=2, ppa=-0.2, subtype="PASS_COMPLETE"),
+            self._play(down=3, ppa=1.1, subtype="PASS_COMPLETE"),
+        ]
+        off = [p for p in plays if p["offense"] == "A"]
+        deff = []  # defense side irrelevant to this check
+        out = _metric_fields(off, deff)
+        self.assertEqual(out["epaPlays"], 4)
+        self.assertAlmostEqual(out["epaSum"], 0.5 + 0.3 - 0.2 + 1.1)
+        self.assertEqual(out["rushEpaPlays"], 2)
+        self.assertAlmostEqual(out["rushEpaSum"], 0.8)
+        self.assertEqual(out["passEpaPlays"], 2)
+        self.assertAlmostEqual(out["passEpaSum"], 0.9)
+        # pass + rush must reconcile exactly to overall (no third bucket)
+        self.assertAlmostEqual(out["rushEpaSum"] + out["passEpaSum"], out["epaSum"])
+        self.assertEqual(out["rushDown1EpaPlays"], 2)
+        self.assertAlmostEqual(out["rushDown1EpaSum"], 0.8)
+        self.assertEqual(out["passDown2EpaPlays"], 1)
+        self.assertAlmostEqual(out["passDown2EpaSum"], -0.2)
+        self.assertEqual(out["passDown3EpaPlays"], 1)
+        self.assertAlmostEqual(out["passDown3EpaSum"], 1.1)
+
+    def test_pass_rush_success_down_splits_are_captured(self):
+        from cfb_analytics.derived.games import _metric_fields
+        # 1st down needs >=50% of distance; distance=10 so yards=6 succeeds.
+        plays = [
+            self._play(down=1, distance=10, yards=6, subtype="RUSH"),  # success
+            self._play(down=1, distance=10, yards=1, subtype="RUSH"),  # fail
+            self._play(down=3, distance=5, yards=5, subtype="PASS_COMPLETE"),  # success (100% needed)
+        ]
+        out = _metric_fields([p for p in plays if p["offense"] == "A"], [])
+        self.assertEqual(out["rushDown1SuccessEligiblePlays"], 2)
+        self.assertEqual(out["rushDown1SuccessfulPlays"], 1)
+        self.assertEqual(out["passDown3SuccessEligiblePlays"], 1)
+        self.assertEqual(out["passDown3SuccessfulPlays"], 1)

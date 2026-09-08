@@ -66,6 +66,93 @@ def calibrate_fcs_baseline(fcs_games_log, srs_ratings, min_games=FCS_BASELINE_MI
     return sum(errors) / len(errors)
 
 
+# EPA (games.py's epa-v1-cfbd-ppa) and the pass/rush-by-down Success Rate
+# splits: (accumulator prefix, raw numerator field on the row, raw
+# denominator field on the row). Overall pass/rush Success already has its
+# own accumulator (passSuccessNum/rushSuccessNum below) from earlier work,
+# so it's not duplicated here.
+EPA_SUCCESS_SPLIT_FIELDS = (
+    ("epa", "epaSum", "epaPlays"),
+    ("passEpa", "passEpaSum", "passEpaPlays"),
+    ("rushEpa", "rushEpaSum", "rushEpaPlays"),
+    ("passDown1Epa", "passDown1EpaSum", "passDown1EpaPlays"),
+    ("passDown2Epa", "passDown2EpaSum", "passDown2EpaPlays"),
+    ("passDown3Epa", "passDown3EpaSum", "passDown3EpaPlays"),
+    ("rushDown1Epa", "rushDown1EpaSum", "rushDown1EpaPlays"),
+    ("rushDown2Epa", "rushDown2EpaSum", "rushDown2EpaPlays"),
+    ("rushDown3Epa", "rushDown3EpaSum", "rushDown3EpaPlays"),
+    ("passDown1Success", "passDown1SuccessfulPlays", "passDown1SuccessEligiblePlays"),
+    ("passDown2Success", "passDown2SuccessfulPlays", "passDown2SuccessEligiblePlays"),
+    ("passDown3Success", "passDown3SuccessfulPlays", "passDown3SuccessEligiblePlays"),
+    ("rushDown1Success", "rushDown1SuccessfulPlays", "rushDown1SuccessEligiblePlays"),
+    ("rushDown2Success", "rushDown2SuccessfulPlays", "rushDown2SuccessEligiblePlays"),
+    ("rushDown3Success", "rushDown3SuccessfulPlays", "rushDown3SuccessEligiblePlays"),
+)
+
+
+def adjustment_confidence(games_played, ramp_games=None):
+    """0.0 at games_played<=1 (no opponent baseline yet), ramping linearly
+    to 1.0 by ramp_games (EPA_ADJUSTMENT_RAMP_GAMES if not given)."""
+    ramp_games = EPA_ADJUSTMENT_RAMP_GAMES if ramp_games is None else ramp_games
+    if games_played <= 1:
+        return 0.0
+    if ramp_games <= 1:
+        return 1.0
+    return min(1.0, (games_played - 1) / (ramp_games - 1))
+
+
+def blend_edge(edge, league_mean, raw_rate, games_played, ramp_games=None):
+    """See adjustment_confidence. Below full confidence, the remainder of
+    the blend is raw_rate minus league_mean -- the team's own raw rate
+    expressed on the same deviation-from-average scale as the fitted edge,
+    not a fabricated partial adjustment."""
+    if not num(edge) or not num(league_mean) or not num(raw_rate):
+        return None
+    confidence = adjustment_confidence(games_played, ramp_games)
+    unadjusted_edge = raw_rate - league_mean
+    return confidence * edge + (1.0 - confidence) * unadjusted_edge
+
+
+def _accumulate_epa_success_splits(target, row):
+    for prefix, num_field, den_field in EPA_SUCCESS_SPLIT_FIELDS:
+        target[f"{prefix}Num"] += row.get(num_field, 0) or 0
+        target[f"{prefix}Den"] += row.get(den_field, 0) or 0
+        target[f"{prefix}NumA"] += row.get(num_field + "Allowed", 0) or 0
+        target[f"{prefix}DenA"] += row.get(den_field + "Allowed", 0) or 0
+
+
+# Games played before an opponent-adjusted EPA/Success edge is trusted at
+# full strength. At 1 game played the blend below is 0% adjusted (no
+# opponent baseline exists yet -- effectively raw); it ramps linearly to
+# 100% adjusted by this many games, then holds there.
+EPA_ADJUSTMENT_RAMP_GAMES = 5
+
+# (site-facing key prefix, iterative_ratings SPEC name, raw accumulator
+# prefix -- resolves to acc[f"{prefix}Num"]/f"{prefix}Den"/NumA/DenA).
+EPA_SUCCESS_METRICS = (
+    # "Success" has been fit since before this table existed (see SPECS
+    # above) but never actually consumed anywhere on the site until now.
+    ("success", "Success", "success"),
+    ("epa", "EPA", "epa"),
+    ("passEpa", "PassEPA", "passEpa"),
+    ("rushEpa", "RushEPA", "rushEpa"),
+    ("passEpaDown1", "PassEPADown1", "passDown1Epa"),
+    ("passEpaDown2", "PassEPADown2", "passDown2Epa"),
+    ("passEpaDown3", "PassEPADown3", "passDown3Epa"),
+    ("rushEpaDown1", "RushEPADown1", "rushDown1Epa"),
+    ("rushEpaDown2", "RushEPADown2", "rushDown2Epa"),
+    ("rushEpaDown3", "RushEPADown3", "rushDown3Epa"),
+    ("passSuccess", "PassSuccess", "passSuccess"),
+    ("rushSuccess", "RushSuccess", "rushSuccess"),
+    ("passSuccessDown1", "PassSuccessDown1", "passDown1Success"),
+    ("passSuccessDown2", "PassSuccessDown2", "passDown2Success"),
+    ("passSuccessDown3", "PassSuccessDown3", "passDown3Success"),
+    ("rushSuccessDown1", "RushSuccessDown1", "rushDown1Success"),
+    ("rushSuccessDown2", "RushSuccessDown2", "rushDown2Success"),
+    ("rushSuccessDown3", "RushSuccessDown3", "rushDown3Success"),
+)
+
+
 CONF_ABBR = {
     "ACC": "ACC", "American Athletic": "AAC", "Big 12": "B12", "Big Ten": "B1G",
     "Conference USA": "CUSA", "FBS Independents": "IND", "Mid-American": "MAC",
@@ -229,6 +316,10 @@ def new_acc():
         "havocAllowedNum": 0, "havocAllowedDen": 0, "havocForcedNum": 0, "havocForcedDen": 0,
         "gamesPlayed": 0,
         "slug": None, "teamId": None, "conf": None,
+        **{f"{prefix}Num": 0 for prefix, _, _ in EPA_SUCCESS_SPLIT_FIELDS},
+        **{f"{prefix}Den": 0 for prefix, _, _ in EPA_SUCCESS_SPLIT_FIELDS},
+        **{f"{prefix}NumA": 0 for prefix, _, _ in EPA_SUCCESS_SPLIT_FIELDS},
+        **{f"{prefix}DenA": 0 for prefix, _, _ in EPA_SUCCESS_SPLIT_FIELDS},
     }
 
 
@@ -370,6 +461,7 @@ def build_year(year):
             wr["havocAllowedDen"] += row.get("havocEligiblePlays", 0) or 0
             wr["havocForcedNum"] += row.get("havocPlays", 0) or 0
             wr["havocForcedDen"] += row.get("havocEligiblePlaysFaced", 0) or 0
+            _accumulate_epa_success_splits(wr, row)
 
             game_id = str(row.get("gameId") or row.get("game_id"))
             game_poss = poss_seconds.get(game_id, {})
@@ -467,6 +559,7 @@ def build_year(year):
             acc["rushAttemptsFaced"] += row.get("rushAttemptsFaced", 0) or 0
             acc["havocForcedNum"] += row.get("havocPlays", 0) or 0
             acc["havocForcedDen"] += row.get("havocEligiblePlaysFaced", 0) or 0
+            _accumulate_epa_success_splits(acc, row)
 
             # The Advanced page's SOS still reports a per-week raw rate (so
             # an arbitrary [start,end] range can be summed client-side) --
@@ -510,6 +603,10 @@ def build_year(year):
             v = metric_ratings.get(spec, {}).get(side, {}).get(team)
             return v if num(v) else None
 
+        def metric_blend(spec, side, team, raw_rate, games_played):
+            fit = metric_ratings.get(spec, {})
+            return blend_edge(fit.get(side, {}).get(team), fit.get("leagueMean"), raw_rate, games_played)
+
         week_rows = []
         for name, acc in cum.items():
             if acc["gamesPlayed"] == 0:
@@ -532,6 +629,20 @@ def build_year(year):
                     sor_expected += _ncdf(-opp_srs / sigma)
                     sor_actual += 1 if won else 0
                     sor_games += 1
+            # Only the blended/adjusted value is a snapshot field here -- the
+            # matching raw rate is already summable client-side from wk[...]
+            # (via _accumulate_epa_success_splits above), exactly like every
+            # other raw/adjusted pair on this page, so it isn't duplicated.
+            games_played = acc["gamesPlayed"]
+            epa_success_fields = {}
+            for out_prefix, spec_name, acc_prefix in EPA_SUCCESS_METRICS:
+                raw_off = acc[f"{acc_prefix}Num"] / acc[f"{acc_prefix}Den"] if acc[f"{acc_prefix}Den"] else None
+                raw_def = acc[f"{acc_prefix}NumA"] / acc[f"{acc_prefix}DenA"] if acc[f"{acc_prefix}DenA"] else None
+                adj_off = metric_blend(spec_name, "offense", name, raw_off, games_played) if num(raw_off) else None
+                adj_def = metric_blend(spec_name, "defense", name, raw_def, games_played) if num(raw_def) else None
+                epa_success_fields[f"{out_prefix}Adj"] = round(adj_off, 4) if num(adj_off) else None
+                epa_success_fields[f"{out_prefix}AdjAllowed"] = round(adj_def, 4) if num(adj_def) else None
+
             off_ypp, def_ypp = metric("YardsPerPossession", "offense", name), metric("YardsPerPossession", "defense", name)
             off_yppl, def_yppl = metric("YardsPerPlay", "offense", name), metric("YardsPerPlay", "defense", name)
             off_exp, def_exp = metric("Explosive", "offense", name), metric("Explosive", "defense", name)
@@ -570,6 +681,7 @@ def build_year(year):
                 "defExp": round(def_exp, 2) if num(def_exp) else None,
                 "defFin": round(def_fin, 2) if num(def_fin) else None,
                 "defHavoc": round(def_havoc, 4) if num(def_havoc) else None,
+                **epa_success_fields,
                 # This week's own (non-cumulative) raw counts, for correct
                 # client-side summing over an arbitrary [start,end] range.
                 "wk": dict(wk_raw.get(name, {})),
