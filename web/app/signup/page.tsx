@@ -11,11 +11,17 @@ export const metadata: Metadata = {
 };
 
 type SignupPageProps = {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 };
+
+function safeNext(value: string | undefined) {
+  return value?.startsWith("/") && !value.startsWith("//") ? value : "/account";
+}
 
 export default async function SignupPage({ searchParams }: SignupPageProps) {
   const params = await searchParams;
+  const next = safeNext(params.next);
+  const returningToUpgrade = next.startsWith("/upgrade");
 
   return (
     <>
@@ -27,21 +33,15 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             <span className="eyebrow auth-kicker">GRID Account</span>
             <h1 id="signupTitle" className="auth-title">Create account</h1>
             <p className="auth-copy">
-              Create your account now. Billing is not enabled yet, so signing up does not start a paid plan.
+              {returningToUpgrade
+                ? "Create your GRID account with just email and password. After confirmation, we'll bring you back to the plan you selected."
+                : "Create a free GRID account with just email and password. You can add profile details later."}
             </p>
 
             {params.error ? <p className="auth-alert auth-alert--error">{params.error}</p> : null}
 
             <form className="auth-form" action={signup}>
-              <label className="auth-field">
-                <span>Name <small>optional</small></span>
-                <input
-                  name="display_name"
-                  type="text"
-                  autoComplete="name"
-                  maxLength={80}
-                />
-              </label>
+              <input type="hidden" name="next" value={next} />
               <label className="auth-field">
                 <span>Email</span>
                 <input
@@ -67,12 +67,12 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             </form>
 
             <p className="auth-alt">
-              Already have an account? <Link href="/login">Sign in</Link>
+              Already have an account? <Link href={`/login?next=${encodeURIComponent(next)}`}>Sign in</Link>
             </p>
           </section>
         </div>
       </main>
-      <SiteFooter note="GRID accounts are free to create. Paid GRID Pro and GRID Pro+ subscriptions will be handled separately through billing." />
+      <SiteFooter note="GRID accounts are free to create. Billing only starts if you later choose and confirm a paid subscription in Stripe Checkout." />
     </>
   );
 }
