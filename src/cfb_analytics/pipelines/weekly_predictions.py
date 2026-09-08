@@ -76,7 +76,7 @@ def main() -> None:
             print(f"Week {week} not scored: week {week - 1} {reason}. Waiting for it to finish first.")
             return
 
-    features_out, audit_out, predictions_out = predictions_out_by_week[week]
+    features_out, audit_out, predictions_out = _week_paths(week)
     as_of = datetime.now(timezone.utc).isoformat()
     try:
         result = run_pipeline(
