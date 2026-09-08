@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/methodology", label: "Methodology" },
   { href: "/advanced", label: "Advanced Analytics", pro: true },
   { href: "/predictions", label: "Predictions", pro: true, coming: "Week 4" },
+  { href: "/upgrade", label: "GRID Pro" },
 ];
 
 export default function SiteNav() {
