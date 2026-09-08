@@ -368,8 +368,8 @@ function TeamSideCard({
 
       <div className="matchup-v2-side__columns" aria-hidden="true">
         <span>Metric</span>
-        <span>Off</span>
-        <span>Def</span>
+        <span>Offense</span>
+        <span>Defense</span>
       </div>
 
       {rows.map((row, index) => {
@@ -493,24 +493,12 @@ function teamSideRows({
   });
 
   return [
-    makeRow("Play Type", "Pass EPA", "passEpaAdj", "passEpaAdjAllowed"),
-    makeRow("Play Type", "Rush EPA", "rushEpaAdj", "rushEpaAdjAllowed"),
-    makeRow("Play Type", "Pass Success", "passSuccessAdj", "passSuccessAdjAllowed", pctEdge),
-    makeRow("Play Type", "Rush Success", "rushSuccessAdj", "rushSuccessAdjAllowed", pctEdge),
-
-    makeRow("Passing by Down", "EPA · 1st", "passEpaDown1Adj", "passEpaDown1AdjAllowed"),
-    makeRow("Passing by Down", "EPA · 2nd", "passEpaDown2Adj", "passEpaDown2AdjAllowed"),
-    makeRow("Passing by Down", "EPA · 3rd", "passEpaDown3Adj", "passEpaDown3AdjAllowed"),
-    makeRow("Passing by Down", "Success · 1st", "passSuccessDown1Adj", "passSuccessDown1AdjAllowed", pctEdge),
-    makeRow("Passing by Down", "Success · 2nd", "passSuccessDown2Adj", "passSuccessDown2AdjAllowed", pctEdge),
-    makeRow("Passing by Down", "Success · 3rd", "passSuccessDown3Adj", "passSuccessDown3AdjAllowed", pctEdge),
-
-    makeRow("Rushing by Down", "EPA · 1st", "rushEpaDown1Adj", "rushEpaDown1AdjAllowed"),
-    makeRow("Rushing by Down", "EPA · 2nd", "rushEpaDown2Adj", "rushEpaDown2AdjAllowed"),
-    makeRow("Rushing by Down", "EPA · 3rd", "rushEpaDown3Adj", "rushEpaDown3AdjAllowed"),
-    makeRow("Rushing by Down", "Success · 1st", "rushSuccessDown1Adj", "rushSuccessDown1AdjAllowed", pctEdge),
-    makeRow("Rushing by Down", "Success · 2nd", "rushSuccessDown2Adj", "rushSuccessDown2AdjAllowed", pctEdge),
-    makeRow("Rushing by Down", "Success · 3rd", "rushSuccessDown3Adj", "rushSuccessDown3AdjAllowed", pctEdge),
+    makeRow("Efficiency", "EPA / Play", "epaAdj", "epaAdjAllowed"),
+    makeRow("Efficiency", "EPA / Pass", "passEpaAdj", "passEpaAdjAllowed"),
+    makeRow("Efficiency", "EPA / Rush", "rushEpaAdj", "rushEpaAdjAllowed"),
+    makeRow("Success Rate", "Overall", "successAdj", "successAdjAllowed", pctEdge),
+    makeRow("Success Rate", "Pass", "passSuccessAdj", "passSuccessAdjAllowed", pctEdge),
+    makeRow("Success Rate", "Rush", "rushSuccessAdj", "rushSuccessAdjAllowed", pctEdge),
   ];
 }
 
