@@ -23,7 +23,7 @@ const FORMATTERS: Record<string, (v: number | null) => string> = {
 };
 
 type ColKind = "snapshot" | "rate" | "split";
-type Perspective = "offense" | "defense" | "both";
+type Perspective = "offense" | "defense" | "margin" | "both";
 type TabKey = "general" | "offense" | "defense" | "epa" | "successRate";
 
 type AdvColumn = {
@@ -253,8 +253,18 @@ function pairedSections(source: MetricSection[], perspective: Perspective): AdvS
         kind: "snapshot",
         tooltip: `${metric.tip} Defense allowed. Lower is better. ${CONFIDENCE_TIP}`,
       };
+      const margin: AdvColumn = {
+        key: `${metric.prefix}Margin`,
+        label: metric.label,
+        fmt,
+        primary: sectionIndex === 0 && metricIndex === 0 && perspective === "margin",
+        rankable: true,
+        kind: "snapshot",
+        tooltip: `${metric.tip} Margin = offense adjusted value minus defense adjusted allowed value. Higher is better. ${CONFIDENCE_TIP}`,
+      };
       if (perspective === "offense") return [offense];
       if (perspective === "defense") return [defense];
+      if (perspective === "margin") return [margin];
       return [offense, defense];
     }),
   }));
@@ -282,13 +292,15 @@ function specialTab(key: "epa" | "successRate", perspective: Perspective): Tab {
   const isEpa = key === "epa";
   const sections = pairedSections(isEpa ? EPA_METRICS : SUCCESS_METRICS, perspective);
   const primaryKey = isEpa
-    ? (perspective === "defense" ? "epaAdjAllowed" : "epaAdj")
-    : (perspective === "defense" ? "successAdjAllowed" : "successAdj");
+    ? (perspective === "defense" ? "epaAdjAllowed" : perspective === "margin" ? "epaMargin" : "epaAdj")
+    : (perspective === "defense" ? "successAdjAllowed" : perspective === "margin" ? "successMargin" : "successAdj");
   const directionNote = perspective === "offense"
     ? "Offense: higher is better."
     : perspective === "defense"
       ? "Defense: lower is better."
-      : "Offense: higher is better. Defense: lower is better.";
+      : perspective === "margin"
+        ? "Margin = offense adjusted value minus defense adjusted allowed value. Higher is better."
+        : "Offense: higher is better. Defense: lower is better.";
   return {
     label: isEpa ? "EPA" : "Success Rate",
     primaryKey,
@@ -303,6 +315,7 @@ function specialTab(key: "epa" | "successRate", perspective: Perspective): Tab {
 
 const EPA_ALL_COLUMNS = pairedSections(EPA_METRICS, "both").flatMap((section) => section.columns);
 const SUCCESS_ALL_COLUMNS = pairedSections(SUCCESS_METRICS, "both").flatMap((section) => section.columns);
+const MARGIN_METRICS = [...EPA_METRICS, ...SUCCESS_METRICS].flatMap((section) => section.metrics);
 const ALL_COLUMNS: AdvColumn[] = [
   ...STATIC_TABS.general.columns,
   ...STATIC_TABS.offense.columns,
@@ -429,6 +442,13 @@ export default function AdvancedPage() {
           const den = sumField(acc.wk, col.den!);
           out[col.key] = rate(num, den);
         }
+      });
+      MARGIN_METRICS.forEach((metric) => {
+        const offenseValue = out[`${metric.prefix}Adj`] as number | null;
+        const defenseAllowedValue = out[`${metric.prefix}AdjAllowed`] as number | null;
+        out[`${metric.prefix}Margin`] = na(offenseValue) || na(defenseAllowedValue)
+          ? null
+          : offenseValue - defenseAllowedValue;
       });
       return out;
     });
@@ -615,7 +635,7 @@ export default function AdvancedPage() {
             {tabDef.supportsPerspective ? (
               <div className="advanced-perspective" role="group" aria-label={`${tabDef.label} perspective`}>
                 <span className="advanced-perspective__label">View</span>
-                {(["offense", "defense", "both"] as Perspective[]).map((view) => (
+                {(["offense", "defense", "margin"] as Perspective[]).map((view) => (
                   <button
                     key={view}
                     type="button"
@@ -623,7 +643,7 @@ export default function AdvancedPage() {
                     aria-pressed={perspective === view}
                     onClick={() => selectPerspective(view)}
                   >
-                    {view === "offense" ? "Offense" : view === "defense" ? "Defense" : "Both"}
+                    {view === "offense" ? "Offense" : view === "defense" ? "Defense" : "Margin"}
                   </button>
                 ))}
               </div>
