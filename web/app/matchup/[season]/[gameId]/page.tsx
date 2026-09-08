@@ -426,7 +426,6 @@ function TeamSideCard({
   rank: number | null | undefined;
   rows: SideRow[];
 }) {
-  let previousGroup = "";
   return (
     <aside className={`matchup-v2-side matchup-v2-side--${area}`} aria-label={`${team} team snapshot`}>
       <div className="matchup-v2-side__head">
@@ -437,8 +436,7 @@ function TeamSideCard({
         <img src={logoUrl(teamId, 96)} alt="" decoding="async" />
       </div>
       {rows.map((row, index) => {
-        const showGroup = Boolean(row.group && row.group !== previousGroup);
-        if (row.group) previousGroup = row.group;
+        const showGroup = Boolean(row.group && (index === 0 || row.group !== rows[index - 1]?.group));
         return (
           <div key={index} className="matchup-v2-side__row-wrap">
             {showGroup ? <div className="matchup-v2-side__group-title">{row.group}</div> : null}
