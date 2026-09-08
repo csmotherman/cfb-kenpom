@@ -7,9 +7,8 @@ import { createPortal } from "react-dom";
 import type { PredictionGame } from "@/lib/types";
 
 type PredictionState =
-  | { status: "idle" | "loading" | "none" }
-  | { status: "locked" }
-  | { status: "ready"; game: PredictionGame };
+  | { key: string; status: "none" | "locked" }
+  | { key: string; status: "ready"; game: PredictionGame };
 
 function confidence(value: number | null): string {
   return value === null ? "—" : `${Math.round(value * 100)}%`;
@@ -22,15 +21,13 @@ export default function MatchupPredictionPortal() {
     if (!match) return null;
     return { season: match[1], gameId: decodeURIComponent(match[2]) };
   }, [pathname]);
+  const routeKey = route ? `${route.season}/${route.gameId}` : "";
 
   const [target, setTarget] = useState<HTMLElement | null>(null);
-  const [prediction, setPrediction] = useState<PredictionState>({ status: "idle" });
+  const [prediction, setPrediction] = useState<PredictionState>({ key: "", status: "none" });
 
   useEffect(() => {
-    if (!route) {
-      setTarget(null);
-      return;
-    }
+    if (!route) return;
 
     let cancelled = false;
     let frame = 0;
@@ -55,14 +52,11 @@ export default function MatchupPredictionPortal() {
   }, [route]);
 
   useEffect(() => {
-    if (!route) {
-      setPrediction({ status: "idle" });
-      return;
-    }
+    if (!route) return;
 
     let cancelled = false;
     const controller = new AbortController();
-    setPrediction({ status: "loading" });
+    const key = `${route.season}/${route.gameId}`;
 
     fetch(`/api/matchup-prediction/${route.season}/${encodeURIComponent(route.gameId)}`, {
       cache: "no-store",
@@ -72,23 +66,23 @@ export default function MatchupPredictionPortal() {
       .then(async (response) => {
         if (cancelled) return;
         if (response.status === 404) {
-          setPrediction({ status: "none" });
+          setPrediction({ key, status: "none" });
           return;
         }
         if (response.status === 401 || response.status === 403) {
-          setPrediction({ status: "locked" });
+          setPrediction({ key, status: "locked" });
           return;
         }
         if (!response.ok) {
-          setPrediction({ status: "none" });
+          setPrediction({ key, status: "none" });
           return;
         }
         const game = (await response.json()) as PredictionGame;
-        if (!cancelled) setPrediction({ status: "ready", game });
+        if (!cancelled) setPrediction({ key, status: "ready", game });
       })
       .catch((error: unknown) => {
         if (cancelled || (error instanceof DOMException && error.name === "AbortError")) return;
-        setPrediction({ status: "none" });
+        setPrediction({ key, status: "none" });
       });
 
     return () => {
@@ -97,7 +91,7 @@ export default function MatchupPredictionPortal() {
     };
   }, [route]);
 
-  if (!target || prediction.status === "idle" || prediction.status === "loading" || prediction.status === "none") {
+  if (!route || !target || prediction.key !== routeKey || prediction.status === "none") {
     return null;
   }
 
