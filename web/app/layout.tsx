@@ -22,6 +22,7 @@ import "@/styles/matchup-v2.css";
 import "@/styles/matchup-scouting.css";
 import "@/styles/matchup-prediction.css";
 import "@/styles/team-profile-public.css";
+import "@/styles/team-profile-v2.css";
 import "@/styles/methodology.css";
 import "@/styles/upgrade.css";
 
