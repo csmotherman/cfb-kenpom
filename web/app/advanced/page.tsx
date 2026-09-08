@@ -241,7 +241,7 @@ function pairedSections(source: MetricSection[], perspective: Perspective): AdvS
         primary: sectionIndex === 0 && metricIndex === 0 && perspective !== "defense",
         rankable: true,
         kind: "snapshot",
-        tooltip: `${metric.tip} Offense. ${CONFIDENCE_TIP}`,
+        tooltip: `${metric.tip} Offense. Higher is better. ${CONFIDENCE_TIP}`,
       };
       const defense: AdvColumn = {
         key: `${metric.prefix}AdjAllowed`,
@@ -249,8 +249,9 @@ function pairedSections(source: MetricSection[], perspective: Perspective): AdvS
         fmt,
         primary: sectionIndex === 0 && metricIndex === 0 && perspective === "defense",
         rankable: true,
+        lowerBetter: true,
         kind: "snapshot",
-        tooltip: `${metric.tip} Defense, framed as suppression relative to expectation. Higher is better. ${CONFIDENCE_TIP}`,
+        tooltip: `${metric.tip} Defense allowed. Lower is better. ${CONFIDENCE_TIP}`,
       };
       if (perspective === "offense") return [offense];
       if (perspective === "defense") return [defense];
@@ -283,6 +284,11 @@ function specialTab(key: "epa" | "successRate", perspective: Perspective): Tab {
   const primaryKey = isEpa
     ? (perspective === "defense" ? "epaAdjAllowed" : "epaAdj")
     : (perspective === "defense" ? "successAdjAllowed" : "successAdj");
+  const directionNote = perspective === "offense"
+    ? "Offense: higher is better."
+    : perspective === "defense"
+      ? "Defense: lower is better."
+      : "Offense: higher is better. Defense: lower is better.";
   return {
     label: isEpa ? "EPA" : "Success Rate",
     primaryKey,
@@ -290,8 +296,8 @@ function specialTab(key: "epa" | "successRate", perspective: Perspective): Tab {
     columns: sections.flatMap((section) => section.columns),
     supportsPerspective: true,
     note: isEpa
-      ? `${CONFIDENCE_TIP} Every number in this tab is an opponent-adjusted edge.`
-      : CONFIDENCE_TIP,
+      ? `${CONFIDENCE_TIP} Every number in this tab is an opponent-adjusted edge. ${directionNote}`
+      : `${CONFIDENCE_TIP} ${directionNote}`,
   };
 }
 
