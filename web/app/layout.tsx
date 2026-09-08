@@ -15,11 +15,12 @@ import "@/styles/grid-brand.css";
 import "@/styles/team-logo-align.css";
 import "@/styles/auth.css";
 import "@/styles/billing.css";
+import "@/styles/this-week.css";
 
 export const metadata: Metadata = {
   title: "GRID | College Football Analytics",
   description:
-    "GRID provides opponent-adjusted college football RPI ratings, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
+    "GRID provides opponent-adjusted college football RPI ratings, weekly matchup analysis, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
