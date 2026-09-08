@@ -11,11 +11,17 @@ export const metadata: Metadata = {
 };
 
 type LoginPageProps = {
-  searchParams: Promise<{ error?: string; message?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; next?: string }>;
 };
+
+function safeNext(value: string | undefined) {
+  return value?.startsWith("/") && !value.startsWith("//") ? value : "/account";
+}
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
+  const next = safeNext(params.next);
+  const returningToUpgrade = next.startsWith("/upgrade");
 
   return (
     <>
@@ -27,13 +33,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <span className="eyebrow auth-kicker">GRID Account</span>
             <h1 id="loginTitle" className="auth-title">Sign in</h1>
             <p className="auth-copy">
-              Sign in to manage your GRID account and, when available, your Pro access.
+              {returningToUpgrade
+                ? "Sign in and we'll bring you back to the GRID plan you selected."
+                : "Sign in to manage your GRID account and paid access."}
             </p>
 
             {params.error ? <p className="auth-alert auth-alert--error">{params.error}</p> : null}
             {params.message ? <p className="auth-alert auth-alert--success">{params.message}</p> : null}
 
             <form className="auth-form" action={login}>
+              <input type="hidden" name="next" value={next} />
               <label className="auth-field">
                 <span>Email</span>
                 <input
@@ -57,7 +66,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </form>
 
             <p className="auth-alt">
-              New to GRID? <Link href="/signup">Create an account</Link>
+              New to GRID? <Link href={`/signup?next=${encodeURIComponent(next)}`}>Create an account</Link>
             </p>
           </section>
         </div>
