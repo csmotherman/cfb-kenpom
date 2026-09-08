@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { AdvancedSeason, PredictionsWeek, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta } from "./types";
+import type { AdvancedSeason, PredictionsWeek, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
@@ -78,6 +78,9 @@ const advancedInflight = new Map<string, Promise<AdvancedSeason>>();
 const scheduleData = new Map<string, ScheduleSeason | null>();
 const scheduleInflight = new Map<string, Promise<ScheduleSeason | null>>();
 
+const teamStatsData = new Map<string, TeamStatsSeason | null>();
+const teamStatsInflight = new Map<string, Promise<TeamStatsSeason | null>>();
+
 let metaPromise: Promise<SiteMeta> | null = null;
 let searchIndexPromise: Promise<SearchIndexEntry[]> | null = null;
 
@@ -134,6 +137,25 @@ export function getScheduleSeason(year: number | string): Promise<ScheduleSeason
       throw error;
     });
     scheduleInflight.set(key, entry);
+  }
+  return entry;
+}
+
+export function getTeamStatsSeason(year: number | string): Promise<TeamStatsSeason | null> {
+  const key = String(year);
+  if (teamStatsData.has(key)) return Promise.resolve(teamStatsData.get(key) ?? null);
+  let entry = teamStatsInflight.get(key);
+  if (!entry) {
+    entry = fetchOptionalJson<TeamStatsSeason>(`/data/team-stats/${key}.json`).then((season) => {
+      teamStatsData.set(key, season);
+      teamStatsInflight.delete(key);
+      return season;
+    });
+    entry = entry.catch((error: Error) => {
+      teamStatsInflight.delete(key);
+      throw error;
+    });
+    teamStatsInflight.set(key, entry);
   }
   return entry;
 }
