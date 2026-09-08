@@ -1,0 +1,687 @@
+/* ========================================================================== */
+/* GRID — team profile v2                                                    */
+/* Same stat-sheet language as the matchup page, adapted for one team.       */
+/* ========================================================================== */
+
+.team-v2-main.container {
+  width: min(calc(100% - 48px), 1280px);
+  max-width: 1280px;
+  padding-bottom: 28px;
+}
+
+.team-v2-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 104px;
+  padding: 16px 4px 17px;
+  border-bottom: 2px solid var(--color-navy);
+}
+
+.team-v2-identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 18px;
+}
+
+.team-v2-identity > img {
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+  object-fit: contain;
+}
+
+.team-v2-identity > div {
+  min-width: 0;
+}
+
+.team-v2-identity span,
+.team-v2-panel-heading > div > span,
+.team-v2-section-head > div > span {
+  display: block;
+  margin-bottom: 3px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+
+.team-v2-identity h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 800;
+  line-height: .95;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.team-v2-identity p {
+  margin: 7px 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-secondary);
+}
+
+.team-v2-identity p strong {
+  color: var(--color-navy);
+}
+
+.team-v2-masthead__note {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--color-ink-tertiary);
+}
+
+/* ---------- headline ratings ---------- */
+.team-v2-rating-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.team-v2-rating-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  min-height: 68px;
+  padding: 9px 13px;
+  border-right: 1px solid var(--color-hairline);
+}
+
+.team-v2-rating-tile:last-child { border-right: 0; }
+
+.team-v2-rating-tile > div {
+  min-width: 0;
+}
+
+.team-v2-rating-tile > div > span {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-navy);
+}
+
+.team-v2-rating-tile > div > small {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .045em;
+  color: var(--color-ink-tertiary);
+}
+
+.team-v2-stat {
+  display: inline-grid;
+  grid-template-columns: minmax(48px, auto) 42px;
+  align-items: stretch;
+  min-width: 96px;
+  min-height: 30px;
+  white-space: nowrap;
+}
+
+.team-v2-stat > strong {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 8px 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-navy);
+}
+
+.team-v2-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  padding-inline: 3px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--color-navy);
+  background: rgba(20, 39, 66, .035);
+}
+
+.team-v2-rank--elite { background: rgba(39, 193, 92, .78); }
+.team-v2-rank--good { background: rgba(84, 194, 116, .30); }
+.team-v2-rank--middle { background: rgba(20, 39, 66, .04); }
+.team-v2-rank--poor { background: rgba(197, 141, 221, .18); }
+.team-v2-rank--bad { background: rgba(187, 117, 217, .35); }
+
+/* ---------- tabs / workbench ---------- */
+.team-v2-workbench {
+  padding-top: 20px;
+}
+
+.team-v2-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  border-top: 1px solid var(--color-hairline-strong);
+  border-bottom: 1px solid var(--color-hairline-strong);
+  scrollbar-width: none;
+}
+
+.team-v2-tabs::-webkit-scrollbar { display: none; }
+
+.team-v2-tabs button {
+  appearance: none;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-right: 1px solid var(--color-hairline);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  color: var(--color-ink-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.team-v2-tabs button:hover {
+  background: var(--color-paper-soft);
+  color: var(--color-navy);
+}
+
+.team-v2-tabs button.active {
+  background: var(--color-navy);
+  color: #fff;
+}
+
+.team-v2-panel {
+  min-height: 340px;
+  padding: 18px 0 8px;
+}
+
+.team-v2-panel-heading,
+.team-v2-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+
+.team-v2-panel-heading h2,
+.team-v2-section-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.team-v2-panel-heading > small,
+.team-v2-section-head > small {
+  max-width: 560px;
+  font-size: 9.5px;
+  line-height: 1.45;
+  text-align: right;
+  color: var(--color-ink-tertiary);
+}
+
+/* ---------- overview ---------- */
+.team-v2-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.team-v2-mini-profile {
+  border-top: 2px solid var(--color-navy);
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.team-v2-mini-profile__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 0 9px;
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.team-v2-mini-profile__head strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-navy);
+}
+
+.team-v2-mini-profile__head span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-ink-tertiary);
+}
+
+.team-v2-mini-profile__row,
+.team-v2-group__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 0 9px;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.team-v2-mini-profile__row:last-child,
+.team-v2-group__row:last-child { border-bottom: 0; }
+
+.team-v2-mini-profile__row > span,
+.team-v2-group__row > span {
+  min-width: 0;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--color-ink-secondary);
+}
+
+.team-v2-context-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 18px;
+  border-top: 1px solid var(--color-hairline-strong);
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.team-v2-context-stat {
+  min-width: 0;
+  padding: 9px 10px;
+  border-right: 1px solid var(--color-hairline);
+}
+
+.team-v2-context-stat:last-child { border-right: 0; }
+
+.team-v2-context-stat > span {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 5px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-ink-tertiary);
+}
+
+.team-v2-context-stat .team-v2-stat {
+  width: 100%;
+}
+
+/* ---------- grouped offense / defense ---------- */
+.team-v2-group-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 22px;
+}
+
+.team-v2-group {
+  min-width: 0;
+  border-top: 2px solid var(--color-navy);
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.team-v2-group h3 {
+  margin: 0;
+  min-height: 36px;
+  padding: 10px 9px 8px;
+  border-bottom: 1px solid var(--color-hairline-strong);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+/* ---------- EPA / Success table ---------- */
+.team-v2-edge-table {
+  border-top: 2px solid var(--color-navy);
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.team-v2-edge-head,
+.team-v2-edge-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.45fr) repeat(3, minmax(120px, 1fr));
+  align-items: center;
+  column-gap: 10px;
+}
+
+.team-v2-edge-head {
+  min-height: 34px;
+  padding: 0 9px;
+  border-bottom: 1px solid var(--color-hairline-strong);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+
+.team-v2-edge-head span:not(:first-child) { text-align: right; }
+
+.team-v2-edge-section__title {
+  min-height: 30px;
+  padding: 8px 9px 6px;
+  border-top: 1px solid var(--color-hairline-strong);
+  border-bottom: 1px solid var(--color-hairline);
+  background: var(--color-paper-soft);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .065em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.team-v2-edge-section:first-of-type .team-v2-edge-section__title { border-top: 0; }
+
+.team-v2-edge-row {
+  min-height: 43px;
+  padding: 0 9px;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.team-v2-edge-row:last-child { border-bottom: 0; }
+
+.team-v2-edge-row__label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-ink-secondary);
+}
+
+.team-v2-edge-row .team-v2-stat {
+  justify-self: end;
+}
+
+/* ---------- schedule ---------- */
+.team-v2-schedule {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.team-v2-schedule th,
+.team-v2-schedule td {
+  height: 43px;
+  font-size: 11px;
+}
+
+.team-v2-schedule th:nth-child(1),
+.team-v2-schedule td:nth-child(1) { width: 12%; }
+.team-v2-schedule th:nth-child(2),
+.team-v2-schedule td:nth-child(2) { width: 35%; }
+.team-v2-schedule th:nth-child(3),
+.team-v2-schedule td:nth-child(3) { width: 18%; }
+.team-v2-schedule th:nth-child(4),
+.team-v2-schedule td:nth-child(4) { width: 17%; }
+.team-v2-schedule th:nth-child(5),
+.team-v2-schedule td:nth-child(5) { width: 18%; }
+
+.team-v2-schedule tbody tr {
+  transition: background-color .12s ease;
+}
+
+.team-v2-schedule tbody tr:hover {
+  background: rgba(20, 39, 66, .028);
+}
+
+.team-v2-matchup-link {
+  font-weight: 700;
+}
+
+.team-v2-schedule__action {
+  text-align: right;
+}
+
+.team-v2-schedule__action a {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--color-navy);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.team-v2-schedule__action a:hover { text-decoration: underline; }
+
+.team-v2-method-note {
+  margin: 8px 0 0;
+  font-size: 9px;
+  line-height: 1.45;
+  color: var(--color-ink-tertiary);
+}
+
+/* ---------- history ---------- */
+.team-v2-history {
+  padding-top: 26px;
+  border-top: 1px solid var(--color-hairline-strong);
+}
+
+.team-v2-history .history-table-scroll {
+  max-height: 420px;
+}
+
+/* ========================================================================== */
+/* responsive                                                                 */
+/* ========================================================================== */
+
+@media (max-width: 1100px) {
+  .team-v2-main.container {
+    width: min(calc(100% - 32px), 980px);
+  }
+
+  .team-v2-rating-strip {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .team-v2-rating-tile {
+    padding-inline: 9px;
+  }
+
+  .team-v2-stat {
+    min-width: 86px;
+    grid-template-columns: minmax(42px, auto) 38px;
+  }
+
+  .team-v2-rank { min-width: 38px; }
+
+  .team-v2-group-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .team-v2-context-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .team-v2-context-stat:nth-child(3) { border-right: 0; }
+  .team-v2-context-stat:nth-child(-n+3) { border-bottom: 1px solid var(--color-hairline); }
+}
+
+@media (max-width: 760px) {
+  .team-v2-main.container {
+    width: calc(100% - 20px);
+  }
+
+  .team-v2-masthead {
+    min-height: 86px;
+    padding: 12px 2px 13px;
+  }
+
+  .team-v2-identity { gap: 12px; }
+  .team-v2-identity > img {
+    width: 54px;
+    height: 54px;
+    flex-basis: 54px;
+  }
+  .team-v2-identity h1 { font-size: 29px; }
+  .team-v2-identity span { font-size: 7.5px; }
+  .team-v2-identity p { font-size: 9.5px; }
+  .team-v2-masthead__note { display: none; }
+
+  .team-v2-rating-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 0;
+  }
+
+  .team-v2-rating-tile {
+    min-height: 58px;
+    border-bottom: 1px solid var(--color-hairline);
+  }
+  .team-v2-rating-tile:nth-child(2n) { border-right: 0; }
+  .team-v2-rating-tile:last-child {
+    grid-column: 1 / -1;
+    border-bottom: 0;
+  }
+
+  .team-v2-tabs button {
+    min-height: 44px;
+    padding-inline: 15px;
+    font-size: 9px;
+  }
+
+  .team-v2-panel {
+    min-height: 0;
+    padding-top: 15px;
+  }
+
+  .team-v2-panel-heading,
+  .team-v2-section-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .team-v2-panel-heading h2,
+  .team-v2-section-head h2 { font-size: 21px; }
+
+  .team-v2-panel-heading > small,
+  .team-v2-section-head > small {
+    max-width: none;
+    text-align: left;
+  }
+
+  .team-v2-overview-grid,
+  .team-v2-group-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .team-v2-context-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .team-v2-context-stat,
+  .team-v2-context-stat:nth-child(3) { border-right: 1px solid var(--color-hairline); }
+  .team-v2-context-stat:nth-child(2n) { border-right: 0; }
+  .team-v2-context-stat:nth-child(-n+4) { border-bottom: 1px solid var(--color-hairline); }
+  .team-v2-context-stat:last-child {
+    grid-column: 1 / -1;
+    border-right: 0;
+  }
+
+  .team-v2-edge-head,
+  .team-v2-edge-row {
+    grid-template-columns: minmax(102px, 1.25fr) repeat(3, minmax(70px, .8fr));
+    column-gap: 4px;
+    padding-inline: 5px;
+  }
+
+  .team-v2-edge-head {
+    font-size: 7.5px;
+  }
+
+  .team-v2-edge-row {
+    min-height: 45px;
+  }
+
+  .team-v2-edge-row__label {
+    font-size: 10px;
+  }
+
+  .team-v2-edge-row .team-v2-stat {
+    min-width: 66px;
+    grid-template-columns: minmax(34px, 1fr) 30px;
+  }
+
+  .team-v2-edge-row .team-v2-stat > strong {
+    padding-right: 4px;
+    font-size: 9.5px;
+  }
+
+  .team-v2-edge-row .team-v2-rank {
+    min-width: 30px;
+    font-size: 7px;
+  }
+
+  .team-v2-schedule th,
+  .team-v2-schedule td {
+    padding: 7px 5px;
+    font-size: 9.5px;
+    white-space: normal;
+  }
+
+  .team-v2-schedule th:nth-child(1),
+  .team-v2-schedule td:nth-child(1) { width: 14%; }
+  .team-v2-schedule th:nth-child(2),
+  .team-v2-schedule td:nth-child(2) { width: 43%; }
+  .team-v2-schedule th:nth-child(3),
+  .team-v2-schedule td:nth-child(3) { width: 21%; }
+  .team-v2-schedule th:nth-child(4),
+  .team-v2-schedule td:nth-child(4) { width: 22%; }
+  .team-v2-schedule th:nth-child(5),
+  .team-v2-schedule td:nth-child(5) { display: none; }
+
+  .team-v2-schedule .schedule-opp img {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+  }
+
+  .team-v2-history {
+    padding-top: 20px;
+  }
+}
+
+@media (max-width: 430px) {
+  .team-v2-main.container { width: calc(100% - 16px); }
+  .team-v2-identity > img {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+  }
+  .team-v2-identity h1 { font-size: 25px; }
+  .team-v2-rating-tile > div > span { font-size: 10px; }
+  .team-v2-rating-tile > div > small { font-size: 7.5px; }
+  .team-v2-stat {
+    min-width: 78px;
+    grid-template-columns: minmax(38px, auto) 34px;
+  }
+  .team-v2-stat > strong { font-size: 10.5px; }
+  .team-v2-rank {
+    min-width: 34px;
+    font-size: 8px;
+  }
+  .team-v2-mini-profile__row > span,
+  .team-v2-group__row > span { font-size: 10.5px; }
+}
