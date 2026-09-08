@@ -1,0 +1,494 @@
+/* ========================================================================== */
+/* GRID — Upgrade / Access                                                    */
+/* Conversion-first, editorial and data-forward.                              */
+/* ========================================================================== */
+
+.upgrade-main {
+  padding-bottom: var(--space-7);
+}
+
+.upgrade-experience {
+  width: 100%;
+}
+
+.upgrade-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, .7fr);
+  gap: var(--space-6);
+  align-items: end;
+  padding: var(--space-6) 0 var(--space-5);
+  border-bottom: 2px solid var(--color-navy);
+}
+
+.upgrade-hero h1 {
+  margin: 4px 0 8px;
+  max-width: 760px;
+  font-family: var(--font-display);
+  font-size: clamp(38px, 5vw, 58px);
+  font-weight: 800;
+  line-height: .94;
+  letter-spacing: .005em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.upgrade-hero__copy > p {
+  max-width: 740px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-ink-secondary);
+}
+
+.upgrade-trustline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 14px;
+  margin-top: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+
+.upgrade-trustline span::before {
+  content: "✓";
+  margin-right: 5px;
+  color: var(--color-gold-dark);
+}
+
+.upgrade-why {
+  padding: 0 0 2px var(--space-4);
+  border-left: 1px solid var(--color-hairline-strong);
+}
+
+.upgrade-why strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.upgrade-why p {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--color-ink-secondary);
+}
+
+.upgrade-alert {
+  margin: var(--space-4) 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-hairline-strong);
+  background: var(--color-paper-soft);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-navy);
+}
+
+.upgrade-alert--error {
+  border-color: #a53a31;
+  color: #7f261f;
+}
+
+.upgrade-plans,
+.upgrade-preview,
+.upgrade-compare,
+.upgrade-faq {
+  padding: var(--space-6) 0;
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.upgrade-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-4);
+}
+
+.upgrade-section-heading h2 {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.upgrade-section-heading > p {
+  max-width: 360px;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: right;
+  color: var(--color-ink-tertiary);
+}
+
+.upgrade-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--color-hairline-strong);
+  background: var(--color-paper);
+}
+
+.upgrade-plan {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-5);
+}
+
+.upgrade-plan + .upgrade-plan {
+  border-left: 1px solid var(--color-hairline-strong);
+}
+
+.upgrade-plan--plus {
+  box-shadow: inset 0 3px 0 var(--color-gold);
+  background: var(--color-paper-soft);
+}
+
+.upgrade-plan--selected {
+  outline: 2px solid var(--color-navy);
+  outline-offset: -2px;
+}
+
+.upgrade-plan__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.upgrade-plan__label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-gold-dark);
+}
+
+.upgrade-plan__header h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.upgrade-plan__flag {
+  flex: 0 0 auto;
+  padding: 4px 6px;
+  border: 1px solid var(--color-gold-dark);
+  border-radius: var(--radius-sm);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--color-gold-dark);
+}
+
+.upgrade-plan__price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: var(--space-4);
+}
+
+.upgrade-plan__price strong {
+  font-family: var(--font-mono);
+  font-size: 31px;
+  line-height: 1;
+  color: var(--color-navy);
+}
+
+.upgrade-plan__price span {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-ink-tertiary);
+}
+
+.upgrade-plan__fit {
+  min-height: 40px;
+  margin: 10px 0 var(--space-4);
+  max-width: 500px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-ink-secondary);
+}
+
+.upgrade-plan__features {
+  display: grid;
+  gap: 0;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.upgrade-plan__features li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 5px;
+  align-items: start;
+  min-height: 43px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.upgrade-plan__features li > span {
+  font-weight: 800;
+  color: var(--color-gold-dark);
+}
+
+.upgrade-plan__features strong {
+  display: block;
+  font-size: 10.5px;
+  color: var(--color-navy);
+}
+
+.upgrade-plan__features small {
+  display: block;
+  margin-top: 1px;
+  font-size: 9px;
+  line-height: 1.35;
+  color: var(--color-ink-tertiary);
+}
+
+.upgrade-plan__action {
+  margin-top: auto;
+}
+
+.upgrade-plan__action form {
+  margin: 0;
+}
+
+.upgrade-plan__button {
+  width: 100%;
+  min-height: 46px;
+}
+
+.upgrade-plan__action > small {
+  display: block;
+  margin-top: 8px;
+  min-height: 30px;
+  font-size: 8.5px;
+  line-height: 1.45;
+  color: var(--color-ink-tertiary);
+}
+
+.upgrade-billing-note {
+  margin: 10px 0 0;
+  font-size: 9.5px;
+  line-height: 1.45;
+  color: var(--color-ink-tertiary);
+}
+
+.upgrade-preview__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--color-hairline-strong);
+  border-left: 1px solid var(--color-hairline-strong);
+}
+
+.upgrade-preview__row {
+  min-height: 72px;
+  padding: 13px var(--space-4);
+  border-right: 1px solid var(--color-hairline-strong);
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.upgrade-preview__row strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.upgrade-preview__row span {
+  display: block;
+  max-width: 420px;
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--color-ink-secondary);
+}
+
+.upgrade-compare__table {
+  border: 1px solid var(--color-hairline-strong);
+}
+
+.upgrade-compare__row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.35fr) repeat(3, minmax(100px, .65fr));
+  min-height: 42px;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.upgrade-compare__row:last-child {
+  border-bottom: 0;
+}
+
+.upgrade-compare__row span {
+  display: flex;
+  align-items: center;
+  padding: 8px 11px;
+  border-right: 1px solid var(--color-hairline);
+  font-size: 9.5px;
+  color: var(--color-ink-secondary);
+}
+
+.upgrade-compare__row span:last-child {
+  border-right: 0;
+}
+
+.upgrade-compare__row span:not(:first-child) {
+  justify-content: center;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--color-navy);
+}
+
+.upgrade-compare__row--head {
+  background: var(--color-paper-soft);
+}
+
+.upgrade-compare__row--head span {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+
+.upgrade-faq {
+  border-bottom: 0;
+}
+
+.upgrade-faq__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--color-hairline-strong);
+  border-left: 1px solid var(--color-hairline-strong);
+}
+
+.upgrade-faq__grid > div {
+  padding: var(--space-4);
+  border-right: 1px solid var(--color-hairline-strong);
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.upgrade-faq__grid strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.upgrade-faq__grid p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--color-ink-secondary);
+}
+
+.upgrade-faq__grid a {
+  font-weight: 800;
+  color: var(--color-navy);
+}
+
+/* Expected entitlement failure uses the same sales experience, without an
+   extra generic "View plans" step. */
+.upgrade-experience--gate {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.upgrade-experience--gate .upgrade-hero {
+  padding-top: var(--space-5);
+}
+
+@media (max-width: 860px) {
+  .upgrade-hero {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .upgrade-why {
+    padding: var(--space-3) 0 0;
+    border-top: 1px solid var(--color-hairline-strong);
+    border-left: 0;
+  }
+  .upgrade-section-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .upgrade-section-heading > p {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+@media (max-width: 700px) {
+  .upgrade-main {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+  .upgrade-hero {
+    gap: var(--space-4);
+    padding-top: var(--space-5);
+  }
+  .upgrade-hero h1 {
+    font-size: clamp(34px, 11vw, 46px);
+  }
+  .upgrade-plan-grid,
+  .upgrade-preview__grid,
+  .upgrade-faq__grid {
+    grid-template-columns: 1fr;
+  }
+  .upgrade-plan + .upgrade-plan {
+    border-top: 1px solid var(--color-hairline-strong);
+    border-left: 0;
+  }
+  .upgrade-plan {
+    padding: var(--space-4);
+  }
+  .upgrade-plan__fit {
+    min-height: 0;
+  }
+  .upgrade-compare {
+    overflow-x: auto;
+  }
+  .upgrade-compare__table {
+    min-width: 620px;
+  }
+}
+
+@media (max-width: 430px) {
+  .upgrade-trustline {
+    display: grid;
+  }
+  .upgrade-plan__header {
+    align-items: flex-start;
+  }
+  .upgrade-plan__header h3 {
+    font-size: 22px;
+  }
+  .upgrade-plan__price strong {
+    font-size: 28px;
+  }
+}
