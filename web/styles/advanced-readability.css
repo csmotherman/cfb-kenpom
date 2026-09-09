@@ -1,0 +1,533 @@
+/* ========================================================================== */
+/* GRID — Advanced analytics readability pass                                */
+/* Loaded last so the dense stat-sheet layout stays intact while text,        */
+/* controls, and hierarchy are easier to read for a broader audience.         */
+/* ========================================================================== */
+
+body:has(#advancedTable) {
+  background: #f7f6f2;
+  color: #142742;
+}
+
+body:has(#advancedTable) .site-header {
+  background: #fffefa;
+  border-bottom-color: #d7d4ca;
+}
+
+body:has(#advancedTable) .site-nav {
+  background: #142742;
+}
+
+body:has(#advancedTable) .ratings-hero {
+  padding-top: 18px;
+  padding-bottom: 16px;
+}
+
+body:has(#advancedTable) .ratings-hero .eyebrow {
+  color: #8a6825;
+  font-size: 10.5px;
+  letter-spacing: .1em;
+}
+
+body:has(#advancedTable) .ratings-hero h1 {
+  color: #10243e;
+  font-size: clamp(35px, 4vw, 44px);
+  line-height: 1.02;
+}
+
+body:has(#advancedTable) .ratings-hero__description {
+  max-width: 760px;
+  margin-top: 8px;
+  color: #3e4856;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+body:has(#advancedTable) .ratings-hero__meta,
+body:has(#advancedTable) .ratings-status,
+body:has(#advancedTable) .data-updated,
+body:has(#advancedTable) .utility-link {
+  color: #4e5968;
+  font-size: 11px;
+}
+
+body:has(#advancedTable) .utility-link {
+  color: #142742;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+body:has(#advancedTable) .control-bar {
+  background: #f1f0eb;
+  border-top: 1px solid #d5d2c8;
+  border-bottom: 1px solid #cbc7bb;
+}
+
+body:has(#advancedTable) .control-bar__inner {
+  gap: 9px 14px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+body:has(#advancedTable) .control-label {
+  color: #4b5666;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .065em;
+}
+
+body:has(#advancedTable) .year-nav button {
+  min-height: 34px;
+  padding: 5px 10px;
+  color: #4b5666;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+body:has(#advancedTable) .year-nav button:hover {
+  color: #10243e;
+  background: #fbfaf6;
+}
+
+body:has(#advancedTable) .year-nav button.active {
+  background: #fff;
+  color: #10243e;
+  border-bottom-color: #b88727;
+  font-weight: 800;
+}
+
+/* Make the existing team filter look and read like a first-class feature. */
+body:has(#advancedTable) .filter-box {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr);
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 390px;
+  max-width: 520px;
+  min-width: 300px;
+  padding: 5px 7px 5px 11px;
+  border: 1px solid #aeb5bd;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(20, 39, 66, .04);
+}
+
+body:has(#advancedTable) .filter-box::before {
+  content: "Search teams";
+  color: #142742;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+body:has(#advancedTable) .filter-box input {
+  width: 100%;
+  min-height: 36px;
+  height: 36px;
+  padding: 7px 34px 7px 11px;
+  border: 1px solid #c7ccd2;
+  border-radius: 3px;
+  background: #fbfcfd;
+  color: #142742;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+body:has(#advancedTable) .filter-box input::placeholder {
+  color: #747d88;
+  opacity: 1;
+  font-weight: 500;
+}
+
+body:has(#advancedTable) .filter-box:focus-within {
+  border-color: #142742;
+  box-shadow: 0 0 0 2px rgba(20, 39, 66, .08);
+}
+
+body:has(#advancedTable) .filter-box input:focus {
+  outline: none;
+  border-color: #7e8b9b;
+}
+
+body:has(#advancedTable) .conference-filter select,
+body:has(#advancedTable) .week-range select {
+  min-height: 36px;
+  height: 36px;
+  border-color: #b8bec5;
+  background: #fff;
+  color: #1f3148;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+body:has(#advancedTable) .conference-filter select:focus,
+body:has(#advancedTable) .week-range select:focus {
+  outline: 2px solid rgba(20, 39, 66, .12);
+  outline-offset: 1px;
+  border-color: #142742;
+}
+
+body:has(#advancedTable) .row-count {
+  color: #4d5866;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+body:has(#advancedTable) .advanced-tab-bar {
+  border-top-color: #cbc7bb;
+  gap: 12px 20px;
+}
+
+body:has(#advancedTable) .advanced-tab-bar .tab-nav {
+  gap: 22px;
+}
+
+body:has(#advancedTable) .advanced-tab-bar .tab-nav button {
+  min-height: 40px;
+  padding: 8px 1px 7px;
+  color: #566170;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .035em;
+}
+
+body:has(#advancedTable) .advanced-tab-bar .tab-nav button:hover {
+  color: #10243e;
+}
+
+body:has(#advancedTable) .advanced-tab-bar .tab-nav button.active {
+  color: #10243e;
+  border-bottom-color: #b88727;
+}
+
+body:has(#advancedTable) .advanced-perspective {
+  border-color: #b8bec5;
+  background: #e8e9e7;
+}
+
+body:has(#advancedTable) .advanced-perspective__label {
+  color: #5a6471;
+  font-size: 9.5px;
+}
+
+body:has(#advancedTable) .advanced-perspective button {
+  min-height: 30px;
+  padding: 5px 10px;
+  color: #4f5966;
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+body:has(#advancedTable) .advanced-perspective button.active {
+  background: #fff;
+  color: #10243e;
+  box-shadow: 0 0 0 1px #aeb5bd;
+}
+
+body:has(#advancedTable) .advanced-tab-bar .adv-note {
+  color: #566170;
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+body:has(#advancedTable) .table-main.container {
+  padding-top: 14px;
+}
+
+body:has(#advancedTable) .advanced-table-shell {
+  border-color: #bfc4c9;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(20, 39, 66, .05);
+}
+
+body:has(#advancedTable) .advanced-table-summary {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-bottom-color: #c9cdd1;
+  background: #f1f3f4;
+  color: #596472;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+body:has(#advancedTable) .advanced-table-summary span:first-child {
+  color: #10243e;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+body:has(#advancedTable) #advancedTable .table-scroll {
+  background: #fff;
+}
+
+body:has(#advancedTable) #advancedTable .adv-section-row th {
+  height: 31px;
+  padding: 5px 9px;
+  border-right-color: rgba(255,255,255,.12);
+  border-bottom-color: #10243e;
+  background: #1b3453;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .055em;
+}
+
+body:has(#advancedTable) #advancedTable .adv-section-row .adv-section-spacer {
+  color: #fff;
+}
+
+body:has(#advancedTable) #advancedTable .adv-column-row th {
+  top: 31px;
+  height: 44px;
+  padding-inline: 9px;
+  border-bottom-color: #aeb5bd;
+  background: #e9edf0;
+  color: #172b45;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+body:has(#advancedTable) #advancedTable .adv-column-row th:hover {
+  background: #dfe5e9;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .column-sort {
+  padding-block: 10px;
+  color: inherit;
+  font-family: var(--font-body);
+  font-size: inherit;
+  font-weight: 800;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .sort-indicator {
+  color: #7c5d1f;
+  font-size: 8px;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .tip-trigger {
+  opacity: .82;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .section-start {
+  border-left-color: #abb2ba;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table tbody td {
+  height: 48px;
+  padding: 7px 9px;
+  border-bottom-color: #e0e3e5;
+  color: #25364b;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) {
+  background: #f7f8f8;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table tbody tr:hover {
+  background: #eef2f4;
+  box-shadow: inset 0 1px 0 #b8bec5, inset 0 -1px 0 #b8bec5;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .stat-cell {
+  background-image: linear-gradient(rgba(255,255,255,.48), rgba(255,255,255,.48));
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .stat-cell.primary {
+  box-shadow: inset 0 2px 0 #a97821;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .metric-value {
+  min-height: 17px;
+  color: #142742;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .rank-sub {
+  margin-top: 3px;
+  color: #596472;
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .rank-cell,
+body:has(#advancedTable) #advancedTable .adv-table .record-cell {
+  color: #273a51;
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .team-link {
+  color: #10243e;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .team-conf-label {
+  color: #65707d;
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+/* Sticky identity cells need the same higher-contrast surfaces as their rows. */
+@media (min-width: 641px) {
+  body:has(#advancedTable) #advancedTable .adv-column-row .rank-cell,
+  body:has(#advancedTable) #advancedTable .adv-column-row .team-cell {
+    background: #e9edf0;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table tbody .rank-cell,
+  body:has(#advancedTable) #advancedTable .adv-table tbody .team-cell {
+    background: #fff;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) .rank-cell,
+  body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) .team-cell {
+    background: #f7f8f8;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-column-row .team-cell,
+  body:has(#advancedTable) #advancedTable .adv-table tbody .team-cell {
+    box-shadow: 2px 0 0 #bfc4c9, 8px 0 13px rgba(20, 39, 66, .05);
+  }
+}
+
+@media (max-width: 900px) {
+  body:has(#advancedTable) .filter-box {
+    flex: 1 1 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  body:has(#advancedTable) .conference-filter {
+    flex: 1 1 190px;
+  }
+}
+
+@media (max-width: 640px) {
+  body:has(#advancedTable) .ratings-hero {
+    padding-top: 14px;
+    padding-bottom: 12px;
+  }
+
+  body:has(#advancedTable) .ratings-hero h1 {
+    font-size: 32px;
+  }
+
+  body:has(#advancedTable) .ratings-hero__description {
+    font-size: 12.5px;
+  }
+
+  body:has(#advancedTable) .control-bar__inner:not(.control-bar__inner--secondary) {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 7px 8px;
+  }
+
+  body:has(#advancedTable) .filter-box {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    width: 100%;
+    min-width: 0;
+    padding: 5px 6px 5px 9px;
+  }
+
+  body:has(#advancedTable) .filter-box::before {
+    font-size: 10.5px;
+  }
+
+  body:has(#advancedTable) .filter-box input {
+    min-height: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  body:has(#advancedTable) .conference-filter {
+    grid-column: 1 / 3 !important;
+    grid-row: auto !important;
+    width: 100%;
+    max-width: none !important;
+  }
+
+  body:has(#advancedTable) .conference-filter select,
+  body:has(#advancedTable) .week-range select {
+    min-height: 42px;
+    height: 42px;
+    font-size: 16px;
+  }
+
+  body:has(#advancedTable) .row-count {
+    grid-column: 3;
+    grid-row: 1;
+    font-size: 10px;
+  }
+
+  body:has(#advancedTable) .advanced-tab-bar .tab-nav button {
+    min-height: 44px;
+    font-size: 11px;
+  }
+
+  body:has(#advancedTable) .advanced-perspective button {
+    min-height: 40px;
+    font-size: 10.5px;
+  }
+
+  body:has(#advancedTable) .advanced-tab-bar .adv-note {
+    font-size: 10px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-section-row th {
+    height: 29px;
+    font-size: 9.5px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-column-row th {
+    top: 29px;
+    height: 44px;
+    font-size: 10.5px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table tbody td {
+    height: 48px;
+    font-size: 12.5px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table .metric-value {
+    font-size: 12.5px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table .rank-sub {
+    font-size: 9px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table .team-link {
+    font-size: 12.5px;
+  }
+}
