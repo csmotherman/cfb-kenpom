@@ -53,5 +53,12 @@ export function teamCode(team: string): string {
 }
 
 export function logoUrl(teamId: number | string, size = 64): string {
-  return `https://cdn.collegefootballdata.com/logos/${size}/${teamId}.png`;
+  // CFBD logo paths use 64px increments. Normalize every caller (e.g. the
+  // older 96px matchup request becomes 128px) so deployed URLs stay on a
+  // supported size. The 192px path has been inconsistent in production for
+  // team-profile mastheads, so use the 128px source there and let CSS control
+  // the rendered display size.
+  const normalizedSize = Math.max(64, Math.round(size / 64) * 64);
+  const resolvedSize = normalizedSize === 192 ? 128 : normalizedSize;
+  return `https://cdn.collegefootballdata.com/logos/${resolvedSize}/${teamId}.png`;
 }
