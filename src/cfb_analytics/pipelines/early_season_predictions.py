@@ -4,7 +4,7 @@ non-opponent-adjusted scoring margin as real games accumulate.
 
 This exists specifically for the weeks before the site's closed opponent-
 adjusted rating graph is `well_determined` (see build_real_data.py) --
-SOS/SOR/RPI-O/RPI-D all stay null that early because there simply isn't
+SOS/SOR/AdjOff/AdjDef all stay null that early because there simply isn't
 enough of a connected schedule graph yet to solve. This model doesn't try
 to solve that; it substitutes a much simpler, walk-forward-validated
 combination for exactly that window, then gets out of the way.
@@ -33,7 +33,7 @@ Commands, run at very different cadences:
               stops mattering once a matchup's games-played passes
               early_season_blend.MAX_PRIOR_GAMES, since the blend is then
               100% in-season signal and this model has nothing left to add
-              over the site's own developing RPI/SOR.
+              over the site's own developing AdjNet/SOR.
 """
 from __future__ import annotations
 
@@ -345,7 +345,7 @@ def publish_preseason_power() -> Path:
 # Early-season weeks worth publishing predictions for -- beyond this many
 # games played the blend is 100% in-season signal (see early_season_blend.
 # MAX_PRIOR_GAMES) and this model has nothing left to add over the site's
-# own developing RPI/SOR.
+# own developing AdjNet/SOR.
 MAX_PUBLISHED_WEEK = MAX_PRIOR_GAMES + 1
 
 

@@ -186,7 +186,7 @@
   font-size: 9px;
   color: var(--color-ink-tertiary);
 }
-.weekly-team__rpi {
+.weekly-team__adjnet {
   display: block;
   margin: 5px 0 0 39px;
   font-size: 9px;
@@ -533,7 +533,7 @@
   }
   .weekly-game__teams { grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr); }
   .weekly-team__identity img { width: 28px; height: 28px; }
-  .weekly-team__rpi { margin-left: 36px; }
+  .weekly-team__adjnet { margin-left: 36px; }
   .weekly-edge-row {
     grid-template-columns: minmax(0, 1fr) 34px 18px minmax(0, 1fr) 34px;
     font-size: 8.8px;

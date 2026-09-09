@@ -60,7 +60,7 @@ const FEATURE_COPY: Record<UpgradeFeature, FeatureCopy> = {
     intro:
       "GRID stays a ratings-first site. Pro simply gives you deeper research controls and model access when you need them.",
     reason:
-      "RPI ratings, team profiles, schedules and basic matchup context remain free. Paid access is for deeper analysis and forward-looking tools.",
+      "AdjNet ratings, team profiles, schedules and basic matchup context remain free. Paid access is for deeper analysis and forward-looking tools.",
   },
 };
 
@@ -224,7 +224,7 @@ export default function UpgradeExperience({
           <h2 id="upgradeFreeTitle">The ratings table stays the main product</h2>
         </div>
         <div className="upgrade-free-note__items">
-          <span>RPI / RPI-O / RPI-D</span>
+          <span>AdjNet / AdjOff / AdjDef</span>
           <span>Team profiles</span>
           <span>This Week</span>
           <span>Basic matchups</span>

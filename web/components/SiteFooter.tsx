@@ -7,9 +7,9 @@ export default function SiteFooter({ note }: { note: string }) {
     .replaceAll("ARA Advanced Analytics", "GRID Pro")
     .replaceAll("Advanced CFF", "GRID Pro")
     .replaceAll("Advanced ARA", "GRID Pro")
-    .replaceAll("AdjEM", "RPI")
-    .replaceAll("AdjO", "RPI-O")
-    .replaceAll("AdjD", "RPI-D")
+    .replaceAll("AdjEM", "AdjNet")
+    .replaceAll(/AdjO(?!ff)/g, "AdjOff")
+    .replaceAll(/AdjD(?!ef)/g, "AdjDef")
     .replaceAll("CFF", "GRID");
 
   return (

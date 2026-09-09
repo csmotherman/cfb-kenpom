@@ -171,7 +171,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               </div>
               <div className="entitlement-list">
                 <div className="entitlement-row">
-                  <div><strong>RPI Ratings</strong><span>Core GRID team ratings</span></div>
+                  <div><strong>AdjNet Ratings</strong><span>Core GRID team ratings</span></div>
                   <b className="entitlement-state entitlement-state--on">Included</b>
                 </div>
                 <div className="entitlement-row">

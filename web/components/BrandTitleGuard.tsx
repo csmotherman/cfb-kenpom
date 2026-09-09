@@ -10,8 +10,8 @@ function applyGridTitle() {
     .replaceAll("College Football Focus", "GRID")
     .replaceAll("ARA", "GRID");
 
-  nextTitle = nextTitle.replace(/^(\d{4}) College Football Ratings\s*[—-]\s*GRID$/, "$1 RPI Ratings | GRID");
-  nextTitle = nextTitle.replace(/^(.+) Football Ratings\s*[—-]\s*GRID$/, "$1 RPI | GRID");
+  nextTitle = nextTitle.replace(/^(\d{4}) College Football Ratings\s*[—-]\s*GRID$/, "$1 AdjNet Ratings | GRID");
+  nextTitle = nextTitle.replace(/^(.+) Football Ratings\s*[—-]\s*GRID$/, "$1 AdjNet | GRID");
 
   if (nextTitle !== document.title) document.title = nextTitle;
 }

@@ -30,7 +30,7 @@
 /* The prior brand layer intentionally uses pseudo-labels so old model/data   */
 /* keys can remain stable. Override only those public-facing words here.      */
 body:has(#ratingsTable) .ratings-hero .eyebrow::after {
-  content: "GRID RPI";
+  content: "GRID AdjNet";
 }
 
 body:has(#advancedTable) .ratings-hero .eyebrow::after {
@@ -42,7 +42,7 @@ body:has(#ratingsTable) .premium-teaser__title::after {
 }
 
 body:has(#advancedTable) .adv-table[data-view="general"] th[data-metric-key="cff"] .column-sort::before {
-  content: "RPI";
+  content: "AdjNet";
 }
 
 body:has(#teamContent) .adv-preview__heading h2::after {

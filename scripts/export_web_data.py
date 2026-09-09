@@ -98,7 +98,7 @@ def build_schedule_payload(year):
         # A real, played FBS result still belongs on that team's schedule and
         # in the weekly slate even when the opponent is FCS -- only games with
         # no FBS side at all (out of this corpus's scope to begin with) drop.
-        # The ratings/RPI universe itself stays FBS-vs-FBS-only regardless;
+        # The ratings/AdjNet universe itself stays FBS-vs-FBS-only regardless;
         # this is display only.
         if home is None or away is None:
             continue
@@ -431,7 +431,7 @@ def build_team_stats_weekly_payload(advanced_payload):
     """Per-week cumulative team-stat snapshots, shaped like rankings.json
     ({weeks, weekLabels, byWeek}) so matchup/weekly pages can look up a
     team's stats as of the week strictly before a given game -- the same
-    pregame-snapshot pattern already used for RPI/RPI-O/RPI-D. Publishing
+    pregame-snapshot pattern already used for AdjNet/AdjOff/AdjDef. Publishing
     only the final week (as build_team_stats_payload does) would leak a
     later week's totals into an earlier game's matchup page once the season
     moves on; this keeps every week's numbers frozen at what was actually

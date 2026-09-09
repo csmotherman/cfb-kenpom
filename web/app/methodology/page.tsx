@@ -30,11 +30,11 @@ export default function MethodologyPage() {
             <h2>Ratings</h2>
           </div>
           <div className="methodology-definitions">
-            <Definition term="RPI" tag="Core" text="Relative Performance Index. GRID's overall opponent-adjusted measure of how strongly a team has performed. Higher is better." />
-            <Definition term="RPI-O" tag="Core" text="Opponent-adjusted offensive performance. Higher means the offense has performed better after accounting for the defenses it faced." />
-            <Definition term="RPI-D" tag="Core" text="Opponent-adjusted defensive performance. It is oriented so higher is better for defense too." />
+            <Definition term="AdjNet" tag="Core" text="Adjusted Net Rating. GRID's overall opponent-adjusted measure of how strongly a team has performed. Higher is better." />
+            <Definition term="AdjOff" tag="Core" text="Opponent-adjusted offensive performance. Higher means the offense has performed better after accounting for the defenses it faced." />
+            <Definition term="AdjDef" tag="Core" text="Opponent-adjusted defensive performance. It is oriented so higher is better for defense too." />
             <Definition term="SOS" tag="Context" text="Strength of schedule, based on the strength of opponents played through the selected rating snapshot." />
-            <Definition term="SOR" tag="Résumé" text="Strength of Record: wins above what an exactly-average FBS team would be expected to earn against the same schedule. It answers a résumé question, separate from RPI's performance question." />
+            <Definition term="SOR" tag="Résumé" text="Strength of Record: wins above what an exactly-average FBS team would be expected to earn against the same schedule. It answers a résumé question, separate from AdjNet's performance question." />
           </div>
         </section>
 
@@ -45,7 +45,7 @@ export default function MethodologyPage() {
               <h2>Raw vs adjusted</h2>
             </div>
             <p>
-              GRID does not label every number opponent-adjusted. Public team profiles include season-to-date raw football results such as success rate, pass/rush success, yards per play, explosiveness and tendencies. RPI and fields explicitly labeled as adjusted are model-based opponent-adjusted snapshots.
+              GRID does not label every number opponent-adjusted. Public team profiles include season-to-date raw football results such as success rate, pass/rush success, yards per play, explosiveness and tendencies. AdjNet and fields explicitly labeled as adjusted are model-based opponent-adjusted snapshots.
             </p>
           </div>
           <div>

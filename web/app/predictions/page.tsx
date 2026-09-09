@@ -43,7 +43,7 @@ export default function PredictionsPage() {
       // Predictions are published for early-season weeks specifically (see
       // early_season_predictions.py) -- a week with no file yet just means
       // this model hasn't scored it (either too early in the pipeline, or
-      // past the early-season window where GRID's own RPI/SOR takes over).
+      // past the early-season window where GRID's own AdjNet/SOR takes over).
       // Try the current week first, then the one behind it, since a
       // Tuesday-morning visitor mid-week wants last week's slate wrapping
       // up, not a blank page.
@@ -91,7 +91,7 @@ export default function PredictionsPage() {
           <p>
             Model-projected winners and margins for published early-season FBS matchups. Weeks 1&ndash;5 blend a
             preseason power rating with real results as they come in; once a team&rsquo;s schedule is long enough
-            for GRID&rsquo;s own opponent-adjusted RPI to take over, predictions retire in favor of that.
+            for GRID&rsquo;s own opponent-adjusted AdjNet to take over, predictions retire in favor of that.
           </p>
         </div>
       </section>

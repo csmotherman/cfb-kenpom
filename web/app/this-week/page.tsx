@@ -245,7 +245,7 @@ function WeeklyTeam({
           <small>{rating?.record || "—"}</small>
         </span>
       </Link>
-      <span className="weekly-team__rpi mono">RPI {signed(rating?.adjEM)}</span>
+      <span className="weekly-team__adjnet mono">AdjNet {signed(rating?.adjEM)}</span>
     </div>
   );
 }

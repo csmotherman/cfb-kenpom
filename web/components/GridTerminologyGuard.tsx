@@ -2,24 +2,24 @@
 
 import { useEffect } from "react";
 
-const REPLACEMENTS: Array<[string, string]> = [
+const REPLACEMENTS: Array<[string | RegExp, string]> = [
   ["ARA Advanced Analytics", "GRID Pro"],
   ["Advanced CFF Analytics", "GRID Pro"],
   ["CFF Advanced Analytics", "GRID Pro"],
   ["Advanced CFF", "GRID Pro"],
-  ["ARA Ratings", "GRID RPI"],
-  ["CFF Ratings", "GRID RPI"],
+  ["ARA Ratings", "GRID AdjNet"],
+  ["CFF Ratings", "GRID AdjNet"],
   ["CollegeFootballFocus", "GRID"],
   ["College Football Focus", "GRID"],
   ["Adjusted Ratings & Analytics", "College Football Analytics"],
-  ["AdjEM", "RPI"],
-  ["AdjO", "RPI-O"],
-  ["AdjD", "RPI-D"],
+  ["AdjEM", "AdjNet"],
+  [/AdjO(?!ff)/g, "AdjOff"],
+  [/AdjD(?!ef)/g, "AdjDef"],
 ];
 
 function replaceBrandTerms(value: string) {
   const trimmed = value.trim();
-  if (trimmed === "CFF") return value.replace("CFF", "RPI");
+  if (trimmed === "CFF") return value.replace("CFF", "AdjNet");
   if (trimmed === "ARA") return value.replace("ARA", "GRID");
   return REPLACEMENTS.reduce((next, [from, to]) => next.replaceAll(from, to), value);
 }

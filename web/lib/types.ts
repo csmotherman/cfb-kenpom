@@ -147,7 +147,7 @@ export type TeamStatsSeason = {
 // Same rows as TeamStatsSeason, but one snapshot per week (cumulative
 // through that week only) instead of one season-to-date snapshot -- lets a
 // matchup/weekly page look up a team's stats strictly before a given game,
-// the same pregame-snapshot pattern already used for RPI/RPI-O/RPI-D.
+// the same pregame-snapshot pattern already used for AdjNet/AdjOff/AdjDef.
 export type TeamStatsWeeklySeason = {
   weeks: number[];
   weekLabels: WeekLabels;

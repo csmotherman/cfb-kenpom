@@ -50,7 +50,7 @@ export default function PremiumRouteError({
             <span className="eyebrow auth-kicker">GRID {product}</span>
             <h1 className="auth-title">Couldn’t load data</h1>
             <p className="auth-copy">
-              The data could not be loaded right now. Your public RPI ratings are still available.
+              The data could not be loaded right now. Your public AdjNet ratings are still available.
             </p>
 
             <div className="premium-error-actions">
