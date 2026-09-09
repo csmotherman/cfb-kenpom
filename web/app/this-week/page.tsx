@@ -71,7 +71,7 @@ export default function ThisWeekPage() {
   }, []);
 
   useEffect(() => {
-    document.title = season ? `${season} This Week | GRID` : "This Week | GRID";
+    document.title = season ? `${season} Weekly Matchups | GRID` : "Weekly Matchups | GRID";
   }, [season]);
 
   const ratingWeek = useMemo(() => {
@@ -101,8 +101,8 @@ export default function ThisWeekPage() {
 
       <section className="weekly-hero container">
         <div>
-          <span className="eyebrow">GRID This Week</span>
-          <h1>{season ? `${season} Matchups` : "This Week"}</h1>
+          <span className="eyebrow">GRID Weekly Matchups</span>
+          <h1>{season ? `${season} Matchups` : "Weekly Matchups"}</h1>
           <p>
             Every FBS-vs-FBS game in one place, paired with the latest pregame GRID ratings so you can see where each matchup starts.
           </p>
