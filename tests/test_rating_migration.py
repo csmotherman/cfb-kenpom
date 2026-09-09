@@ -360,19 +360,31 @@ class BuildIntegrationTests(unittest.TestCase):
                     continue
                 self.assertAlmostEqual(row["adjEM"], row["adjO"] + row["adjD"], places=9)
 
-    def test_legacy_mode_reproduces_the_currently_published_values(self):
+    def test_new_mode_reproduces_the_currently_published_values(self):
+        weeks, main, _adv, _labels, _meta = self.new
+        published = json.loads((ROOT / f"web/public/data/rankings/{self.SEASON}.json").read_text())
+        self.assertEqual(weeks, published["weeks"])
+        for week in published["weeks"]:
+            expected = {r["slug"]: r for r in published["byWeek"][str(week)]}
+            actual = {r["slug"]: r for r in main[str(week)]}
+            self.assertEqual(set(expected), set(actual))
+            for slug, row in expected.items():
+                for field in ("adjEM", "adjO", "adjD", "rank", "adjORank", "adjDRank",
+                              "sos", "sosRank", "sor", "sorRank", "record", "rankChange"):
+                    self.assertEqual(actual[slug][field], row[field], f"{slug}.{field} week {week}")
+
+    def test_legacy_mode_satisfies_the_rollback_contract(self):
         weeks, main, adv, _labels, meta = self.legacy
         validate_season({"weeks": weeks, "byWeek": main, "ratingModel": meta},
                         {"weeks": weeks, "byWeek": adv})
-        published = json.loads((ROOT / f"web/public/data/rankings/{self.SEASON}.json").read_text())
-        for week in published["weeks"]:
-            old = {r["slug"]: r for r in published["byWeek"][str(week)]}
-            new = {r["slug"]: r for r in main[str(week)]}
-            self.assertEqual(set(old), set(new))
-            for slug, row in old.items():
-                for field in ("adjEM", "adjO", "adjD", "rank", "adjORank", "adjDRank",
-                              "sos", "sosRank", "sor", "sorRank", "record", "rankChange"):
-                    self.assertEqual(new[slug][field], row[field], f"{slug}.{field} week {week}")
+        self.assertEqual(
+            compiler.RATING_SOURCE_KEYS["legacy"],
+            {"adjEM": "cff", "adjO": "offYardsPerPlay", "adjD": "defYardsPerPlay"},
+        )
+        for week in weeks:
+            adv_by_slug = {row["slug"]: row for row in adv[str(week)]}
+            for row in main[str(week)]:
+                self.assertEqual(row["adjEM"], adv_by_slug[row["slug"]]["cff"])
 
     def test_advanced_payload_is_identical_under_both_rating_models(self):
         """Turning on the new rating model must not move a single Advanced
