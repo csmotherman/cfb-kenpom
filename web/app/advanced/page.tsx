@@ -473,9 +473,10 @@ export default function AdvancedPage() {
     const withRanks = teams.map((team) => ({ ...team }));
     tabDef.columns.forEach((col) => {
       if (!col.rankable) return;
-      if (col.sourceRankKey) {
+      const sourceRankKey = col.sourceRankKey;
+      if (sourceRankKey) {
         withRanks.forEach((team) => {
-          const sourceRank = team[col.sourceRankKey] as number | null | undefined;
+          const sourceRank = team[sourceRankKey] as number | null | undefined;
           team[`_rank_${col.key}`] = na(sourceRank) ? null : sourceRank;
         });
         return;
