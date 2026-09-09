@@ -333,8 +333,10 @@ class BuildIntegrationTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not (ROOT / f"data/canonical/season={cls.SEASON}/team_games.json").exists():
-            raise unittest.SkipTest("2026 canonical fixture is not present in this checkout")
+        canonical = ROOT / f"data/canonical/season={cls.SEASON}/team_games.json"
+        raw_games = list((ROOT / f"data/raw/cfbd/season={cls.SEASON}").glob("season_type=*/week=*/games.json"))
+        if not canonical.exists() or not raw_games:
+            raise unittest.SkipTest("2026 canonical/raw build fixtures are not present in this checkout")
         cls.new = compiler.build_season_payload(cls.SEASON, rating_model="hierarchical_hfa")
         cls.legacy = compiler.build_season_payload(cls.SEASON, rating_model="legacy")
 
@@ -422,8 +424,10 @@ class TemporalDisciplineTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not (ROOT / f"data/canonical/season={cls.SEASON}/team_games.json").exists():
-            raise unittest.SkipTest("2026 canonical fixture is not present in this checkout")
+        canonical = ROOT / f"data/canonical/season={cls.SEASON}/team_games.json"
+        raw_games = list((ROOT / f"data/raw/cfbd/season={cls.SEASON}").glob("season_type=*/week=*/games.json"))
+        if not canonical.exists() or not raw_games:
+            raise unittest.SkipTest("2026 canonical/raw build fixtures are not present in this checkout")
         cls.weeks, _labels, cls.meta = builder.build_year(cls.SEASON, rating_model="hierarchical_hfa")
 
     def test_every_site_week_is_refit(self):
