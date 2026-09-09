@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentEntitlements } from "@/lib/auth/entitlements";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { AdvancedSeason } from "@/lib/types";
+import type { AdvancedSeason, RankingsSeason } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -58,7 +58,58 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(data.payload as AdvancedSeason, {
+    const advanced = data.payload as AdvancedSeason;
+
+    // Ratings are the single source of truth for the three headline ratings.
+    // Merge those public snapshots into the premium Advanced payload so every
+    // page shows the exact same values and national ranks.
+    const rankingsUrl = new URL(`/data/rankings/${year}.json`, _request.url);
+    const rankingsResponse = await fetch(rankingsUrl, { cache: "no-store" });
+    if (!rankingsResponse.ok) {
+      throw new Error(`Failed to load canonical rankings for ${year}: ${rankingsResponse.status}`);
+    }
+    const rankings = (await rankingsResponse.json()) as RankingsSeason;
+
+    if (
+      advanced.weeks.length !== rankings.weeks.length ||
+      advanced.weeks.some((week, index) => week !== rankings.weeks[index])
+    ) {
+      throw new Error(`Advanced/rankings week mismatch for ${year}`);
+    }
+
+    const byWeek = Object.fromEntries(
+      advanced.weeks.map((week) => {
+        const key = String(week);
+        const ratingRows = rankings.byWeek[key] ?? [];
+        const ratingsBySlug = new Map(ratingRows.map((row) => [row.slug, row]));
+        const advancedRows = advanced.byWeek[key] ?? [];
+
+        if (
+          advancedRows.length !== ratingRows.length ||
+          advancedRows.some((row) => !ratingsBySlug.has(row.slug))
+        ) {
+          throw new Error(`Advanced/rankings team coverage mismatch for ${year} week ${week}`);
+        }
+
+        return [
+          key,
+          advancedRows.map((row) => {
+            const rating = ratingsBySlug.get(row.slug)!;
+            return {
+              ...row,
+              adjEM: rating.adjEM,
+              adjO: rating.adjO,
+              adjD: rating.adjD,
+              rank: rating.rank,
+              adjORank: rating.adjORank,
+              adjDRank: rating.adjDRank,
+            };
+          }),
+        ];
+      })
+    );
+
+    return NextResponse.json({ ...advanced, byWeek } as AdvancedSeason, {
       status: 200,
       headers: PRIVATE_HEADERS,
     });
