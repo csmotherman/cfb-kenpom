@@ -1,6 +1,6 @@
 /* Advanced table sort interaction reliability.
-   Make the whole sortable header cell activate the existing sort button,
-   while preserving the metric-help button as its own explicit target. */
+   Make the real sort button fill the sortable header cell, while preserving
+   the metric-help button as its own explicit target. */
 
 #advancedTable .adv-table th.sortable {
   cursor: pointer;
@@ -9,25 +9,35 @@
 }
 
 #advancedTable .adv-table th.sortable .column-sort {
-  position: static;
-}
-
-#advancedTable .adv-table th.sortable .column-sort::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(100% + 16px);
+  max-width: none;
+  min-height: 100%;
+  margin-inline: -8px;
+  padding-inline: 8px 24px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 
+/* Keep the help and sort-direction affordances above the full-cell button. */
 #advancedTable .adv-table th.sortable .tip-trigger {
-  position: relative;
+  position: absolute;
+  top: 50%;
+  right: 14px;
   z-index: 3;
+  transform: translateY(-50%);
 }
 
 #advancedTable .adv-table th.sortable .sort-indicator {
-  position: relative;
+  position: absolute;
+  top: 50%;
+  right: 3px;
   z-index: 2;
+  transform: translateY(-50%);
   pointer-events: none;
 }
 
