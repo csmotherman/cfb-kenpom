@@ -1,0 +1,99 @@
+/* ========================================================================== */
+/* GRID — shared table identity-column polish                                */
+/* Keep the team visible while horizontally exploring dense tables, and      */
+/* avoid wasting desktop width between Team and W-L.                         */
+/* ========================================================================== */
+
+/* Desktop / tablet: team identity should be readable without reserving an
+   oversized blank lane before the record column. */
+@media (min-width: 641px) {
+  #ratingsTable .team-cell {
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
+  }
+
+  .adv-table .team-cell {
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
+  }
+
+  .adv-table .record-cell {
+    width: 54px;
+    min-width: 54px;
+    max-width: 54px;
+  }
+
+  /* Advanced grouped-header spacer = rank (44) + team (160) + W-L (54). */
+  .adv-table .adv-section-spacer {
+    width: 258px;
+    min-width: 258px;
+    max-width: 258px;
+  }
+}
+
+/* Mobile: Rank + Team are the persistent identity rail. Columns between or
+   after them may scroll underneath it, but the user never loses which team a
+   row belongs to while exploring metrics to the right. */
+@media (max-width: 640px) {
+  #ratingsTable .rank-col,
+  .adv-table .rank-col {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 8 !important;
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+    background: var(--color-paper-raised) !important;
+  }
+
+  #ratingsTable .team-cell,
+  .adv-table .team-cell {
+    position: sticky !important;
+    left: 42px !important;
+    z-index: 7 !important;
+    width: 98px !important;
+    min-width: 98px !important;
+    max-width: 98px !important;
+    background: var(--color-paper-raised) !important;
+    box-shadow: 1px 0 0 var(--color-hairline-strong);
+  }
+
+  #ratingsTable thead .rank-col,
+  #ratingsTable thead .team-cell,
+  .adv-table thead .rank-col,
+  .adv-table thead .team-cell {
+    z-index: 12 !important;
+    background: var(--color-paper-soft) !important;
+  }
+
+  #ratingsTable tbody tr:hover .rank-col,
+  #ratingsTable tbody tr:hover .team-cell,
+  .adv-table tbody tr:hover .rank-col,
+  .adv-table tbody tr:hover .team-cell {
+    background: var(--color-paper-soft) !important;
+  }
+
+  #ratingsTable .team-name,
+  .adv-table .team-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The Advanced table is Rank → Team → W-L, so keep the identity block
+     compact and make the grouped header line up with those exact widths. */
+  .adv-table .record-cell {
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+  }
+
+  .adv-table .adv-section-spacer {
+    width: 192px !important;
+    min-width: 192px !important;
+    max-width: 192px !important;
+  }
+}
