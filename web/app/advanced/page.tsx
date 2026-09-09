@@ -6,9 +6,9 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
-import { getMeta, useAdvancedSeason, useRankingsSeason } from "@/lib/data";
+import { getMeta, useAdvancedSeason } from "@/lib/data";
 import { columnRange, heatBackground } from "@/lib/heatmap";
-import type { AdvancedRow, RankingsRow } from "@/lib/types";
+import type { AdvancedRow } from "@/lib/types";
 
 function na(v: unknown): v is null | undefined {
   return v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
@@ -374,8 +374,7 @@ export default function AdvancedPage() {
   }, []);
 
   const season = useAdvancedSeason(year || null);
-  const ratingsSeason = useRankingsSeason(year || null);
-  const loading = !season || !ratingsSeason;
+  const loading = !season;
   const weeks = season?.weeks ?? EMPTY_WEEKS;
   const seasonByWeek = season?.byWeek ?? EMPTY_BY_WEEK;
 
@@ -395,12 +394,6 @@ export default function AdvancedPage() {
     endRows.forEach((row) => (snapshot[row.slug] = row));
     return snapshot;
   }, [season, endWeek]);
-
-  const ratingsSnapshotBySlug = useMemo<Record<string, RankingsRow>>(() => {
-    if (!ratingsSeason) return {};
-    const endRows = ratingsSeason.byWeek[String(endWeek)] || [];
-    return Object.fromEntries(endRows.map((row) => [row.slug, row]));
-  }, [ratingsSeason, endWeek]);
 
   const [rangeYear, setRangeYear] = useState(year);
   if (year !== rangeYear && season) {
@@ -453,16 +446,12 @@ export default function AdvancedPage() {
         }
       });
 
-      // Ratings page is the single source of truth for the three headline
-      // ratings. Advanced keeps its own range-based stats, but these snapshots
-      // (and their national ranks) must be identical everywhere.
-      const ratingSnap = ratingsSnapshotBySlug[acc.slug];
-      out.adjEM = ratingSnap?.adjEM ?? null;
-      out.adjO = ratingSnap?.adjO ?? null;
-      out.adjD = ratingSnap?.adjD ?? null;
-      out.rank = ratingSnap?.rank ?? null;
-      out.adjORank = ratingSnap?.adjORank ?? null;
-      out.adjDRank = ratingSnap?.adjDRank ?? null;
+      // The premium API injects the Ratings-page source-of-truth values into
+      // each Advanced snapshot. Copy their source ranks as well so Advanced
+      // never re-ranks these headline metrics independently.
+      out.rank = snap?.rank ?? null;
+      out.adjORank = snap?.adjORank ?? null;
+      out.adjDRank = snap?.adjDRank ?? null;
 
       MARGIN_METRICS.forEach((metric) => {
         const offenseValue = out[`${metric.prefix}Adj`] as number | null;
@@ -473,7 +462,7 @@ export default function AdvancedPage() {
       });
       return out;
     });
-  }, [seasonByWeek, snapshotBySlug, ratingsSnapshotBySlug, weeks, startWeek, endWeek]);
+  }, [seasonByWeek, snapshotBySlug, weeks, startWeek, endWeek]);
 
   const tabDef = useMemo<Tab>(() => {
     if (tab === "epa" || tab === "successRate") return specialTab(tab, perspective);
