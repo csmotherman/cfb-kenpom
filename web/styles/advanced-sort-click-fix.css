@@ -1,0 +1,41 @@
+/* Advanced table sort interaction reliability.
+   Make the whole sortable header cell activate the existing sort button,
+   while preserving the metric-help button as its own explicit target. */
+
+#advancedTable .adv-table th.sortable {
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+#advancedTable .adv-table th.sortable .column-sort {
+  position: static;
+}
+
+#advancedTable .adv-table th.sortable .column-sort::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+#advancedTable .adv-table th.sortable .tip-trigger {
+  position: relative;
+  z-index: 3;
+}
+
+#advancedTable .adv-table th.sortable .sort-indicator {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* The global coarse-pointer helper gives tooltip icons a large invisible
+   halo. Inside sortable headers that halo can overlap the metric label and
+   swallow the user's intended sort tap, so keep it intentionally tighter. */
+@media (pointer: coarse) {
+  #advancedTable .adv-table th.sortable .tip-trigger::before {
+    inset: -5px;
+  }
+}
