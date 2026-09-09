@@ -53,5 +53,10 @@ export function teamCode(team: string): string {
 }
 
 export function logoUrl(teamId: number | string, size = 64): string {
-  return `https://cdn.collegefootballdata.com/logos/${size}/${teamId}.png`;
+  // CFBD's deployed logo CDN reliably serves the 64px and 96px variants used
+  // throughout GRID. Larger requested paths (for example 192px on team pages)
+  // can return a broken asset in production, so use the 96px source and let CSS
+  // control the rendered display size.
+  const resolvedSize = size > 64 ? 96 : 64;
+  return `https://cdn.collegefootballdata.com/logos/${resolvedSize}/${teamId}.png`;
 }
