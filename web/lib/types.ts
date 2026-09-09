@@ -47,6 +47,15 @@ export type AdvancedRow = {
   slug: string;
   teamId: number;
   conf: string;
+  // Injected by /api/premium/advanced/[year] from the public Rankings
+  // snapshot. These are the canonical headline ratings/ranks used by both
+  // Ratings and Advanced.
+  adjEM?: number | null;
+  adjO?: number | null;
+  adjD?: number | null;
+  rank?: number | null;
+  adjORank?: number | null;
+  adjDRank?: number | null;
   cff: number | null;
   fieldPos: number | null;
   off: number | null;
