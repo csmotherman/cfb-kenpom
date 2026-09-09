@@ -3,23 +3,34 @@
 import { useEffect } from "react";
 
 const REPLACEMENTS: Array<[string | RegExp, string]> = [
+  ["GRID AdjNet college football ratings table", "GRID Relative Performance Ratings table"],
+  ["GRID AdjNet", "GRID Relative Performance Ratings"],
+  ["AdjNet Ratings", "Relative Performance Ratings"],
+  ["Adjusted Net Rating", "Relative Performance Rating"],
+  ["Opponent-Adjusted College Football Ratings", "Relative Performance Ratings"],
+  ["Overall Rating", "adjNet"],
+  ["Offense Rating", "adjOff"],
+  ["Defense Rating", "adjDef"],
   ["ARA Advanced Analytics", "GRID Pro"],
   ["Advanced CFF Analytics", "GRID Pro"],
   ["CFF Advanced Analytics", "GRID Pro"],
   ["Advanced CFF", "GRID Pro"],
-  ["ARA Ratings", "GRID AdjNet"],
-  ["CFF Ratings", "GRID AdjNet"],
+  ["ARA Ratings", "GRID Relative Performance Ratings"],
+  ["CFF Ratings", "GRID Relative Performance Ratings"],
   ["CollegeFootballFocus", "GRID"],
   ["College Football Focus", "GRID"],
   ["Adjusted Ratings & Analytics", "College Football Analytics"],
-  ["AdjEM", "AdjNet"],
-  [/AdjO(?!ff)/g, "AdjOff"],
-  [/AdjD(?!ef)/g, "AdjDef"],
+  ["AdjEM", "adjNet"],
+  ["AdjNet", "adjNet"],
+  [/AdjO(?!ff)/g, "adjOff"],
+  ["AdjOff", "adjOff"],
+  [/AdjD(?!ef)/g, "adjDef"],
+  ["AdjDef", "adjDef"],
 ];
 
 function replaceBrandTerms(value: string) {
   const trimmed = value.trim();
-  if (trimmed === "CFF") return value.replace("CFF", "AdjNet");
+  if (trimmed === "CFF") return value.replace("CFF", "adjNet");
   if (trimmed === "ARA") return value.replace("ARA", "GRID");
   return REPLACEMENTS.reduce((next, [from, to]) => next.replaceAll(from, to), value);
 }
@@ -66,7 +77,7 @@ function updateNode(root: Node) {
 
 export default function GridTerminologyGuard() {
   useEffect(() => {
-    updateNode(document.body);
+    updateNode(document.documentElement);
 
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -78,7 +89,7 @@ export default function GridTerminologyGuard() {
       });
     });
 
-    observer.observe(document.body, {
+    observer.observe(document.documentElement, {
       childList: true,
       subtree: true,
       characterData: true,

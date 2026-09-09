@@ -30,7 +30,7 @@ import "@/styles/table-identity-polish.css";
 export const metadata: Metadata = {
   title: "GRID | College Football Analytics",
   description:
-    "GRID provides opponent-adjusted college football AdjNet ratings, weekly matchup analysis, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
+    "GRID provides college football Relative Performance Ratings, weekly matchup analysis, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
