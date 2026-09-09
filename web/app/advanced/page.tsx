@@ -20,6 +20,12 @@ const FORMATTERS: Record<string, (v: number | null) => string> = {
   signed3: (v) => (na(v) ? "—" : (v >= 0 ? "+" : "") + v.toFixed(3)),
   plain1: (v) => (na(v) ? "—" : v.toFixed(1)),
   pct1: (v) => (na(v) ? "—" : (v * 100).toFixed(1) + "%"),
+  fieldpos: (v) => {
+    if (na(v)) return "—";
+    if (v > 50) return `Own ${(100 - v).toFixed(1)}`;
+    if (v < 50) return `Opp ${v.toFixed(1)}`;
+    return "50";
+  },
 };
 
 type ColKind = "snapshot" | "rate" | "split";
@@ -117,7 +123,7 @@ const OFFENSE_SECTIONS: AdvSection[] = [
     title: "Field Position",
     columns: [
       { key: "fieldPos", label: "Adj", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Opponent-adjusted starting field-position edge, as of the end week. Research-stage model." },
-      { key: "offFieldPosRaw", label: "Raw", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["fieldPosSum"], den: ["fieldPosCount"], tooltip: "Average offensive starting field position in yards from the opponent's goal line. Lower is better." },
+      { key: "offFieldPosRaw", label: "Raw", fmt: "fieldpos", rankable: true, lowerBetter: true, kind: "rate", num: ["fieldPosSum"], den: ["fieldPosCount"], tooltip: "Average offensive starting field position, shown as a yard line. Lower is better." },
     ],
   },
   {
@@ -163,7 +169,7 @@ const DEFENSE_SECTIONS: AdvSection[] = [
   {
     title: "Field Position",
     columns: [
-      { key: "defFieldPosRaw", label: "Opp Start", fmt: "plain1", rankable: true, kind: "rate", num: ["fieldPosSumA"], den: ["fieldPosCountA"], tooltip: "Average opponent starting field position in yards from GRID's goal line. Higher is better because opponents start farther away." },
+      { key: "defFieldPosRaw", label: "Opp Start", fmt: "fieldpos", rankable: true, kind: "rate", num: ["fieldPosSumA"], den: ["fieldPosCountA"], tooltip: "Average opponent starting field position, shown as a yard line. Higher (deeper in their own territory) is better." },
     ],
   },
   {

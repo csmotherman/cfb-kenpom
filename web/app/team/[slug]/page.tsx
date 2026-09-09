@@ -43,6 +43,13 @@ function plain(n: number | null | undefined, digits = 1): string {
   return n.toFixed(digits);
 }
 
+function fieldPos(n: number | null | undefined, digits = 1): string {
+  if (na(n)) return "—";
+  if (n > 50) return `Own ${(100 - n).toFixed(digits)}`;
+  if (n < 50) return `Opp ${n.toFixed(digits)}`;
+  return "50";
+}
+
 function rankText(n: number | null | undefined): string {
   return na(n) ? "—" : `#${n}`;
 }
@@ -732,7 +739,7 @@ function offenseGroups(
       title: "Field Position",
       metrics: [
         { label: "Adjusted", value: signed(stats.fieldPositionEdge, 1), rank: stats.fieldPositionEdgeRank, totalTeams: totalStatted },
-        { label: "Raw", value: plain(stats.fieldPositionRaw, 1), rank: stats.fieldPositionRawRank, totalTeams: totalStatted },
+        { label: "Raw", value: fieldPos(stats.fieldPositionRaw, 1), rank: stats.fieldPositionRawRank, totalTeams: totalStatted },
       ],
     },
     {
@@ -792,7 +799,7 @@ function defenseGroups(
     {
       title: "Field Position",
       metrics: [
-        { label: "Opp Start", value: plain(stats.fieldPositionRawAllowed, 1), rank: stats.fieldPositionRawAllowedRank, totalTeams: totalStatted },
+        { label: "Opp Start", value: fieldPos(stats.fieldPositionRawAllowed, 1), rank: stats.fieldPositionRawAllowedRank, totalTeams: totalStatted },
       ],
     },
     {
