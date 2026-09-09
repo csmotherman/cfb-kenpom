@@ -8,7 +8,7 @@ import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
 import { getMeta, useAdvancedSeason, useRankingsSeason } from "@/lib/data";
 import { columnRange, heatBackground } from "@/lib/heatmap";
-import type { AdvancedRow } from "@/lib/types";
+import type { AdvancedRow, RankingsRow } from "@/lib/types";
 
 function na(v: unknown): v is null | undefined {
   return v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
@@ -396,7 +396,7 @@ export default function AdvancedPage() {
     return snapshot;
   }, [season, endWeek]);
 
-  const ratingsSnapshotBySlug = useMemo(() => {
+  const ratingsSnapshotBySlug = useMemo<Record<string, RankingsRow>>(() => {
     if (!ratingsSeason) return {};
     const endRows = ratingsSeason.byWeek[String(endWeek)] || [];
     return Object.fromEntries(endRows.map((row) => [row.slug, row]));
