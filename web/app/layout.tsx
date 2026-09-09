@@ -25,6 +25,7 @@ import "@/styles/team-profile-public.css";
 import "@/styles/team-profile-v2.css";
 import "@/styles/methodology.css";
 import "@/styles/upgrade.css";
+import "@/styles/table-identity-polish.css";
 
 export const metadata: Metadata = {
   title: "GRID | College Football Analytics",
