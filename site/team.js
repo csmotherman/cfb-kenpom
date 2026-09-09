@@ -132,7 +132,7 @@
     var rankText = na(latest.rank) ? "—" : "#" + latest.rank;
     var current = document.createElement("div");
     current.className = "team-hero__current";
-    current.innerHTML = '<b>' + rankText + '</b> nationally &middot; <b>' + latest.record + '</b> &middot; AdjEM <b>' + signed(latest.adjEM, 1) + '</b>';
+    current.innerHTML = '<b>' + rankText + '</b> nationally &middot; <b>' + latest.record + '</b> &middot; AdjNet <b>' + signed(latest.adjEM, 1) + '</b>';
     info.appendChild(current);
 
     hero.appendChild(info);
@@ -156,9 +156,9 @@
     var grid = document.createElement("div");
     grid.className = "snapshot-grid";
     [
-      { label: "Overall", value: signed(latest.adjEM, 1), rank: latest.rank, detail: "AdjEM" },
-      { label: "Offense", value: signed(latest.adjO, 2), rank: latest.adjORank, detail: "AdjO" },
-      { label: "Defense", value: signed(latest.adjD, 2), rank: latest.adjDRank, detail: "AdjD" },
+      { label: "Overall", value: signed(latest.adjEM, 1), rank: latest.rank, detail: "AdjNet" },
+      { label: "Offense", value: signed(latest.adjO, 2), rank: latest.adjORank, detail: "AdjOff" },
+      { label: "Defense", value: signed(latest.adjD, 2), rank: latest.adjDRank, detail: "AdjDef" },
       { label: "Schedule", value: signed(latest.sos, 1), rank: latest.sosRank, detail: "SOS" }
     ].forEach(function (item) {
       var card = document.createElement("div");
@@ -216,10 +216,10 @@
     var select = document.createElement("select");
     select.id = "historyMetricSelect";
     [
-      ["adjEM", "Overall rating (AdjEM)"],
+      ["adjEM", "Overall rating (AdjNet)"],
       ["rank", "Overall rank"],
-      ["adjO", "Offense (AdjO)"],
-      ["adjD", "Defense (AdjD)"],
+      ["adjO", "Offense (AdjOff)"],
+      ["adjD", "Defense (AdjDef)"],
       ["sos", "Strength of schedule"]
     ].forEach(function (item) {
       var opt = document.createElement("option");
@@ -252,9 +252,9 @@
       { label: "Conf", cls: "conf-cell" },
       { label: "W-L", cls: "num record-cell" },
       { label: "Rk", cls: "num history-rank-cell", metric: "rank" },
-      { label: "AdjEM", cls: "num history-metric-cell", metric: "adjEM" },
-      { label: "AdjO", cls: "num history-metric-cell", metric: "adjO" },
-      { label: "AdjD", cls: "num history-metric-cell", metric: "adjD" },
+      { label: "AdjNet", cls: "num history-metric-cell", metric: "adjEM" },
+      { label: "AdjOff", cls: "num history-metric-cell", metric: "adjO" },
+      { label: "AdjDef", cls: "num history-metric-cell", metric: "adjD" },
       { label: "SOS", cls: "num history-metric-cell", metric: "sos" }
     ].forEach(function (def) {
       var th = document.createElement("th");

@@ -30,9 +30,9 @@ export default function MethodologyPage() {
             <h2>Ratings</h2>
           </div>
           <div className="methodology-definitions">
-            <Definition term="AdjNet" tag="Core" text="Adjusted Net Rating. GRID's overall opponent-adjusted measure of how strongly a team has performed. Higher is better." />
-            <Definition term="AdjOff" tag="Core" text="Opponent-adjusted offensive performance. Higher means the offense has performed better after accounting for the defenses it faced." />
-            <Definition term="AdjDef" tag="Core" text="Opponent-adjusted defensive performance. It is oriented so higher is better for defense too." />
+            <Definition term="AdjNet" tag="Core" text="Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def" />
+            <Definition term="AdjOff" tag="Core" text="Opponent-adjusted offensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
+            <Definition term="AdjDef" tag="Core" text="Opponent-adjusted defensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
             <Definition term="SOS" tag="Context" text="Strength of schedule, based on the strength of opponents played through the selected rating snapshot." />
             <Definition term="SOR" tag="Résumé" text="Strength of Record: wins above what an exactly-average FBS team would be expected to earn against the same schedule. It answers a résumé question, separate from AdjNet's performance question." />
           </div>

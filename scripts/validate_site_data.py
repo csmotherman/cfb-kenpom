@@ -8,6 +8,19 @@ from pathlib import Path
 
 METRICS = {"adjEM": "rank", "adjO": "adjORank", "adjD": "adjDRank", "sos": "sosRank", "sor": "sorRank"}
 
+# adjEM/adjO/adjD keep their public names across the rating-model migration, so
+# the published payload has to say which methodology produced them. A payload
+# with no `ratingModel` block predates the migration and is validated under the
+# legacy contract (adjEM is the SRS fit, and therefore equals the Advanced
+# table's `cff` snapshot).
+LEGACY_MODEL_MODE = "legacy"
+COMPOSITE_IDENTITY_TOLERANCE = 1e-9
+
+
+def rating_model_mode(rankings):
+    model = rankings.get("ratingModel") or {}
+    return model.get("modelMode", LEGACY_MODEL_MODE)
+
 
 def require(condition, message):
     if not condition:
@@ -18,8 +31,24 @@ def finite(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
+def require_composite_identity(row):
+    """AdjNet must be exactly AdjOff + AdjDef, and the three must agree on
+    whether this team is rated at all. This is the published contract of the
+    hierarchical model, checked on the shipped (rounded) numbers rather than on
+    the solver's intermediate values."""
+    present = [row[key] is not None for key in ("adjEM", "adjO", "adjD")]
+    require(len(set(present)) == 1, f"Partial AdjNet/AdjOff/AdjDef for {row['slug']}")
+    if not present[0]:
+        return
+    require(
+        abs(row["adjEM"] - (row["adjO"] + row["adjD"])) <= COMPOSITE_IDENTITY_TOLERANCE,
+        f"AdjNet is not AdjOff + AdjDef for {row['slug']}",
+    )
+
+
 def validate_public_rankings(rankings):
     """Validate the public ratings payload without requiring private premium data."""
+    mode = rating_model_mode(rankings)
     weeks = rankings["weeks"]
     require(bool(weeks) and weeks == sorted(set(weeks)), "Weeks must be nonempty, unique, and chronological")
     require(set(rankings["byWeek"]) == set(map(str, weeks)), "Ratings week payloads are incomplete")
@@ -40,6 +69,8 @@ def validate_public_rankings(rankings):
             require(all(r[rank_key] is None for r in rows if r[metric] is None), f"Rank assigned to missing {metric}")
         require(any(r["rank"] is not None for r in rows), f"No calculated ratings in week {week}")
         for row in rows:
+            if mode != LEGACY_MODEL_MODE:
+                require_composite_identity(row)
             record = row["record"].split("-")
             require(len(record) == 2 and all(v.isdigit() for v in record), f"Invalid W-L for {row['slug']}")
             old = last.get(row["slug"])
@@ -55,6 +86,7 @@ def validate_public_rankings(rankings):
 
 
 def validate_season(rankings, advanced, *, previous=None):
+    mode = rating_model_mode(rankings)
     weeks = rankings["weeks"]
     require(bool(weeks) and weeks == sorted(set(weeks)), "Weeks must be nonempty, unique, and chronological")
     require(weeks == advanced["weeks"], "Ratings and advanced weeks differ")
@@ -89,7 +121,20 @@ def validate_season(rankings, advanced, *, previous=None):
             games_with_stats += a["wk"].get("offGames", a["wk"].get("games", 0))
             fcs_games += a["wk"].get("gamesVsNonFbs", 0)
             require(all(row[k] == a[k] for k in ("team", "teamId", "conf")), "Team identity differs across tables")
-            require(row["adjEM"] == a["cff"], "CFF and AdjEM disagree")
+            if mode == LEGACY_MODEL_MODE:
+                # Legacy contract: adjEM IS the SRS fit the Advanced table shows
+                # as `cff`, so the two tables must agree value for value.
+                require(row["adjEM"] == a["cff"], "CFF and AdjEM disagree")
+            else:
+                # Migrated contract: adjEM is the AdjOff+AdjDef composite while
+                # the Advanced table's `cff` remains the separate SRS snapshot
+                # (SOS/SOR still derive from that same SRS fit). The cross-table
+                # invariant becomes the composite identity plus rated coverage.
+                require_composite_identity(row)
+                require(
+                    row["adjEM"] is None or a["cff"] is not None,
+                    f"Rated team {row['slug']} has no Advanced SRS snapshot",
+                )
             record = row["record"].split("-")
             require(len(record) == 2 and all(v.isdigit() for v in record), f"Invalid W-L for {row['slug']}")
             wins, losses = map(int, record)

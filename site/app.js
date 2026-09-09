@@ -1,13 +1,13 @@
 (function () {
   var COLUMNS = [
-    { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", cellClass: "rank-cell", tooltip: "Overall rank by AdjEM, the site's schedule-adjusted strength rating." },
+    { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", cellClass: "rank-cell", tooltip: "Overall rank by AdjNet." },
     { key: "team", label: "Team", numeric: false, defaultDir: "asc", cellClass: "team-cell" },
     { key: "conf", label: "Conf", numeric: false, defaultDir: "asc", cellClass: "conf-cell" },
-    { key: "adjEM", label: "AdjEM", numeric: true, defaultDir: "desc", primary: true, tooltip: "Schedule-adjusted point-margin strength from the site's walk-forward SRS model. Higher is better." },
-    { key: "adjO", label: "AdjO", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Research-stage schedule-adjusted offensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
-    { key: "adjD", label: "AdjD", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Research-stage schedule-adjusted defensive yards-per-play edge. Higher is better; national rank is shown in parentheses." },
+    { key: "adjEM", label: "AdjNet", numeric: true, defaultDir: "desc", primary: true, tooltip: "Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def" },
+    { key: "adjO", label: "AdjOff", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." },
+    { key: "adjD", label: "AdjDef", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted defensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." },
     { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Strength of schedule: average SRS strength of opponents played through the selected week." },
-    { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like AdjEM. Higher is better." }
+    { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like AdjNet. Higher is better." }
   ];
 
   var YEARS = window.CFB_YEARS || [];

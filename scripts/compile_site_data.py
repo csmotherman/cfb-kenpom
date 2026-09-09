@@ -6,6 +6,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_real_data import EPA_SUCCESS_METRICS, build_year, YEARS
 
+# Published field -> the build_year key that supplies it, per rating model.
+# adjEM/adjO/adjD keep their public names across the migration; only the
+# methodology behind them changes, and the season payload records which one
+# produced the numbers (see `ratingModel` below).
+RATING_SOURCE_KEYS = {
+    # AdjNet = AdjOff + AdjDef from the hierarchical + HFA composite.
+    "hierarchical_hfa": {"adjEM": "adjNet", "adjO": "adjOff", "adjD": "adjDef"},
+    # Rollback contract: AdjNet = SRS, AdjOff/AdjDef = YardsPerPlay edges.
+    "legacy": {"adjEM": "cff", "adjO": "offYardsPerPlay", "adjD": "defYardsPerPlay"},
+}
+
 # Every EPA/Success snapshot key build_real_data.py's week_rows produces per
 # metric: {prefix}Adj, {prefix}AdjAllowed. The matching raw rate isn't
 # duplicated here -- it's already summable client-side from "wk".
@@ -42,33 +53,36 @@ def read_js_assignment(path, variable):
     return value
 
 
-def load_existing_site_data():
-    main_path = REPO / "site/data.js"
-    adv_path = REPO / "site/advanced-data.js"
+def load_existing_site_data(site_dir=None):
+    site_dir = Path(site_dir) if site_dir is not None else REPO / "site"
+    main_path = site_dir / "data.js"
+    adv_path = site_dir / "advanced-data.js"
     return (
         read_js_assignment(main_path, "CFB_WEEKS") or {},
         read_js_assignment(main_path, "CFB_DATA") or {},
         read_js_assignment(adv_path, "CFF_ADV_WEEKS") or {},
         read_js_assignment(adv_path, "CFF_ADV_DATA") or {},
         read_js_assignment(main_path, "CFB_WEEK_LABELS") or {},
+        read_js_assignment(main_path, "CFB_RATING_MODEL") or {},
     )
 
 
-def build_season_payload(year):
-    weeks, week_labels = build_year(year)
+def build_season_payload(year, rating_model):
+    weeks, week_labels, model_metadata = build_year(year, rating_model=rating_model)
+    source = RATING_SOURCE_KEYS[rating_model]
     if not weeks:
         return None
 
     week_nums = sorted(weeks.keys())
     latest_rows = weeks[week_nums[-1]]
-    rated_count = sum(1 for r in latest_rows if r.get("cff") is not None)
+    rated_count = sum(1 for r in latest_rows if r.get(source["adjEM"]) is not None)
 
     # A refresh with teams but zero calculated ratings is not publishable. This
     # is exactly what caused the Sep. 6 refresh to blank the site. Let callers
     # preserve the previously published season instead of shipping nulls.
     if latest_rows and rated_count == 0:
         print(
-            f"season {year}: {len(latest_rows)} teams but zero non-null CFF ratings; "
+            f"season {year}: {len(latest_rows)} teams but zero non-null AdjNet ratings; "
             "refusing to publish this season"
         )
         return None
@@ -80,9 +94,12 @@ def build_season_payload(year):
     for wk in week_nums:
         rows = weeks[wk]
 
-        assign_rank(rows, "cff", "rank")
-        assign_rank(rows, "offYardsPerPlay", "adjORank")
-        assign_rank(rows, "defYardsPerPlay", "adjDRank", reverse=True)
+        # Higher is better for all three published ratings in both models -- the
+        # fitted defensive side is already oriented so a bigger number is a
+        # better defense, in the composite exactly as in the YardsPerPlay edge.
+        assign_rank(rows, source["adjEM"], "rank")
+        assign_rank(rows, source["adjO"], "adjORank")
+        assign_rank(rows, source["adjD"], "adjDRank", reverse=True)
         assign_rank(rows, "sos", "sosRank")
         assign_rank(rows, "sor", "sorRank")
 
@@ -100,7 +117,7 @@ def build_season_payload(year):
             main_rows.append({
                 "team": r["team"], "slug": r["slug"], "teamId": r["teamId"], "conf": r["conf"],
                 "record": r["record"], "rank": r["rank"],
-                "adjEM": r["cff"], "adjO": r["offYardsPerPlay"], "adjD": r["defYardsPerPlay"],
+                "adjEM": r[source["adjEM"]], "adjO": r[source["adjO"]], "adjD": r[source["adjD"]],
                 "adjORank": r["adjORank"], "adjDRank": r["adjDRank"],
                 "sos": r["sos"], "sosRank": r["sosRank"],
                 "sor": r["sor"], "sorRank": r["sorRank"],
@@ -126,9 +143,10 @@ def build_season_payload(year):
 
     print(
         f"season {year}: weeks {week_nums[0]}-{week_nums[-1]}, "
-        f"{len(latest_rows)} teams, {rated_count} rated in final week"
+        f"{len(latest_rows)} teams, {rated_count} rated in final week "
+        f"[{model_metadata['modelId']}]"
     )
-    return week_nums, season_main, season_adv, week_labels
+    return week_nums, season_main, season_adv, week_labels, model_metadata
 
 
 def main():
@@ -138,24 +156,41 @@ def main():
         type=int,
         help="Refresh only this season and preserve all other published seasons.",
     )
+    # Required, not defaulted: the published rating methodology must be an
+    # explicit, auditable choice of whoever runs the build. `legacy` reproduces
+    # the previously published SRS/YardsPerPlay contract exactly and is the
+    # supported rollback.
+    parser.add_argument(
+        "--rating-model",
+        required=True,
+        choices=sorted(RATING_SOURCE_KEYS),
+        help="Which model produces the published AdjNet/AdjOff/AdjDef fields.",
+    )
+    parser.add_argument(
+        "--output-site-dir",
+        type=Path,
+        default=REPO / "site",
+        help="Directory for data.js and advanced-data.js (use a new directory for shadow builds).",
+    )
     args = parser.parse_args()
+    output_site_dir = args.output_site_dir.resolve()
 
     if args.season:
-        main_weeks, main_data, adv_weeks, adv_data, week_labels = load_existing_site_data()
+        main_weeks, main_data, adv_weeks, adv_data, week_labels, rating_models_by_year = load_existing_site_data(output_site_dir)
         target_years = [args.season]
     else:
-        main_weeks, main_data, adv_weeks, adv_data, week_labels = {}, {}, {}, {}, {}
+        main_weeks, main_data, adv_weeks, adv_data, week_labels, rating_models_by_year = {}, {}, {}, {}, {}, {}
         target_years = YEARS
 
     for year in target_years:
-        built = build_season_payload(year)
+        built = build_season_payload(year, rating_model=args.rating_model)
         key = str(year)
         if built is None:
             raise RuntimeError(f"season {year}: no valid ratings payload available")
 
-        week_nums, season_main, season_adv, season_week_labels = built
+        week_nums, season_main, season_adv, season_week_labels, model_metadata = built
         validate_season(
-            {"weeks": week_nums, "byWeek": season_main},
+            {"weeks": week_nums, "byWeek": season_main, "ratingModel": model_metadata},
             {"weeks": week_nums, "byWeek": season_adv},
             previous={"weeks": main_weeks[key], "byWeek": main_data[key]} if key in main_data else None,
         )
@@ -164,6 +199,20 @@ def main():
         main_data[key] = season_main
         adv_data[key] = season_adv
         week_labels[key] = season_week_labels
+        rating_models_by_year[key] = model_metadata
+
+    # A partial refresh (--season) must never leave half the site on one rating
+    # methodology and half on another without that being visible and explicit.
+    published_models = {y: (m or {}).get("modelId") for y, m in rating_models_by_year.items()}
+    mixed = sorted({m for m in published_models.values()})
+    if len(mixed) > 1:
+        print(f"WARNING: published seasons span more than one rating model: {published_models}")
+    missing_model = sorted(y for y in main_data if not published_models.get(y))
+    if missing_model:
+        raise RuntimeError(
+            f"seasons {missing_model} have no recorded rating model; rebuild every season with "
+            "--rating-model before publishing"
+        )
 
     published_years = sorted(int(y) for y in main_data.keys())
     published_adv_years = sorted(int(y) for y in adv_data.keys())
@@ -171,15 +220,21 @@ def main():
     js = (
         "// REAL data. Team identity, records, and per-game stats are sourced from\n"
         "// data/canonical/season=<year>/team_games.json (CFBD-derived, locked metrics).\n"
-        "// AdjEM/CFF is the site's own opponent-adjusted Simple Rating System (SRS),\n"
-        "// computed through each published week (no later-week games included).\n"
-        "// AdjO/AdjD are a schedule-adjusted yards-per-play edge from a RESEARCH-ONLY\n"
-        "// model -- independently validated in the source repo but not yet the locked\n"
-        "// production rating. SOR (Strength of Record, sor-v1-wins-above-average)\n"
+        "// adjO/adjD/adjEM are AdjOff/AdjDef/AdjNet. Under the hierarchical_hfa model\n"
+        "// they are opponent-adjusted composites of EPA, Success Rate and\n"
+        "// Explosiveness, fitted with partial pooling across teams and conferences\n"
+        "// on garbage-time-filtered plays, and AdjNet is exactly AdjOff + AdjDef.\n"
+        "// Home-field advantage is fitted per metric but excluded from these\n"
+        "// neutral-field ratings. Under the legacy rollback model adjEM is the\n"
+        "// site's SRS and adjO/adjD are yards-per-play edges. CFB_RATING_MODEL\n"
+        "// records exactly which model produced each published season.\n"
+        "// Every rating is computed through each published week (no later-week games\n"
+        "// included). SOR (Strength of Record, sor-v1-wins-above-average)\n"
         "// is wins above what an exactly-average FBS team would be expected to\n"
         "// get on that same schedule -- see scripts/build_real_data.py for the\n"
-        "// full derivation. It answers a different question than AdjEM: résumé\n"
-        "// (won/lost, given the schedule) rather than performance strength.\n"
+        "// full derivation. It answers a different question than AdjNet: résumé\n"
+        "// (won/lost, given the schedule) rather than performance strength, and it\n"
+        "// keeps its own SRS-based derivation regardless of the rating model.\n"
         "// Postseason site-weeks are grouped by CFBD's own playoff round field\n"
         "// (not by date gaps), so e.g. \"Week 17\" for a finished season is really\n"
         "// one of Bowl Season / CFP First Round / Quarterfinal / Semifinal /\n"
@@ -187,9 +242,11 @@ def main():
         "window.CFB_YEARS = " + json.dumps(published_years) + ";\n"
         "window.CFB_WEEKS = " + json.dumps(main_weeks) + ";\n"
         "window.CFB_WEEK_LABELS = " + json.dumps(week_labels) + ";\n"
+        "window.CFB_RATING_MODEL = " + json.dumps(rating_models_by_year, allow_nan=False) + ";\n"
         "window.CFB_DATA = " + json.dumps(main_data, separators=(",", ":"), allow_nan=False) + ";\n"
     )
-    (REPO / "site/data.js").write_text(js)
+    output_site_dir.mkdir(parents=True, exist_ok=True)
+    (output_site_dir / "data.js").write_text(js)
 
     adv_js = (
         "// REAL data -- see data.js header for methodology and validation notes.\n"
@@ -201,9 +258,9 @@ def main():
         "window.CFF_ADV_WEEK_LABELS = " + json.dumps(week_labels) + ";\n"
         "window.CFF_ADV_DATA = " + json.dumps(adv_data, separators=(",", ":"), allow_nan=False) + ";\n"
     )
-    (REPO / "site/advanced-data.js").write_text(adv_js)
+    (output_site_dir / "advanced-data.js").write_text(adv_js)
 
-    print("wrote site/data.js and site/advanced-data.js")
+    print(f"wrote {output_site_dir / 'data.js'} and {output_site_dir / 'advanced-data.js'}")
 
 
 if __name__ == "__main__":

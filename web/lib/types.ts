@@ -22,10 +22,22 @@ export type RankingsRow = {
 // date gaps, so postseason weeks are named correctly instead of numbered.
 export type WeekLabels = Record<string, string>;
 
+// Which rating methodology produced this season's adjEM/adjO/adjD. Published
+// with the numbers so a new-methodology rating can never be silently confused
+// with a legacy one. `modelId` is stable per methodology (currently
+// "adj-rating-hierarchical-hfa-v1"); the remaining fields are configuration
+// provenance and are not surfaced in the UI.
+export type RatingModelMeta = {
+  modelId: string;
+  modelMode: "hierarchical_hfa" | "legacy";
+  [key: string]: unknown;
+};
+
 export type RankingsSeason = {
   weeks: number[];
   weekLabels: WeekLabels;
   byWeek: Record<string, RankingsRow[]>;
+  ratingModel?: RatingModelMeta;
 };
 
 export type AdvancedWeekCounts = Record<string, number>;
@@ -197,6 +209,7 @@ export type SiteMeta = {
   rankingsYears: number[];
   advancedYears: number[];
   scheduleYears?: number[];
+  ratingModels?: Record<string, string>;
 };
 
 export type PredictionGame = {

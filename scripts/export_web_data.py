@@ -3,6 +3,7 @@
 All inputs are validated before any published file is replaced. Metadata is
 content-versioned, so unchanged runs do not create meaningless daily commits.
 """
+import argparse
 import hashlib
 import json
 import os
@@ -456,7 +457,18 @@ def build_team_stats_weekly_payload(advanced_payload):
 
 
 def main():
-    site = REPO / "site"
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--site-dir", type=Path, default=REPO / "site",
+        help="Directory containing compiled data.js and advanced-data.js.",
+    )
+    parser.add_argument(
+        "--web-data-dir", type=Path, default=WEB_DATA,
+        help="Destination for exported JSON (use a new directory for shadow builds).",
+    )
+    args = parser.parse_args()
+    site = args.site_dir.resolve()
+    web_data = args.web_data_dir.resolve()
     datasets = {}
     for kind, filename, prefix in [("rankings", "data.js", "CFB"), ("advanced", "advanced-data.js", "CFF_ADV")]:
         values = {key: read_js_assignment(site / filename, f"{prefix}_{key}") for key in ("YEARS", "WEEKS", "WEEK_LABELS", "DATA")}
@@ -465,6 +477,14 @@ def main():
         datasets[kind] = values
     years = datasets["rankings"]["YEARS"]
     require(years == datasets["advanced"]["YEARS"], "Season catalogs differ")
+    # Which rating methodology produced each season's adjEM/adjO/adjD. Published
+    # alongside the numbers so a new-methodology rating can never be mistaken for
+    # a legacy one, and so validate_season applies the right field contract.
+    rating_models = read_js_assignment(site / "data.js", "CFB_RATING_MODEL") or {}
+    require(
+        all(str(year) in rating_models for year in years),
+        "Every published season must record its rating model; rebuild with compile_site_data.py --rating-model",
+    )
     outputs = {}
     summaries = {}
     search = {}
@@ -474,7 +494,8 @@ def main():
         payloads = {}
         for kind, data in datasets.items():
             payloads[kind] = {"weeks": data["WEEKS"][key], "weekLabels": data["WEEK_LABELS"].get(key, {}), "byWeek": data["DATA"][key]}
-        previous_path = WEB_DATA / "rankings" / f"{key}.json"
+        payloads["rankings"]["ratingModel"] = rating_models[key]
+        previous_path = web_data / "rankings" / f"{key}.json"
         previous = json.loads(previous_path.read_text()) if previous_path.exists() else None
         summaries[key] = validate_season(payloads["rankings"], payloads["advanced"], previous=previous)
         for kind, payload in payloads.items():
@@ -507,7 +528,7 @@ def main():
     index = sorted(search.values(), key=lambda row: row["team"])
     outputs["search-index.json"] = encode(index)
     version = hashlib.sha256(encode(outputs).encode()).hexdigest()
-    old_meta_path = WEB_DATA / "meta.json"
+    old_meta_path = web_data / "meta.json"
     old_meta = json.loads(old_meta_path.read_text()) if old_meta_path.exists() else {}
     generated = old_meta.get("generatedAt") if old_meta.get("dataVersion") == version else datetime.now(timezone.utc).isoformat()
     meta = {
@@ -517,12 +538,13 @@ def main():
         "dataVersion": version,
         "generatedAt": generated,
         "scope": "Completed FBS-vs-FBS games",
+        "ratingModels": {key: value.get("modelId") for key, value in rating_models.items()},
         "seasons": summaries,
     }
     for filename, text in outputs.items():
-        atomic_write(WEB_DATA / filename, text)
+        atomic_write(web_data / filename, text)
     atomic_write(site / "search-index.js", "window.CFF_SEARCH_INDEX = " + encode(index) + ";\n")
-    atomic_write(WEB_DATA / "meta.json", encode(meta))
+    atomic_write(web_data / "meta.json", encode(meta))
     print(
         f"Validated and exported {len(years)} seasons; {len(index)} searchable teams; "
         f"{len(schedule_years)} schedule season(s); version {version[:12]}"

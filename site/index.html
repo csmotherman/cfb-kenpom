@@ -77,16 +77,16 @@
     <div class="control-bar__inner control-bar__inner--secondary">
       <span class="control-label">Week</span>
       <nav class="week-nav" id="weekNav" aria-label="Week"></nav>
-      <p class="control-help">Week 0 is opening-week data. Tap or click a metric header to sort. National rank for AdjO, AdjD and SOS appears in parentheses. <a href="methodology.html">Metric definitions →</a></p>
+      <p class="control-help">Week 0 is opening-week data. Tap or click a metric header to sort. National rank for AdjOff, AdjDef and SOS appears in parentheses. <a href="methodology.html">Metric definitions →</a></p>
     </div>
   </div>
 
   <div class="mobile-table-tools container" aria-label="Mobile table display options">
     <label class="mobile-table-tools__label" for="mobileMetricSelect">Compare</label>
     <select id="mobileMetricSelect" class="mobile-table-tools__select">
-      <option value="adjEM">Overall rating (AdjEM)</option>
-      <option value="adjO">Offense (AdjO)</option>
-      <option value="adjD">Defense (AdjD)</option>
+      <option value="adjEM">Overall rating (AdjNet)</option>
+      <option value="adjO">Offense (AdjOff)</option>
+      <option value="adjD">Defense (AdjDef)</option>
       <option value="sos">Strength of schedule</option>
       <option value="sor">Strength of record</option>
     </select>
@@ -113,7 +113,7 @@
 
   <footer class="site-footer">
     <div class="container site-footer__inner">
-      <p>CollegeFootballFocus uses real game data. AdjEM is the site's schedule-adjusted SRS strength rating. AdjO/AdjD are research-stage opponent-adjusted efficiency measures. SOR is wins above an average team on the same schedule -- a résumé measure, separate from AdjEM's performance measure.</p>
+      <p>CollegeFootballFocus uses real game data. AdjOff/AdjDef are opponent-adjusted ratings combining EPA, Success Rate, and Explosiveness; higher is better for both. Adj. Net = Adj. Off + Adj. Def. SOR is wins above an average team on the same schedule -- a résumé measure, separate from AdjNet's performance measure.</p>
       <div class="site-footer__links">
         <a href="methodology.html">Methodology</a>
         <a href="advanced.html">Advanced CFF</a>

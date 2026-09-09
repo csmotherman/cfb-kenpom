@@ -1,6 +1,6 @@
 """Derive one analytics row per team per game from validated possession drives."""
 from __future__ import annotations
-import hashlib,json,os
+import hashlib,json,math,os
 from collections import Counter,defaultdict
 from pathlib import Path
 from typing import Any
@@ -25,9 +25,34 @@ def _family(p):
  if "rush" in s:return "rush"
  if any(x in s for x in ("pass","sack")):return "pass"
  return None
-def _metric_counts(plays):
+# Garbage time. CFBD's own `excludeGarbageTime` is a flag forwarded to their
+# hosted win-probability model (see sources/cfbd/client.py); canonical plays
+# carry no such marker, so this is the score-differential x quarter x clock
+# proxy that the shadow-ratings research study validated -- reused here
+# verbatim (thresholds, OT handling and missing-field behaviour all identical)
+# so a filtered production aggregation reproduces that study exactly.
+#
+# STRICTLY OPT-IN. Every currently published field -- site/advanced-data.js's
+# epaAdj/successAdj/... and `wk` raw counts, web/public/data/advanced,
+# team-stats and team-stats-weekly, and the locked derived/games partitions --
+# is produced with exclude_garbage_time left False, which skips this entirely
+# and leaves output identical to before. See docs/shadow-ratings/production-audit.md
+# row 1.
+GARBAGE_TIME_VERSION="garbage-time-proxy-v1-score-quarter-clock"
+GARBAGE_TIME_MARGIN={1:43,2:37,3:27}
+GARBAGE_TIME_Q4_LATE_SECONDS=300
+def _finite(v):return _num(v) and math.isfinite(v)
+def is_garbage_time(p):
+ period=p.get("period");off,dfn=p.get("offenseScore"),p.get("defenseScore")
+ # Overtime (period>4) is never proxy-flagged: the score is close by construction.
+ if not(_finite(period) and _finite(off) and _finite(dfn)) or period<1 or period>4:return False
+ clock=p.get("clock") or {};m,s=clock.get("minutes"),clock.get("seconds")
+ if not(_finite(m) and _finite(s)):return False
+ return abs(off-dfn)>GARBAGE_TIME_MARGIN.get(period,22 if m*60+s>GARBAGE_TIME_Q4_LATE_SECONDS else 8)
+def _metric_counts(plays,exclude_garbage_time=False):
  c=Counter()
  for p in plays:
+  if exclude_garbage_time and is_garbage_time(p):continue
   fam=_family(p);success=classify_success(p);d=p.get("down")
   if success is not None:
    c["successEligible"]+=1;c["successful"]+=int(success)
@@ -52,8 +77,10 @@ def _metric_counts(plays):
    c[f"{fam}EpaPlays"]+=1;c[f"{fam}EpaSum"]+=epa
    if d in (1,2,3):c[f"{fam}Down{d}EpaPlays"]+=1;c[f"{fam}Down{d}EpaSum"]+=epa
  return c
-def _metric_fields(off,deff):
- oc,dc=_metric_counts(off),_metric_counts(deff);out={"successDefinitionVersion":SUCCESS_VERSION,"explosivenessDefinitionVersion":EXPLOSIVENESS_VERSION,"epaDefinitionVersion":EPA_VERSION}
+def _metric_fields(off,deff,exclude_garbage_time=False):
+ oc,dc=_metric_counts(off,exclude_garbage_time),_metric_counts(deff,exclude_garbage_time);out={"successDefinitionVersion":SUCCESS_VERSION,"explosivenessDefinitionVersion":EXPLOSIVENESS_VERSION,"epaDefinitionVersion":EPA_VERSION}
+ # Provenance is added only when filtering, so the default field set is unchanged.
+ if exclude_garbage_time:out["garbageTimeExcluded"]=True;out["garbageTimeDefinitionVersion"]=GARBAGE_TIME_VERSION
  for suffix,c in (("",oc),("Allowed",dc)):
   e=c["successEligible"];s=c["successful"];out[f"successEligiblePlays{suffix}"]=e;out[f"successfulPlays{suffix}"]=s;out[f"successRate{suffix}"]=_rate(s,e);out[f"successfulPlayYards{suffix}"]=c["successfulYards"];out[f"yardsPerSuccessfulPlay{suffix}"]=_rate(c["successfulYards"],s)
   ee=c["explosiveEligible"];ex=c["explosive"];out[f"explosiveEligiblePlays{suffix}"]=ee;out[f"explosivePlays{suffix}"]=ex;out[f"explosivePlayRate{suffix}"]=_rate(ex,ee)
@@ -69,7 +96,21 @@ def _metric_fields(off,deff):
  return out
 def _allowed_finishing(fields):
  mapping={"scoringOpportunities":"scoringOpportunitiesAllowed","opportunityTouchdowns":"opportunityTouchdownsAllowed","opportunityFieldGoals":"opportunityFieldGoalsAllowed","emptyOpportunities":"emptyOpportunitiesForced","otherScoringOpportunities":"otherScoringOpportunitiesAllowed","resolvedPointOpportunities":"resolvedPointOpportunitiesAllowed","unresolvedPointOpportunities":"unresolvedPointOpportunitiesAllowed","opportunityPoints":"opportunityPointsAllowed","pointsPerOpportunity":"pointsPerOpportunityAllowed","touchdownRatePerOpportunity":"touchdownRatePerOpportunityAllowed","fieldGoalRatePerOpportunity":"fieldGoalRatePerOpportunityAllowed","emptyRatePerOpportunity":"emptyRatePerOpportunityAllowed"};return {dst:fields.get(src) for src,dst in mapping.items()}
-def derive_team_games(plays,drives,season,season_type,week):
+def metric_fields_by_team_game(plays,exclude_garbage_time=False):
+ """Per-(gameId,team) metric fields straight from canonical plays.
+
+ Same game keying and offense/defense split derive_team_games uses, minus the
+ drive-derived columns, so the dedicated rating input path can request
+ garbage-time-filtered counts without
+ re-implementing the classifier population or touching a published artifact."""
+ games=defaultdict(list)
+ for p in plays:games[str(p.get("gameId"))].append(p)
+ out={}
+ for gid,gp in games.items():
+  for team in sorted({x for p in gp for x in (p.get("offense"),p.get("defense")) if x}):
+   out[(gid,team)]=_metric_fields([p for p in gp if p.get("offense")==team],[p for p in gp if p.get("defense")==team],exclude_garbage_time)
+ return out
+def derive_team_games(plays,drives,season,season_type,week,exclude_garbage_time=False):
  by_game=defaultdict(list);play_games=defaultdict(list)
  for d in drives:by_game[str(d.get("gameId"))].append(d)
  for p in plays:play_games[str(p.get("gameId"))].append(p)
@@ -79,7 +120,7 @@ def derive_team_games(plays,drives,season,season_type,week):
   for team in sorted(teams):
    opps=[x for d in valid for x in (d.get("offense"),d.get("defense")) if x and x!=team];opponent=Counter(opps).most_common(1)[0][0] if opps else None;off=[d for d in valid if d.get("offense")==team];deff=[d for d in valid if d.get("defense")==team];oy=sum(d.get("analyticsYardsGained",0) for d in off if _num(d.get("analyticsYardsGained")));dy=sum(d.get("analyticsYardsGained",0) for d in deff if _num(d.get("analyticsYardsGained")))
    row={"season":season,"seasonType":season_type,"week":week,"gameId":gid,"team":team,"opponent":opponent,"validatedPossessions":len(off),"validatedDefensivePossessions":len(deff),"offensivePlays":sum(d.get("offensivePlayCount",0) for d in off),"defensivePlays":sum(d.get("offensivePlayCount",0) for d in deff),"offensiveYards":oy,"defensiveYardsAllowed":dy,"yardsPerPossession":_rate(oy,len(off)),"yardsAllowedPerPossession":_rate(dy,len(deff)),"reviewPossessionGroups":sum(team in {d.get("offense"),d.get("defense")} for d in review),"gameValidationStatus":"PASS" if len(teams)==2 else "REVIEW","gameValidationIssues":[] if len(teams)==2 else ["TEAM_IDENTITY_COUNT_NOT_TWO"],"gameSchemaVersion":GAME_SCHEMA_VERSION}
-   row.update(_metric_fields([p for p in gp if p.get("offense")==team],[p for p in gp if p.get("defense")==team]));row.update(finishing[team]);row["finishingDrivesDefinitionVersion"]=FINISHING_DRIVES_VERSION;row.update(fieldpos[team]);row["fieldPositionDefinitionVersion"]=FIELD_POSITION_VERSION;row.update(turnovers[team]);row["turnoversDefinitionVersion"]=TURNOVERS_VERSION;row.update(tfl[team]);row["tflDefinitionVersion"]=TFL_VERSION
+   row.update(_metric_fields([p for p in gp if p.get("offense")==team],[p for p in gp if p.get("defense")==team],exclude_garbage_time));row.update(finishing[team]);row["finishingDrivesDefinitionVersion"]=FINISHING_DRIVES_VERSION;row.update(fieldpos[team]);row["fieldPositionDefinitionVersion"]=FIELD_POSITION_VERSION;row.update(turnovers[team]);row["turnoversDefinitionVersion"]=TURNOVERS_VERSION;row.update(tfl[team]);row["tflDefinitionVersion"]=TFL_VERSION
    if opponent in finishing:row.update(_allowed_finishing(finishing[opponent]))
    out.append(row)
  return out

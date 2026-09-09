@@ -70,7 +70,10 @@ const GENERAL_SECTIONS: AdvSection[] = [
   {
     title: "Rating",
     columns: [
-      { key: "cff", label: "CFF", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Real Simple Rating System (SRS) score, schedule-adjusted, as of the end week (a model fit can't be split into a sub-range)." },
+      // Labeled SRS, not CFF: this column is the scoring-margin SRS fit that
+      // SOS/SOR are built from. It is a different quantity from the AdjNet on
+      // the ratings page, so it must not render under that name.
+      { key: "cff", label: "SRS", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Real Simple Rating System (SRS) score, schedule-adjusted, as of the end week (a model fit can't be split into a sub-range). Separate from AdjNet, which is the opponent-adjusted EPA/Success/Explosiveness composite." },
     ],
   },
   {

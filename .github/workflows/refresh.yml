@@ -98,7 +98,10 @@ jobs:
       - name: Compute ratings
         run: python -m cfb_analytics.pipelines.calculate_ratings --season "$SEASON"
       - name: Compile and validate current season
-        run: python scripts/compile_site_data.py --season "$SEASON"
+        # --rating-model is required: the published AdjNet/AdjOff/AdjDef
+        # methodology is always an explicit choice, never an implicit default.
+        # `legacy` is the supported rollback (SRS + yards-per-play edges).
+        run: python scripts/compile_site_data.py --season "$SEASON" --rating-model hierarchical_hfa
       # No-ops until the one-time historical model freeze has been run
       # (prospective/2026/prediction-v2-2026-frozen.json does not exist yet).
       # Once frozen, this scores the next unscored early week from data

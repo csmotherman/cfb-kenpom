@@ -1,10 +1,13 @@
+import argparse
 import json
 import math
 import sys
 from pathlib import Path
 from collections import defaultdict
 
+from cfb_analytics.analytics import rating_model as rating_models
 from cfb_analytics.analytics.iterative_ratings import fit_all_ratings, fit_srs
+from cfb_analytics.derived.games import metric_fields_by_team_game
 
 REPO = Path(__file__).resolve().parent.parent
 
@@ -182,6 +185,23 @@ def load_canonical_games(year):
     ]
 
 
+def load_canonical_plays(year):
+    """Every canonical play for a season, in partition order.
+
+    Same corpus `derived/games.py` already materializes team-game metrics from
+    -- this only re-reads it so the rating model can request the
+    garbage-time-filtered aggregation that its validated study is defined on.
+    """
+    paths = sorted((REPO / f"data/processed/canonical/season={year}").glob("season_type=*/week=*/plays.json"))
+    if not paths:
+        raise rating_models.RatingModelError(
+            f"Season {year}: the hierarchical rating model requires canonical plays at "
+            f"data/processed/canonical/season={year}/; none were found. Materialize them or "
+            "build this season with --rating-model legacy."
+        )
+    return [play for path in paths for play in json.loads(path.read_text())]
+
+
 def load_possession_seconds(year):
     """Real per-game, per-team possession time in seconds, summed from each
     offensive drive's real elapsed clock time (data/raw/cfbd .../drives.json).
@@ -323,7 +343,9 @@ def new_acc():
     }
 
 
-def build_year(year):
+def build_year(year, rating_model):
+    rating_models.require_mode(rating_model)
+    hierarchical = rating_model == "hierarchical_hfa"
     games = load_canonical_games(year)
     source = {str(g["id"]): g for path in (REPO / f"data/raw/cfbd/season={year}").glob("season_type=*/week=*/games.json") for g in json.loads(path.read_text())}
     completed = {gid for gid, g in source.items() if g.get("completed") is True}
@@ -348,8 +370,15 @@ def build_year(year):
     games.sort(key=lambda r: r["_siteWeek"])
     weeks_present = sorted(set(r["_siteWeek"] for r in games))
     if not weeks_present:
-        return {}, {}
+        return {}, {}, rating_models.rating_model_metadata(rating_model, season=year, cutoff=None, weeks=[])
     week_labels = {wk: label for wk, label in week_labels.items() if wk in weeks_present}
+
+    # Garbage-time-filtered metric counts for the rating model ONLY. This is the
+    # single opt-in caller of derived/games.py's exclude_garbage_time flag; the
+    # unfiltered `games` rows above still feed every published Advanced field,
+    # every `wk` raw counter and the legacy solver, exactly as before.
+    filtered_metrics = metric_fields_by_team_game(load_canonical_plays(year), True) if hierarchical else {}
+    rows_with_no_canonical_plays = 0
 
     cum = defaultdict(new_acc)
     out_by_week = {}
@@ -371,6 +400,14 @@ def build_year(year):
     # this does not touch).
     srs_games_by_id = {}
     metric_history = []
+    # Parallel, never-substituted rating-model history: the same FBS-vs-FBS
+    # team-game rows, carrying garbage-time-filtered EPA/Success/Explosiveness
+    # counts instead of the unfiltered ones. Accumulated week by week exactly
+    # like metric_history, so each site week's refit sees only games played
+    # through that week -- no full-season information ever reaches an earlier
+    # weekly snapshot.
+    composite_history = []
+    composite_fits = {}
 
     # SOS/SOR opponent strength for the ratings page: (opponent, won) for
     # every game a team has played, resolved at the END of each site-week
@@ -488,6 +525,10 @@ def build_year(year):
             # FBS-vs-FBS universe.
             if is_fbs_opponent:
                 metric_history.append(row)
+                if hierarchical:
+                    fields = filtered_metrics.get((game_id, name))
+                    rows_with_no_canonical_plays += fields is None
+                    composite_history.append(rating_models.composite_input_row(row, fields))
                 if row.get("home_away") == "home":
                     srs_games_by_id[game_id] = {
                         "gameId": game_id,
@@ -587,6 +628,19 @@ def build_year(year):
         srs_ratings = srs_fit["ratings"] if srs_fit else {}
         metric_ratings = fit_all_ratings(metric_history) if metric_history else {}
 
+        # The published AdjOff/AdjDef/AdjNet refit, using only the games played
+        # through this site week. z-scores are computed from THIS week's own
+        # fits (see shadow_ratings.composite_from_fits), so no full-season
+        # normalization leaks backward into a historical weekly snapshot. HFA is
+        # estimated but never enters these neutral-field values.
+        composite = None
+        if hierarchical and composite_history:
+            fitted = rating_models.fit_publication_composite(
+                composite_history, season=year,
+                cutoff={"siteWeek": wk, "scope": "through-site-week"},
+            )
+            composite, composite_fits = fitted["ratings"], fitted["fits"]
+
         # Same degeneracy guard as before, just evaluated once for the whole
         # week's fit instead of once per game: with fewer games played so far
         # than teams involved, the least-squares system is underdetermined
@@ -653,11 +707,24 @@ def build_year(year):
             # is this team's offense avoiding it.
             def_havoc, off_havoc = metric("Havoc", "offense", name), metric("Havoc", "defense", name)
 
+            # Published AdjOff/AdjDef/AdjNet. Both sides are rounded first and
+            # AdjNet is then their exact sum, so the published contract
+            # AdjNet == AdjOff + AdjDef holds exactly in the shipped numbers and
+            # not merely before rounding.
+            adj_off = composite["AdjOff"].get(name) if composite else None
+            adj_def = composite["AdjDef"].get(name) if composite else None
+            if num(adj_off) and num(adj_def):
+                adj_off, adj_def = round(adj_off, 3), round(adj_def, 3)
+                adj_net = round(adj_off + adj_def, 3)
+            else:
+                adj_off = adj_def = adj_net = None
+
             week_rows.append({
                 "team": name, "slug": acc["slug"], "teamId": acc["teamId"], "conf": acc["conf"],
                 "record": f"{acc['wins']}-{acc['losses']}", "wins": acc["wins"],
                 "gamesPlayed": acc["gamesPlayed"],
                 "cff": round(cff, 2) if num(cff) else None,
+                "adjOff": adj_off, "adjDef": adj_def, "adjNet": adj_net,
                 "sos": round(srs_sum / srs_count, 2) if srs_count else None,
                 "sor": round(sor_actual - sor_expected, 2) if sor_games else None,
                 "sorExpectedWins": round(sor_expected, 2) if sor_games else None,
@@ -689,12 +756,24 @@ def build_year(year):
 
         out_by_week[wk] = week_rows  # wk is already a real chronological site-week (see build_site_week_map)
 
-    return out_by_week, week_labels
+    model_metadata = rating_models.rating_model_metadata(
+        rating_model, season=year,
+        cutoff={"siteWeek": weeks_present[-1], "scope": "through-site-week"},
+        weeks=weeks_present, fits=composite_fits or None,
+        rows_with_no_canonical_plays=rows_with_no_canonical_plays,
+        teams=len({r["team"] for r in composite_history}) if hierarchical else None,
+    )
+    return out_by_week, week_labels, model_metadata
 
 
 if __name__ == "__main__":
-    year = int(sys.argv[1]) if len(sys.argv) > 1 else 2025
-    weeks, week_labels = build_year(year)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("year", nargs="?", type=int, default=2025)
+    parser.add_argument("--rating-model", required=True, choices=rating_models.MODEL_MODES)
+    args = parser.parse_args()
+    year = args.year
+    weeks, week_labels, model_metadata = build_year(year, rating_model=args.rating_model)
+    print("rating model:", model_metadata["modelId"])
     print("year", year, "weeks with data:", sorted(weeks.keys()))
     print("week labels:", week_labels)
     last_wk = max(weeks.keys())

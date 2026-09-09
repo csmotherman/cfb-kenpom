@@ -45,10 +45,25 @@ class PublicationTests(unittest.TestCase):
             validate_season(self.r, self.a)
 
     def test_rejects_snapshot_mismatch(self):
+        """Cross-table integrity between the ratings and Advanced payloads.
+
+        Under the legacy contract adjEM IS the Advanced table's SRS `cff`, so a
+        changed `cff` must be rejected. Under the migrated hierarchical model
+        the two are different quantities (adjEM is AdjOff+AdjDef; `cff` stays
+        the SRS snapshot SOS/SOR are built from), so the enforced invariant is
+        that a rated team still has an SRS snapshot at all.
+        """
         self.require_private_advanced()
-        self.a["byWeek"][self.week][0]["cff"] = 999
-        with self.assertRaisesRegex(ValueError, "CFF and AdjEM"):
-            validate_season(self.r, self.a)
+        from validate_site_data import rating_model_mode
+        if rating_model_mode(self.r) == "legacy":
+            self.a["byWeek"][self.week][0]["cff"] = 999
+            with self.assertRaisesRegex(ValueError, "CFF and AdjEM"):
+                validate_season(self.r, self.a)
+        else:
+            rated = next(r for r in self.r["byWeek"][self.week] if r["adjEM"] is not None)
+            next(a for a in self.a["byWeek"][self.week] if a["slug"] == rated["slug"])["cff"] = None
+            with self.assertRaisesRegex(ValueError, "no Advanced SRS snapshot"):
+                validate_season(self.r, self.a)
 
     def test_rejects_nan(self):
         self.r["byWeek"][self.week][0]["adjEM"] = float("nan")
@@ -268,6 +283,111 @@ class EpaDerivedLayerTests(unittest.TestCase):
         self.assertEqual(out["rushDown1SuccessfulPlays"], 1)
         self.assertEqual(out["passDown3SuccessEligiblePlays"], 1)
         self.assertEqual(out["passDown3SuccessfulPlays"], 1)
+
+
+class GarbageTimeExclusionTests(unittest.TestCase):
+    """derived/games.py's opt-in garbage-time filter.
+
+    The flag exists only so the unpublished shadow-ratings reconciliation can
+    request the garbage-time-filtered population its validated study assumed.
+    It must stay OFF for every published field -- site/advanced-data.js's
+    epaAdj/successAdj/... and `wk` raw counts, web/public/data/advanced,
+    team-stats and team-stats-weekly all read the same counts.
+    """
+
+    # Season totals of the validated research population (2025, FBS-vs-FBS),
+    # from the shadow-ratings reconciliation: production's unfiltered
+    # aggregation runs ~14% high on EPA-eligible snaps (102,543) against the
+    # study's garbage-time-filtered 90,018.
+    RESEARCH_2025 = {
+        "epaPlays": 90018, "successEligiblePlays": 90092,
+        "successfulPlays": 38371, "successfulPlayYards": 467382,
+        "epaSum": 19619.32137786548,
+    }
+
+    def _snap(self, period=4, minutes=2, seconds=0, offense_score=0, defense_score=0):
+        return {
+            "offense": "A", "defense": "B", "down": 1, "distance": 10,
+            "analyticsYardsGained": 6, "ppa": 0.4, "eventSubtype": "RUSH",
+            "isScrimmagePlay": True, "isOffensivePlay": True,
+            "hasStateTransitionModifier": False, "hasNoPlayContext": False,
+            "period": period, "clock": {"minutes": minutes, "seconds": seconds},
+            "offenseScore": offense_score, "defenseScore": defense_score,
+        }
+
+    def _plays_2025(self):
+        paths = sorted((ROOT / "data/processed/canonical/season=2025").glob("season_type=*/week=*/plays.json"))
+        if not paths:
+            self.skipTest("canonical 2025 play corpus is not present in this checkout")
+        return [p for path in paths for p in json.loads(path.read_text())]
+
+    def test_known_leverage_cases(self):
+        from cfb_analytics.derived.games import is_garbage_time
+        # Late-4th blowout: 31-point lead inside 5:00 is far past the 8-point gate.
+        self.assertTrue(is_garbage_time(self._snap(period=4, minutes=2, offense_score=52, defense_score=21)))
+        # Same score, but a one-score game -- normal leverage.
+        self.assertFalse(is_garbage_time(self._snap(period=4, minutes=2, offense_score=28, defense_score=21)))
+        # Direction is symmetric: trailing by the same margin is garbage time too.
+        self.assertTrue(is_garbage_time(self._snap(period=4, minutes=2, offense_score=21, defense_score=52)))
+        # Thresholds are strict (>), and loosen earlier in the game.
+        for period, threshold in ((1, 43), (2, 37), (3, 27)):
+            self.assertFalse(is_garbage_time(self._snap(period=period, minutes=5, offense_score=threshold, defense_score=0)))
+            self.assertTrue(is_garbage_time(self._snap(period=period, minutes=5, offense_score=threshold + 1, defense_score=0)))
+        # 4th quarter uses 22 before 5:00 remain and 8 after.
+        self.assertFalse(is_garbage_time(self._snap(period=4, minutes=6, offense_score=22, defense_score=0)))
+        self.assertTrue(is_garbage_time(self._snap(period=4, minutes=6, offense_score=23, defense_score=0)))
+        self.assertTrue(is_garbage_time(self._snap(period=4, minutes=5, seconds=0, offense_score=9, defense_score=0)))
+        # Overtime is never proxy-flagged, and missing period/clock/score never is either.
+        self.assertFalse(is_garbage_time(self._snap(period=5, offense_score=52, defense_score=21)))
+        self.assertFalse(is_garbage_time({**self._snap(offense_score=52, defense_score=21), "clock": None}))
+        self.assertFalse(is_garbage_time({**self._snap(offense_score=52, defense_score=21), "offenseScore": None}))
+
+    def test_default_is_off_and_field_set_is_unchanged(self):
+        from cfb_analytics.derived.games import _metric_fields
+        garbage = self._snap(period=4, minutes=2, offense_score=52, defense_score=21)
+        normal = self._snap(period=2, minutes=7, offense_score=14, defense_score=10)
+        default = _metric_fields([garbage, normal], [])
+        self.assertEqual(default, _metric_fields([garbage, normal], [], False))
+        self.assertNotIn("garbageTimeExcluded", default)
+        self.assertNotIn("garbageTimeDefinitionVersion", default)
+        self.assertEqual(default["epaPlays"], 2)
+        filtered = _metric_fields([garbage, normal], [], True)
+        self.assertEqual(filtered["epaPlays"], 1)
+        self.assertTrue(filtered["garbageTimeExcluded"])
+        # Defense-side counts are filtered symmetrically -- one play, one decision.
+        self.assertEqual(_metric_fields([], [garbage, normal], True)["epaPlaysAllowed"], 1)
+
+    def test_flag_off_reproduces_every_published_2025_count(self):
+        from cfb_analytics.derived.games import metric_fields_by_team_game
+        fields = metric_fields_by_team_game(self._plays_2025(), False)
+        rows = [
+            r for r in json.loads((ROOT / "data/canonical/season=2025/team_games.json").read_text())
+            if r.get("classification") == "fbs" and r.get("opponent_classification") == "fbs"
+            and r.get("season_type") in ("regular", "postseason")
+        ]
+        self.assertEqual(len(rows), 1616)
+        for row in rows:
+            derived = fields[(str(row["gameId"]), row["team"])]
+            for key, value in derived.items():
+                if key.endswith("Version"):
+                    continue
+                published = row.get(key)
+                if isinstance(value, float) or isinstance(published, float):
+                    self.assertAlmostEqual(published, value, places=9, msg=key)
+                else:
+                    self.assertEqual(published, value, msg=key)
+
+    def test_filtered_counts_match_validated_research_totals(self):
+        from cfb_analytics.derived.games import metric_fields_by_team_game
+        fields = metric_fields_by_team_game(self._plays_2025(), True)
+        for key, expected in self.RESEARCH_2025.items():
+            total = sum(f[key] for f in fields.values())
+            if isinstance(expected, float):
+                self.assertAlmostEqual(total, expected, places=9, msg=key)
+            else:
+                self.assertEqual(total, expected, msg=key)
+        unfiltered = metric_fields_by_team_game(self._plays_2025(), False)
+        self.assertEqual(sum(f["epaPlays"] for f in unfiltered.values()), 102543)
 
 
 class EarlySeasonBlendTests(unittest.TestCase):
