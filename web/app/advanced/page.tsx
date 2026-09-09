@@ -83,7 +83,15 @@ const GENERAL_SECTIONS: AdvSection[] = [
     title: "Game Profile",
     columns: [
       { key: "pace", label: "Pace", fmt: "plain1", rankable: true, kind: "rate", num: ["offPlays"], den: ["offGames"], tooltip: "Offensive plays per game with available play-by-play in the selected weeks." },
-      { key: "top", label: "TOP", fmt: "pct1", rankable: true, kind: "rate", num: ["possessionSeconds"], den: ["possessionSecondsTotal"], tooltip: "Time of possession: share of game clock this team's offense held the ball in the selected weeks." },
+      { key: "top", label: "Time of Poss", fmt: "pct1", rankable: true, kind: "rate", num: ["possessionSeconds"], den: ["possessionSecondsTotal"], tooltip: "Time of possession: share of game clock this team's offense held the ball in the selected weeks." },
+    ],
+  },
+  {
+    title: "Field Position",
+    columns: [
+      { key: "fieldPos", label: "Adj", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Opponent-adjusted starting field-position edge, as of the end week. Research-stage model." },
+      { key: "offFieldPosRaw", label: "Off Start", fmt: "fieldpos", rankable: true, lowerBetter: true, kind: "rate", num: ["fieldPosSum"], den: ["fieldPosCount"], tooltip: "Average offensive starting field position, shown as a yard line. Lower is better." },
+      { key: "defFieldPosRaw", label: "Opp Start", fmt: "fieldpos", rankable: true, kind: "rate", num: ["fieldPosSumA"], den: ["fieldPosCountA"], tooltip: "Average opponent starting field position, shown as a yard line. Higher (deeper in their own territory) is better." },
     ],
   },
 ];
@@ -117,13 +125,6 @@ const OFFENSE_SECTIONS: AdvSection[] = [
     columns: [
       { key: "offFin", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted finishing-drives edge (offense), as of the end week. Research-stage model." },
       { key: "offFinRaw", label: "Pts/Opp", fmt: "plain1", rankable: true, kind: "rate", num: ["finNum"], den: ["finDen"], tooltip: "Points scored per resolved scoring opportunity in the selected weeks (raw)." },
-    ],
-  },
-  {
-    title: "Field Position",
-    columns: [
-      { key: "fieldPos", label: "Adj", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Opponent-adjusted starting field-position edge, as of the end week. Research-stage model." },
-      { key: "offFieldPosRaw", label: "Raw", fmt: "fieldpos", rankable: true, lowerBetter: true, kind: "rate", num: ["fieldPosSum"], den: ["fieldPosCount"], tooltip: "Average offensive starting field position, shown as a yard line. Lower is better." },
     ],
   },
   {
@@ -164,12 +165,6 @@ const DEFENSE_SECTIONS: AdvSection[] = [
     columns: [
       { key: "defFin", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted finishing-drives suppression edge. Higher is better." },
       { key: "defFinRaw", label: "Pts/Opp", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["finNumA"], den: ["finDenA"], tooltip: "Points allowed per opponent scoring opportunity in the selected weeks. Lower is better." },
-    ],
-  },
-  {
-    title: "Field Position",
-    columns: [
-      { key: "defFieldPosRaw", label: "Opp Start", fmt: "fieldpos", rankable: true, kind: "rate", num: ["fieldPosSumA"], den: ["fieldPosCountA"], tooltip: "Average opponent starting field position, shown as a yard line. Higher (deeper in their own territory) is better." },
     ],
   },
   {
