@@ -30,11 +30,11 @@ export default function MethodologyPage() {
             <h2>Ratings</h2>
           </div>
           <div className="methodology-definitions">
-            <Definition term="AdjNet" tag="Core" text="Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def" />
-            <Definition term="AdjOff" tag="Core" text="Opponent-adjusted offensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
-            <Definition term="AdjDef" tag="Core" text="Opponent-adjusted defensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
+            <Definition term="Adj. Net" tag="Core" text="Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def" />
+            <Definition term="Adj. Off" tag="Core" text="Opponent-adjusted offensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
+            <Definition term="Adj. Def" tag="Core" text="Opponent-adjusted defensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
             <Definition term="SOS" tag="Context" text="Strength of schedule, based on the strength of opponents played through the selected rating snapshot." />
-            <Definition term="SOR" tag="Résumé" text="Strength of Record: wins above what an exactly-average FBS team would be expected to earn against the same schedule. It answers a résumé question, separate from AdjNet's performance question." />
+            <Definition term="SOR" tag="Résumé" text="Strength of Record: wins above what an exactly-average FBS team would be expected to earn against the same schedule. It answers a résumé question, separate from Adj. Net's performance question." />
           </div>
         </section>
 
@@ -45,7 +45,7 @@ export default function MethodologyPage() {
               <h2>Raw vs adjusted</h2>
             </div>
             <p>
-              GRID does not label every number opponent-adjusted. Public team profiles include season-to-date raw football results such as success rate, pass/rush success, yards per play, explosiveness and tendencies. AdjNet and fields explicitly labeled as adjusted are model-based opponent-adjusted snapshots.
+              GRID does not label every number opponent-adjusted. Public team profiles include season-to-date raw football results such as success rate, pass/rush success, yards per play, explosiveness and tendencies. Adj. Net and fields explicitly labeled as adjusted are model-based opponent-adjusted snapshots.
             </p>
           </div>
           <div>

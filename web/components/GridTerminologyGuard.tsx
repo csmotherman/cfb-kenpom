@@ -7,19 +7,19 @@ const REPLACEMENTS: Array<[string | RegExp, string]> = [
   ["Advanced CFF Analytics", "GRID Pro"],
   ["CFF Advanced Analytics", "GRID Pro"],
   ["Advanced CFF", "GRID Pro"],
-  ["ARA Ratings", "GRID AdjNet"],
-  ["CFF Ratings", "GRID AdjNet"],
+  ["ARA Ratings", "GRID Adj. Net"],
+  ["CFF Ratings", "GRID Adj. Net"],
   ["CollegeFootballFocus", "GRID"],
   ["College Football Focus", "GRID"],
   ["Adjusted Ratings & Analytics", "College Football Analytics"],
-  ["AdjEM", "AdjNet"],
-  [/AdjO(?!ff)/g, "AdjOff"],
-  [/AdjD(?!ef)/g, "AdjDef"],
+  ["AdjEM", "Adj. Net"],
+  [/AdjO(?!ff)/g, "Adj. Off"],
+  [/AdjD(?!ef)/g, "Adj. Def"],
 ];
 
 function replaceBrandTerms(value: string) {
   const trimmed = value.trim();
-  if (trimmed === "CFF") return value.replace("CFF", "AdjNet");
+  if (trimmed === "CFF") return value.replace("CFF", "Adj. Net");
   if (trimmed === "ARA") return value.replace("ARA", "GRID");
   return REPLACEMENTS.reduce((next, [from, to]) => next.replaceAll(from, to), value);
 }

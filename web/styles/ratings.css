@@ -314,9 +314,16 @@
 .rank-sub {
   display: inline-block;
   min-width: 25px;
-  margin-left: 2px;
+  margin-left: 4px;
+  padding: 1px 4px;
+  border: 1px solid rgba(23, 36, 56, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #172438;
   font-size: 9.5px;
-  color: var(--color-ink-tertiary);
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
 }
 .delta-up { color: var(--color-up); }
 .delta-down { color: var(--color-down); }

@@ -6,7 +6,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
-import { getMeta, useAdvancedSeason } from "@/lib/data";
+import { getMeta, useAdvancedSeason, useRankingsSeason } from "@/lib/data";
 import { columnRange, heatBackground } from "@/lib/heatmap";
 import type { AdvancedRow } from "@/lib/types";
 
@@ -43,6 +43,7 @@ type AdvColumn = {
   num?: string[];
   den?: string[];
   tooltip: string;
+  sourceRankKey?: "rank" | "adjORank" | "adjDRank";
 };
 
 type AdvSection = { title: string; columns: AdvColumn[] };
@@ -70,10 +71,7 @@ const GENERAL_SECTIONS: AdvSection[] = [
   {
     title: "Rating",
     columns: [
-      // Labeled SRS, not CFF: this column is the scoring-margin SRS fit that
-      // SOS/SOR are built from. It is a different quantity from the AdjNet on
-      // the ratings page, so it must not render under that name.
-      { key: "cff", label: "SRS", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Real Simple Rating System (SRS) score, schedule-adjusted, as of the end week (a model fit can't be split into a sub-range). Separate from AdjNet, which is the opponent-adjusted EPA/Success/Explosiveness composite." },
+      { key: "adjEM", label: "Adj. Net", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "rank", tooltip: "The exact Adj. Net rating and national rank from the Ratings page at the selected end week. Adj. Net = Adj. Off + Adj. Def." },
     ],
   },
   {
@@ -103,7 +101,7 @@ const OFFENSE_SECTIONS: AdvSection[] = [
   {
     title: "Overall",
     columns: [
-      { key: "off", label: "Off Adj", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted yards-per-possession edge (offense), as of the end week. Research-stage model." },
+      { key: "adjO", label: "Adj. Off", fmt: "signed2", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "adjORank", tooltip: "The exact Adj. Off rating and national rank from the Ratings page at the selected end week." },
       { key: "offYpp", label: "YPP", fmt: "plain1", rankable: true, kind: "rate", num: ["yppNum"], den: ["yppDen"], tooltip: "Offensive yards per play in the selected weeks (raw, not opponent-adjusted)." },
       { key: "offSuccess", label: "Success", fmt: "pct1", rankable: true, kind: "rate", num: ["successNum"], den: ["successDen"], tooltip: "Offensive success rate in the selected weeks (raw, not opponent-adjusted)." },
     ],
@@ -143,7 +141,7 @@ const DEFENSE_SECTIONS: AdvSection[] = [
   {
     title: "Overall",
     columns: [
-      { key: "def", label: "Def Adj", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted yards-per-possession edge (defense). Higher is better; positive means the defense beat expectation." },
+      { key: "adjD", label: "Adj. Def", fmt: "signed2", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "adjDRank", tooltip: "The exact Adj. Def rating and national rank from the Ratings page at the selected end week." },
       { key: "defYpp", label: "YPP Allowed", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["yppNumA"], den: ["yppDenA"], tooltip: "Yards per play allowed in the selected weeks (raw). Lower is better." },
       { key: "defSuccess", label: "Success Allowed", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["successNumA"], den: ["successDenA"], tooltip: "Opponent success rate allowed in the selected weeks (raw). Lower is better." },
     ],
@@ -279,9 +277,9 @@ function staticTab(label: string, primaryKey: string, sections: AdvSection[], no
 }
 
 const STATIC_TABS: Record<"general" | "offense" | "defense", Tab> = {
-  general: staticTab("General", "cff", GENERAL_SECTIONS),
-  offense: staticTab("Offense", "off", OFFENSE_SECTIONS),
-  defense: staticTab("Defense", "def", DEFENSE_SECTIONS),
+  general: staticTab("General", "adjEM", GENERAL_SECTIONS),
+  offense: staticTab("Offense", "adjO", OFFENSE_SECTIONS),
+  defense: staticTab("Defense", "adjD", DEFENSE_SECTIONS),
 };
 
 const TAB_LABELS: Array<{ key: TabKey; label: string }> = [
@@ -376,7 +374,8 @@ export default function AdvancedPage() {
   }, []);
 
   const season = useAdvancedSeason(year || null);
-  const loading = !season;
+  const ratingsSeason = useRankingsSeason(year || null);
+  const loading = !season || !ratingsSeason;
   const weeks = season?.weeks ?? EMPTY_WEEKS;
   const seasonByWeek = season?.byWeek ?? EMPTY_BY_WEEK;
 
@@ -396,6 +395,12 @@ export default function AdvancedPage() {
     endRows.forEach((row) => (snapshot[row.slug] = row));
     return snapshot;
   }, [season, endWeek]);
+
+  const ratingsSnapshotBySlug = useMemo(() => {
+    if (!ratingsSeason) return {};
+    const endRows = ratingsSeason.byWeek[String(endWeek)] || [];
+    return Object.fromEntries(endRows.map((row) => [row.slug, row]));
+  }, [ratingsSeason, endWeek]);
 
   const [rangeYear, setRangeYear] = useState(year);
   if (year !== rangeYear && season) {
@@ -447,6 +452,18 @@ export default function AdvancedPage() {
           out[col.key] = rate(num, den);
         }
       });
+
+      // Ratings page is the single source of truth for the three headline
+      // ratings. Advanced keeps its own range-based stats, but these snapshots
+      // (and their national ranks) must be identical everywhere.
+      const ratingSnap = ratingsSnapshotBySlug[acc.slug];
+      out.adjEM = ratingSnap?.adjEM ?? null;
+      out.adjO = ratingSnap?.adjO ?? null;
+      out.adjD = ratingSnap?.adjD ?? null;
+      out.rank = ratingSnap?.rank ?? null;
+      out.adjORank = ratingSnap?.adjORank ?? null;
+      out.adjDRank = ratingSnap?.adjDRank ?? null;
+
       MARGIN_METRICS.forEach((metric) => {
         const offenseValue = out[`${metric.prefix}Adj`] as number | null;
         const defenseAllowedValue = out[`${metric.prefix}AdjAllowed`] as number | null;
@@ -456,7 +473,7 @@ export default function AdvancedPage() {
       });
       return out;
     });
-  }, [seasonByWeek, snapshotBySlug, weeks, startWeek, endWeek]);
+  }, [seasonByWeek, snapshotBySlug, ratingsSnapshotBySlug, weeks, startWeek, endWeek]);
 
   const tabDef = useMemo<Tab>(() => {
     if (tab === "epa" || tab === "successRate") return specialTab(tab, perspective);
@@ -467,6 +484,13 @@ export default function AdvancedPage() {
     const withRanks = teams.map((team) => ({ ...team }));
     tabDef.columns.forEach((col) => {
       if (!col.rankable) return;
+      if (col.sourceRankKey) {
+        withRanks.forEach((team) => {
+          const sourceRank = team[col.sourceRankKey] as number | null | undefined;
+          team[`_rank_${col.key}`] = na(sourceRank) ? null : sourceRank;
+        });
+        return;
+      }
       const ranked = withRanks.filter((team) => !na(team[col.key] as number | null));
       ranked.sort((a, b) => {
         const av = a[col.key] as number;

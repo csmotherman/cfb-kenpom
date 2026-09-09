@@ -119,10 +119,10 @@ const TABS: { key: TeamTab; label: string }[] = [
 ];
 
 const HISTORY_METRICS = [
-  ["adjEM", "Overall rating (AdjNet)"],
+  ["adjEM", "Overall rating (Adj. Net)"],
   ["rank", "Overall rank"],
-  ["adjO", "Offense (AdjOff)"],
-  ["adjD", "Defense (AdjDef)"],
+  ["adjO", "Offense (Adj. Off)"],
+  ["adjD", "Defense (Adj. Def)"],
   ["sos", "Strength of schedule"],
 ] as const;
 
@@ -345,9 +345,9 @@ function TeamProfile({ slug }: { slug: string }) {
   }
 
   const headline = [
-    { label: "Overall", short: "AdjNet", value: signed(latest.adjEM, 1), rank: latest.rank },
-    { label: "Offense", short: "AdjOff", value: signed(latest.adjO, 2), rank: latest.adjORank },
-    { label: "Defense", short: "AdjDef", value: signed(latest.adjD, 2), rank: latest.adjDRank },
+    { label: "Overall", short: "Adj. Net", value: signed(latest.adjEM, 1), rank: latest.rank },
+    { label: "Offense", short: "Adj. Off", value: signed(latest.adjO, 2), rank: latest.adjORank },
+    { label: "Defense", short: "Adj. Def", value: signed(latest.adjD, 2), rank: latest.adjDRank },
     { label: "Schedule", short: "SOS", value: signed(latest.sos, 1), rank: latest.sosRank },
     { label: "Résumé", short: "SOR", value: signed(latest.sor, 1), rank: latest.sorRank },
   ];
@@ -482,9 +482,9 @@ function TeamProfile({ slug }: { slug: string }) {
                   <th scope="col" className="conf-cell">Conf</th>
                   <th scope="col" className="num record-cell">W-L</th>
                   <th scope="col" className={historyMetric === "rank" ? "num history-rank-cell mobile-selected-history-metric" : "num history-rank-cell"}>Rk</th>
-                  <th scope="col" className={historyMetric === "adjEM" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>AdjNet</th>
-                  <th scope="col" className={historyMetric === "adjO" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>AdjOff</th>
-                  <th scope="col" className={historyMetric === "adjD" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>AdjDef</th>
+                  <th scope="col" className={historyMetric === "adjEM" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Adj. Net</th>
+                  <th scope="col" className={historyMetric === "adjO" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Adj. Off</th>
+                  <th scope="col" className={historyMetric === "adjD" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Adj. Def</th>
                   <th scope="col" className={historyMetric === "sos" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>SOS</th>
                 </tr>
               </thead>
@@ -605,8 +605,8 @@ function OverviewTab({
       </div>
 
       <div className="team-v2-overview-grid">
-        <MiniProfile title="Offense" subtitle={`#${latest.adjORank ?? "—"} AdjOff`} metrics={offense} />
-        <MiniProfile title="Defense" subtitle={`#${latest.adjDRank ?? "—"} AdjDef`} metrics={defense} />
+        <MiniProfile title="Offense" subtitle={`#${latest.adjORank ?? "—"} Adj. Off`} metrics={offense} />
+        <MiniProfile title="Defense" subtitle={`#${latest.adjDRank ?? "—"} Adj. Def`} metrics={defense} />
       </div>
 
       <div className="team-v2-context-strip">
@@ -706,7 +706,7 @@ function offenseGroups(
     {
       title: "Overall",
       metrics: [
-        { label: "AdjOff", value: signed(latest.adjO, 2), rank: latest.adjORank, totalTeams: totalRated },
+        { label: "Adj. Off", value: signed(latest.adjO, 2), rank: latest.adjORank, totalTeams: totalRated },
         { label: "EPA / Play", value: signed(advanced?.epaAdj, 3), rank: epa.rank, totalTeams: epa.total },
         { label: "Yards / Play", value: plain(stats.yardsPerPlay, 2), rank: stats.yardsPerPlayRank, totalTeams: totalStatted },
         { label: "Success Rate", value: pct(stats.successRate), rank: stats.successRateRank, totalTeams: totalStatted },
@@ -768,7 +768,7 @@ function defenseGroups(
     {
       title: "Overall",
       metrics: [
-        { label: "AdjDef", value: signed(latest.adjD, 2), rank: latest.adjDRank, totalTeams: totalRated },
+        { label: "Adj. Def", value: signed(latest.adjD, 2), rank: latest.adjDRank, totalTeams: totalRated },
         { label: "EPA / Play Allowed", value: signed(advanced?.epaAdjAllowed, 3), rank: epa.rank, totalTeams: epa.total },
         { label: "YPP Allowed", value: plain(stats.yardsPerPlayAllowed, 2), rank: stats.yardsPerPlayAllowedRank, totalTeams: totalStatted },
         { label: "Success Allowed", value: pct(stats.successRateAllowed), rank: stats.successRateAllowedRank, totalTeams: totalStatted },
@@ -906,7 +906,7 @@ function ScheduleTab({
               <th scope="col">Week</th>
               <th scope="col">Opponent</th>
               <th scope="col">Result</th>
-              <th scope="col" className="num">Opp AdjNet<TipTrigger text="The opponent's GRID AdjNet from the week strictly before this game." /></th>
+              <th scope="col" className="num">Opp Adj. Net<TipTrigger text="The opponent's GRID Adj. Net from the week strictly before this game." /></th>
               <th scope="col" className="team-v2-schedule__action">Matchup</th>
             </tr>
           </thead>
@@ -957,7 +957,7 @@ function ScheduleTab({
           </tbody>
         </table>
       </div>
-      <p className="team-v2-method-note">Opponent AdjNet is frozen to the snapshot strictly before each game. Matchup pages use the same pregame-only logic.</p>
+      <p className="team-v2-method-note">Opponent Adj. Net is frozen to the snapshot strictly before each game. Matchup pages use the same pregame-only logic.</p>
     </div>
   );
 }

@@ -21,13 +21,13 @@ type Column = {
 };
 
 const COLUMNS: Column[] = [
-  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by AdjNet, GRID's Adjusted Net Rating." },
+  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by Adj. Net, GRID's Adjusted Net Rating." },
   { key: "team", label: "Team", numeric: false, defaultDir: "asc" },
-  { key: "adjEM", label: "AdjNet", numeric: true, defaultDir: "desc", primary: true, tooltip: "Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def" },
-  { key: "adjO", label: "AdjOff", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." },
-  { key: "adjD", label: "AdjDef", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted defensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." },
+  { key: "adjEM", label: "Adj. Net", numeric: true, defaultDir: "desc", primary: true, tooltip: "Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def" },
+  { key: "adjO", label: "Adj. Off", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." },
+  { key: "adjD", label: "Adj. Def", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted defensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." },
   { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Strength of schedule: average SRS strength of opponents played through the selected week." },
-  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like AdjNet. Higher is better." },
+  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like Adj. Net. Higher is better." },
 ];
 
 function na(v: unknown): v is null | undefined {
@@ -132,7 +132,7 @@ export default function RatingsPage() {
 
   useEffect(() => {
     if (!year) return;
-    document.title = `${year} AdjNet Ratings | GRID`;
+    document.title = `${year} Adj. Net Ratings | GRID`;
   }, [year]);
 
   function onHeaderClick(col: Column) {
@@ -164,8 +164,8 @@ export default function RatingsPage() {
 
       <section className="ratings-hero container" aria-labelledby="ratingsTitle">
         <div className="ratings-hero__copy">
-          <span className="eyebrow">GRID AdjNet</span>
-          <h1 id="ratingsTitle">{year ? `${year} AdjNet Ratings` : "AdjNet Ratings"}</h1>
+          <span className="eyebrow">GRID Adj. Net</span>
+          <h1 id="ratingsTitle">{year ? `${year} Adj. Net Ratings` : "Adj. Net Ratings"}</h1>
           <p className="ratings-hero__description">
             Opponent-adjusted team performance, measuring how teams perform relative to what their opponents typically allow.
           </p>
@@ -261,7 +261,7 @@ export default function RatingsPage() {
       </div>
 
       <main id="mainContent" className="table-main container">
-        <div className="table-scroll" role="region" aria-label="GRID AdjNet college football ratings table" tabIndex={0}>
+        <div className="table-scroll" role="region" aria-label="GRID Adj. Net college football ratings table" tabIndex={0}>
           <table id="ratingsTable" className="data-table">
             <caption className="sr-only">GRID Relative Performance Index college football ratings</caption>
             <thead>
@@ -331,7 +331,7 @@ export default function RatingsPage() {
       </aside>
 
       <div id="methodology" tabIndex={-1}>
-        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional, and SOS/SOR omit games without pregame opponent ratings. AdjOff and AdjDef are opponent-adjusted ratings combining EPA, Success Rate, and Explosiveness; higher is better for both. Adj. Net = Adj. Off + Adj. Def. SOR is wins above an average team on the same schedule -- a résumé measure, separate from AdjNet's performance measure." />
+        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional, and SOS/SOR omit games without pregame opponent ratings. Adj. Off and Adj. Def are opponent-adjusted ratings combining EPA, Success Rate, and Explosiveness; higher is better for both. Adj. Net = Adj. Off + Adj. Def. SOR is wins above an average team on the same schedule -- a résumé measure, separate from Adj. Net's performance measure." />
       </div>
     </>
   );
