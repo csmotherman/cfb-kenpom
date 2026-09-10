@@ -13,11 +13,21 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Early Beta Access | LEILA Ratings",
-  description:
-    "Use LEILA Advanced Analytics and Predictions free during Early Beta, then choose Advanced or Advanced + Predictions beginning October 16, 2026.",
-};
+export function generateMetadata(): Metadata {
+  if (isEarlyBetaActive()) {
+    return {
+      title: "Early Beta Access | LEILA Ratings",
+      description:
+        "Use LEILA Advanced Analytics and Predictions free during Early Beta, then choose Advanced or Advanced + Predictions beginning October 16, 2026.",
+    };
+  }
+
+  return {
+    title: "Plans | LEILA Ratings",
+    description:
+      "Compare LEILA Advanced at $1.99 per month with LEILA Advanced + Predictions at $4.99 per month.",
+  };
+}
 
 type UpgradePageProps = {
   searchParams: Promise<{
