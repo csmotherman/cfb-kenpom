@@ -21,7 +21,7 @@ type Column = {
 };
 
 const COLUMNS: Column[] = [
-  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by Adj. Net, GRID's Adjusted Net Rating." },
+  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by Adj. Net" },
   { key: "team", label: "Team", numeric: false, defaultDir: "asc" },
   { key: "adjEM", label: "Adj. Net", numeric: true, defaultDir: "desc", primary: true, tooltip: "Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def" },
   { key: "adjO", label: "Adj. Off", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." },
@@ -132,7 +132,7 @@ export default function RatingsPage() {
 
   useEffect(() => {
     if (!year) return;
-    document.title = `${year} Adj. Net Ratings | GRID`;
+    document.title = `${year} LEILA RATINGS`;
   }, [year]);
 
   function onHeaderClick(col: Column) {
@@ -164,8 +164,8 @@ export default function RatingsPage() {
 
       <section className="ratings-hero container" aria-labelledby="ratingsTitle">
         <div className="ratings-hero__copy">
-          <span className="eyebrow">GRID Adj. Net</span>
-          <h1 id="ratingsTitle">{year ? `${year} Adj. Net Ratings` : "Adj. Net Ratings"}</h1>
+          <span className="eyebrow">LEILA RATINGS</span>
+          <h1 id="ratingsTitle">{year ? `${year} LEILA RATINGS` : "LEILA RATINGS"}</h1>
           <p className="ratings-hero__description">
             Opponent-adjusted team performance, measuring how teams perform relative to what their opponents typically allow.
           </p>
