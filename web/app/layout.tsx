@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/Tooltip";
 import BrandTitleGuard from "@/components/BrandTitleGuard";
 import GridTerminologyGuard from "@/components/GridTerminologyGuard";
 import MatchupPredictionPortal from "@/components/MatchupPredictionPortal";
+import TableFreshnessStamp from "@/components/TableFreshnessStamp";
 import "@/styles/theme.css";
 import "@/styles/ratings.css";
 import "@/styles/advanced.css";
@@ -26,6 +27,7 @@ import "@/styles/team-profile-v2.css";
 import "@/styles/methodology.css";
 import "@/styles/upgrade.css";
 import "@/styles/table-identity-polish.css";
+import "@/styles/table-freshness.css";
 
 export const metadata: Metadata = {
   title: "GRID | College Football Analytics",
@@ -52,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <BrandTitleGuard />
         <GridTerminologyGuard />
+        <TableFreshnessStamp />
         <TooltipProvider>{children}</TooltipProvider>
         <MatchupPredictionPortal />
       </body>
