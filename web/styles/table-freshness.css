@@ -1,0 +1,28 @@
+.table-updated-at {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin: 0 0 5px;
+  color: var(--color-ink-tertiary);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: .01em;
+}
+
+.table-updated-at span {
+  font-weight: 700;
+}
+
+.table-updated-at time {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .table-updated-at {
+    margin: 0 10px 4px;
+    font-size: 8px;
+  }
+}
