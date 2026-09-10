@@ -17,10 +17,10 @@
   :is(#ratingsTable, .adv-table) thead .rank-cell, :is(#ratingsTable, .adv-table) thead .team-cell { background: #e8e4d9 !important; }
   :is(#ratingsTable, .adv-table) tbody .rank-cell, :is(#ratingsTable, .adv-table) tbody .team-cell { background: inherit !important; }
   :is(#ratingsTable, .adv-table) td.stat-cell, :is(#ratingsTable, .adv-table) td.record-cell, :is(#ratingsTable, .adv-table) td.rank-cell { font-size: 10px; }
-  :is(#ratingsTable, .adv-table) .team-link { gap: 3px; }
+  :is(#ratingsTable, .adv-table) .team-link { gap: 3px; min-width: 0; }
   :is(#ratingsTable, .adv-table) .team-logo { width: 22px !important; height: 22px !important; flex: 0 0 22px; }
-  :is(#ratingsTable, .adv-table) .team-link .team-name { display: none !important; }
-  :is(#ratingsTable, .adv-table) .team-link .team-code { display: inline !important; font-size: 10px; }
+  :is(#ratingsTable, .adv-table) .team-link .team-name { display: inline !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; font-weight: 700; color: var(--color-ink); }
+  :is(#ratingsTable, .adv-table) .team-link .team-code { display: none !important; }
   :is(#ratingsTable, .adv-table) .team-conf-label { display: block !important; margin-left: 25px; color: #777263; font-size: 8px; }
   :is(#ratingsTable, .adv-table) .rank-sub { display: block; margin: 2px 0 0; font-size: 8px; }
   :is(#ratingsTable, .adv-table) .tip-trigger { display: none; }
