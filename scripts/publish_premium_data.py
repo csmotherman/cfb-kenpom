@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -39,15 +40,29 @@ def upsert(base_url: str, secret: str, row: dict) -> None:
         data=body,
         method="POST",
         headers={
+            # The new sb_secret_/sb_publishable_ keys are opaque, not JWTs --
+            # Supabase's own docs call out sending them as `Authorization:
+            # Bearer` as a common mistake. `apikey` alone is both required
+            # and sufficient for a secret key against /rest/v1/.
             "apikey": secret,
-            "Authorization": f"Bearer {secret}",
             "Content-Type": "application/json",
             "Prefer": "resolution=merge-duplicates,return=minimal",
         },
     )
-    with urlopen(request, timeout=90) as response:
-        if response.status not in (200, 201, 204):
-            raise RuntimeError(f"Supabase premium upsert failed with HTTP {response.status}")
+    try:
+        with urlopen(request, timeout=90) as response:
+            if response.status not in (200, 201, 204):
+                raise RuntimeError(f"Supabase premium upsert failed with HTTP {response.status}")
+    except HTTPError as exc:
+        # Surface Supabase/PostgREST's own error body (never our payload or
+        # the secret) so a failure says WHY -- e.g. a request-size limit on a
+        # multi-megabyte season blob -- instead of just "HTTP 500".
+        detail = exc.read().decode("utf-8", errors="replace")[:2000]
+        raise RuntimeError(
+            f"Supabase premium upsert failed for {row['dataset_type']} "
+            f"season={row['season']} week={row['week']} "
+            f"(payload {len(body):,} bytes): HTTP {exc.code} {exc.reason} -- {detail}"
+        ) from exc
 
 
 def payload_hash(payload: dict) -> str:

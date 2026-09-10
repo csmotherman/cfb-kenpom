@@ -45,8 +45,10 @@ def fetch_json(base_url: str, secret: str, path: str, *, retries: int = 4):
         request = Request(
             base_url + path,
             headers={
+                # sb_secret_/sb_publishable_ keys are opaque, not JWTs --
+                # Supabase's docs call out `Authorization: Bearer` with one
+                # of these as a common mistake. `apikey` alone is correct.
                 "apikey": secret,
-                "Authorization": f"Bearer {secret}",
                 "Accept": "application/json",
             },
         )
