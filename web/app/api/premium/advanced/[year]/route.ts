@@ -35,7 +35,10 @@ export async function GET(
 
   if (!entitlements.advanced) {
     return NextResponse.json(
-      { code: "UPGRADE_REQUIRED", message: "LEILA Pro or Pro+ is required for Advanced Analytics." },
+      {
+        code: "UPGRADE_REQUIRED",
+        message: "LEILA Advanced or Advanced + Predictions is required for Advanced Analytics.",
+      },
       { status: 403, headers: PRIVATE_HEADERS }
     );
   }
