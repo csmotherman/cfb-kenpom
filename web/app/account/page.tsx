@@ -14,7 +14,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Account | GRID",
+  title: "Account | LEILA Ratings",
   robots: { index: false, follow: false },
 };
 
@@ -27,8 +27,8 @@ type AccountPageProps = {
 };
 
 function planLabel(plan: string) {
-  if (plan === "pro_plus") return "GRID Pro+";
-  if (plan === "pro") return "GRID Pro";
+  if (plan === "pro_plus") return "LEILA Pro+";
+  if (plan === "pro") return "LEILA Pro";
   return "Free";
 }
 
@@ -90,7 +90,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
   const checkoutMessage =
     params.checkout === "success"
-      ? "Stripe checkout completed. Your GRID access will sync from the verified Stripe webhook."
+      ? "Stripe checkout completed. Your LEILA Ratings access will sync from the verified Stripe webhook."
       : params.checkout === "canceled"
         ? "Checkout canceled. Nothing was charged."
         : null;
@@ -104,7 +104,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <section className="auth-panel account-panel" aria-labelledby="accountTitle">
             <div className="account-heading">
               <div>
-                <span className="eyebrow auth-kicker">GRID Account</span>
+                <span className="eyebrow auth-kicker">LEILA Ratings Account</span>
                 <h1 id="accountTitle" className="auth-title">Your account</h1>
               </div>
               <span className={`account-plan account-plan--${plan}`}>{planLabel(plan)}</span>
@@ -167,11 +167,11 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             <div className="account-section">
               <div className="account-section__heading">
                 <h2>Access</h2>
-                <span>Access levels are synced from Stripe into your GRID account.</span>
+                <span>Access levels are synced from Stripe into your LEILA Ratings account.</span>
               </div>
               <div className="entitlement-list">
                 <div className="entitlement-row">
-                  <div><strong>AdjNet Ratings</strong><span>Core GRID team ratings</span></div>
+                  <div><strong>AdjNet Ratings</strong><span>Core LEILA Ratings team ratings</span></div>
                   <b className="entitlement-state entitlement-state--on">Included</b>
                 </div>
                 <div className="entitlement-row">
@@ -199,7 +199,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 <div className="billing-plan-grid">
                   <article className="billing-plan-card">
                     <div>
-                      <span className="billing-plan-card__eyebrow">GRID Pro</span>
+                      <span className="billing-plan-card__eyebrow">LEILA Pro</span>
                       <h3>Advanced analytics</h3>
                       <p>Unlock the advanced team analytics table plus limited weekly predictions.</p>
                       <strong className="billing-plan-card__price">
@@ -209,16 +209,16 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     <form action="/api/stripe/checkout" method="post">
                       <input type="hidden" name="plan" value="pro" />
                       <button className="auth-button billing-button" type="submit" disabled={!billingConfigured}>
-                        Start GRID Pro
+                        Start LEILA Pro
                       </button>
                     </form>
                   </article>
 
                   <article className="billing-plan-card billing-plan-card--plus">
                     <div>
-                      <span className="billing-plan-card__eyebrow">GRID Pro+</span>
+                      <span className="billing-plan-card__eyebrow">LEILA Pro+</span>
                       <h3>Full model access</h3>
-                      <p>Everything in GRID Pro plus complete access to weekly model predictions.</p>
+                      <p>Everything in LEILA Pro plus complete access to weekly model predictions.</p>
                       <strong className="billing-plan-card__price">
                         {trialEligible ? `${trialDays} days free, then ` : ""}{PAID_PLAN_MONTHLY_PRICE.pro_plus}
                       </strong>
@@ -226,7 +226,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     <form action="/api/stripe/checkout" method="post">
                       <input type="hidden" name="plan" value="pro_plus" />
                       <button className="auth-button billing-button" type="submit" disabled={!billingConfigured}>
-                        Start GRID Pro+
+                        Start LEILA Pro+
                       </button>
                     </form>
                   </article>
@@ -245,7 +245,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
               <p className="account-billing-note">
                 {billingConfigured
-                  ? "Payment details are handled by Stripe. GRID stores subscription identifiers and access status, not raw card numbers."
+                  ? "Payment details are handled by Stripe. LEILA Ratings stores subscription identifiers and access status, not raw card numbers."
                   : "Stripe billing code is installed, but checkout stays disabled until the Stripe products, price IDs, webhook secret, and server secrets are configured."}
               </p>
             </div>
@@ -256,7 +256,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </section>
         </div>
       </main>
-      <SiteFooter note="GRID accounts use Supabase authentication. Paid subscription state is synchronized from Stripe webhooks into row-level-secured account records." />
+      <SiteFooter note="LEILA Ratings accounts use Supabase authentication. Paid subscription state is synchronized from Stripe webhooks into row-level-secured account records." />
     </>
   );
 }

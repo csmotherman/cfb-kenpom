@@ -181,25 +181,25 @@ const EPA_METRICS: MetricSection[] = [
   {
     title: "Overall",
     metrics: [
-      { prefix: "epa", label: "EPA/Play", fmt: "signed2", tip: "GRID's opponent-adjusted EPA per play (CFBD's ppa model, summed over every clean rush/pass snap)." },
+      { prefix: "epa", label: "EPA/Play", fmt: "signed2", tip: "LEILA's opponent-adjusted EPA per play (CFBD's ppa model, summed over every clean rush/pass snap)." },
     ],
   },
   {
     title: "Passing",
     metrics: [
-      { prefix: "passEpa", label: "EPA/Dropback", tip: "GRID's opponent-adjusted passing EPA per dropback (attempts + sacks)." },
-      { prefix: "passEpaDown1", label: "1st Down", tip: "GRID's opponent-adjusted passing EPA per dropback on 1st down." },
-      { prefix: "passEpaDown2", label: "2nd Down", tip: "GRID's opponent-adjusted passing EPA per dropback on 2nd down." },
-      { prefix: "passEpaDown3", label: "3rd Down", tip: "GRID's opponent-adjusted passing EPA per dropback on 3rd down." },
+      { prefix: "passEpa", label: "EPA/Dropback", tip: "LEILA's opponent-adjusted passing EPA per dropback (attempts + sacks)." },
+      { prefix: "passEpaDown1", label: "1st Down", tip: "LEILA's opponent-adjusted passing EPA per dropback on 1st down." },
+      { prefix: "passEpaDown2", label: "2nd Down", tip: "LEILA's opponent-adjusted passing EPA per dropback on 2nd down." },
+      { prefix: "passEpaDown3", label: "3rd Down", tip: "LEILA's opponent-adjusted passing EPA per dropback on 3rd down." },
     ],
   },
   {
     title: "Rushing",
     metrics: [
-      { prefix: "rushEpa", label: "EPA/Rush", tip: "GRID's opponent-adjusted rushing EPA per carry." },
-      { prefix: "rushEpaDown1", label: "1st Down", tip: "GRID's opponent-adjusted rushing EPA per carry on 1st down." },
-      { prefix: "rushEpaDown2", label: "2nd Down", tip: "GRID's opponent-adjusted rushing EPA per carry on 2nd down." },
-      { prefix: "rushEpaDown3", label: "3rd Down", tip: "GRID's opponent-adjusted rushing EPA per carry on 3rd down." },
+      { prefix: "rushEpa", label: "EPA/Rush", tip: "LEILA's opponent-adjusted rushing EPA per carry." },
+      { prefix: "rushEpaDown1", label: "1st Down", tip: "LEILA's opponent-adjusted rushing EPA per carry on 1st down." },
+      { prefix: "rushEpaDown2", label: "2nd Down", tip: "LEILA's opponent-adjusted rushing EPA per carry on 2nd down." },
+      { prefix: "rushEpaDown3", label: "3rd Down", tip: "LEILA's opponent-adjusted rushing EPA per carry on 3rd down." },
     ],
   },
 ];
@@ -208,25 +208,25 @@ const SUCCESS_METRICS: MetricSection[] = [
   {
     title: "Overall",
     metrics: [
-      { prefix: "success", label: "Success Rate", fmt: "signed2", tip: "GRID's opponent-adjusted success rate using down-scaled yardage thresholds." },
+      { prefix: "success", label: "Success Rate", fmt: "signed2", tip: "LEILA's opponent-adjusted success rate using down-scaled yardage thresholds." },
     ],
   },
   {
     title: "Passing",
     metrics: [
-      { prefix: "passSuccess", label: "Pass Success", tip: "GRID's opponent-adjusted passing success rate." },
-      { prefix: "passSuccessDown1", label: "1st Down", tip: "GRID's opponent-adjusted passing success rate on 1st down." },
-      { prefix: "passSuccessDown2", label: "2nd Down", tip: "GRID's opponent-adjusted passing success rate on 2nd down." },
-      { prefix: "passSuccessDown3", label: "3rd Down", tip: "GRID's opponent-adjusted passing success rate on 3rd down." },
+      { prefix: "passSuccess", label: "Pass Success", tip: "LEILA's opponent-adjusted passing success rate." },
+      { prefix: "passSuccessDown1", label: "1st Down", tip: "LEILA's opponent-adjusted passing success rate on 1st down." },
+      { prefix: "passSuccessDown2", label: "2nd Down", tip: "LEILA's opponent-adjusted passing success rate on 2nd down." },
+      { prefix: "passSuccessDown3", label: "3rd Down", tip: "LEILA's opponent-adjusted passing success rate on 3rd down." },
     ],
   },
   {
     title: "Rushing",
     metrics: [
-      { prefix: "rushSuccess", label: "Rush Success", tip: "GRID's opponent-adjusted rushing success rate." },
-      { prefix: "rushSuccessDown1", label: "1st Down", tip: "GRID's opponent-adjusted rushing success rate on 1st down." },
-      { prefix: "rushSuccessDown2", label: "2nd Down", tip: "GRID's opponent-adjusted rushing success rate on 2nd down." },
-      { prefix: "rushSuccessDown3", label: "3rd Down", tip: "GRID's opponent-adjusted rushing success rate on 3rd down." },
+      { prefix: "rushSuccess", label: "Rush Success", tip: "LEILA's opponent-adjusted rushing success rate." },
+      { prefix: "rushSuccessDown1", label: "1st Down", tip: "LEILA's opponent-adjusted rushing success rate on 1st down." },
+      { prefix: "rushSuccessDown2", label: "2nd Down", tip: "LEILA's opponent-adjusted rushing success rate on 2nd down." },
+      { prefix: "rushSuccessDown3", label: "3rd Down", tip: "LEILA's opponent-adjusted rushing success rate on 3rd down." },
     ],
   },
 ];

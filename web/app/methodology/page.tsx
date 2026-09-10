@@ -4,8 +4,8 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata = {
-  title: "Methodology | GRID",
-  description: "How GRID builds opponent-adjusted college football ratings, team profiles, weekly matchup snapshots, and model research.",
+  title: "Methodology | LEILA Ratings",
+  description: "How LEILA Ratings builds opponent-adjusted college football ratings, team profiles, weekly matchup snapshots, and model research.",
 };
 
 export default function MethodologyPage() {
@@ -17,10 +17,10 @@ export default function MethodologyPage() {
 
       <main id="methodologyContent" className="container methodology-main">
         <header className="methodology-hero">
-          <span className="eyebrow">GRID Methodology</span>
+          <span className="eyebrow">LEILA Ratings Methodology</span>
           <h1>What the numbers actually mean</h1>
           <p>
-            GRID is built to describe team strength from real games, not recreate a poll. The core ratings account for opponent quality so the same statistical performance is treated differently against a strong opponent than against a weak one.
+            LEILA Ratings is built to describe team strength from real games, not recreate a poll. The core ratings account for opponent quality so the same statistical performance is treated differently against a strong opponent than against a weak one.
           </p>
         </header>
 
@@ -45,7 +45,7 @@ export default function MethodologyPage() {
               <h2>Raw vs adjusted</h2>
             </div>
             <p>
-              GRID does not label every number opponent-adjusted. Public team profiles include season-to-date raw football results such as success rate, pass/rush success, yards per play, explosiveness and tendencies. Adj. Net and fields explicitly labeled as adjusted are model-based opponent-adjusted snapshots.
+              LEILA Ratings does not label every number opponent-adjusted. Public team profiles include season-to-date raw football results such as success rate, pass/rush success, yards per play, explosiveness and tendencies. Adj. Net and fields explicitly labeled as adjusted are model-based opponent-adjusted snapshots.
             </p>
           </div>
           <div>
@@ -54,7 +54,7 @@ export default function MethodologyPage() {
               <h2>Week ranges</h2>
             </div>
             <p>
-              Metrics built from additive weekly counts can be recalculated for a selected range. Model ratings are snapshots and cannot honestly be added or averaged across arbitrary weeks, so GRID keeps those two classes separate instead of pretending every column is rangeable.
+              Metrics built from additive weekly counts can be recalculated for a selected range. Model ratings are snapshots and cannot honestly be added or averaged across arbitrary weeks, so LEILA Ratings keeps those two classes separate instead of pretending every column is rangeable.
             </p>
           </div>
         </section>
@@ -66,7 +66,7 @@ export default function MethodologyPage() {
               <h2>Week 0</h2>
             </div>
             <p>
-              GRID uses chronological site weeks. Early opener games that occur several days before the main Week 1 slate are separated into Week 0 so the interface follows how fans actually experience the season instead of forcing every early game into one label.
+              LEILA Ratings uses chronological site weeks. Early opener games that occur several days before the main Week 1 slate are separated into Week 0 so the interface follows how fans actually experience the season instead of forcing every early game into one label.
             </p>
           </div>
           <div>
@@ -75,7 +75,7 @@ export default function MethodologyPage() {
               <h2>Pregame snapshots</h2>
             </div>
             <p>
-              Weekly matchup pages use the latest GRID rating snapshot strictly before the selected game week. That prevents the matchup page from quietly using the result it is supposed to be previewing.
+              Weekly matchup pages use the latest LEILA Ratings rating snapshot strictly before the selected game week. That prevents the matchup page from quietly using the result it is supposed to be previewing.
             </p>
           </div>
         </section>
@@ -88,14 +88,14 @@ export default function MethodologyPage() {
           <div className="methodology-rules">
             <p><strong>Walk-forward testing.</strong> Historical test seasons are evaluated using only seasons and games available before the test sample.</p>
             <p><strong>Immutable live predictions.</strong> Prospective prediction snapshots are timestamped and are not silently regenerated after the game.</p>
-            <p><strong>No fake probability precision.</strong> GRID will not publish a model win probability as calibrated until calibration has actually been validated.</p>
+            <p><strong>No fake probability precision.</strong> LEILA Ratings will not publish a model win probability as calibrated until calibration has actually been validated.</p>
             <p><strong>Misses stay visible.</strong> The long-term goal is a public prediction archive so users can inspect both correct calls and misses.</p>
           </div>
         </section>
 
         <section className="methodology-section methodology-actions">
           <div>
-            <span className="eyebrow">Use GRID</span>
+            <span className="eyebrow">Use LEILA Ratings</span>
             <h2>Start with the football</h2>
             <p>Check the national ratings, then open the weekly slate to see how the teams in this weekend&rsquo;s games compare before kickoff.</p>
           </div>
@@ -106,7 +106,7 @@ export default function MethodologyPage() {
         </section>
       </main>
 
-      <SiteFooter note="GRID favors explicit definitions over invented completeness. Research-stage metrics stay labeled, missing data stays missing, and predictive claims are separated from descriptive ratings." />
+      <SiteFooter note="LEILA Ratings favors explicit definitions over invented completeness. Research-stage metrics stay labeled, missing data stays missing, and predictive claims are separated from descriptive ratings." />
     </>
   );
 }

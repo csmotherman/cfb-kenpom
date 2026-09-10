@@ -14,9 +14,9 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "GRID Pro | Advanced College Football Analytics",
+  title: "LEILA Pro | Advanced College Football Analytics",
   description:
-    "Compare GRID Pro plans and unlock advanced college football research tools, custom week ranges, and weekly model access.",
+    "Compare LEILA Pro plans and unlock advanced college football research tools, custom week ranges, and weekly model access.",
 };
 
 type UpgradePageProps = {
@@ -71,7 +71,7 @@ export default async function UpgradePage({ searchParams }: UpgradePageProps) {
     redirect(
       "/account?message=" +
         encodeURIComponent(
-          "You already have GRID access. Use Manage billing from your account to change plans."
+          "You already have LEILA Ratings access. Use Manage billing from your account to change plans."
         )
     );
   }
@@ -100,7 +100,7 @@ export default async function UpgradePage({ searchParams }: UpgradePageProps) {
           error={params.error ?? null}
         />
       </main>
-      <SiteFooter note="GRID keeps its core ratings and team profiles public. Paid plans are reserved for deeper research controls and forward-looking model products." />
+      <SiteFooter note="LEILA Ratings keeps its core ratings and team profiles public. Paid plans are reserved for deeper research controls and forward-looking model products." />
     </>
   );
 }

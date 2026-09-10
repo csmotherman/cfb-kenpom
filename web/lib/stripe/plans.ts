@@ -1,8 +1,8 @@
 export type PaidPlan = "pro" | "pro_plus";
 
 export const PAID_PLAN_LABELS: Record<PaidPlan, string> = {
-  pro: "GRID Pro",
-  pro_plus: "GRID Pro+",
+  pro: "LEILA Pro",
+  pro_plus: "LEILA Pro+",
 };
 
 export const PAID_PLAN_MONTHLY_PRICE: Record<PaidPlan, string> = {

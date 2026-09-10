@@ -34,7 +34,7 @@ const FEATURE_COPY: Record<UpgradeFeature, FeatureCopy> = {
     eyebrow: "Advanced Analytics",
     title: "Unlock Advanced Analytics",
     intro:
-      "Use custom week ranges and deeper offense, defense and efficiency views without changing the simple GRID ratings experience.",
+      "Use custom week ranges and deeper offense, defense and efficiency views without changing the simple LEILA Ratings ratings experience.",
     reason:
       "The core ratings and team pages stay free. This view is paid because it adds research controls and deeper analysis beyond the public profile.",
   },
@@ -42,9 +42,9 @@ const FEATURE_COPY: Record<UpgradeFeature, FeatureCopy> = {
     eyebrow: "Weekly Predictions",
     title: "Unlock Weekly Predictions",
     intro:
-      "See GRID's published pregame model outputs while the ratings and completed-game data remain public.",
+      "See LEILA's published pregame model outputs while the ratings and completed-game data remain public.",
     reason:
-      "Pregame projections are a forward-looking model product. GRID Pro gets limited weekly access; GRID Pro+ gets the full published slate.",
+      "Pregame projections are a forward-looking model product. LEILA Pro gets limited weekly access; LEILA Pro+ gets the full published slate.",
   },
   matchup: {
     eyebrow: "Matchup Intelligence",
@@ -55,10 +55,10 @@ const FEATURE_COPY: Record<UpgradeFeature, FeatureCopy> = {
       "This is a deeper research layer rather than a core rating. Any unfinished matchup tools remain clearly labeled as coming soon.",
   },
   general: {
-    eyebrow: "GRID Pro",
+    eyebrow: "LEILA Pro",
     title: "More data when you want it",
     intro:
-      "GRID stays a ratings-first site. Pro simply gives you deeper research controls and model access when you need them.",
+      "LEILA Ratings stays a ratings-first site. Pro simply gives you deeper research controls and model access when you need them.",
     reason:
       "AdjNet ratings, team profiles, schedules and basic matchup context remain free. Paid access is for deeper analysis and forward-looking tools.",
   },
@@ -72,7 +72,7 @@ const PLAN_FEATURES: Record<PaidPlan, Array<{ text: string; note?: string }>> = 
     { text: "Limited weekly predictions", note: "when published" },
   ],
   pro_plus: [
-    { text: "Everything in GRID Pro" },
+    { text: "Everything in LEILA Pro" },
     { text: "All published weekly predictions" },
     { text: "Full weekly model slate" },
     { text: "Matchup Intelligence", note: "coming soon after validation" },
@@ -116,7 +116,7 @@ export default function UpgradeExperience({
         <p className="upgrade-compact-head__reason">
           <strong>Why this is blocked:</strong> {copy.reason}
         </p>
-        <div className="upgrade-trustline" aria-label="GRID access principles">
+        <div className="upgrade-trustline" aria-label="LEILA Ratings access principles">
           <span>Core ratings stay free</span>
           <span>Cancel anytime</span>
           <span>{trialDays > 0 ? `${trialDays}-day trial for eligible accounts` : "Monthly access"}</span>
@@ -213,7 +213,7 @@ export default function UpgradeExperience({
 
         {!billingConfigured && mode === "page" ? (
           <p className="upgrade-billing-note">
-            Checkout is not live yet. You can create a free GRID account now; plan buttons will activate here after Stripe is configured.
+            Checkout is not live yet. You can create a free LEILA Ratings account now; plan buttons will activate here after Stripe is configured.
           </p>
         ) : null}
       </section>

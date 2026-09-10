@@ -64,7 +64,7 @@ def build_schedule_payload(year):
 
     Raw source files stay gitignored. This intentionally publishes only the
     fields needed by the fan-facing weekly slate and matchup pages. Site-week
-    numbering reuses the same mapping as the ratings pipeline, including GRID's
+    numbering reuses the same mapping as the ratings pipeline, including LEILA's
     Week 0 split and CFBD-backed postseason labels.
     """
     raw_root = REPO / f"data/raw/cfbd/season={year}"
@@ -222,7 +222,7 @@ def build_predictions_week_payloads(year, schedule_payload, snapshots):
 
 def build_prediction_track_record_payload(year, schedule_payload, snapshots):
     """Public, ungated accuracy record: straight-up record and average
-    absolute margin error, graded only against games GRID can verify
+    absolute margin error, graded only against games LEILA Ratings can verify
     (matched by gameId against the public schedule, with a final score).
     A week with no gradeable games yet reports null accuracy rather than 0,
     so an in-progress week never reads as a wrong one.

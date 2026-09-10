@@ -132,7 +132,7 @@ export default function RatingsPage() {
 
   useEffect(() => {
     if (!year) return;
-    document.title = `${year} LEILA RATINGS`;
+    document.title = `${year} LEILA Ratings`;
   }, [year]);
 
   function onHeaderClick(col: Column) {
@@ -164,8 +164,8 @@ export default function RatingsPage() {
 
       <section className="ratings-hero container" aria-labelledby="ratingsTitle">
         <div className="ratings-hero__copy">
-          <span className="eyebrow">LEILA RATINGS</span>
-          <h1 id="ratingsTitle">{year ? `${year} LEILA RATINGS` : "LEILA RATINGS"}</h1>
+          <span className="eyebrow">LEILA Ratings</span>
+          <h1 id="ratingsTitle">{year ? `${year} LEILA Ratings` : "LEILA Ratings"}</h1>
           <p className="ratings-hero__description">
             Opponent-adjusted team performance, measuring how teams perform relative to what their opponents typically allow.
           </p>
@@ -261,9 +261,9 @@ export default function RatingsPage() {
       </div>
 
       <main id="mainContent" className="table-main container">
-        <div className="table-scroll" role="region" aria-label="GRID Adj. Net college football ratings table" tabIndex={0}>
+        <div className="table-scroll" role="region" aria-label="LEILA Ratings college football ratings table" tabIndex={0}>
           <table id="ratingsTable" className="data-table">
-            <caption className="sr-only">GRID Relative Performance Index college football ratings</caption>
+            <caption className="sr-only">LEILA Ratings college football rankings</caption>
             <thead>
               <tr>
                 {COLUMNS.slice(0, 1).map((col) => (
@@ -322,12 +322,12 @@ export default function RatingsPage() {
         </div>
       </main>
 
-      <aside className="premium-teaser container" aria-label="GRID Pro advanced analytics preview">
+      <aside className="premium-teaser container" aria-label="LEILA Pro advanced analytics preview">
         <div className="premium-teaser__copy">
-          <span className="premium-teaser__title">The rating tells you who is good. GRID Pro tells you why.</span>
+          <span className="premium-teaser__title">The rating tells you who is good. LEILA Pro tells you why.</span>
           <span className="premium-teaser__text">Break teams down by offense, defense, success rate, explosiveness, finishing drives, field position and custom week ranges.</span>
         </div>
-        <Link className="premium-teaser__link" href="/advanced">Explore GRID Pro</Link>
+        <Link className="premium-teaser__link" href="/advanced">Explore LEILA Pro</Link>
       </aside>
 
       <div id="methodology" tabIndex={-1}>

@@ -6,7 +6,7 @@ import SiteNav from "@/components/SiteNav";
 import { login } from "@/app/auth/actions";
 
 export const metadata: Metadata = {
-  title: "Sign in | GRID",
+  title: "Sign in | LEILA Ratings",
   robots: { index: false, follow: false },
 };
 
@@ -30,12 +30,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <main className="auth-main">
         <div className="auth-shell">
           <section className="auth-panel" aria-labelledby="loginTitle">
-            <span className="eyebrow auth-kicker">GRID Account</span>
+            <span className="eyebrow auth-kicker">LEILA Ratings Account</span>
             <h1 id="loginTitle" className="auth-title">Sign in</h1>
             <p className="auth-copy">
               {returningToUpgrade
-                ? "Sign in and we'll bring you back to the GRID plan you selected."
-                : "Sign in to manage your GRID account and paid access."}
+                ? "Sign in and we'll bring you back to the LEILA Ratings plan you selected."
+                : "Sign in to manage your LEILA Ratings account and paid access."}
             </p>
 
             {params.error ? <p className="auth-alert auth-alert--error">{params.error}</p> : null}
@@ -66,12 +66,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </form>
 
             <p className="auth-alt">
-              New to GRID? <Link href={`/signup?next=${encodeURIComponent(next)}`}>Create an account</Link>
+              New to LEILA Ratings? <Link href={`/signup?next=${encodeURIComponent(next)}`}>Create an account</Link>
             </p>
           </section>
         </div>
       </main>
-      <SiteFooter note="GRID accounts power access to advanced analytics and prediction products. Ratings remain available without an account." />
+      <SiteFooter note="LEILA Ratings accounts power access to advanced analytics and prediction products. Ratings remain available without an account." />
     </>
   );
 }

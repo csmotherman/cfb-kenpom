@@ -43,7 +43,7 @@ export default function PredictionsPage() {
       // Predictions are published for early-season weeks specifically (see
       // early_season_predictions.py) -- a week with no file yet just means
       // this model hasn't scored it (either too early in the pipeline, or
-      // past the early-season window where GRID's own AdjNet/SOR takes over).
+      // past the early-season window where LEILA's own AdjNet/SOR takes over).
       // Try the current week first, then the one behind it, since a
       // Tuesday-morning visitor mid-week wants last week's slate wrapping
       // up, not a blank page.
@@ -91,7 +91,7 @@ export default function PredictionsPage() {
           <p>
             Model-projected winners and margins for published early-season FBS matchups. Weeks 1&ndash;5 blend a
             preseason power rating with real results as they come in; once a team&rsquo;s schedule is long enough
-            for GRID&rsquo;s own opponent-adjusted AdjNet to take over, predictions retire in favor of that.
+            for LEILA Ratings&rsquo;s own opponent-adjusted AdjNet to take over, predictions retire in favor of that.
           </p>
         </div>
       </section>
@@ -111,7 +111,7 @@ export default function PredictionsPage() {
           <div className="predictions-list">
             <div className="weekly-section-heading">
               <div>
-                <span className="eyebrow">GRID Predictions</span>
+                <span className="eyebrow">LEILA Ratings Predictions</span>
                 <h2>Week {week}</h2>
               </div>
             </div>
@@ -121,7 +121,7 @@ export default function PredictionsPage() {
             {predictionAccess === "limited" && totalGames > games.length ? (
               <div className="predictions-cta">
                 <span>
-                  GRID Pro includes {games.length} of {totalGames} published predictions this week.
+                  LEILA Pro includes {games.length} of {totalGames} published predictions this week.
                 </span>
                 <Link className="auth-button" href="/account">Unlock all with Pro+</Link>
               </div>
@@ -132,7 +132,7 @@ export default function PredictionsPage() {
         {power ? <PreseasonPowerTable power={power} /> : null}
       </main>
 
-      <SiteFooter note="Weekly Predictions are model-generated projections, not betting advice. Early-season margins and win probabilities blend GRID's preseason power rating with real results as they accumulate; see the Preseason Power table above for that model's own walk-forward accuracy record." />
+      <SiteFooter note="Weekly Predictions are model-generated projections, not betting advice. Early-season margins and win probabilities blend LEILA's preseason power rating with real results as they accumulate; see the Preseason Power table above for that model's own walk-forward accuracy record." />
     </>
   );
 }

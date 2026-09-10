@@ -7,7 +7,7 @@ export function createAdminClient() {
 
   if (!secretKey) {
     throw new Error(
-      "Missing SUPABASE_SECRET_KEY (or legacy SUPABASE_SERVICE_ROLE_KEY) for server-side GRID operations."
+      "Missing SUPABASE_SECRET_KEY (or legacy SUPABASE_SERVICE_ROLE_KEY) for server-side LEILA Ratings operations."
     );
   }
 

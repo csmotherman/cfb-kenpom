@@ -12,7 +12,7 @@ const PRIVATE_HEADERS = {
 };
 
 function proPredictionLimit() {
-  const value = Number.parseInt(process.env.GRID_PRO_PREDICTION_LIMIT ?? "5", 10);
+  const value = Number.parseInt(process.env.LEILA_PRO_PREDICTION_LIMIT ?? "5", 10);
   if (!Number.isFinite(value) || value < 1) return 5;
   return Math.min(value, 50);
 }
@@ -34,14 +34,14 @@ export async function GET(
 
   if (!entitlements.userId) {
     return NextResponse.json(
-      { code: "SIGN_IN_REQUIRED", message: "Sign in to access GRID Predictions." },
+      { code: "SIGN_IN_REQUIRED", message: "Sign in to access LEILA Ratings Predictions." },
       { status: 401, headers: PRIVATE_HEADERS }
     );
   }
 
   if (entitlements.predictions === "none") {
     return NextResponse.json(
-      { code: "UPGRADE_REQUIRED", message: "A GRID paid plan is required for Predictions." },
+      { code: "UPGRADE_REQUIRED", message: "A LEILA Ratings paid plan is required for Predictions." },
       { status: 403, headers: PRIVATE_HEADERS }
     );
   }
@@ -80,8 +80,8 @@ export async function GET(
       status: 200,
       headers: {
         ...PRIVATE_HEADERS,
-        "X-GRID-Predictions-Access": entitlements.predictions,
-        "X-GRID-Predictions-Total": String(totalGames),
+        "X-LEILA Ratings-Predictions-Access": entitlements.predictions,
+        "X-LEILA Ratings-Predictions-Total": String(totalGames),
       },
     });
   } catch (error) {

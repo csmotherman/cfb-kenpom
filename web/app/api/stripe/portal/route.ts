@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
   if (!userId) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("message", "Sign in to manage GRID billing.");
+    loginUrl.searchParams.set("message", "Sign in to manage LEILA Ratings billing.");
     return NextResponse.redirect(loginUrl, 303);
   }
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.redirect(portal.url, 303);
   } catch (error) {
-    console.error("GRID Stripe portal error", error);
+    console.error("LEILA Ratings Stripe portal error", error);
     return accountRedirect(
       request,
       "error",

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { TooltipProvider } from "@/components/Tooltip";
 import BrandTitleGuard from "@/components/BrandTitleGuard";
-import GridTerminologyGuard from "@/components/GridTerminologyGuard";
 import MatchupPredictionPortal from "@/components/MatchupPredictionPortal";
 import TableFreshnessStamp from "@/components/TableFreshnessStamp";
 import "@/styles/theme.css";
@@ -14,7 +13,7 @@ import "@/styles/mobile-fit.css";
 import "@/styles/dense-ratings.css";
 import "@/styles/ara-polish.css";
 import "@/styles/advanced-table-polish.css";
-import "@/styles/grid-brand.css";
+import "@/styles/leila-brand.css";
 import "@/styles/team-logo-align.css";
 import "@/styles/auth.css";
 import "@/styles/billing.css";
@@ -30,9 +29,9 @@ import "@/styles/table-identity-polish.css";
 import "@/styles/table-freshness.css";
 
 export const metadata: Metadata = {
-  title: "GRID | College Football Analytics",
+  title: "LEILA Ratings | College Football Analytics",
   description:
-    "GRID provides opponent-adjusted college football AdjNet ratings, weekly matchup analysis, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
+    "LEILA Ratings provides opponent-adjusted college football ratings, weekly matchup analysis, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -53,7 +52,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <BrandTitleGuard />
-        <GridTerminologyGuard />
         <TableFreshnessStamp />
         <TooltipProvider>{children}</TooltipProvider>
         <MatchupPredictionPortal />
