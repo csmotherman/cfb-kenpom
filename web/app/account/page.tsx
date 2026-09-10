@@ -171,7 +171,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               </div>
               <div className="entitlement-list">
                 <div className="entitlement-row">
-                  <div><strong>AdjNet Ratings</strong><span>Core LEILA Ratings team ratings</span></div>
+                  <div><strong>AdjNet Ratings</strong><span>Core opponent-adjusted ratings</span></div>
                   <b className="entitlement-state entitlement-state--on">Included</b>
                 </div>
                 <div className="entitlement-row">

@@ -34,7 +34,7 @@ const FEATURE_COPY: Record<UpgradeFeature, FeatureCopy> = {
     eyebrow: "Advanced Analytics",
     title: "Unlock Advanced Analytics",
     intro:
-      "Use custom week ranges and deeper offense, defense and efficiency views without changing the simple LEILA Ratings ratings experience.",
+      "Use custom week ranges and deeper offense, defense and efficiency views without changing the simple LEILA ratings experience.",
     reason:
       "The core ratings and team pages stay free. This view is paid because it adds research controls and deeper analysis beyond the public profile.",
   },
@@ -60,7 +60,7 @@ const FEATURE_COPY: Record<UpgradeFeature, FeatureCopy> = {
     intro:
       "LEILA Ratings stays a ratings-first site. Pro simply gives you deeper research controls and model access when you need them.",
     reason:
-      "AdjNet ratings, team profiles, schedules and basic matchup context remain free. Paid access is for deeper analysis and forward-looking tools.",
+      "Adj. Net ratings, team profiles, schedules and basic matchup context remain free. Paid access is for deeper analysis and forward-looking tools.",
   },
 };
 

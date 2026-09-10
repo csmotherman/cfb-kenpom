@@ -34,14 +34,14 @@ export async function GET(
 
   if (!entitlements.userId) {
     return NextResponse.json(
-      { code: "SIGN_IN_REQUIRED", message: "Sign in to access LEILA Ratings Predictions." },
+      { code: "SIGN_IN_REQUIRED", message: "Sign in to access LEILA Predictions." },
       { status: 401, headers: PRIVATE_HEADERS }
     );
   }
 
   if (entitlements.predictions === "none") {
     return NextResponse.json(
-      { code: "UPGRADE_REQUIRED", message: "A LEILA Ratings paid plan is required for Predictions." },
+      { code: "UPGRADE_REQUIRED", message: "A LEILA Pro plan is required for Predictions." },
       { status: 403, headers: PRIVATE_HEADERS }
     );
   }
@@ -80,8 +80,8 @@ export async function GET(
       status: 200,
       headers: {
         ...PRIVATE_HEADERS,
-        "X-LEILA Ratings-Predictions-Access": entitlements.predictions,
-        "X-LEILA Ratings-Predictions-Total": String(totalGames),
+        "X-LEILA-Predictions-Access": entitlements.predictions,
+        "X-LEILA-Predictions-Total": String(totalGames),
       },
     });
   } catch (error) {

@@ -10,8 +10,8 @@ function normalizeLeilaTitle() {
     .replaceAll("College Football Focus", "LEILA Ratings")
     .replaceAll("ARA", "LEILA Ratings");
 
-  nextTitle = nextTitle.replace(/^(\d{4}) College Football Ratings\s*[—-]\s*LEILA Ratings$/, "$1 AdjNet Ratings | LEILA Ratings");
-  nextTitle = nextTitle.replace(/^(.+) Football Ratings\s*[—-]\s*LEILA Ratings$/, "$1 AdjNet | LEILA Ratings");
+  nextTitle = nextTitle.replace(/^(\d{4}) College Football Ratings\s*[—-]\s*LEILA Ratings$/, "$1 Adj. Net Ratings | LEILA Ratings");
+  nextTitle = nextTitle.replace(/^(.+) Football Ratings\s*[—-]\s*LEILA Ratings$/, "$1 Adj. Net | LEILA Ratings");
 
   if (nextTitle !== document.title) document.title = nextTitle;
 }

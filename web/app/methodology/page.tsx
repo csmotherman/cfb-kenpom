@@ -75,7 +75,7 @@ export default function MethodologyPage() {
               <h2>Pregame snapshots</h2>
             </div>
             <p>
-              Weekly matchup pages use the latest LEILA Ratings rating snapshot strictly before the selected game week. That prevents the matchup page from quietly using the result it is supposed to be previewing.
+              Weekly matchup pages use the latest LEILA rating snapshot strictly before the selected game week. That prevents the matchup page from quietly using the result it is supposed to be previewing.
             </p>
           </div>
         </section>

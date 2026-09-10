@@ -333,7 +333,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
         </div>
       </main>
 
-      <SiteFooter note="Matchup pages use the most recent LEILA Ratings snapshot strictly before the selected game week. Rank colors are based on national rank among teams with available data. Defensive EPA and success values are allowed values, so lower is better." />
+      <SiteFooter note="Matchup pages use the most recent LEILA rating snapshot strictly before the selected game week. Rank colors are based on national rank among teams with available data. Defensive EPA and success values are allowed values, so lower is better." />
     </>
   );
 }
@@ -360,7 +360,7 @@ function TeamSideCard({
       <div className="matchup-v2-side__head">
         <span>
           <strong>{team}</strong>
-          <small>{record} · {rank ? `#${rank} LEILA Ratings` : "Unranked"}</small>
+          <small>{record} · {rank ? `#${rank} LEILA` : "Unranked"}</small>
         </span>
         <img src={logoUrl(teamId, 96)} alt="" decoding="async" />
       </div>

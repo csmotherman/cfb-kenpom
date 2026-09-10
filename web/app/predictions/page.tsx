@@ -91,7 +91,7 @@ export default function PredictionsPage() {
           <p>
             Model-projected winners and margins for published early-season FBS matchups. Weeks 1&ndash;5 blend a
             preseason power rating with real results as they come in; once a team&rsquo;s schedule is long enough
-            for LEILA Ratings&rsquo;s own opponent-adjusted AdjNet to take over, predictions retire in favor of that.
+            for LEILA&rsquo;s own opponent-adjusted Adj. Net to take over, predictions retire in favor of that.
           </p>
         </div>
       </section>
@@ -111,7 +111,7 @@ export default function PredictionsPage() {
           <div className="predictions-list">
             <div className="weekly-section-heading">
               <div>
-                <span className="eyebrow">LEILA Ratings Predictions</span>
+                <span className="eyebrow">LEILA Predictions</span>
                 <h2>Week {week}</h2>
               </div>
             </div>

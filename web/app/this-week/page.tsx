@@ -101,10 +101,10 @@ export default function ThisWeekPage() {
 
       <section className="weekly-hero container">
         <div>
-          <span className="eyebrow">LEILA Ratings Weekly Matchups</span>
+          <span className="eyebrow">LEILA Weekly Matchups</span>
           <h1>{season ? `${season} Matchups` : "Weekly Matchups"}</h1>
           <p>
-            Every FBS-vs-FBS game in one place, paired with the latest pregame LEILA Ratings ratings so you can see where each matchup starts.
+            Every FBS-vs-FBS game in one place, paired with the latest pregame LEILA rating snapshots so you can see where each matchup starts.
           </p>
         </div>
         <div className="weekly-hero__note">
@@ -164,7 +164,7 @@ export default function ThisWeekPage() {
         )}
       </main>
 
-      <SiteFooter note="This Week uses the same FBS-vs-FBS universe as LEILA Ratings ratings. Pregame comparisons use the latest rating snapshot strictly before the selected game week; completed scores come from the trusted schedule refresh." />
+      <SiteFooter note="This Week uses the same FBS-vs-FBS universe as LEILA Ratings. Pregame comparisons use the latest rating snapshot strictly before the selected game week; completed scores come from the trusted schedule refresh." />
     </>
   );
 }

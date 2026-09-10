@@ -28,7 +28,7 @@ export async function GET(
 
   if (!entitlements.userId) {
     return NextResponse.json(
-      { code: "SIGN_IN_REQUIRED", message: "Sign in to access LEILA Ratings Advanced Analytics." },
+      { code: "SIGN_IN_REQUIRED", message: "Sign in to access LEILA Advanced Analytics." },
       { status: 401, headers: PRIVATE_HEADERS }
     );
   }

@@ -47,10 +47,10 @@ export default function PremiumRouteError({
       <main className="auth-main">
         <div className="auth-shell">
           <section className="auth-panel" role="alert">
-            <span className="eyebrow auth-kicker">LEILA Ratings {product}</span>
+            <span className="eyebrow auth-kicker">LEILA {product}</span>
             <h1 className="auth-title">Couldn’t load data</h1>
             <p className="auth-copy">
-              The data could not be loaded right now. Your public AdjNet ratings are still available.
+              The data could not be loaded right now. Your public Adj. Net ratings are still available.
             </p>
 
             <div className="premium-error-actions">
@@ -64,7 +64,7 @@ export default function PremiumRouteError({
           </section>
         </div>
       </main>
-      <SiteFooter note="Premium LEILA Ratings data is delivered only after server-side account entitlement checks." />
+      <SiteFooter note="LEILA Pro data is delivered only after server-side account entitlement checks." />
     </>
   );
 }

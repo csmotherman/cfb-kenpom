@@ -7,9 +7,12 @@ export default function SiteFooter({ note }: { note: string }) {
     .replaceAll("ARA Advanced Analytics", "LEILA Pro")
     .replaceAll("Advanced CFF", "LEILA Pro")
     .replaceAll("Advanced ARA", "LEILA Pro")
-    .replaceAll("AdjEM", "AdjNet")
-    .replaceAll(/AdjO(?!ff)/g, "AdjOff")
-    .replaceAll(/AdjD(?!ef)/g, "AdjDef")
+    .replaceAll("AdjNet", "Adj. Net")
+    .replaceAll("AdjEM", "Adj. Net")
+    .replaceAll("AdjOff", "Adj. Off")
+    .replaceAll(/AdjO(?!ff)/g, "Adj. Off")
+    .replaceAll("AdjDef", "Adj. Def")
+    .replaceAll(/AdjD(?!ef)/g, "Adj. Def")
     .replaceAll("CFF", "LEILA Ratings");
 
   return (
