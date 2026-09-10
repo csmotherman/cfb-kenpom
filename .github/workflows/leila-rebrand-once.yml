@@ -17,10 +17,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Replace legacy GRID branding
+      - name: Replace legacy brand references
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           import subprocess
 
           repo = Path('.')
@@ -29,9 +30,8 @@ jobs:
               '.yml', '.yaml', '.html', '.txt', '.toml', '.mjs', '.cjs'
           }
 
-          # Remove the old runtime terminology patcher. The source itself is
-          # being rebranded, so we should not need a component named after the
-          # retired brand to clean copy in the browser.
+          # Remove the old browser-side terminology patcher. Rebrand the source
+          # itself instead of carrying a component named after the retired brand.
           layout = repo / 'web/app/layout.tsx'
           layout_text = layout.read_text(encoding='utf-8')
           layout_text = layout_text.replace('import GridTerminologyGuard from "@/components/GridTerminologyGuard";\n', '')
@@ -42,8 +42,8 @@ jobs:
           if legacy_guard.exists():
               legacy_guard.unlink()
 
-          # Keep the exact logo artwork the user just committed; only give the
-          # asset and stylesheet brand-correct names.
+          # Preserve the exact logo artwork from the user's brand commit and
+          # rename only the stale file paths.
           renames = [
               ('web/public/brand/grid-logo.png', 'web/public/brand/leila-ratings-logo.png'),
               ('web/styles/grid-brand.css', 'web/styles/leila-brand.css'),
@@ -54,7 +54,7 @@ jobs:
                   new_path.parent.mkdir(parents=True, exist_ok=True)
                   old_path.rename(new_path)
 
-          replacements = [
+          literal_replacements = [
               ('@/styles/grid-brand.css', '@/styles/leila-brand.css'),
               ('/brand/grid-logo.png', '/brand/leila-ratings-logo.png'),
               ('applyGridTitle', 'normalizeLeilaTitle'),
@@ -74,7 +74,6 @@ jobs:
               ('GRID Relative Performance Index', 'LEILA Relative Performance Ratings'),
               ("GRID's", "LEILA's"),
               ('GRID’s', 'LEILA’s'),
-              ('GRID', 'LEILA Ratings'),
           ]
 
           tracked = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
@@ -89,16 +88,24 @@ jobs:
               except UnicodeDecodeError:
                   continue
               original = text
-              for old, new in replacements:
+              for old, new in literal_replacements:
                   text = text.replace(old, new)
+
+              # Rename legacy brand-prefixed environment/config identifiers
+              # without producing invalid identifiers containing spaces.
+              text = re.sub(r'\bGRID_([A-Z0-9_]+)\b', r'LEILA_\1', text)
+
+              # Replace standalone brand mentions only. This deliberately does
+              # not touch valid lowercase CSS `grid` layout syntax.
+              text = re.sub(r'(?<![A-Za-z0-9_])GRID(?![A-Za-z0-9_])', 'LEILA Ratings', text)
+
               if text != original:
                   path.write_text(text, encoding='utf-8')
 
-          # Make a few prominent strings read naturally instead of looking like
-          # blind find/replace output.
+          # Smooth out prominent UI copy so the rebrand reads like a product,
+          # not a mechanical find-and-replace.
           targeted = {
               'web/app/layout.tsx': [
-                  ('title: "LEILA Ratings | College Football Analytics"', 'title: "LEILA Ratings | College Football Analytics"'),
                   ('"LEILA Ratings provides opponent-adjusted college football AdjNet ratings,', '"LEILA Ratings provides opponent-adjusted college football ratings,'),
               ],
               'web/app/page.tsx': [
@@ -107,10 +114,6 @@ jobs:
               ],
               'web/components/SiteHeader.tsx': [
                   ('aria-label="LEILA Ratings — College Football Analytics home"', 'aria-label="LEILA Ratings home"'),
-                  ('alt="LEILA Ratings"', 'alt="LEILA Ratings"'),
-              ],
-              'web/components/SiteFooter.tsx': [
-                  ('<strong className="site-footer__brand">LEILA Ratings</strong>', '<strong className="site-footer__brand">LEILA Ratings</strong>'),
               ],
           }
           for name, pairs in targeted.items():
@@ -122,14 +125,13 @@ jobs:
                   text = text.replace(old, new)
               path.write_text(text, encoding='utf-8')
 
-          # This workflow is intentionally disposable; the resulting source
-          # tree should contain the rebrand, not a permanent migration job.
+          # Delete this one-time migration workflow from the resulting branch.
           workflow = repo / '.github/workflows/leila-rebrand-once.yml'
           if workflow.exists():
               workflow.unlink()
 
-          # Brand-level audit. Lowercase CSS `grid` is valid layout syntax and
-          # intentionally not part of this check.
+          # Source-level brand audit. Lowercase CSS `grid` remains because it is
+          # browser layout syntax, not the retired product name.
           offenders = []
           for name in subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0'):
               if not name:
@@ -141,10 +143,10 @@ jobs:
                   text = path.read_text(encoding='utf-8')
               except UnicodeDecodeError:
                   continue
-              if 'GRID' in text or 'GridTerminologyGuard' in text or 'grid-brand.css' in text or 'grid-logo.png' in text:
+              if re.search(r'\bGRID\b', text) or 'GridTerminologyGuard' in text or 'grid-brand.css' in text or 'grid-logo.png' in text:
                   offenders.append(name)
           if offenders:
-              raise SystemExit('Legacy GRID brand references remain in: ' + ', '.join(offenders))
+              raise SystemExit('Legacy brand references remain in: ' + ', '.join(offenders))
           PY
 
       - uses: actions/setup-node@v4
