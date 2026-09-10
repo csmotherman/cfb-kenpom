@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import AdvancedStickyTableHeader from "@/components/AdvancedStickyTableHeader";
 import { getCurrentEntitlements } from "@/lib/auth/entitlements";
 
 export const dynamic = "force-dynamic";
@@ -10,5 +11,10 @@ export default async function AdvancedLayout({ children }: { children: React.Rea
     redirect("/upgrade?feature=advanced");
   }
 
-  return children;
+  return (
+    <>
+      <AdvancedStickyTableHeader />
+      {children}
+    </>
+  );
 }
