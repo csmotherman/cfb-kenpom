@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { logoUrl, teamCode } from "@/lib/teamCode";
+import { logoUrl } from "@/lib/teamCode";
 
 export default function TeamLink({ team, teamId, slug }: { team: string; teamId: number; slug: string }) {
   return (
@@ -19,9 +19,6 @@ export default function TeamLink({ team, teamId, slug }: { team: string; teamId:
         }}
       />
       <span className="team-name">{team}</span>
-      <span className="team-code" aria-hidden="true">
-        {teamCode(team)}
-      </span>
     </Link>
   );
 }
