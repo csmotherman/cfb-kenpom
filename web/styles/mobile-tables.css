@@ -24,25 +24,16 @@
     position: relative;
     width: 100%;
     max-width: 100vw;
+    max-height: none !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
     overflow-x: auto !important;
+    overflow-y: visible !important;
     border-left: 0;
     border-right: 0;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
     scrollbar-width: thin;
-  }
-
-  /* Ratings/advanced tables get their own vertical scrollport on phones.
-     This is intentional: sticky table headers cannot follow the viewport when
-     their horizontal-scrolling ancestor has an unconstrained height. Keeping
-     the table to the visible phone height makes the metric headers remain in
-     view while users move through 100+ teams. */
-  .table-main > .table-scroll {
-    max-height: calc(100dvh - 88px) !important;
-    overflow-y: auto !important;
-    overscroll-behavior-y: contain;
   }
 
   #ratingsTable,
@@ -86,14 +77,6 @@
     white-space: nowrap;
   }
 
-  /* Keep the entire header row visible while vertically scrolling the table. */
-  #ratingsTable thead th,
-  .adv-table thead th {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 11 !important;
-  }
-
   #ratingsTable .rank-cell,
   .adv-table .rank-cell {
     position: sticky !important;
@@ -111,9 +94,9 @@
   .adv-table .team-cell {
     position: sticky !important;
     left: 42px !important;
-    width: 180px !important;
-    min-width: 180px !important;
-    max-width: 180px !important;
+    width: 88px !important;
+    min-width: 88px !important;
+    max-width: 88px !important;
     padding-left: 6px;
     padding-right: 6px;
     z-index: 5;
@@ -124,7 +107,7 @@
   #ratingsTable thead .team-cell,
   .adv-table thead .rank-cell,
   .adv-table thead .team-cell {
-    z-index: 14 !important;
+    z-index: 12;
     background: var(--color-navy) !important;
   }
 
@@ -162,14 +145,13 @@
     flex: 0 0 22px;
   }
 
-  /* Mobile uses the same canonical team name as desktop. No compact aliases. */
+  /* Keep the e72 layout, but show the canonical desktop team name on mobile. */
   .team-link .team-name {
-    display: inline !important;
+    display: block !important;
     min-width: 0;
-    overflow: visible;
-    text-overflow: clip;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 11px;
   }
 
   .team-link .team-code {
