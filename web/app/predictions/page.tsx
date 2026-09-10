@@ -1,13 +1,54 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { logoUrl } from "@/lib/teamCode";
-import { getMeta, getPredictionsWeek, getPreseasonPower, getRankingsSeason } from "@/lib/data";
-import type { PredictionGame, PreseasonPower } from "@/lib/types";
+import { getMeta, getPredictionsWeek, getPreseasonPower, getRankingsSeason, getScheduleSeason } from "@/lib/data";
+import type { PredictionGame, PreseasonPower, RankingsSeason, ScheduleGame, ScheduleSeason } from "@/lib/types";
+
+type PredictionsFilter = "all" | "top25" | "best";
+
+const FILTERS: { key: PredictionsFilter; label: string }[] = [
+  { key: "all", label: "All Games" },
+  { key: "top25", label: "Top 25" },
+  { key: "best", label: "Best Matchups" },
+];
+
+// Rankings publish a week later than predictions can (see the lookahead
+// comment below) -- so "ranked" for a given game week means the latest
+// rankings week that had already posted before that week's games kicked off.
+function pregameRankWeek(rankings: RankingsSeason, gameWeek: number): number | null {
+  const prior = rankings.weeks.filter((w) => w < gameWeek);
+  return prior.length ? prior[prior.length - 1] : null;
+}
+
+function gameTimeLabel(game: ScheduleGame | undefined): string {
+  if (!game) return "Time TBA";
+  if (game.completed) return "Final";
+  if (game.startTimeTBD || !game.startDate) return "Time TBA";
+  const date = new Date(game.startDate);
+  if (Number.isNaN(date.getTime())) return "Time TBA";
+  return date.toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function sortByKickoff(games: PredictionGame[], scheduleByGameId: Map<string, ScheduleGame>): PredictionGame[] {
+  const kickoffMs = (g: PredictionGame): number => {
+    const sched = scheduleByGameId.get(g.gameId);
+    if (!sched || sched.startTimeTBD || !sched.startDate) return Infinity;
+    const ms = new Date(sched.startDate).getTime();
+    return Number.isNaN(ms) ? Infinity : ms;
+  };
+  return [...games].sort((a, b) => kickoffMs(a) - kickoffMs(b) || a.gameId.localeCompare(b.gameId));
+}
 
 function signedMargin(n: number): string {
   return (n >= 0 ? "+" : "") + n.toFixed(1);
@@ -35,6 +76,9 @@ export default function PredictionsPage() {
   const [predictionAccess, setPredictionAccess] = useState<"limited" | "full">("full");
   const [totalGames, setTotalGames] = useState(0);
   const [power, setPower] = useState<PreseasonPower | null>(null);
+  const [rankings, setRankings] = useState<RankingsSeason | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleSeason | null>(null);
+  const [filter, setFilter] = useState<PredictionsFilter>("all");
 
   useEffect(() => {
     let cancelled = false;
@@ -46,8 +90,10 @@ export default function PredictionsPage() {
       if (cancelled) return;
       setSeason(latestSeason);
       setWeek(currentWeek);
+      setRankings(seasonData);
 
       getPreseasonPower(latestSeason).then((p) => { if (!cancelled) setPower(p); }).catch(() => {});
+      getScheduleSeason(latestSeason).then((s) => { if (!cancelled) setSchedule(s); }).catch(() => {});
 
       // Predictions are published for early-season weeks specifically (see
       // early_season_predictions.py) -- a week with no file yet just means
@@ -82,6 +128,37 @@ export default function PredictionsPage() {
       cancelled = true;
     };
   }, []);
+
+  const scheduleByGameId = useMemo(() => {
+    const map = new Map<string, ScheduleGame>();
+    if (schedule && week !== null) {
+      for (const g of schedule.byWeek[String(week)] ?? []) map.set(g.gameId, g);
+    }
+    return map;
+  }, [schedule, week]);
+
+  const topRanked = useMemo(() => {
+    const map = new Map<number, number>();
+    if (!rankings || week === null) return map;
+    const rankWeek = pregameRankWeek(rankings, week);
+    if (rankWeek === null) return map;
+    for (const row of rankings.byWeek[String(rankWeek)] ?? []) {
+      if (row.rank !== null && row.rank <= 25) map.set(row.teamId, row.rank);
+    }
+    return map;
+  }, [rankings, week]);
+
+  const orderedGames = useMemo(() => sortByKickoff(games, scheduleByGameId), [games, scheduleByGameId]);
+
+  const gamesByFilter = useMemo(() => ({
+    all: orderedGames,
+    top25: orderedGames.filter((g) => topRanked.has(g.homeTeamId) || topRanked.has(g.awayTeamId)),
+    best: orderedGames.filter((g) => topRanked.has(g.homeTeamId) && topRanked.has(g.awayTeamId)),
+  }), [orderedGames, topRanked]);
+
+  const rankOf = (teamId: number): number | null => topRanked.get(teamId) ?? null;
+
+  const visibleGames = gamesByFilter[filter];
 
   if (loadError) throw loadError;
 
@@ -132,11 +209,44 @@ export default function PredictionsPage() {
               </div>
               <span>{predictionsSummary(games)}</span>
             </div>
-            <div className="predictions-grid">
-              {sortByConfidence(games).map((g) => (
-                <PredictionRow key={g.gameId} game={g} />
+
+            <div className="predictions-filters" role="tablist" aria-label="Filter predictions">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === f.key}
+                  className={`predictions-filters__btn${filter === f.key ? " active" : ""}`}
+                  onClick={() => setFilter(f.key)}
+                >
+                  {f.label}
+                  <span className="predictions-filters__count">{gamesByFilter[f.key].length}</span>
+                </button>
               ))}
             </div>
+
+            {visibleGames.length === 0 ? (
+              <p className="predictions-empty">
+                No games match this filter this week &mdash; try{" "}
+                <button type="button" className="predictions-empty__reset" onClick={() => setFilter("all")}>
+                  All Games
+                </button>
+                .
+              </p>
+            ) : (
+              <div className="predictions-grid">
+                {visibleGames.map((g) => (
+                  <PredictionRow
+                    key={g.gameId}
+                    game={g}
+                    schedule={scheduleByGameId.get(g.gameId)}
+                    homeRank={rankOf(g.homeTeamId)}
+                    awayRank={rankOf(g.awayTeamId)}
+                  />
+                ))}
+              </div>
+            )}
             {predictionAccess === "limited" && totalGames > games.length ? (
               <div className="predictions-cta">
                 <span>
@@ -156,10 +266,6 @@ export default function PredictionsPage() {
   );
 }
 
-function sortByConfidence(games: PredictionGame[]): PredictionGame[] {
-  return [...games].sort((a, b) => (b.confidence ?? -1) - (a.confidence ?? -1));
-}
-
 function predictionsSummary(games: PredictionGame[]): string {
   const locks = games.filter((g) => (g.confidence ?? 0) >= 0.85).length;
   const tossUps = games.filter((g) => g.confidence !== null && g.confidence < 0.65).length;
@@ -169,16 +275,27 @@ function predictionsSummary(games: PredictionGame[]): string {
   return parts.join(" · ");
 }
 
-function PredictionRow({ game }: { game: PredictionGame }) {
+function PredictionRow({
+  game,
+  schedule,
+  homeRank,
+  awayRank,
+}: {
+  game: PredictionGame;
+  schedule: ScheduleGame | undefined;
+  homeRank: number | null;
+  awayRank: number | null;
+}) {
   const tier = confidenceTier(game.confidence);
   const homeIsWinner = game.predictedWinner === game.homeTeam;
 
   return (
     <article className={`predictions-row predictions-row--${tier.key}`}>
+      <div className="predictions-row__time">{gameTimeLabel(schedule)}</div>
       <div className="predictions-row__matchup">
-        <TeamChip team={game.awayTeam} teamId={game.awayTeamId} isWinner={!homeIsWinner} />
+        <TeamChip team={game.awayTeam} teamId={game.awayTeamId} isWinner={!homeIsWinner} rank={awayRank} />
         <span className="predictions-row__at">at</span>
-        <TeamChip team={game.homeTeam} teamId={game.homeTeamId} isWinner={homeIsWinner} />
+        <TeamChip team={game.homeTeam} teamId={game.homeTeamId} isWinner={homeIsWinner} rank={homeRank} />
       </div>
 
       <div className="predictions-row__pick">
@@ -236,11 +353,22 @@ function PreseasonPowerTable({ power }: { power: PreseasonPower }) {
   );
 }
 
-function TeamChip({ team, teamId, isWinner }: { team: string; teamId: number; isWinner: boolean }) {
+function TeamChip({
+  team,
+  teamId,
+  isWinner,
+  rank,
+}: {
+  team: string;
+  teamId: number;
+  isWinner: boolean;
+  rank: number | null;
+}) {
   return (
     <span className={`predictions-row__team${isWinner ? " predictions-row__team--winner" : ""}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={logoUrl(teamId)} alt="" loading="lazy" decoding="async" />
+      {rank !== null ? <span className="predictions-row__rank-badge">#{rank}</span> : null}
       {team}
     </span>
   );
