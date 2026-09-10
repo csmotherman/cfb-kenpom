@@ -126,7 +126,7 @@ def build_season_payload(year, rating_model):
 
             adv_rows.append({
                 "team": r["team"], "slug": r["slug"], "teamId": r["teamId"], "conf": r["conf"],
-                "cff": r["cff"], "fieldPos": r["fieldPos"],
+                "cff": r["cff"], "asm": r["asm"], "fieldPos": r["fieldPos"],
                 "off": r["off"], "def": r["def"],
                 "offExp": r["offExp"], "defExp": r["defExp"],
                 "offFin": r["offFin"], "defFin": r["defFin"],

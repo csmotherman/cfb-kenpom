@@ -47,6 +47,28 @@ SOR_VERSION = "sor-v1-wins-above-average"
 # excluded from SOS/SOR exactly like any other not-enough-data-yet case.
 FCS_BASELINE_MIN_GAMES = 10
 
+# ASM ("Adjusted Score Matrix") -- the site's own published margin-based
+# rating, run alongside AdjOff/AdjDef/AdjNet on the Advanced page. Same
+# constrained-least-squares SRS solver as `cff`/SOS/SOR use (rating(home) -
+# rating(away) = predicted margin, schedule graph solved simultaneously), but
+# fit on a SEPARATE copy of each game's margin that is clipped to
+# +/-ASM_MARGIN_CAP points first. A 63-point margin and a 30-point margin
+# both speak to "this team is much better," but the marginal 33 points are
+# mostly mop-up-duty noise, not signal -- clipping keeps one lopsided result
+# from dominating a team's rating the way raw SRS lets it.
+#
+# This is intentionally NOT the same fit that produces `cff`/SOS/SOR above:
+# `cff` also backs legacy-mode's published AdjNet (see compile_site_data.py's
+# LEGACY_METRIC_MAP) and validate_site_data.py's cff/adjEM cross-check, both
+# of which must keep reproducing that rollback contract's exact historical
+# numbers. ASM is purely additive.
+ASM_VERSION = "asm-v1-margin-clip28-constrained-least-squares"
+ASM_MARGIN_CAP = 28.0
+
+
+def _clip_margin(margin, cap=ASM_MARGIN_CAP):
+    return max(-cap, min(cap, margin))
+
 
 def _ncdf(x):
     """Standard normal CDF via erf -- same probit form already used for
@@ -399,6 +421,10 @@ def build_year(year, rating_model):
     # the separate prediction-model dataset in iterative_ratings.py, which
     # this does not touch).
     srs_games_by_id = {}
+    # Same shape as srs_games_by_id, but margins are clipped before the ASM
+    # fit ever sees them (see ASM_MARGIN_CAP above). Kept fully separate so
+    # cff/SOS/SOR's numbers are byte-for-byte unaffected by clipping.
+    asm_games_by_id = {}
     metric_history = []
     # Parallel, never-substituted rating-model history: the same FBS-vs-FBS
     # team-game rows, carrying garbage-time-filtered EPA/Success/Explosiveness
@@ -530,11 +556,18 @@ def build_year(year, rating_model):
                     rows_with_no_canonical_plays += fields is None
                     composite_history.append(rating_models.composite_input_row(row, fields))
                 if row.get("home_away") == "home":
+                    margin = (row.get("points_for") or 0) - (row.get("points_against") or 0)
                     srs_games_by_id[game_id] = {
                         "gameId": game_id,
                         "homeTeam": row["team"],
                         "awayTeam": row.get("opponent"),
-                        "target_margin": (row.get("points_for") or 0) - (row.get("points_against") or 0),
+                        "target_margin": margin,
+                    }
+                    asm_games_by_id[game_id] = {
+                        "gameId": game_id,
+                        "homeTeam": row["team"],
+                        "awayTeam": row.get("opponent"),
+                        "target_margin": _clip_margin(margin),
                     }
             else:
                 fcs_games_log.append({
@@ -626,6 +659,9 @@ def build_year(year, rating_model):
         # out of the same shared result.
         srs_fit = fit_srs(list(srs_games_by_id.values())) if srs_games_by_id else None
         srs_ratings = srs_fit["ratings"] if srs_fit else {}
+        # Same solver, blowout-clipped input -- see ASM_MARGIN_CAP above.
+        asm_fit = fit_srs(list(asm_games_by_id.values())) if asm_games_by_id else None
+        asm_ratings = asm_fit["ratings"] if asm_fit else {}
         metric_ratings = fit_all_ratings(metric_history) if metric_history else {}
 
         # The published AdjOff/AdjDef/AdjNet refit, using only the games played
@@ -670,6 +706,7 @@ def build_year(year, rating_model):
                 return round(n / d, 4) if d else None
 
             cff = srs_ratings.get(name)
+            asm = asm_ratings.get(name)
 
             srs_sum = srs_count = 0.0
             sor_actual = sor_expected = sor_games = 0.0
@@ -724,6 +761,7 @@ def build_year(year, rating_model):
                 "record": f"{acc['wins']}-{acc['losses']}", "wins": acc["wins"],
                 "gamesPlayed": acc["gamesPlayed"],
                 "cff": round(cff, 2) if num(cff) else None,
+                "asm": round(asm, 2) if num(asm) else None,
                 "adjOff": adj_off, "adjDef": adj_def, "adjNet": adj_net,
                 "sos": round(srs_sum / srs_count, 2) if srs_count else None,
                 "sor": round(sor_actual - sor_expected, 2) if sor_games else None,
@@ -781,5 +819,5 @@ if __name__ == "__main__":
     rows.sort(key=lambda r: -r["cff"])
     print(f"-- final week {last_wk} ({week_labels.get(last_wk, 'Week ' + str(last_wk))}) top 10 by CFF (SRS) --")
     for r in rows[:10]:
-        print(f"{r['team']:20s} rec={r['record']:6s} cff={r['cff']:>7} sos={r['sos']:>7} off={r['off']} def={r['def']} gp={r['gamesPlayed']}")
+        print(f"{r['team']:20s} rec={r['record']:6s} cff={r['cff']:>7} asm={r['asm']:>7} sos={r['sos']:>7} off={r['off']} def={r['def']} gp={r['gamesPlayed']}")
     print(f"teams with a CFF value: {len(rows)} / {len(weeks[last_wk])} total teams with games")

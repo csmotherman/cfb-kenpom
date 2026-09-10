@@ -35,6 +35,7 @@ export default function MethodologyPage() {
             <Definition term="Adj. Def" tag="Core" text="Opponent-adjusted defensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
             <Definition term="SOS" tag="Context" text="Strength of schedule, based on the strength of opponents played through the selected rating snapshot." />
             <Definition term="SOR" tag="Résumé" text="Strength of Record: wins above what an exactly-average FBS team would be expected to earn against the same schedule. It answers a résumé question, separate from Adj. Net's performance question." />
+            <Definition term="ASM" tag="Advanced" text="Adjusted Score Matrix: an opponent-adjusted scoring-margin rating (constrained least squares), with each game's margin capped at 28 points before fitting so a blowout can't dominate a team's number. A results-based counterpart to Adj. Net's process-based (EPA/Success/Explosiveness) rating -- shown on Advanced, not the main Ratings page." />
           </div>
         </section>
 

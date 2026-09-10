@@ -57,6 +57,12 @@ export type AdvancedRow = {
   adjORank?: number | null;
   adjDRank?: number | null;
   cff: number | null;
+  // ASM ("Adjusted Score Matrix") -- LEILA's own opponent-adjusted, blowout-
+  // clipped scoring-margin rating (constrained least squares, margins capped
+  // at +/-28 before fitting). A results-based counterpart to Adj. Net's
+  // process-based (EPA/Success/Explosiveness) composite -- see the
+  // methodology page.
+  asm: number | null;
   fieldPos: number | null;
   off: number | null;
   def: number | null;
