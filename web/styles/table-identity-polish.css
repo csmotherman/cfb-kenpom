@@ -97,3 +97,111 @@
     max-width: 192px !important;
   }
 }
+
+/* ========================================================================== */
+/* Advanced table behavior only                                               */
+/* Preserve the current table presentation; change only what remains pinned.  */
+/* ========================================================================== */
+
+/* Rank + Team stay visible while the existing table scrolls horizontally. */
+body:has(#advancedTable) #advancedTable .adv-table .rank-cell {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 8 !important;
+}
+
+@media (min-width: 641px) {
+  body:has(#advancedTable) #advancedTable .adv-table .team-cell {
+    position: sticky !important;
+    left: 44px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body:has(#advancedTable) #advancedTable .adv-table .team-cell {
+    position: sticky !important;
+    left: 42px !important;
+  }
+
+  /* Match the rank cell's existing effective row colors so making it sticky
+     does not visually change the table or let scrolled metrics show through. */
+  body:has(#advancedTable) #advancedTable .adv-table tbody .rank-cell {
+    background: #faf8f2 !important;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) .rank-cell {
+    background: #f5f2ea !important;
+  }
+}
+
+/* At the header/identity intersections, keep the header layer above the body. */
+body:has(#advancedTable) #advancedTable .adv-column-row .rank-cell,
+body:has(#advancedTable) #advancedTable .adv-column-row .team-cell {
+  z-index: 22 !important;
+}
+
+/* The real table remains the horizontal scroller. A viewport-fixed mirror of
+   the exact same thead is shown only after the real header scrolls offscreen,
+   so page scrolling keeps the column names visible without changing layout. */
+body:has(#advancedTable) #advancedTable .advanced-floating-head {
+  position: fixed;
+  top: 0;
+  z-index: 80;
+  display: none;
+  overflow: hidden;
+}
+
+body:has(#advancedTable) #advancedTable .advanced-floating-head.is-visible {
+  display: block;
+}
+
+body:has(#advancedTable) #advancedTable .advanced-floating-head__scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+body:has(#advancedTable) #advancedTable .advanced-floating-head__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table {
+  margin: 0 !important;
+  border-spacing: 0;
+}
+
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table thead th {
+  position: static !important;
+}
+
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table .rank-cell,
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table .team-cell {
+  position: sticky !important;
+}
+
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table .rank-cell {
+  left: 0 !important;
+}
+
+@media (min-width: 641px) {
+  body:has(#advancedTable) #advancedTable .advanced-floating-head__table .team-cell {
+    left: 44px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body:has(#advancedTable) #advancedTable .advanced-floating-head__table .team-cell {
+    left: 42px !important;
+  }
+}
+
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .rank-cell,
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .team-cell {
+  z-index: 24 !important;
+}
+
+body:has(#advancedTable) #advancedTable .advanced-floating-head .tip-trigger {
+  pointer-events: none;
+}
