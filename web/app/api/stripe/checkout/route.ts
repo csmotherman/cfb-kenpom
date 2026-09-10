@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { EARLY_BETA_END_LABEL, isEarlyBetaActive } from "@/lib/earlyBeta";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe/server";
 import {
-  configuredTrialDays,
   isPaidPlan,
   PAID_PLAN_LABELS,
   priceIdForPlan,
@@ -47,6 +47,19 @@ export async function POST(request: NextRequest) {
   const requestedPlan = String(formData.get("plan") ?? "");
   const returnTo = safeReturnTo(formData.get("return_to"));
 
+  if (!isPaidPlan(requestedPlan)) {
+    return feedbackRedirect(request, returnTo, "error", "Choose a valid LEILA Ratings plan.");
+  }
+
+  if (isEarlyBetaActive()) {
+    return feedbackRedirect(
+      request,
+      returnTo,
+      "message",
+      `Early Beta Access is free through ${EARLY_BETA_END_LABEL}. Paid subscriptions open October 16.`
+    );
+  }
+
   if (!stripeBillingConfigured()) {
     return feedbackRedirect(
       request,
@@ -54,10 +67,6 @@ export async function POST(request: NextRequest) {
       "error",
       "Paid checkout is not live yet. Stripe products, prices, and the verified webhook still need to be configured."
     );
-  }
-
-  if (!isPaidPlan(requestedPlan)) {
-    return feedbackRedirect(request, returnTo, "error", "Choose a valid LEILA Ratings plan.");
   }
 
   const supabase = await createClient();
@@ -75,7 +84,7 @@ export async function POST(request: NextRequest) {
   const [{ data: profile }, { data: localSubscription }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("email,trial_used_at")
+      .select("email")
       .eq("id", userId)
       .maybeSingle(),
     supabase
@@ -133,9 +142,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const eligibleForTrial =
-      !profile?.trial_used_at && existingSubscriptions.data.length === 0;
-    const trialDays = eligibleForTrial ? configuredTrialDays() : 0;
     const origin = siteOrigin(request);
     const cancelUrl = new URL(returnTo, origin);
     cancelUrl.searchParams.set("checkout", "canceled");
@@ -158,7 +164,6 @@ export async function POST(request: NextRequest) {
           user_id: userId,
           plan: requestedPlan,
         },
-        ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
       },
     });
 
