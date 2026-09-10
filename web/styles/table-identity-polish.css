@@ -107,19 +107,24 @@
 body:has(#advancedTable) #advancedTable .adv-table .rank-cell {
   position: sticky !important;
   left: 0 !important;
-  z-index: 8 !important;
+  z-index: 31 !important;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table .team-cell {
+  position: sticky !important;
+  z-index: 30 !important;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 @media (min-width: 641px) {
   body:has(#advancedTable) #advancedTable .adv-table .team-cell {
-    position: sticky !important;
     left: 44px !important;
   }
 }
 
 @media (max-width: 640px) {
   body:has(#advancedTable) #advancedTable .adv-table .team-cell {
-    position: sticky !important;
     left: 42px !important;
   }
 
@@ -134,10 +139,20 @@ body:has(#advancedTable) #advancedTable .adv-table .rank-cell {
   }
 }
 
+/* Scrolling cells stay beneath the frozen identity rail. This is stacking only;
+   it does not change their dimensions, colors, typography, or spacing. */
+body:has(#advancedTable) #advancedTable .adv-table tbody td:not(.rank-cell):not(.team-cell) {
+  position: relative;
+  z-index: 1;
+}
+
 /* At the header/identity intersections, keep the header layer above the body. */
-body:has(#advancedTable) #advancedTable .adv-column-row .rank-cell,
+body:has(#advancedTable) #advancedTable .adv-column-row .rank-cell {
+  z-index: 42 !important;
+}
+
 body:has(#advancedTable) #advancedTable .adv-column-row .team-cell {
-  z-index: 22 !important;
+  z-index: 41 !important;
 }
 
 /* The real table remains the horizontal scroller. A viewport-fixed mirror of
@@ -197,9 +212,12 @@ body:has(#advancedTable) #advancedTable .advanced-floating-head__table .rank-cel
   }
 }
 
-body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .rank-cell,
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .rank-cell {
+  z-index: 92 !important;
+}
+
 body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .team-cell {
-  z-index: 24 !important;
+  z-index: 91 !important;
 }
 
 body:has(#advancedTable) #advancedTable .advanced-floating-head .tip-trigger {
