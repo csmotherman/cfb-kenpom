@@ -38,7 +38,9 @@
    row belongs to while exploring metrics to the right. */
 @media (max-width: 640px) {
   #ratingsTable .rank-col,
-  .adv-table .rank-col {
+  #ratingsTable .rank-cell,
+  .adv-table .rank-col,
+  .adv-table .rank-cell {
     position: sticky !important;
     left: 0 !important;
     z-index: 8 !important;
@@ -53,38 +55,54 @@
     position: sticky !important;
     left: 42px !important;
     z-index: 7 !important;
-    width: 98px !important;
-    min-width: 98px !important;
-    max-width: 98px !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
     background: var(--color-paper-raised) !important;
     box-shadow: 1px 0 0 var(--color-hairline-strong);
   }
 
+  #ratingsTable thead th,
+  .adv-table thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 11 !important;
+  }
+
   #ratingsTable thead .rank-col,
+  #ratingsTable thead .rank-cell,
   #ratingsTable thead .team-cell,
   .adv-table thead .rank-col,
+  .adv-table thead .rank-cell,
   .adv-table thead .team-cell {
-    z-index: 12 !important;
+    z-index: 14 !important;
     background: var(--color-paper-soft) !important;
   }
 
   #ratingsTable tbody tr:hover .rank-col,
+  #ratingsTable tbody tr:hover .rank-cell,
   #ratingsTable tbody tr:hover .team-cell,
   .adv-table tbody tr:hover .rank-col,
+  .adv-table tbody tr:hover .rank-cell,
   .adv-table tbody tr:hover .team-cell {
     background: var(--color-paper-soft) !important;
   }
 
   #ratingsTable .team-name,
   .adv-table .team-name {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: block !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
   }
 
-  /* The Advanced table is Rank → Team → W-L, so keep the identity block
-     compact and make the grouped header line up with those exact widths. */
+  #ratingsTable .team-code,
+  .adv-table .team-code {
+    display: none !important;
+  }
+
+  /* The Advanced table is Rank → Team → W-L, so keep the grouped header
+     aligned with the wider full-name identity rail. */
   .adv-table .record-cell {
     width: 52px !important;
     min-width: 52px !important;
@@ -92,28 +110,8 @@
   }
 
   .adv-table .adv-section-spacer {
-    width: 192px !important;
-    min-width: 192px !important;
-    max-width: 192px !important;
-  }
-
-  /* Ratings mobile intentionally keeps full team names visible. The table
-     remains horizontally scrollable, with Rank + Team pinned as the identity
-     rail, rather than crushing every metric into unreadable phone columns. */
-  #ratingsTable .team-cell {
-    width: 180px !important;
-    min-width: 180px !important;
-    max-width: 180px !important;
-  }
-
-  #ratingsTable .team-link .team-name {
-    display: inline !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-
-  #ratingsTable .team-link .team-code {
-    display: none !important;
+    width: 274px !important;
+    min-width: 274px !important;
+    max-width: 274px !important;
   }
 }
