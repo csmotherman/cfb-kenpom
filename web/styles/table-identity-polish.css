@@ -205,3 +205,40 @@ body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-colu
 body:has(#advancedTable) #advancedTable .advanced-floating-head .tip-trigger {
   pointer-events: none;
 }
+
+/* Sticky cells must paint an opaque surface. The rest of the row may inherit
+   its fill from the <tr>, but a sticky cell cannot: scrolled metrics would be
+   visible underneath it. These colors are the Advanced table's existing row
+   and header fills, so this fixes occlusion without changing the visual design. */
+body:has(#advancedTable) #advancedTable .adv-table tbody .rank-cell,
+body:has(#advancedTable) #advancedTable .adv-table tbody .team-cell {
+  background-color: #faf8f2 !important;
+  background-image: none !important;
+  background-clip: padding-box;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) .rank-cell,
+body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) .team-cell {
+  background-color: #f5f2ea !important;
+  background-image: none !important;
+}
+
+body:has(#advancedTable) #advancedTable .adv-table tbody tr:hover .rank-cell,
+body:has(#advancedTable) #advancedTable .adv-table tbody tr:hover .team-cell {
+  background-color: #faf8f2 !important;
+}
+
+body:has(#advancedTable) #advancedTable .adv-column-row .rank-cell,
+body:has(#advancedTable) #advancedTable .adv-column-row .team-cell,
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .rank-cell,
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .team-cell {
+  background-color: #e7e2d7 !important;
+  background-image: none !important;
+}
+
+/* A tiny opaque edge/shadow makes the frozen identity rail read as a boundary
+   when metrics slide behind it, without changing the column's dimensions. */
+body:has(#advancedTable) #advancedTable .adv-table .team-cell,
+body:has(#advancedTable) #advancedTable .advanced-floating-head__table .team-cell {
+  box-shadow: 1px 0 0 #d2ccbd, 6px 0 10px rgba(31, 42, 55, .035);
+}
