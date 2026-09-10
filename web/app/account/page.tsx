@@ -268,9 +268,11 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               ) : null}
 
               <p className="account-billing-note">
-                {billingConfigured
-                  ? "Payment details are handled by Stripe. LEILA Ratings stores subscription identifiers and access status, not raw card numbers."
-                  : "Stripe billing code is installed, but checkout stays disabled until the Stripe price IDs, webhook secret, and server secrets are configured."}
+                {earlyBetaAccess
+                  ? "No card is required during Early Beta. Stripe checkout opens October 16."
+                  : billingConfigured
+                    ? "Payment details are handled by Stripe. LEILA Ratings stores subscription identifiers and access status, not raw card numbers."
+                    : "Paid checkout is temporarily unavailable while billing setup is completed."}
               </p>
             </div>
 
