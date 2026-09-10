@@ -17,6 +17,15 @@ function pct(n: number | null): string {
   return n === null ? "—" : `${Math.round(n * 100)}%`;
 }
 
+type ConfidenceTier = { key: "lock" | "lean" | "toss-up"; label: string };
+
+function confidenceTier(n: number | null): ConfidenceTier {
+  if (n === null) return { key: "toss-up", label: "Unrated" };
+  if (n >= 0.85) return { key: "lock", label: "Lock" };
+  if (n >= 0.65) return { key: "lean", label: "Lean" };
+  return { key: "toss-up", label: "Toss-up" };
+}
+
 export default function PredictionsPage() {
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [status, setStatus] = useState<"loading" | "no-data" | "ready">("loading");
@@ -44,11 +53,18 @@ export default function PredictionsPage() {
       // early_season_predictions.py) -- a week with no file yet just means
       // this model hasn't scored it (either too early in the pipeline, or
       // past the early-season window where LEILA's own AdjNet/SOR takes over).
-      // Try the current week first, then the one behind it, since a
-      // Tuesday-morning visitor mid-week wants last week's slate wrapping
-      // up, not a blank page.
-      for (const candidate of [currentWeek, currentWeek - 1]) {
-        if (candidate < 1) continue;
+      // The predictions pipeline often runs ahead of `currentWeek`, which
+      // tracks the *rankings* week (only bumped once a week is fully final)
+      // -- so a slate for the upcoming week can already be published while
+      // rankings are still sitting on the prior one. Probe a couple weeks
+      // ahead first and walk backward, landing on the latest published
+      // slate; falling back below currentWeek covers a Tuesday-morning
+      // visitor mid-week who wants last week's slate wrapping up, not a
+      // blank page.
+      const lookahead = 2;
+      const candidates: number[] = [];
+      for (let w = currentWeek + lookahead; w >= Math.max(1, currentWeek - 1); w--) candidates.push(w);
+      for (const candidate of candidates) {
         const predictions = await getPredictionsWeek(latestSeason, candidate);
         if (cancelled) return;
         if (predictions && predictions.games.length > 0) {
@@ -114,10 +130,13 @@ export default function PredictionsPage() {
                 <span className="eyebrow">LEILA Predictions</span>
                 <h2>Week {week}</h2>
               </div>
+              <span>{predictionsSummary(games)}</span>
             </div>
-            {games.map((g) => (
-              <PredictionRow key={g.gameId} game={g} />
-            ))}
+            <div className="predictions-grid">
+              {sortByConfidence(games).map((g) => (
+                <PredictionRow key={g.gameId} game={g} />
+              ))}
+            </div>
             {predictionAccess === "limited" && totalGames > games.length ? (
               <div className="predictions-cta">
                 <span>
@@ -137,21 +156,48 @@ export default function PredictionsPage() {
   );
 }
 
+function sortByConfidence(games: PredictionGame[]): PredictionGame[] {
+  return [...games].sort((a, b) => (b.confidence ?? -1) - (a.confidence ?? -1));
+}
+
+function predictionsSummary(games: PredictionGame[]): string {
+  const locks = games.filter((g) => (g.confidence ?? 0) >= 0.85).length;
+  const tossUps = games.filter((g) => g.confidence !== null && g.confidence < 0.65).length;
+  const parts = [`${games.length} game${games.length === 1 ? "" : "s"}`];
+  if (locks > 0) parts.push(`${locks} lock${locks === 1 ? "" : "s"}`);
+  if (tossUps > 0) parts.push(`${tossUps} toss-up${tossUps === 1 ? "" : "s"}`);
+  return parts.join(" · ");
+}
+
 function PredictionRow({ game }: { game: PredictionGame }) {
+  const tier = confidenceTier(game.confidence);
+  const homeIsWinner = game.predictedWinner === game.homeTeam;
+
   return (
-    <div className="predictions-row">
+    <article className={`predictions-row predictions-row--${tier.key}`}>
       <div className="predictions-row__matchup">
-        <TeamChip team={game.awayTeam} teamId={game.awayTeamId} />
-        <span className="predictions-row__at">@</span>
-        <TeamChip team={game.homeTeam} teamId={game.homeTeamId} />
+        <TeamChip team={game.awayTeam} teamId={game.awayTeamId} isWinner={!homeIsWinner} />
+        <span className="predictions-row__at">at</span>
+        <TeamChip team={game.homeTeam} teamId={game.homeTeamId} isWinner={homeIsWinner} />
       </div>
 
       <div className="predictions-row__pick">
+        <span className="predictions-row__pick-label">Pick</span>
         <strong>{game.predictedWinner}</strong>
-        <span className="mono">{signedMargin(game.predictedMargin)}</span>
-        {game.confidence !== null ? <em className="predictions-row__confidence">{pct(game.confidence)}</em> : null}
+        <span className="mono predictions-row__margin">{signedMargin(game.predictedMargin)}</span>
       </div>
-    </div>
+
+      <div className="predictions-row__confidence">
+        <span className={`predictions-row__tier predictions-row__tier--${tier.key}`}>{tier.label}</span>
+        <div className="predictions-row__meter" role="presentation">
+          <div
+            className="predictions-row__meter-fill"
+            style={{ width: `${Math.round((game.confidence ?? 0) * 100)}%` }}
+          />
+        </div>
+        <span className="mono predictions-row__confidence-value">{pct(game.confidence)}</span>
+      </div>
+    </article>
   );
 }
 
@@ -190,9 +236,9 @@ function PreseasonPowerTable({ power }: { power: PreseasonPower }) {
   );
 }
 
-function TeamChip({ team, teamId }: { team: string; teamId: number }) {
+function TeamChip({ team, teamId, isWinner }: { team: string; teamId: number; isWinner: boolean }) {
   return (
-    <span className="predictions-row__team">
+    <span className={`predictions-row__team${isWinner ? " predictions-row__team--winner" : ""}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={logoUrl(teamId)} alt="" loading="lazy" decoding="async" />
       {team}
