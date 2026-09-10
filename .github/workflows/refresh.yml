@@ -1,15 +1,17 @@
-name: Refresh rankings data
+name: Refresh 2026 ratings and metrics
 
 on:
   schedule:
-    # Daily at 11:17 UTC (07:17 EDT / 06:17 EST); schedules can be delayed by GitHub.
-    - cron: "17 11 * * *"
+    # GitHub cron is UTC. Schedule both possible UTC midnights and use the
+    # gate below so this runs at 12:00 AM America/Detroit across DST changes.
+    - cron: "0 4 * * *"
+    - cron: "0 5 * * *"
   workflow_dispatch:
     inputs:
       season:
-        description: 'Season override (blank uses the active football season)'
+        description: 'Season override for a manual run'
         required: false
-        default: ''
+        default: '2026'
 
 concurrency:
   group: refresh-rankings-data
@@ -24,8 +26,35 @@ env:
   SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
 
 jobs:
+  midnight-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Run only on the UTC hour that is midnight Eastern
+        id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          if [ "$EVENT_NAME" != "schedule" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          OFFSET="$(TZ=America/Detroit date +%z)"
+          if { [ "$OFFSET" = "-0400" ] && [ "$SCHEDULE" = "0 4 * * *" ]; } || \
+             { [ "$OFFSET" = "-0500" ] && [ "$SCHEDULE" = "0 5 * * *" ]; }; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Running the nightly refresh at midnight America/Detroit." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping the duplicate UTC schedule used only for DST coverage." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   refresh:
-    if: github.ref_name == github.event.repository.default_branch
+    needs: midnight-gate
+    if: needs.midnight-gate.outputs.should_run == 'true' && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -42,7 +71,9 @@ jobs:
           from datetime import datetime, timezone
           now = datetime.now(timezone.utc)
           requested = os.environ.get('REQUESTED_SEASON', '').strip()
-          season = int(requested) if requested else now.year - (now.month < 8)
+          # Scheduled refreshes are intentionally pinned to the 2026 season.
+          # Manual dispatch can still override this for maintenance/debugging.
+          season = int(requested) if requested else 2026
           if not 2014 <= season <= now.year:
               raise SystemExit('Season must be between 2014 and the current year')
           if not os.environ.get('CFBD_API_KEY'):
@@ -158,16 +189,16 @@ jobs:
           if git diff --staged --quiet; then
             echo "No public data changes; skipping commit." >> "$GITHUB_STEP_SUMMARY"
           else
-            git commit -m "Refresh $SEASON ratings ($(date -u +%Y-%m-%d))"
+            git commit -m "Refresh $SEASON ratings ($(TZ=America/Detroit date +%Y-%m-%d))"
             git fetch origin "$TARGET_BRANCH"
             git rebase "origin/$TARGET_BRANCH"
             git push origin "HEAD:$TARGET_BRANCH"
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Published validated $SEASON public ratings; premium data stayed in Supabase." >> "$GITHUB_STEP_SUMMARY"
+            echo "Published validated $SEASON ratings and metrics; premium data stayed in Supabase." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      # Optional after Vercel is connected. A deploy hook avoids depending on
-      # bot-commit deployment behavior and is never exposed to browser code.
+      # A deploy hook avoids depending on bot-commit deployment behavior and
+      # is never exposed to browser code.
       - name: Notify Vercel of refreshed data
         if: steps.publish.outputs.changed == 'true'
         env:
