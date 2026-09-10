@@ -2,10 +2,14 @@ name: Refresh 2026 ratings and metrics
 
 on:
   schedule:
-    # GitHub cron is UTC. Schedule both possible UTC midnights and use the
-    # gate below so this runs at 12:00 AM America/Detroit across DST changes.
+    # GitHub cron is UTC. Schedule both possible UTC equivalents and use the
+    # gate below so refreshes stay on America/Detroit clock time across DST.
+    # Daily at 12:00 AM ET.
     - cron: "0 4 * * *"
     - cron: "0 5 * * *"
+    # Sunday catch-up at 3:00 AM ET for late Saturday / West Coast games.
+    - cron: "0 7 * * 0"
+    - cron: "0 8 * * 0"
   workflow_dispatch:
     inputs:
       season:
@@ -26,12 +30,12 @@ env:
   SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
 
 jobs:
-  midnight-gate:
+  schedule-gate:
     runs-on: ubuntu-latest
     outputs:
       should_run: ${{ steps.gate.outputs.should_run }}
     steps:
-      - name: Run only on the UTC hour that is midnight Eastern
+      - name: Run only at midnight or Sunday 3 AM Eastern
         id: gate
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -43,18 +47,23 @@ jobs:
           fi
 
           OFFSET="$(TZ=America/Detroit date +%z)"
+
           if { [ "$OFFSET" = "-0400" ] && [ "$SCHEDULE" = "0 4 * * *" ]; } || \
              { [ "$OFFSET" = "-0500" ] && [ "$SCHEDULE" = "0 5 * * *" ]; }; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
-            echo "Running the nightly refresh at midnight America/Detroit." >> "$GITHUB_STEP_SUMMARY"
+            echo "Running the daily 12:00 AM America/Detroit refresh." >> "$GITHUB_STEP_SUMMARY"
+          elif { [ "$OFFSET" = "-0400" ] && [ "$SCHEDULE" = "0 7 * * 0" ]; } || \
+               { [ "$OFFSET" = "-0500" ] && [ "$SCHEDULE" = "0 8 * * 0" ]; }; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Running the Sunday 3:00 AM America/Detroit catch-up refresh." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
             echo "Skipping the duplicate UTC schedule used only for DST coverage." >> "$GITHUB_STEP_SUMMARY"
           fi
 
   refresh:
-    needs: midnight-gate
-    if: needs.midnight-gate.outputs.should_run == 'true' && github.ref_name == github.event.repository.default_branch
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true' && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
