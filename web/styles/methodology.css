@@ -28,6 +28,7 @@
   color: var(--color-ink-secondary);
 }
 .methodology-hero p { max-width: 800px; }
+.methodology-section > p { max-width: 760px; }
 
 .methodology-section {
   padding: var(--space-6) 0;

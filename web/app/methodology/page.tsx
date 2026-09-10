@@ -35,8 +35,26 @@ export default function MethodologyPage() {
             <Definition term="Adj. Def" tag="Core" text="Opponent-adjusted defensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
             <Definition term="SOS" tag="Context" text="Strength of schedule, based on the strength of opponents played through the selected rating snapshot." />
             <Definition term="SOR" tag="Résumé" text="Strength of Record: wins above what an exactly-average FBS team would be expected to earn against the same schedule. It answers a résumé question, separate from Adj. Net's performance question." />
-            <Definition term="ASM" tag="Advanced" text="Adjusted Score Matrix: an opponent-adjusted scoring-margin rating (constrained least squares), with each game's margin capped at 28 points before fitting so a blowout can't dominate a team's number. A results-based counterpart to Adj. Net's process-based (EPA/Success/Explosiveness) rating -- shown on Advanced, not the main Ratings page." />
+            <Definition term="ASM" tag="Résumé" text="Adjusted Score Matrix: an opponent-adjusted scoring-margin rating (constrained least squares), with each game's margin capped at 28 points before fitting so a blowout can't dominate a team's number. A résumé lens like SOR, not a second opinion on who's better -- see &ldquo;Process vs. résumé&rdquo; below. Shown on Advanced, not the main Ratings page." />
           </div>
+        </section>
+
+        <section className="methodology-section">
+          <div className="methodology-section__heading">
+            <span className="eyebrow">Reading The Ratings</span>
+            <h2>Process vs. résumé</h2>
+          </div>
+          <p>
+            Adj. Net is LEILA&rsquo;s primary answer to &ldquo;how good is this team&rdquo; &mdash; fit on per-play process
+            (EPA, Success Rate, Explosiveness) rather than the scoreboard directly, and walk-forward tested against
+            games it hadn&rsquo;t seen to confirm it actually predicts better than a plain margin-based rating, not just
+            fit one better. ASM will look deceptively strong on a same-season fit test, since it&rsquo;s built to
+            minimize error against exactly that season&rsquo;s scores &mdash; but tests that strictly predict
+            future, unseen games show Adj. Net calling more of them correctly, especially early in a season before a
+            margin-only rating has enough games to stabilize. Read ASM as what the scoreboard says, with blowouts
+            capped &mdash; most useful for where it disagrees with Adj. Net (a team over- or under-performing its
+            underlying process is a real story), not as a competing opinion on which team is actually better.
+          </p>
         </section>
 
         <section className="methodology-section methodology-two-column">
