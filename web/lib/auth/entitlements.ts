@@ -1,3 +1,4 @@
+import { isEarlyBetaActive } from "@/lib/earlyBeta";
 import { createClient } from "@/lib/supabase/server";
 
 export type SubscriptionPlan = "free" | "pro" | "pro_plus";
@@ -13,8 +14,9 @@ export type Entitlements = {
   plan: SubscriptionPlan;
   status: SubscriptionStatus;
   paidAccess: boolean;
+  earlyBetaAccess: boolean;
   advanced: boolean;
-  predictions: "none" | "limited" | "full";
+  predictions: "none" | "full";
 };
 
 export async function getCurrentEntitlements(): Promise<Entitlements> {
@@ -28,6 +30,7 @@ export async function getCurrentEntitlements(): Promise<Entitlements> {
       plan: "free",
       status: "inactive",
       paidAccess: false,
+      earlyBetaAccess: false,
       advanced: false,
       predictions: "none",
     };
@@ -42,18 +45,17 @@ export async function getCurrentEntitlements(): Promise<Entitlements> {
   const plan = (subscription?.plan ?? "free") as SubscriptionPlan;
   const status = (subscription?.status ?? "inactive") as SubscriptionStatus;
   const paidAccess = status === "active" || status === "trialing";
+  const earlyBetaAccess = isEarlyBetaActive();
+  const subscribedToAdvanced = paidAccess && (plan === "pro" || plan === "pro_plus");
+  const subscribedToPredictions = paidAccess && plan === "pro_plus";
 
   return {
     userId,
     plan,
     status,
     paidAccess,
-    advanced: paidAccess && (plan === "pro" || plan === "pro_plus"),
-    predictions:
-      !paidAccess || plan === "free"
-        ? "none"
-        : plan === "pro_plus"
-          ? "full"
-          : "limited",
+    earlyBetaAccess,
+    advanced: earlyBetaAccess || subscribedToAdvanced,
+    predictions: earlyBetaAccess || subscribedToPredictions ? "full" : "none",
   };
 }

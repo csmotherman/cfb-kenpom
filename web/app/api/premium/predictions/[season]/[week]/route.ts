@@ -11,12 +11,6 @@ const PRIVATE_HEADERS = {
   Vary: "Cookie",
 };
 
-function proPredictionLimit() {
-  const value = Number.parseInt(process.env.LEILA_PRO_PREDICTION_LIMIT ?? "5", 10);
-  if (!Number.isFinite(value) || value < 1) return 5;
-  return Math.min(value, 50);
-}
-
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ season: string; week: string }> }
@@ -41,7 +35,10 @@ export async function GET(
 
   if (entitlements.predictions === "none") {
     return NextResponse.json(
-      { code: "UPGRADE_REQUIRED", message: "A LEILA Pro plan is required for Predictions." },
+      {
+        code: "UPGRADE_REQUIRED",
+        message: "LEILA Advanced + Predictions is required for weekly Predictions.",
+      },
       { status: 403, headers: PRIVATE_HEADERS }
     );
   }
@@ -66,13 +63,10 @@ export async function GET(
 
     const published = data.payload as PredictionsWeek;
     const totalGames = published.games.length;
-    const isLimited = entitlements.predictions === "limited";
     const response: PredictionsWeek = {
       ...published,
-      games: isLimited
-        ? published.games.slice(0, proPredictionLimit())
-        : published.games,
-      access: isLimited ? "limited" : "full",
+      games: published.games,
+      access: "full",
       totalGames,
     };
 
@@ -80,7 +74,7 @@ export async function GET(
       status: 200,
       headers: {
         ...PRIVATE_HEADERS,
-        "X-LEILA-Predictions-Access": entitlements.predictions,
+        "X-LEILA-Predictions-Access": "full",
         "X-LEILA-Predictions-Total": String(totalGames),
       },
     });

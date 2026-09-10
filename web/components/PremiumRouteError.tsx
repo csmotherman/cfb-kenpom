@@ -5,6 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import UpgradeExperience from "@/components/UpgradeExperience";
+import { EARLY_BETA_END_LABEL, isEarlyBetaActive } from "@/lib/earlyBeta";
 
 type PremiumRouteErrorProps = {
   error: Error & { status?: number; code?: string };
@@ -20,6 +21,7 @@ export default function PremiumRouteError({
   const signInRequired = error.status === 401 || error.code === "SIGN_IN_REQUIRED";
   const upgradeRequired = error.status === 403 || error.code === "UPGRADE_REQUIRED";
   const expectedAccessGate = signInRequired || upgradeRequired;
+  const earlyBetaActive = isEarlyBetaActive();
 
   if (expectedAccessGate) {
     return (
@@ -31,11 +33,11 @@ export default function PremiumRouteError({
             feature={product === "Advanced Analytics" ? "advanced" : "predictions"}
             mode="gate"
             signedIn={!signInRequired}
-            trialDays={7}
-            trialEligible={null}
+            earlyBetaActive={earlyBetaActive}
+            earlyBetaEndLabel={EARLY_BETA_END_LABEL}
           />
         </main>
-        <SiteFooter note="LEILA Ratings keeps core ratings and public team information free. Paid access is reserved for deeper research controls and forward-looking model products." />
+        <SiteFooter note="Core LEILA ratings remain free. Premium features are free to signed-in users during Early Beta and require the appropriate plan afterward." />
       </>
     );
   }
@@ -64,7 +66,7 @@ export default function PremiumRouteError({
           </section>
         </div>
       </main>
-      <SiteFooter note="LEILA Pro data is delivered only after server-side account entitlement checks." />
+      <SiteFooter note="Premium LEILA data is delivered only after server-side account entitlement checks." />
     </>
   );
 }

@@ -97,10 +97,10 @@ export default function MatchupPredictionPortal() {
 
   return createPortal(
     prediction.status === "ready" ? (
-      <section className="matchup-prediction matchup-prediction--revealed" aria-label="LEILA Pro+ prediction">
+      <section className="matchup-prediction matchup-prediction--revealed" aria-label="LEILA premium prediction">
         <div className="matchup-prediction__eyebrow">
           <span>LEILA Prediction</span>
-          <em>Pro+</em>
+          <em>Advanced + Predictions</em>
         </div>
         <strong className="matchup-prediction__pick">{prediction.game.predictedWinner} is LEILA&apos;s pick</strong>
         <div className="matchup-prediction__result-grid">
@@ -116,14 +116,14 @@ export default function MatchupPredictionPortal() {
         <small className="matchup-prediction__fineprint">Model projection, not betting advice.</small>
       </section>
     ) : (
-      <section className="matchup-prediction matchup-prediction--locked" aria-label="LEILA Pro+ prediction locked">
+      <section className="matchup-prediction matchup-prediction--locked" aria-label="LEILA prediction locked">
         <div className="matchup-prediction__eyebrow">
           <span>LEILA Prediction</span>
-          <em>Pro+</em>
+          <em>Advanced + Predictions</em>
         </div>
         <strong className="matchup-prediction__hook">The rankings tell one story. What does the model see?</strong>
         <p>Reveal LEILA&apos;s projected winner, win probability and model margin for this matchup.</p>
-        <Link href="/account" className="matchup-prediction__cta">Reveal LEILA&apos;s pick →</Link>
+        <Link href="/upgrade?feature=predictions" className="matchup-prediction__cta">Reveal LEILA&apos;s pick →</Link>
       </section>
     ),
     target,

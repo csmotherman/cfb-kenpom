@@ -73,8 +73,6 @@ export default function PredictionsPage() {
   const [season, setSeason] = useState<number | null>(null);
   const [week, setWeek] = useState<number | null>(null);
   const [games, setGames] = useState<PredictionGame[]>([]);
-  const [predictionAccess, setPredictionAccess] = useState<"limited" | "full">("full");
-  const [totalGames, setTotalGames] = useState(0);
   const [power, setPower] = useState<PreseasonPower | null>(null);
   const [rankings, setRankings] = useState<RankingsSeason | null>(null);
   const [schedule, setSchedule] = useState<ScheduleSeason | null>(null);
@@ -116,8 +114,6 @@ export default function PredictionsPage() {
         if (predictions && predictions.games.length > 0) {
           setWeek(candidate);
           setGames(predictions.games);
-          setPredictionAccess(predictions.access ?? "full");
-          setTotalGames(predictions.totalGames ?? predictions.games.length);
           setStatus("ready");
           return;
         }
@@ -247,14 +243,6 @@ export default function PredictionsPage() {
                 ))}
               </div>
             )}
-            {predictionAccess === "limited" && totalGames > games.length ? (
-              <div className="predictions-cta">
-                <span>
-                  LEILA Pro includes {games.length} of {totalGames} published predictions this week.
-                </span>
-                <Link className="auth-button" href="/account">Unlock all with Pro+</Link>
-              </div>
-            ) : null}
           </div>
         )}
 

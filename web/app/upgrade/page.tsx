@@ -4,20 +4,30 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import UpgradeExperience, { type UpgradeFeature } from "@/components/UpgradeExperience";
+import { EARLY_BETA_END_LABEL, isEarlyBetaActive } from "@/lib/earlyBeta";
 import { createClient } from "@/lib/supabase/server";
 import {
-  configuredTrialDays,
   isPaidPlan,
   stripeBillingConfigured,
 } from "@/lib/stripe/plans";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "LEILA Pro | Advanced College Football Analytics",
-  description:
-    "Compare LEILA Pro plans and unlock advanced college football research tools, custom week ranges, and weekly model access.",
-};
+export function generateMetadata(): Metadata {
+  if (isEarlyBetaActive()) {
+    return {
+      title: "Early Beta Access | LEILA Ratings",
+      description:
+        "Use LEILA Advanced Analytics and Predictions free during Early Beta, then choose Advanced or Advanced + Predictions beginning October 16, 2026.",
+    };
+  }
+
+  return {
+    title: "Plans | LEILA Ratings",
+    description:
+      "Compare LEILA Advanced at $1.99 per month with LEILA Advanced + Predictions at $4.99 per month.",
+  };
+}
 
 type UpgradePageProps = {
   searchParams: Promise<{
@@ -38,27 +48,19 @@ export default async function UpgradePage({ searchParams }: UpgradePageProps) {
   const params = await searchParams;
   const feature = safeFeature(params.feature);
   const selectedPlan = isPaidPlan(params.plan) ? params.plan : null;
+  const earlyBetaActive = isEarlyBetaActive();
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
 
-  let trialUsedAt: string | null = null;
   let subscription: { plan: string; status: string } | null = null;
 
   if (userId) {
-    const [{ data: profile }, { data: subscriptionRow }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("trial_used_at")
-        .eq("id", userId)
-        .maybeSingle(),
-      supabase
-        .from("subscriptions")
-        .select("plan,status")
-        .eq("user_id", userId)
-        .maybeSingle(),
-    ]);
-    trialUsedAt = profile?.trial_used_at ?? null;
+    const { data: subscriptionRow } = await supabase
+      .from("subscriptions")
+      .select("plan,status")
+      .eq("user_id", userId)
+      .maybeSingle();
     subscription = subscriptionRow ?? null;
   }
 
@@ -76,8 +78,6 @@ export default async function UpgradePage({ searchParams }: UpgradePageProps) {
     );
   }
 
-  const trialDays = configuredTrialDays();
-  const trialEligible = userId ? trialDays > 0 && !trialUsedAt : null;
   const checkoutMessage =
     params.checkout === "canceled"
       ? "Checkout canceled. Nothing was charged. Your plan selection is still here."
@@ -93,14 +93,14 @@ export default async function UpgradePage({ searchParams }: UpgradePageProps) {
           feature={feature}
           signedIn={Boolean(userId)}
           billingConfigured={stripeBillingConfigured()}
-          trialDays={trialDays}
-          trialEligible={trialEligible}
+          earlyBetaActive={earlyBetaActive}
+          earlyBetaEndLabel={EARLY_BETA_END_LABEL}
           selectedPlan={selectedPlan}
           message={checkoutMessage}
           error={params.error ?? null}
         />
       </main>
-      <SiteFooter note="LEILA Ratings keeps its core ratings and team profiles public. Paid plans are reserved for deeper research controls and forward-looking model products." />
+      <SiteFooter note="Core LEILA ratings remain free. Early Beta includes premium features through October 15, 2026; paid Advanced plans begin October 16." />
     </>
   );
 }
