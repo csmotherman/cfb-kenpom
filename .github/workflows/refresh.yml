@@ -3,7 +3,7 @@ name: Refresh 2026 ratings and metrics
 on:
   schedule:
     # GitHub cron is UTC. Schedule both possible UTC equivalents and use the
-    # gate below so refreshes stay on America/Detroit clock time across DST.
+    # gate below so checks stay on America/Detroit clock time across DST.
     # Daily at 12:00 AM ET.
     - cron: "0 4 * * *"
     - cron: "0 5 * * *"
@@ -11,11 +11,6 @@ on:
     - cron: "0 7 * * 0"
     - cron: "0 8 * * 0"
   workflow_dispatch:
-    inputs:
-      season:
-        description: 'Season override for a manual run'
-        required: false
-        default: '2026'
 
 concurrency:
   group: refresh-rankings-data
@@ -25,6 +20,7 @@ permissions:
   contents: write
 
 env:
+  SEASON: "2026"
   CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
   SUPABASE_URL: https://wmlzqmtsxqqxuiekmrqm.supabase.co
   SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
@@ -51,19 +47,43 @@ jobs:
           if { [ "$OFFSET" = "-0400" ] && [ "$SCHEDULE" = "0 4 * * *" ]; } || \
              { [ "$OFFSET" = "-0500" ] && [ "$SCHEDULE" = "0 5 * * *" ]; }; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
-            echo "Running the daily 12:00 AM America/Detroit refresh." >> "$GITHUB_STEP_SUMMARY"
+            echo "Running the daily 12:00 AM America/Detroit new-game check." >> "$GITHUB_STEP_SUMMARY"
           elif { [ "$OFFSET" = "-0400" ] && [ "$SCHEDULE" = "0 7 * * 0" ]; } || \
                { [ "$OFFSET" = "-0500" ] && [ "$SCHEDULE" = "0 8 * * 0" ]; }; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
-            echo "Running the Sunday 3:00 AM America/Detroit catch-up refresh." >> "$GITHUB_STEP_SUMMARY"
+            echo "Running the Sunday 3:00 AM America/Detroit catch-up check." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
             echo "Skipping the duplicate UTC schedule used only for DST coverage." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-  refresh:
+  detect-new-games:
     needs: schedule-gate
     if: needs.schedule-gate.outputs.should_run == 'true' && github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    outputs:
+      new_games: ${{ steps.detect.outputs.new_games }}
+      new_game_count: ${{ steps.detect.outputs.new_game_count }}
+      new_game_ids: ${{ steps.detect.outputs.new_game_ids }}
+      refresh_partitions: ${{ steps.detect.outputs.refresh_partitions }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Check CFBD for newly completed games
+        id: detect
+        run: python scripts/check_new_games.py --season "$SEASON"
+      - name: Record no-op decision
+        if: steps.detect.outputs.new_games != 'true'
+        run: |
+          echo "No new completed 2026 games were found. PBP, ratings, metrics, Supabase, Git, and Vercel were not touched." >> "$GITHUB_STEP_SUMMARY"
+
+  refresh:
+    needs: [schedule-gate, detect-new-games]
+    if: needs.schedule-gate.outputs.should_run == 'true' && needs.detect-new-games.outputs.new_games == 'true' && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -71,61 +91,62 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Select and validate season
-        env:
-          REQUESTED_SEASON: ${{ inputs.season }}
-        run: |
-          python - <<'PY'
-          import os
-          from datetime import datetime, timezone
-          now = datetime.now(timezone.utc)
-          requested = os.environ.get('REQUESTED_SEASON', '').strip()
-          # Scheduled refreshes are intentionally pinned to the 2026 season.
-          # Manual dispatch can still override this for maintenance/debugging.
-          season = int(requested) if requested else 2026
-          if not 2014 <= season <= now.year:
-              raise SystemExit('Season must be between 2014 and the current year')
-          if not os.environ.get('CFBD_API_KEY'):
-              raise SystemExit('Repository secret CFBD_API_KEY is required')
-          if not os.environ.get('SUPABASE_SECRET_KEY'):
-              raise SystemExit('Repository secret SUPABASE_SECRET_KEY is required for private premium publication')
-          with open(os.environ['GITHUB_ENV'], 'a') as output:
-              output.write(f'SEASON={season}\n')
-          PY
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
       - run: pip install -e '.[models]'
 
-      # Hydrate the private publication fixture before tests. These files are
-      # gitignored and exist only on this trusted runner.
-      - name: Hydrate private premium history
-        run: python scripts/hydrate_premium_data.py
-      - name: Test publication gates
-        run: python -m unittest discover -s tests
-
+      # Restore the previous raw/processed 2026 corpus. If a cache is absent,
+      # the targeted ingest command below hydrates missing partitions before it
+      # refreshes the partitions that contain the newly completed games.
       - uses: actions/cache@v4
         with:
           path: |
             data/raw
             data/processed
-          key: cfb-kenpom-data-v2-${{ env.SEASON }}-${{ github.run_id }}
+          key: cfb-kenpom-data-v3-${{ env.SEASON }}-${{ github.run_id }}
           restore-keys: |
+            cfb-kenpom-data-v3-${{ env.SEASON }}-
             cfb-kenpom-data-v2-${{ env.SEASON }}-
 
-      # Force refresh is essential: without it, verified cached partitions can
-      # permanently retain incomplete game results and empty future weeks.
-      - name: Refresh source data
-        run: python -m cfb_analytics.pipelines.ingest --season "$SEASON" --force
-      - name: Materialize canonical plays
+      # Historical Advanced payloads are needed only once a real refresh is
+      # warranted. Hydration is bounded to one Supabase season per request and
+      # retries transient server errors; a no-game run never contacts Supabase.
+      - name: Hydrate private premium history
+        run: python scripts/hydrate_premium_data.py
+      - name: Test publication gates
+        run: python -m unittest discover -s tests
+
+      # Refresh only the raw CFBD week partitions that actually contain new
+      # completed games. This downloads authoritative games, drives and PBP for
+      # those partitions; verified historical partitions remain cached.
+      - name: Fetch games, drives and play-by-play for new games
+        env:
+          REFRESH_PARTITIONS: ${{ needs.detect-new-games.outputs.refresh_partitions }}
+          NEW_GAME_COUNT: ${{ needs.detect-new-games.outputs.new_game_count }}
+        run: |
+          args=()
+          for partition in $REFRESH_PARTITIONS; do
+            args+=(--refresh-partition "$partition")
+          done
+          if [ ${#args[@]} -eq 0 ]; then
+            echo "New games were reported but no source partitions were resolved." >&2
+            exit 1
+          fi
+          echo "Refreshing $NEW_GAME_COUNT newly completed game(s) in: $REFRESH_PARTITIONS"
+          python -m cfb_analytics.pipelines.ingest --season "$SEASON" "${args[@]}"
+
+      # From this point forward the complete 2026 season is rebuilt from the
+      # refreshed raw corpus so every downstream metric/rating is internally
+      # consistent with all games processed to date.
+      - name: Clean and materialize canonical plays
         run: python -m cfb_analytics.raw.cli canonical-plays --season "$SEASON"
       - name: Materialize derived drives
         run: python -m cfb_analytics.raw.cli derived-drives --season "$SEASON"
       - name: Refresh FBS membership facts
         run: python -m cfb_analytics.pipelines.ingest_facts --season "$SEASON" --force
-      - name: Derive metrics
+      - name: Derive all 2026 metrics
         run: python -m cfb_analytics.pipelines.calculate_metrics --season "$SEASON"
       - name: Propagate dropback metrics
         run: python -m cfb_analytics.analytics.dropback_propagation_cli propagate --season "$SEASON"
@@ -133,38 +154,24 @@ jobs:
         run: python -m cfb_analytics.derived.basic_yardage_propagation_cli materialize --season "$SEASON"
       - name: Propagate havoc metrics
         run: python -m cfb_analytics.derived.havoc_propagation_cli materialize --season "$SEASON"
-      - name: Build canonical team games
+      - name: Rebuild canonical 2026 team games
         run: python -m cfb_analytics.pipelines.build_canonical --season "$SEASON"
-      - name: Compute ratings
+      - name: Recompute 2026 ratings
         run: python -m cfb_analytics.pipelines.calculate_ratings --season "$SEASON"
-      - name: Compile and validate current season
-        # --rating-model is required: the published AdjNet/AdjOff/AdjDef
-        # methodology is always an explicit choice, never an implicit default.
-        # `legacy` is the supported rollback (SRS + yards-per-play edges).
+      - name: Compile 2026 hierarchical HFA ratings and Advanced metrics
         run: python scripts/compile_site_data.py --season "$SEASON" --rating-model hierarchical_hfa
-      # No-ops until the one-time historical model freeze has been run
-      # (prospective/2026/prediction-v2-2026-frozen.json does not exist yet).
-      # Once frozen, this scores the next unscored early week from data
-      # already on disk -- no CFBD_API_KEY needed at this step.
+
       - name: Score weekly predictions
         run: python -m cfb_analytics.pipelines.weekly_predictions
-      # Reads the frozen model committed at prospective/2026/preseason-
-      # power-frozen.json (fit once, out of band -- see
-      # scripts/ingest_preseason_power_inputs.py -- never refit here).
-      # Publishes the public preseason-power ranking plus an immutable
-      # snapshot for whichever early-season week is next eligible; a
-      # no-op once nothing new is eligible.
       - name: Score early-season predictions
         run: python -m cfb_analytics.pipelines.early_season_predictions publish
       - name: Export Next.js data
         run: python scripts/export_web_data.py
       - name: Audit every published season
         run: python scripts/validate_site_data.py
-      - name: Publish premium data to Supabase
+      - name: Publish refreshed 2026 premium data to Supabase
         run: python scripts/publish_premium_data.py --season "$SEASON"
 
-      # GITHUB_TOKEN commits do not trigger other GitHub push workflows, so
-      # validation must finish in this job before publication.
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -180,34 +187,27 @@ jobs:
           rm -f site/advanced-data.js
           rm -rf web/public/data/advanced web/public/data/predictions
 
-      - name: Commit validated public changes
+      - name: Commit validated 2026 changes
         id: publish
         env:
           TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+          NEW_GAME_COUNT: ${{ needs.detect-new-games.outputs.new_game_count }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Prediction snapshots are exclusive-create (never overwritten) --
-          # committing them is what makes that immutability durable across
-          # runs instead of depending on ephemeral CI cache retention, and is
-          # also how weekly_predictions.py knows which weeks are already
-          # scored. mkdir ensures the path exists even before the one-time
-          # model freeze, so git add never fails on a missing directory.
           mkdir -p "prospective/$SEASON/predictions"
           git add "data/canonical/season=$SEASON" site/data.js site/search-index.js web/public/data "prospective/$SEASON/predictions"
           if git diff --staged --quiet; then
-            echo "No public data changes; skipping commit." >> "$GITHUB_STEP_SUMMARY"
+            echo "New games were detected, but the validated public output did not change." >> "$GITHUB_STEP_SUMMARY"
           else
-            git commit -m "Refresh $SEASON ratings ($(TZ=America/Detroit date +%Y-%m-%d))"
+            git commit -m "Refresh $SEASON ratings after $NEW_GAME_COUNT new game(s)"
             git fetch origin "$TARGET_BRANCH"
             git rebase "origin/$TARGET_BRANCH"
             git push origin "HEAD:$TARGET_BRANCH"
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Published validated $SEASON ratings and metrics; premium data stayed in Supabase." >> "$GITHUB_STEP_SUMMARY"
+            echo "Published refreshed $SEASON ratings and metrics after $NEW_GAME_COUNT new completed game(s)." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      # A deploy hook avoids depending on bot-commit deployment behavior and
-      # is never exposed to browser code.
       - name: Notify Vercel of refreshed data
         if: steps.publish.outputs.changed == 'true'
         env:
