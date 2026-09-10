@@ -59,6 +59,13 @@ def build_resume_rows(
     for game in team_games:
         if game.get("season_type", game.get("seasonType")) != "regular":
             continue
+        if game.get("classification") != "fbs":
+            # The canonical corpus carries both sides of every FBS-vs-FCS
+            # game (see build_real_data.py's load_canonical_games) -- this
+            # is the FCS opponent's OWN row, present only for validation
+            # symmetry. Keeping it here would score e.g. a 1-0 FCS team off
+            # a single FBS win as a playoff-resume candidate.
+            continue
         games_by_team.setdefault(int(game["team_id"]), []).append(game)
 
     records = {
