@@ -1,0 +1,139 @@
+name: One-time LEILA copy polish
+
+on:
+  push:
+    branches:
+      - leila-ratings-rebrand
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    if: github.event.head_commit.message == 'Run LEILA copy polish'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Polish LEILA product language
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+
+          repo = Path('.')
+          text_suffixes = {'.ts', '.tsx', '.js', '.jsx', '.css', '.md', '.json', '.py', '.yml', '.yaml', '.html', '.txt', '.toml', '.mjs', '.cjs'}
+
+          # Exact substitutions keep the brand architecture concise:
+          # LEILA Ratings = product, LEILA Pro = paid plan, LEILA Predictions = prediction surface.
+          replacements = {
+              'LEILA Ratings&rsquo;s': 'LEILA&rsquo;s',
+              "LEILA Ratings's": "LEILA's",
+              'LEILA Ratings&apos;s': 'LEILA&apos;s',
+              'LEILA Ratings ratings': 'LEILA ratings',
+              'LEILA Ratings rating snapshot': 'LEILA rating snapshot',
+              'LEILA Ratings snapshot': 'LEILA rating snapshot',
+              'LEILA Ratings Predictions': 'LEILA Predictions',
+              'LEILA Ratings Prediction': 'LEILA Prediction',
+              'LEILA Ratings Advanced Analytics': 'LEILA Advanced Analytics',
+              'LEILA Ratings Advanced': 'LEILA Advanced',
+              'A LEILA Ratings paid plan is required': 'A LEILA Pro plan is required',
+              'A LEILA Ratings subscription is required': 'A LEILA Pro subscription is required',
+              'Premium LEILA Ratings data': 'LEILA Pro data',
+              'Core LEILA Ratings team ratings': 'Core opponent-adjusted ratings',
+              '#${latest.rank} LEILA Ratings': '#${latest.rank} LEILA',
+              '#${rank} LEILA Ratings': '#${rank} LEILA',
+              "The opponent's LEILA Ratings Adj. Net": "The opponent's LEILA Adj. Net",
+              'LEILA Ratings College Football Analytics': 'LEILA Ratings',
+              'X-LEILA Ratings-Predictions-Access': 'X-LEILA-Predictions-Access',
+              'X-LEILA Ratings-Predictions-Total': 'X-LEILA-Predictions-Total',
+              'public AdjNet ratings': 'public Adj. Net ratings',
+              'AdjNet ratings': 'Adj. Net ratings',
+              'opponent-adjusted AdjNet': 'opponent-adjusted Adj. Net',
+              '$1 AdjNet Ratings | LEILA Ratings': '$1 Adj. Net Ratings | LEILA Ratings',
+              '$1 AdjNet | LEILA Ratings': '$1 Adj. Net | LEILA Ratings',
+              'same grouped format as LEILA Advanced.': 'same grouped format as LEILA Advanced Analytics.',
+              'latest pregame LEILA ratings': 'latest pregame LEILA rating snapshots',
+              'same FBS-vs-FBS universe as LEILA ratings': 'same FBS-vs-FBS universe as LEILA Ratings',
+              'LEILA Ratings Weekly Matchups': 'LEILA Weekly Matchups',
+              'LEILA Ratings {product}': 'LEILA {product}',
+          }
+
+          tracked = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          for name in tracked:
+              if not name:
+                  continue
+              path = repo / name
+              if not path.exists() or path.suffix.lower() not in text_suffixes:
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              original = text
+              for old, new in replacements.items():
+                  text = text.replace(old, new)
+              if text != original:
+                  path.write_text(text, encoding='utf-8')
+
+          # The footer is a compatibility normalizer for legacy notes. Make its
+          # output use the current public metric names exactly.
+          footer = repo / 'web/components/SiteFooter.tsx'
+          text = footer.read_text(encoding='utf-8')
+          text = text.replace('.replaceAll("AdjEM", "AdjNet")', '.replaceAll("AdjEM", "Adj. Net")')
+          text = text.replace('.replaceAll(/AdjO(?!ff)/g, "AdjOff")', '.replaceAll("AdjOff", "Adj. Off")\n    .replaceAll(/AdjO(?!ff)/g, "Adj. Off")')
+          text = text.replace('.replaceAll(/AdjD(?!ef)/g, "AdjDef")', '.replaceAll("AdjDef", "Adj. Def")\n    .replaceAll(/AdjD(?!ef)/g, "Adj. Def")')
+          text = text.replace('.replaceAll("AdjEM", "Adj. Net")', '.replaceAll("AdjNet", "Adj. Net")\n    .replaceAll("AdjEM", "Adj. Net")')
+          footer.write_text(text, encoding='utf-8')
+
+          # Retire this one-time workflow from the finished tree.
+          workflow = repo / '.github/workflows/leila-copy-polish-once.yml'
+          if workflow.exists():
+              workflow.unlink()
+
+          # Hard brand audit: uppercase GRID is the retired product name. Lowercase
+          # CSS grid syntax is intentionally valid and must remain untouched.
+          brand_offenders = []
+          awkward_offenders = []
+          for name in subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0'):
+              if not name:
+                  continue
+              path = repo / name
+              if not path.exists() or path.suffix.lower() not in text_suffixes:
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              if re.search(r'\bGRID\b', text) or 'grid-brand.css' in text or 'grid-logo.png' in text or 'GridTerminologyGuard' in text:
+                  brand_offenders.append(name)
+              if 'LEILA Ratings ratings' in text or 'LEILA Ratings&rsquo;s' in text or "LEILA Ratings's" in text or 'LEILA Ratings&apos;s' in text or 'X-LEILA Ratings-' in text:
+                  awkward_offenders.append(name)
+
+          if brand_offenders:
+              raise SystemExit('Legacy GRID brand references remain in: ' + ', '.join(sorted(set(brand_offenders))))
+          if awkward_offenders:
+              raise SystemExit('Awkward LEILA copy remains in: ' + ', '.join(sorted(set(awkward_offenders))))
+          PY
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - name: Verify polished LEILA build
+        run: npm run lint && npm run build
+        working-directory: web
+
+      - name: Commit polished copy
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Polish LEILA Ratings product language"
+          git push origin HEAD:leila-ratings-rebrand
