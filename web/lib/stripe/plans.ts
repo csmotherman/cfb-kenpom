@@ -1,12 +1,14 @@
 export type PaidPlan = "pro" | "pro_plus";
 
+// Keep the existing database plan keys for backwards compatibility while the
+// customer-facing product names are Advanced and Advanced + Predictions.
 export const PAID_PLAN_LABELS: Record<PaidPlan, string> = {
-  pro: "LEILA Pro",
-  pro_plus: "LEILA Pro+",
+  pro: "LEILA Advanced",
+  pro_plus: "LEILA Advanced + Predictions",
 };
 
 export const PAID_PLAN_MONTHLY_PRICE: Record<PaidPlan, string> = {
-  pro: "$0.99/month",
+  pro: "$1.99/month",
   pro_plus: "$4.99/month",
 };
 
@@ -32,12 +34,6 @@ export function planForPriceId(priceId: string | null | undefined): PaidPlan | n
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return "pro";
   if (priceId === process.env.STRIPE_PRO_PLUS_PRICE_ID) return "pro_plus";
   return null;
-}
-
-export function configuredTrialDays() {
-  const parsed = Number.parseInt(process.env.STRIPE_TRIAL_DAYS ?? "7", 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) return 0;
-  return Math.min(parsed, 730);
 }
 
 export function stripeBillingConfigured() {
