@@ -4,9 +4,11 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import { updateDisplayName } from "@/app/auth/actions";
+import { getCurrentEntitlements } from "@/lib/auth/entitlements";
+import { EARLY_BETA_END_LABEL } from "@/lib/earlyBeta";
 import { createClient } from "@/lib/supabase/server";
 import {
-  configuredTrialDays,
+  PAID_PLAN_LABELS,
   PAID_PLAN_MONTHLY_PRICE,
   stripeBillingConfigured,
 } from "@/lib/stripe/plans";
@@ -27,8 +29,8 @@ type AccountPageProps = {
 };
 
 function planLabel(plan: string) {
-  if (plan === "pro_plus") return "LEILA Pro+";
-  if (plan === "pro") return "LEILA Pro";
+  if (plan === "pro_plus") return PAID_PLAN_LABELS.pro_plus;
+  if (plan === "pro") return PAID_PLAN_LABELS.pro;
   return "Free";
 }
 
@@ -49,13 +51,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const userId = claims?.sub;
 
   if (!userId) {
-    redirect("/login?message=Sign%20in%20to%20manage%20your%20GRID%20account.");
+    redirect("/login?message=Sign%20in%20to%20manage%20your%20LEILA%20Ratings%20account.");
   }
 
-  const [{ data: profile }, { data: subscription }] = await Promise.all([
+  const [entitlements, profileResult, subscriptionResult] = await Promise.all([
+    getCurrentEntitlements(),
     supabase
       .from("profiles")
-      .select("display_name,email,trial_used_at")
+      .select("display_name,email")
       .eq("id", userId)
       .maybeSingle(),
     supabase
@@ -67,26 +70,23 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       .maybeSingle(),
   ]);
 
+  const profile = profileResult.data;
+  const subscription = subscriptionResult.data;
   const plan = subscription?.plan ?? "free";
   const status = subscription?.status ?? "inactive";
-  const paidAccess = status === "active" || status === "trialing";
-  const advancedAccess = paidAccess && plan !== "free";
-  const predictionAccess = !paidAccess
-    ? "Locked"
-    : plan === "pro_plus"
-      ? "All predictions"
-      : plan === "pro"
-        ? "Limited predictions"
-        : "Locked";
+  const paidAccess = entitlements.paidAccess;
+  const earlyBetaAccess = entitlements.earlyBetaAccess;
+  const advancedAccess = entitlements.advanced;
+  const predictionAccess = entitlements.predictions === "full" ? "All predictions" : "Locked";
   const email = profile?.email ?? (typeof claims?.email === "string" ? claims.email : "");
   const displayName = profile?.display_name ?? "";
   const billingConfigured = stripeBillingConfigured();
-  const trialDays = configuredTrialDays();
-  const trialEligible = trialDays > 0 && !profile?.trial_used_at;
-  const canStartCheckout = status === "inactive" || status === "canceled";
+  const canStartCheckout = !earlyBetaAccess && (status === "inactive" || status === "canceled");
+  const showPlans = !paidAccess;
   const canManageBilling = Boolean(
     billingConfigured && subscription?.stripe_customer_id
   );
+  const accountPlanLabel = earlyBetaAccess && !paidAccess ? "Early Beta" : planLabel(plan);
 
   const checkoutMessage =
     params.checkout === "success"
@@ -107,12 +107,18 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 <span className="eyebrow auth-kicker">LEILA Ratings Account</span>
                 <h1 id="accountTitle" className="auth-title">Your account</h1>
               </div>
-              <span className={`account-plan account-plan--${plan}`}>{planLabel(plan)}</span>
+              <span className={`account-plan account-plan--${plan}`}>{accountPlanLabel}</span>
             </div>
 
             {params.error ? <p className="auth-alert auth-alert--error">{params.error}</p> : null}
             {params.message ? <p className="auth-alert auth-alert--success">{params.message}</p> : null}
             {checkoutMessage ? <p className="auth-alert auth-alert--success">{checkoutMessage}</p> : null}
+            {earlyBetaAccess && !paidAccess ? (
+              <p className="auth-alert auth-alert--success">
+                Early Beta Access is open. Advanced Analytics and Predictions are free through {EARLY_BETA_END_LABEL}.
+                Starting October 16, subscribe to keep premium access.
+              </p>
+            ) : null}
 
             <dl className="account-details">
               <div>
@@ -120,17 +126,19 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 <dd>{email}</dd>
               </div>
               <div>
-                <dt>Subscription</dt>
-                <dd>{planLabel(plan)}</dd>
+                <dt>Access</dt>
+                <dd>{accountPlanLabel}</dd>
               </div>
               <div>
                 <dt>Status</dt>
                 <dd>
-                  {status === "inactive"
-                    ? "Free account"
-                    : subscription?.cancel_at_period_end && status === "active"
-                      ? "Active · cancels at period end"
-                      : status.replaceAll("_", " ")}
+                  {earlyBetaAccess && !paidAccess
+                    ? `Free through ${EARLY_BETA_END_LABEL}`
+                    : status === "inactive"
+                      ? "Free account"
+                      : subscription?.cancel_at_period_end && status === "active"
+                        ? "Active · cancels at period end"
+                        : status.replaceAll("_", " ")}
                 </dd>
               </div>
               {subscription?.trial_end ? (
@@ -167,11 +175,15 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             <div className="account-section">
               <div className="account-section__heading">
                 <h2>Access</h2>
-                <span>Access levels are synced from Stripe into your LEILA Ratings account.</span>
+                <span>
+                  {earlyBetaAccess && !paidAccess
+                    ? `Early Beta unlocks all premium features through ${EARLY_BETA_END_LABEL}.`
+                    : "Paid access levels are synced from Stripe into your LEILA Ratings account."}
+                </span>
               </div>
               <div className="entitlement-list">
                 <div className="entitlement-row">
-                  <div><strong>AdjNet Ratings</strong><span>Core opponent-adjusted ratings</span></div>
+                  <div><strong>Adj. Net Ratings</strong><span>Core opponent-adjusted ratings</span></div>
                   <b className="entitlement-state entitlement-state--on">Included</b>
                 </div>
                 <div className="entitlement-row">
@@ -192,43 +204,55 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             <div className="account-section">
               <div className="account-section__heading">
                 <h2>Billing</h2>
-                <span>Secure checkout and subscription management are hosted by Stripe.</span>
+                <span>
+                  {earlyBetaAccess
+                    ? `No payment is required during Early Beta. Paid plans begin October 16.`
+                    : "Secure checkout and subscription management are hosted by Stripe."}
+                </span>
               </div>
 
-              {canStartCheckout ? (
+              {showPlans ? (
                 <div className="billing-plan-grid">
                   <article className="billing-plan-card">
                     <div>
-                      <span className="billing-plan-card__eyebrow">LEILA Pro</span>
+                      <span className="billing-plan-card__eyebrow">Advanced</span>
                       <h3>Advanced analytics</h3>
-                      <p>Unlock the advanced team analytics table plus limited weekly predictions.</p>
-                      <strong className="billing-plan-card__price">
-                        {trialEligible ? `${trialDays} days free, then ` : ""}{PAID_PLAN_MONTHLY_PRICE.pro}
-                      </strong>
+                      <p>Unlock the complete Advanced Analytics experience. Predictions are not included.</p>
+                      <strong className="billing-plan-card__price">{PAID_PLAN_MONTHLY_PRICE.pro}</strong>
                     </div>
-                    <form action="/api/stripe/checkout" method="post">
-                      <input type="hidden" name="plan" value="pro" />
-                      <button className="auth-button billing-button" type="submit" disabled={!billingConfigured}>
-                        Start LEILA Pro
+                    {canStartCheckout ? (
+                      <form action="/api/stripe/checkout" method="post">
+                        <input type="hidden" name="plan" value="pro" />
+                        <button className="auth-button billing-button" type="submit" disabled={!billingConfigured}>
+                          Subscribe to Advanced
+                        </button>
+                      </form>
+                    ) : (
+                      <button className="auth-button billing-button" type="button" disabled>
+                        Available October 16
                       </button>
-                    </form>
+                    )}
                   </article>
 
                   <article className="billing-plan-card billing-plan-card--plus">
                     <div>
-                      <span className="billing-plan-card__eyebrow">LEILA Pro+</span>
-                      <h3>Full model access</h3>
-                      <p>Everything in LEILA Pro plus complete access to weekly model predictions.</p>
-                      <strong className="billing-plan-card__price">
-                        {trialEligible ? `${trialDays} days free, then ` : ""}{PAID_PLAN_MONTHLY_PRICE.pro_plus}
-                      </strong>
+                      <span className="billing-plan-card__eyebrow">Advanced + Predictions</span>
+                      <h3>Complete premium access</h3>
+                      <p>Everything in Advanced plus full access to weekly LEILA model predictions.</p>
+                      <strong className="billing-plan-card__price">{PAID_PLAN_MONTHLY_PRICE.pro_plus}</strong>
                     </div>
-                    <form action="/api/stripe/checkout" method="post">
-                      <input type="hidden" name="plan" value="pro_plus" />
-                      <button className="auth-button billing-button" type="submit" disabled={!billingConfigured}>
-                        Start LEILA Pro+
+                    {canStartCheckout ? (
+                      <form action="/api/stripe/checkout" method="post">
+                        <input type="hidden" name="plan" value="pro_plus" />
+                        <button className="auth-button billing-button" type="submit" disabled={!billingConfigured}>
+                          Subscribe with Predictions
+                        </button>
+                      </form>
+                    ) : (
+                      <button className="auth-button billing-button" type="button" disabled>
+                        Available October 16
                       </button>
-                    </form>
+                    )}
                   </article>
                 </div>
               ) : null}
@@ -246,7 +270,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               <p className="account-billing-note">
                 {billingConfigured
                   ? "Payment details are handled by Stripe. LEILA Ratings stores subscription identifiers and access status, not raw card numbers."
-                  : "Stripe billing code is installed, but checkout stays disabled until the Stripe products, price IDs, webhook secret, and server secrets are configured."}
+                  : "Stripe billing code is installed, but checkout stays disabled until the Stripe price IDs, webhook secret, and server secrets are configured."}
               </p>
             </div>
 
@@ -256,7 +280,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </section>
         </div>
       </main>
-      <SiteFooter note="LEILA Ratings accounts use Supabase authentication. Paid subscription state is synchronized from Stripe webhooks into row-level-secured account records." />
+      <SiteFooter note="LEILA Ratings accounts use Supabase authentication. Premium access is free during Early Beta and paid subscription state is synchronized from Stripe webhooks afterward." />
     </>
   );
 }
