@@ -97,3 +97,36 @@
     max-width: 192px !important;
   }
 }
+
+
+/* Ratings table identity rail follows the approved full-name mockup. */
+@media (max-width: 640px) {
+  #ratingsTable .team-cell {
+    left: 42px !important;
+    width: 154px !important;
+    min-width: 154px !important;
+    max-width: 154px !important;
+  }
+
+  #ratingsTable thead .rank-col,
+  #ratingsTable thead .rank-cell,
+  #ratingsTable thead .team-cell {
+    background: #142742 !important;
+    color: #f7f9fc !important;
+  }
+
+  #ratingsTable tbody .rank-col,
+  #ratingsTable tbody .rank-cell,
+  #ratingsTable tbody .team-cell,
+  #ratingsTable tbody tr:nth-child(even) .rank-col,
+  #ratingsTable tbody tr:nth-child(even) .rank-cell,
+  #ratingsTable tbody tr:nth-child(even) .team-cell {
+    background: #fff !important;
+  }
+
+  #ratingsTable tbody tr:hover .rank-col,
+  #ratingsTable tbody tr:hover .rank-cell,
+  #ratingsTable tbody tr:hover .team-cell {
+    background: #f5f7f9 !important;
+  }
+}
