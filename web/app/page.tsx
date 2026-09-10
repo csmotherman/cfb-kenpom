@@ -255,7 +255,7 @@ export default function RatingsPage() {
             })}
           </nav>
           <p className="control-help">
-            Click a column to sort. National metric ranks appear beneath each rating.
+            Click a column to sort. National metric ranks appear in parentheses.
           </p>
         </div>
       </div>
@@ -389,7 +389,7 @@ function StatCell({
       style={bg ? { backgroundColor: bg } : undefined}
     >
       {statText(value, useSign, decimals)}
-      {!na(rank) ? <span className="rank-sub">#{rank}</span> : null}
+      {!na(rank) ? <span className="rank-sub">({rank})</span> : null}
     </td>
   );
 }
