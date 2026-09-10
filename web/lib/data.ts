@@ -46,7 +46,7 @@ async function fetchPremiumJson<T>(path: string): Promise<T> {
     throw new PremiumAccessError(
       res.status,
       payload.code ?? (res.status === 401 ? "SIGN_IN_REQUIRED" : "UPGRADE_REQUIRED"),
-      payload.message ?? "A GRID subscription is required to view this data."
+      payload.message ?? "A LEILA Pro subscription is required to view this data."
     );
   }
 
@@ -328,7 +328,7 @@ export async function getPredictionsWeek(season: number | string, week: number |
     throw new PremiumAccessError(
       response.status,
       payload.code ?? (response.status === 401 ? "SIGN_IN_REQUIRED" : "UPGRADE_REQUIRED"),
-      payload.message ?? "A GRID subscription is required to view Predictions."
+      payload.message ?? "A LEILA Pro subscription is required to view Predictions."
     );
   }
 

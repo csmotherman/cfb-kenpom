@@ -56,14 +56,14 @@ export async function GET(
     const entitlements = await getCurrentEntitlements();
     if (!entitlements.userId) {
       return NextResponse.json(
-        { code: "SIGN_IN_REQUIRED", message: "GRID Pro+ is required to reveal this prediction." },
+        { code: "SIGN_IN_REQUIRED", message: "LEILA Pro+ is required to reveal this prediction." },
         { status: 401, headers: PRIVATE_HEADERS }
       );
     }
 
     if (!entitlements.paidAccess || entitlements.plan !== "pro_plus") {
       return NextResponse.json(
-        { code: "PRO_PLUS_REQUIRED", message: "Upgrade to GRID Pro+ to reveal this prediction." },
+        { code: "PRO_PLUS_REQUIRED", message: "Upgrade to LEILA Pro+ to reveal this prediction." },
         { status: 403, headers: PRIVATE_HEADERS }
       );
     }

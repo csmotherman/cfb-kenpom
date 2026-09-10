@@ -6,7 +6,7 @@ import SiteNav from "@/components/SiteNav";
 import { signup } from "@/app/auth/actions";
 
 export const metadata: Metadata = {
-  title: "Create account | GRID",
+  title: "Create account | LEILA Ratings",
   robots: { index: false, follow: false },
 };
 
@@ -30,12 +30,12 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
       <main className="auth-main">
         <div className="auth-shell">
           <section className="auth-panel" aria-labelledby="signupTitle">
-            <span className="eyebrow auth-kicker">GRID Account</span>
+            <span className="eyebrow auth-kicker">LEILA Ratings Account</span>
             <h1 id="signupTitle" className="auth-title">Create account</h1>
             <p className="auth-copy">
               {returningToUpgrade
-                ? "Create your GRID account with just email and password. After confirmation, we'll bring you back to the plan you selected."
-                : "Create a free GRID account with just email and password. You can add profile details later."}
+                ? "Create your LEILA Ratings account with just email and password. After confirmation, we'll bring you back to the plan you selected."
+                : "Create a free LEILA Ratings account with just email and password. You can add profile details later."}
             </p>
 
             {params.error ? <p className="auth-alert auth-alert--error">{params.error}</p> : null}
@@ -72,7 +72,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           </section>
         </div>
       </main>
-      <SiteFooter note="GRID accounts are free to create. Billing only starts if you later choose and confirm a paid subscription in Stripe Checkout." />
+      <SiteFooter note="LEILA Ratings accounts are free to create. Billing only starts if you later choose and confirm a paid subscription in Stripe Checkout." />
     </>
   );
 }

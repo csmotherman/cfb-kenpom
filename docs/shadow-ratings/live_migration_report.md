@@ -127,6 +127,6 @@ A real first publish would content-change `site/data.js`, `web/public/data/meta.
 
 Known accepted model limitations carry forward: Notre Dame is more underpredicted; scoring-margin RMSE worsens on cross-conference games (17.321→17.424) and P4/G5 games (17.289→17.639); aggregate margin evidence is weaker than metric evidence; weeks 1–3 and seasons 2014–2018 were outside the research validation; HFA does not fully remove site residual bias.
 
-Proposed commit message after explicit approval: `Migrate AdjNet ratings to hierarchical HFA model`
+Proposed commit message after explicit approval: `Migrate Adj. Net ratings to hierarchical HFA model`
 
 **READY TO PUBLISH**

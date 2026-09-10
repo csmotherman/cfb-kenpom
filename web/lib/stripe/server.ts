@@ -12,7 +12,7 @@ export function getStripe() {
   if (!stripeClient) {
     stripeClient = new Stripe(secretKey, {
       appInfo: {
-        name: "GRID College Football Analytics",
+        name: "LEILA Ratings",
         version: "1.0.0",
       },
     });

@@ -266,7 +266,7 @@ export type PredictionsWeek = {
   totalGames?: number;
 };
 
-// A week's predictions are only "graded" once every game GRID can verify
+// A week's predictions are only "graded" once every game LEILA Ratings can verify
 // (gameId matched against the public schedule, with a final score) has
 // finished -- so `games` and `graded` can differ for an in-progress week,
 // and accuracySU/avgAbsMarginError are null (not 0) until at least one game

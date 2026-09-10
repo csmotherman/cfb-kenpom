@@ -104,7 +104,7 @@ export async function signup(formData: FormData) {
     withMessage(
       "/login",
       "message",
-      "Check your email to confirm your GRID account, then sign in.",
+      "Check your email to confirm your LEILA Ratings account, then sign in.",
       next
     )
   );
@@ -117,7 +117,7 @@ export async function updateDisplayName(formData: FormData) {
   const userId = claimsData?.claims?.sub;
 
   if (!userId) {
-    redirect(withMessage("/login", "message", "Sign in to manage your GRID account."));
+    redirect(withMessage("/login", "message", "Sign in to manage your LEILA Ratings account."));
   }
 
   const { error } = await supabase

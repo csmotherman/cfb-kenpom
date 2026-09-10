@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
   try {
     event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
   } catch (error) {
-    console.error("GRID Stripe webhook signature error", error);
+    console.error("LEILA Ratings Stripe webhook signature error", error);
     return NextResponse.json({ error: "Invalid webhook signature." }, { status: 400 });
   }
 
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         break;
     }
   } catch (error) {
-    console.error(`GRID Stripe webhook handler failed for ${event.type}`, error);
+    console.error(`LEILA Ratings Stripe webhook handler failed for ${event.type}`, error);
     return NextResponse.json({ error: "Webhook handler failed." }, { status: 500 });
   }
 

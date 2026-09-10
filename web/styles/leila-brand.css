@@ -1,5 +1,5 @@
 /* ========================================================================== */
-/* GRID — College Football Analytics                                          */
+/* LEILA Ratings — College Football Analytics                                 */
 /* Brand-only overrides. Layout, density, color system, and interactions stay */
 /* owned by the existing site styles.                                         */
 /* ========================================================================== */
@@ -30,27 +30,27 @@
 /* The prior brand layer intentionally uses pseudo-labels so old model/data   */
 /* keys can remain stable. Override only those public-facing words here.      */
 body:has(#ratingsTable) .ratings-hero .eyebrow::after {
-  content: "GRID AdjNet";
+  content: "LEILA Ratings";
 }
 
 body:has(#advancedTable) .ratings-hero .eyebrow::after {
-  content: "GRID Pro";
+  content: "LEILA Pro";
 }
 
 body:has(#ratingsTable) .premium-teaser__title::after {
-  content: "The rating tells you who is good. GRID Pro tells you why.";
+  content: "The rating tells you who is good. LEILA Pro tells you why.";
 }
 
 body:has(#advancedTable) .adv-table[data-view="general"] th[data-metric-key="cff"] .column-sort::before {
-  content: "AdjNet";
+  content: "Adj. Net";
 }
 
 body:has(#teamContent) .adv-preview__heading h2::after {
-  content: "GRID Pro";
+  content: "LEILA Pro";
 }
 
 body:has(#teamContent) .adv-preview__overlay .subscribe-btn::after {
-  content: "Preview GRID Pro";
+  content: "Preview LEILA Pro";
 }
 
 @media (max-width: 640px) {

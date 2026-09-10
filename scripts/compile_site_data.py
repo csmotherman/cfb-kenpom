@@ -82,7 +82,7 @@ def build_season_payload(year, rating_model):
     # preserve the previously published season instead of shipping nulls.
     if latest_rows and rated_count == 0:
         print(
-            f"season {year}: {len(latest_rows)} teams but zero non-null AdjNet ratings; "
+            f"season {year}: {len(latest_rows)} teams but zero non-null Adj. Net ratings; "
             "refusing to publish this season"
         )
         return None

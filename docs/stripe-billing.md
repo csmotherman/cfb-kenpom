@@ -1,13 +1,13 @@
-# GRID Stripe billing
+# LEILA Ratings Stripe billing
 
-GRID uses Stripe Checkout + Stripe Billing for paid subscriptions and Supabase for account entitlements and private premium datasets.
+LEILA Ratings uses Stripe Checkout + Stripe Billing for paid subscriptions and Supabase for account entitlements and private premium datasets.
 
 ## Plans
 
 | Plan | Monthly price | Trial | Access |
 | --- | ---: | --- | --- |
-| GRID Pro | $0.99 | 7 days, once per GRID account | Advanced Analytics + 5 weekly predictions by default |
-| GRID Pro+ | $4.99 | 7 days, once per GRID account | Advanced Analytics + all weekly predictions |
+| LEILA Pro | $0.99 | 7 days, once per LEILA Ratings account | Advanced Analytics + 5 weekly predictions by default |
+| LEILA Pro+ | $4.99 | 7 days, once per LEILA Ratings account | Advanced Analytics + all weekly predictions |
 
 Create two recurring monthly Stripe Prices and map their `price_...` IDs to the environment variables below. Keep test-mode and live-mode IDs separate.
 
@@ -20,7 +20,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRO_PRICE_ID=price_...
 STRIPE_PRO_PLUS_PRICE_ID=price_...
 STRIPE_TRIAL_DAYS=7
-GRID_PRO_PREDICTION_LIMIT=5
+LEILA_PRO_PREDICTION_LIMIT=5
 SUPABASE_SECRET_KEY=sb_secret_...
 ```
 
@@ -62,8 +62,8 @@ Access rules:
 
 - signed out: `401 SIGN_IN_REQUIRED`
 - free, inactive, past-due, or canceled: `403 UPGRADE_REQUIRED`
-- active/trialing GRID Pro: Advanced Analytics + the configured limited predictions preview
-- active/trialing GRID Pro+: Advanced Analytics + all published predictions
+- active/trialing LEILA Pro: Advanced Analytics + the configured limited predictions preview
+- active/trialing LEILA Pro+: Advanced Analytics + all published predictions
 
 Legacy URLs under `/data/advanced/*.json` and `/data/predictions/*.json` are intercepted by Next.js Proxy and rewritten into those entitlement-checked routes. Premium responses use `private, no-store` caching.
 
@@ -71,7 +71,7 @@ Premium JSON is no longer kept in the current public branch. `site/advanced-data
 
 ## Trial behavior
 
-The Checkout Session collects a payment method by default. An eligible first-time subscriber receives a seven-day trial. GRID records `profiles.trial_used_at` when Stripe confirms a trialing subscription so canceling and re-subscribing does not create repeated GRID trials for the same account.
+The Checkout Session collects a payment method by default. An eligible first-time subscriber receives a seven-day trial. LEILA Ratings records `profiles.trial_used_at` when Stripe confirms a trialing subscription so canceling and re-subscribing does not create repeated LEILA Ratings trials for the same account.
 
 ## Customer portal
 
@@ -83,7 +83,7 @@ The Checkout Session collects a payment method by default. An eligible first-tim
 2. Set test-mode environment variables in the deployment environment.
 3. Add `SUPABASE_SECRET_KEY` to GitHub Actions repository secrets so scheduled premium publication can run.
 4. Register the webhook endpoint and save its signing secret.
-5. Run a full test: new GRID account → Checkout → trialing access → protected data → portal → cancel/update → access sync.
+5. Run a full test: new LEILA Ratings account → Checkout → trialing access → protected data → portal → cancel/update → access sync.
 6. Confirm signed-out and free accounts receive 401/403 responses from premium API routes.
 7. Confirm the legacy `/data/advanced/...` and `/data/predictions/...` URLs cannot bypass entitlement checks.
 8. Confirm duplicate-trial protection.

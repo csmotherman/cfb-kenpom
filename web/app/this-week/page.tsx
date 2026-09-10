@@ -71,7 +71,7 @@ export default function ThisWeekPage() {
   }, []);
 
   useEffect(() => {
-    document.title = season ? `${season} Weekly Matchups | GRID` : "Weekly Matchups | GRID";
+    document.title = season ? `${season} Weekly Matchups | LEILA Ratings` : "Weekly Matchups | LEILA Ratings";
   }, [season]);
 
   const ratingWeek = useMemo(() => {
@@ -101,10 +101,10 @@ export default function ThisWeekPage() {
 
       <section className="weekly-hero container">
         <div>
-          <span className="eyebrow">GRID Weekly Matchups</span>
+          <span className="eyebrow">LEILA Weekly Matchups</span>
           <h1>{season ? `${season} Matchups` : "Weekly Matchups"}</h1>
           <p>
-            Every FBS-vs-FBS game in one place, paired with the latest pregame GRID ratings so you can see where each matchup starts.
+            Every FBS-vs-FBS game in one place, paired with the latest pregame LEILA rating snapshots so you can see where each matchup starts.
           </p>
         </div>
         <div className="weekly-hero__note">
@@ -164,7 +164,7 @@ export default function ThisWeekPage() {
         )}
       </main>
 
-      <SiteFooter note="This Week uses the same FBS-vs-FBS universe as GRID ratings. Pregame comparisons use the latest rating snapshot strictly before the selected game week; completed scores come from the trusted schedule refresh." />
+      <SiteFooter note="This Week uses the same FBS-vs-FBS universe as LEILA Ratings. Pregame comparisons use the latest rating snapshot strictly before the selected game week; completed scores come from the trusted schedule refresh." />
     </>
   );
 }

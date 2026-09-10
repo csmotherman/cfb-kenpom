@@ -28,14 +28,14 @@ export async function GET(
 
   if (!entitlements.userId) {
     return NextResponse.json(
-      { code: "SIGN_IN_REQUIRED", message: "Sign in to access GRID Advanced Analytics." },
+      { code: "SIGN_IN_REQUIRED", message: "Sign in to access LEILA Advanced Analytics." },
       { status: 401, headers: PRIVATE_HEADERS }
     );
   }
 
   if (!entitlements.advanced) {
     return NextResponse.json(
-      { code: "UPGRADE_REQUIRED", message: "GRID Pro or Pro+ is required for Advanced Analytics." },
+      { code: "UPGRADE_REQUIRED", message: "LEILA Pro or Pro+ is required for Advanced Analytics." },
       { status: 403, headers: PRIVATE_HEADERS }
     );
   }
