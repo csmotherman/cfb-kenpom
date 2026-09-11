@@ -1,6 +1,11 @@
 name: Refresh 2026 ratings and metrics
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/refresh.yml"
   schedule:
     # New-game detection is intentionally cheap: it only checks CFBD game
     # metadata. Run it hourly so a game that CFBD marks complete after midnight
