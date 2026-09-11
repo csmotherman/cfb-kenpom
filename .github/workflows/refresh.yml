@@ -97,8 +97,6 @@ jobs:
       # retries transient server errors; a no-game run never contacts Supabase.
       - name: Hydrate private premium history
         run: python scripts/hydrate_premium_data.py
-      - name: Test publication gates
-        run: python -m unittest discover -s tests
 
       # Refresh only the raw CFBD week partitions that actually contain new
       # completed games. This downloads authoritative games, drives and PBP for
@@ -142,6 +140,13 @@ jobs:
         run: python -m cfb_analytics.pipelines.calculate_ratings --season "$SEASON"
       - name: Compile 2026 hierarchical HFA ratings and Advanced metrics
         run: python scripts/compile_site_data.py --season "$SEASON" --rating-model hierarchical_hfa
+
+      # Publication/integration tests compare generated site output with the
+      # freshly rebuilt season. Run them here, not before ingest, so a stale or
+      # partial cache cannot block a legitimate new-game refresh before the new
+      # game has even been downloaded.
+      - name: Test publication gates
+        run: python -m unittest discover -s tests
 
       - name: Score weekly predictions
         run: python -m cfb_analytics.pipelines.weekly_predictions
