@@ -153,19 +153,19 @@ jobs:
       - name: Compile 2026 hierarchical HFA ratings and Advanced metrics
         run: python scripts/compile_site_data.py --season "$SEASON" --rating-model hierarchical_hfa
 
-      # Publication/integration tests compare generated site output with the
-      # freshly rebuilt season. Run them here, not before ingest, so a stale or
-      # partial cache cannot block a legitimate new-game refresh before the new
-      # game has even been downloaded.
-      - name: Test publication gates
-        run: python -m unittest discover -s tests
-
       - name: Score weekly predictions
         run: python -m cfb_analytics.pipelines.weekly_predictions
       - name: Score early-season predictions
         run: python -m cfb_analytics.pipelines.early_season_predictions publish
       - name: Export Next.js data
         run: python scripts/export_web_data.py
+
+      # Integration tests that compare against web/public/data must run after
+      # the freshly rebuilt candidate has been exported. Otherwise the first
+      # legitimate game of a new week is compared against yesterday's checked-in
+      # JSON and the refresh blocks itself simply because the new week exists.
+      - name: Test publication gates
+        run: python -m unittest discover -s tests
       - name: Audit every published season
         run: python scripts/validate_site_data.py
       # A newer, more experimental piece of the pipeline (a 2,000-trial Monte
@@ -199,7 +199,7 @@ jobs:
           NEW_GAME_COUNT: ${{ needs.detect-new-games.outputs.new_game_count }}
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "4189828+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           mkdir -p "prospective/$SEASON/predictions"
           git add "data/canonical/season=$SEASON" site/data.js site/search-index.js web/public/data "prospective/$SEASON/predictions"
           if git diff --staged --quiet; then
