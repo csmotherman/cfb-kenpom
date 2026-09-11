@@ -93,6 +93,66 @@ const preseasonPowerInflight = new Map<string, Promise<PreseasonPower | null>>()
 let metaPromise: Promise<SiteMeta> | null = null;
 let searchIndexPromise: Promise<SearchIndexEntry[]> | null = null;
 
+/**
+ * Rankings/Advanced are model snapshots, while the schedule is the calendar
+ * source of truth. A new college-football week can begin before a new FBS-vs-
+ * FBS result changes the rating graph. In that gap, expose the schedule's
+ * current week by carrying the most recent model snapshot forward. Weekly raw
+ * Advanced counts stay empty until games actually finish, so range stats never
+ * double-count the previous week.
+ */
+function extendRankingsToCurrentWeek(season: RankingsSeason, schedule: ScheduleSeason | null): RankingsSeason {
+  if (!schedule || season.weeks.length === 0) return season;
+  const lastPublishedWeek = season.weeks[season.weeks.length - 1];
+  const targetWeek = schedule.currentWeek;
+  if (targetWeek <= lastPublishedWeek) return season;
+
+  const byWeek = { ...season.byWeek };
+  const weeks = [...season.weeks];
+  const weekLabels = { ...season.weekLabels };
+  let previousRows = byWeek[String(lastPublishedWeek)] ?? [];
+
+  for (let week = lastPublishedWeek + 1; week <= targetWeek; week += 1) {
+    previousRows = previousRows.map((row) => ({
+      ...row,
+      rankChange: row.rank === null ? null : 0,
+    }));
+    byWeek[String(week)] = previousRows;
+    weeks.push(week);
+    const label = schedule.weekLabels?.[String(week)];
+    if (label) weekLabels[String(week)] = label;
+  }
+
+  return { ...season, weeks, weekLabels, byWeek };
+}
+
+function extendAdvancedToCurrentWeek(season: AdvancedSeason, schedule: ScheduleSeason | null): AdvancedSeason {
+  if (!schedule || season.weeks.length === 0) return season;
+  const lastPublishedWeek = season.weeks[season.weeks.length - 1];
+  const targetWeek = schedule.currentWeek;
+  if (targetWeek <= lastPublishedWeek) return season;
+
+  const byWeek = { ...season.byWeek };
+  const weeks = [...season.weeks];
+  const weekLabels = { ...season.weekLabels };
+  let previousRows = byWeek[String(lastPublishedWeek)] ?? [];
+
+  for (let week = lastPublishedWeek + 1; week <= targetWeek; week += 1) {
+    previousRows = previousRows.map((row) => ({
+      ...row,
+      // Snapshot values carry forward until the model is refit. Raw weekly
+      // counts must not carry forward or selected-week ranges would double-count.
+      wk: {},
+    }));
+    byWeek[String(week)] = previousRows;
+    weeks.push(week);
+    const label = schedule.weekLabels?.[String(week)];
+    if (label) weekLabels[String(week)] = label;
+  }
+
+  return { ...season, weeks, weekLabels, byWeek };
+}
+
 export function getMeta(): Promise<SiteMeta> {
   if (!metaPromise) metaPromise = fetchJson<SiteMeta>("/data/meta.json").catch((error) => { metaPromise = null; throw error; });
   return metaPromise;
@@ -113,12 +173,16 @@ export function getRankingsSeason(year: number | string): Promise<RankingsSeason
   if (cached) return Promise.resolve(cached);
   let entry = rankingsInflight.get(key);
   if (!entry) {
-    entry = fetchJson<RankingsSeason>(`/data/rankings/${key}.json`).then((season) => {
+    entry = Promise.all([
+      fetchJson<RankingsSeason>(`/data/rankings/${key}.json`),
+      getScheduleSeason(key),
+    ]).then(([season, schedule]) => {
+      const currentSeason = extendRankingsToCurrentWeek(season, schedule);
       dataErrors.delete(`rankings:${key}`);
-      rankingsData.set(key, season);
+      rankingsData.set(key, currentSeason);
       rankingsInflight.delete(key);
       notify();
-      return season;
+      return currentSeason;
     });
     entry = entry.catch((error: Error) => {
       rankingsInflight.delete(key);
@@ -198,12 +262,16 @@ export function getAdvancedSeason(year: number | string): Promise<AdvancedSeason
   if (cached) return Promise.resolve(cached);
   let entry = advancedInflight.get(key);
   if (!entry) {
-    entry = fetchPremiumJson<AdvancedSeason>(`/api/premium/advanced/${key}`).then((season) => {
+    entry = Promise.all([
+      fetchPremiumJson<AdvancedSeason>(`/api/premium/advanced/${key}`),
+      getScheduleSeason(key),
+    ]).then(([season, schedule]) => {
+      const currentSeason = extendAdvancedToCurrentWeek(season, schedule);
       dataErrors.delete(`advanced:${key}`);
-      advancedData.set(key, season);
+      advancedData.set(key, currentSeason);
       advancedInflight.delete(key);
       notify();
-      return season;
+      return currentSeason;
     });
     entry = entry.catch((error: Error) => {
       advancedInflight.delete(key);
