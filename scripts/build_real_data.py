@@ -126,15 +126,27 @@ def adjustment_confidence(games_played, ramp_games=None):
     return min(1.0, (games_played - 1) / (ramp_games - 1))
 
 
-def blend_edge(edge, league_mean, raw_rate, games_played, ramp_games=None):
+def blend_edge(edge, league_mean, raw_rate, games_played, ramp_games=None, flip_raw=False):
     """See adjustment_confidence. Below full confidence, the remainder of
     the blend is raw_rate minus league_mean -- the team's own raw rate
     expressed on the same deviation-from-average scale as the fitted edge,
-    not a fabricated partial adjustment."""
+    not a fabricated partial adjustment.
+
+    `flip_raw` must be True for a defense-side blend. iterative_ratings.py's
+    solver defines defense(opponent) = mean + offense(team) - value_allowed,
+    i.e. a defense's fitted edge is oriented higher-is-better (allowing less
+    produces a higher number) -- the opposite of raw_rate itself, which is
+    literally "opponent's production against you" (lower is better defense).
+    Blending those two together without flipping raw_rate first means the
+    two halves of the average are on opposite scales: early season (low
+    confidence, raw_rate dominates) reads backwards from a converged season
+    (high confidence, the fitted edge dominates), with the value crossing
+    zero and reversing meaning purely as a function of games played, not
+    actual defensive quality."""
     if not num(edge) or not num(league_mean) or not num(raw_rate):
         return None
     confidence = adjustment_confidence(games_played, ramp_games)
-    unadjusted_edge = raw_rate - league_mean
+    unadjusted_edge = (league_mean - raw_rate) if flip_raw else (raw_rate - league_mean)
     return confidence * edge + (1.0 - confidence) * unadjusted_edge
 
 
@@ -695,7 +707,10 @@ def build_year(year, rating_model):
 
         def metric_blend(spec, side, team, raw_rate, games_played):
             fit = metric_ratings.get(spec, {})
-            return blend_edge(fit.get(side, {}).get(team), fit.get("leagueMean"), raw_rate, games_played)
+            return blend_edge(
+                fit.get(side, {}).get(team), fit.get("leagueMean"), raw_rate, games_played,
+                flip_raw=(side == "defense"),
+            )
 
         week_rows = []
         for name, acc in cum.items():
