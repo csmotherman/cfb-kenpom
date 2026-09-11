@@ -79,9 +79,11 @@ jobs:
           cache: pip
       - run: pip install -e '.[models]'
 
-      # Restore the previous raw/processed 2026 corpus. If a cache is absent,
-      # the targeted ingest command below hydrates missing partitions before it
-      # refreshes the partitions that contain the newly completed games.
+      # Restore the previous raw/processed 2026 corpus. A successful v3 cache
+      # contains a marker proving it was bootstrapped from the complete season
+      # source corpus. Older v2 caches can contain only the partitions that were
+      # available to an earlier runner; rebuilding from one of those would drop
+      # already-published games when a new week begins.
       - uses: actions/cache@v4
         with:
           path: |
@@ -98,24 +100,34 @@ jobs:
       - name: Hydrate private premium history
         run: python scripts/hydrate_premium_data.py
 
-      # Refresh only the raw CFBD week partitions that actually contain new
-      # completed games. This downloads authoritative games, drives and PBP for
-      # those partitions; verified historical partitions remain cached.
+      # The first successful v3 run deliberately refreshes the complete CFBD
+      # season corpus once. After that, the marker is restored with the cache and
+      # normal runs only refresh partitions containing newly completed games.
+      # This prevents a legacy/partial cache from replacing a complete published
+      # season with fewer games.
       - name: Fetch games, drives and play-by-play for new games
         env:
           REFRESH_PARTITIONS: ${{ needs.detect-new-games.outputs.refresh_partitions }}
           NEW_GAME_COUNT: ${{ needs.detect-new-games.outputs.new_game_count }}
         run: |
-          args=()
-          for partition in $REFRESH_PARTITIONS; do
-            args+=(--refresh-partition "$partition")
-          done
-          if [ ${#args[@]} -eq 0 ]; then
-            echo "New games were reported but no source partitions were resolved." >&2
-            exit 1
+          CACHE_MARKER="data/raw/.refresh-cache-v3-complete"
+          if [ ! -f "$CACHE_MARKER" ]; then
+            echo "No trusted v3 season cache found; bootstrapping the complete $SEASON source corpus."
+            python -m cfb_analytics.pipelines.ingest --season "$SEASON" --force
+            mkdir -p "$(dirname "$CACHE_MARKER")"
+            touch "$CACHE_MARKER"
+          else
+            args=()
+            for partition in $REFRESH_PARTITIONS; do
+              args+=(--refresh-partition "$partition")
+            done
+            if [ ${#args[@]} -eq 0 ]; then
+              echo "New games were reported but no source partitions were resolved." >&2
+              exit 1
+            fi
+            echo "Refreshing $NEW_GAME_COUNT newly completed game(s) in: $REFRESH_PARTITIONS"
+            python -m cfb_analytics.pipelines.ingest --season "$SEASON" "${args[@]}"
           fi
-          echo "Refreshing $NEW_GAME_COUNT newly completed game(s) in: $REFRESH_PARTITIONS"
-          python -m cfb_analytics.pipelines.ingest --season "$SEASON" "${args[@]}"
 
       # From this point forward the complete 2026 season is rebuilt from the
       # refreshed raw corpus so every downstream metric/rating is internally
@@ -187,7 +199,7 @@ jobs:
           NEW_GAME_COUNT: ${{ needs.detect-new-games.outputs.new_game_count }}
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "4189828+github-actions[bot]@users.noreply.github.com"
           mkdir -p "prospective/$SEASON/predictions"
           git add "data/canonical/season=$SEASON" site/data.js site/search-index.js web/public/data "prospective/$SEASON/predictions"
           if git diff --staged --quiet; then
