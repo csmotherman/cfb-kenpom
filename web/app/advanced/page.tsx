@@ -73,6 +73,7 @@ const GENERAL_SECTIONS: AdvSection[] = [
     columns: [
       { key: "adjEM", label: "Adj. Net", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "rank", tooltip: "The exact Adj. Net rating and national rank from the Ratings page at the selected end week. Adj. Net = Adj. Off + Adj. Def." },
       { key: "asm", label: "ASM", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Adjusted Score Matrix: LEILA's opponent-adjusted scoring-margin rating (constrained least squares), with each game's margin capped at 28 points before fitting so blowouts can't dominate a team's number. A results-based counterpart to Adj. Net's process-based (EPA/Success/Explosiveness) rating." },
+      { key: "cfpChancePct", label: "CFP %", fmt: "pct1", rankable: true, kind: "snapshot", tooltip: "Live chance of making the 12-team College Football Playoff field, from a 2,000-trial Monte Carlo simulation of the rest of the season seeded with this week's in-season power, then calibrated against 11 real seasons (2014-2025) of actual outcomes so the percentage reflects real-world accuracy rather than raw model confidence. Conference championship games are simulated, not read from the real schedule, and the committee-selection rule is a statistical proxy validated against real 2024-2025 fields. Blank for past seasons -- this reflects only where things stand right now." },
     ],
   },
   {
@@ -143,15 +144,15 @@ const DEFENSE_SECTIONS: AdvSection[] = [
     title: "Overall",
     columns: [
       { key: "adjD", label: "Adj. Def", fmt: "signed2", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "adjDRank", tooltip: "The exact Adj. Def rating and national rank from the Ratings page at the selected end week." },
-      { key: "defYpp", label: "YPP Allowed", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["yppNumA"], den: ["yppDenA"], tooltip: "Yards per play allowed in the selected weeks (raw). Lower is better." },
-      { key: "defSuccess", label: "Success Allowed", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["successNumA"], den: ["successDenA"], tooltip: "Opponent success rate allowed in the selected weeks (raw). Lower is better." },
+      { key: "defYpp", label: "YPP", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["yppNumA"], den: ["yppDenA"], tooltip: "Yards per play allowed in the selected weeks (raw). Lower is better." },
+      { key: "defSuccess", label: "Success", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["successNumA"], den: ["successDenA"], tooltip: "Opponent success rate allowed in the selected weeks (raw). Lower is better." },
     ],
   },
   {
     title: "Opponent Style",
     columns: [
-      { key: "defPassSuccess", label: "Pass SR Allowed", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["passSuccessNumA"], den: ["passSuccessDenA"], tooltip: "Passing success rate allowed in the selected weeks (raw). Lower is better." },
-      { key: "defRushSuccess", label: "Rush SR Allowed", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["rushSuccessNumA"], den: ["rushSuccessDenA"], tooltip: "Rushing success rate allowed in the selected weeks (raw). Lower is better." },
+      { key: "defPassSuccess", label: "Pass SR", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["passSuccessNumA"], den: ["passSuccessDenA"], tooltip: "Passing success rate allowed in the selected weeks (raw). Lower is better." },
+      { key: "defRushSuccess", label: "Rush SR", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["rushSuccessNumA"], den: ["rushSuccessDenA"], tooltip: "Rushing success rate allowed in the selected weeks (raw). Lower is better." },
       { key: "defPassRate", label: "Pass | Run", fmt: "split0", kind: "rate", num: ["dropbacksFaced"], den: ["dropbacksFaced", "rushAttemptsFaced"], tooltip: "Opponent tendency against this defense in the selected weeks." },
     ],
   },
@@ -159,7 +160,7 @@ const DEFENSE_SECTIONS: AdvSection[] = [
     title: "Explosiveness",
     columns: [
       { key: "defExp", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted explosiveness-suppression edge. Higher is better." },
-      { key: "defExpRaw", label: "Allowed %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["explosiveNumA"], den: ["explosiveDenA"], tooltip: "Explosive-play rate allowed in the selected weeks (raw). Lower is better." },
+      { key: "defExpRaw", label: "Expl %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["explosiveNumA"], den: ["explosiveDenA"], tooltip: "Explosive-play rate allowed in the selected weeks (raw). Lower is better." },
     ],
   },
   {

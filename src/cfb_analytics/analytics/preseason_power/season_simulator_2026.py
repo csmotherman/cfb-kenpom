@@ -1,24 +1,38 @@
 """Full-season Monte Carlo CFP simulator for 2026.
 
-Holds each team's PRESEASON power fixed for the whole season, same explicit
-design choice as season_2026.py (no in-season updating -- that would be a
-different, in-season model, out of scope here). Every trial draws one shared
-residual per scheduled game (so within a trial, both teams see the same game
-result -- necessary for conference standings to be internally consistent),
-then resolves conference standings, synthesizes conference championship games,
-scores every team's simulated resume with the same features/model as
-historical_cfp_selection.py, and applies the 2026 CFP AQ + seeding rule
-(standings.apply_aq_and_seed). Aggregated across n_sims trials this produces
-each team's empirical probability of making the field, winning its
-conference, and earning a bye -- not a single point prediction.
+By default (simulate_season() called with no overrides) holds each team's
+PRESEASON power fixed for the whole season, same explicit design choice as
+season_2026.py. `simulate_season(predicted_margin=..., schedule=...,
+power=...)` lets a caller substitute its own per-game margin prediction and
+per-team power scalar instead -- see scripts/publish_cfp_chance.py, which
+feeds this a live, in-season power source
+(cfb_analytics.analytics.preseason_power.live_power) so the simulation
+updates every refresh instead of staying frozen at week 0. Whichever power
+source is used, it is still resolved once per call, never re-derived inside
+individual Monte Carlo trials -- only game *outcomes* are randomized per
+trial (the residual draw), never a team's underlying power.
+
+Every trial draws one shared residual per scheduled game (so within a trial,
+both teams see the same game result -- necessary for conference standings to
+be internally consistent), then resolves conference standings, synthesizes
+conference championship games, scores every team's simulated resume with the
+same features/model as historical_cfp_selection.py, and applies the 2026 CFP
+AQ + seeding rule (standings.apply_aq_and_seed). Aggregated across n_sims
+trials this produces each team's empirical probability of making the field,
+winning its conference, and earning a bye -- not a single point prediction.
 
 Known limitations (see docs/CFP_2026_SEASON_SIMULATOR_RESEARCH.md for detail):
-power held constant all season; the 2026 schedule pull is missing weeks 14-15
-as of ingestion (see season_schedule_2026.py); conference tiebreakers are a
-documented simplification (standings.py); the resume/committee model is a
-statistical proxy validated only via leave-one-season-out on real history
+the 2026 schedule pull is missing weeks 14-15 as of ingestion (see
+season_schedule_2026.py) -- an upstream CFBD calendar-availability gap that
+self-heals as the season progresses, and doesn't affect conference
+championship games either way since those are always simulated, never read
+from that schedule; conference tiebreakers are a documented simplification
+(standings.py); the resume/committee model is a statistical proxy validated
+only via leave-one-season-out on real history
 (docs/HISTORICAL_CFP_SELECTION_MODEL.md) and via validate_field_selection.py's
-machinery check against 2024/2025; independents have no conference-title path.
+machinery check against 2024/2025 (the 2026-specific AQ rule itself has no
+completed season to validate against yet); independents have no
+conference-title path.
 """
 from __future__ import annotations
 
@@ -36,31 +50,67 @@ from .standings import apply_aq_and_seed, conference_standings, simulate_champio
 TARGET_SEASON = 2026
 
 
-def _build_inputs():
-    ratings, coef = build_2026_ratings()
-    power = {r["team"]: r["power_score_full_model"] for r in ratings if r["power_score_full_model"] is not None}
+def _build_inputs(schedule: list[dict] | None = None, power: dict[str, float] | None = None):
+    # build_2026_ratings() re-derives preseason power from raw recruiting/QB-
+    # continuity/roster inputs (an expensive, fit-once-per-season ridge fit --
+    # see early_season_predictions.py's freeze/load_frozen split for the
+    # pattern this should really follow). Only pay for it when a caller
+    # hasn't already supplied both the schedule and the power dict -- e.g.
+    # publish_cfp_chance.py supplies its own live power and has no use for
+    # this module's frozen-preseason estimate at all.
+    coef: dict[str, float] = {}
+    preseason_power: dict[str, float] = {}
+    if schedule is None or power is None:
+        ratings, coef = build_2026_ratings()
+        preseason_power = {r["team"]: r["power_score_full_model"] for r in ratings if r["power_score_full_model"] is not None}
+    if power is None:
+        power = preseason_power
 
     registry = build_feature_registry(shrinkage=0.0)
     preds, _ = walk_forward_predict(FINAL_FEATURES, registry, alpha=5.0)
     residual_pool = np.array([p.predicted_margin - p.actual_margin for p in preds])
 
     team_conf = load_team_conferences(TARGET_SEASON)
-    schedule = [g for g in load_full_2026_schedule() if g["home"] in power and g["away"] in power]
+    if schedule is None:
+        schedule = [g for g in load_full_2026_schedule() if g["home"] in preseason_power and g["away"] in preseason_power]
 
     scaler, model = fit_resume_model(load_historical_resume_rows())
     return power, coef, residual_pool, team_conf, schedule, scaler, model
 
 
-def simulate_season(n_sims: int = 2000, seed: int = 17) -> dict:
-    power, coef, residual_pool, team_conf, schedule, scaler, model = _build_inputs()
+def simulate_season(
+    n_sims: int = 2000,
+    seed: int = 17,
+    *,
+    predicted_margin: np.ndarray | None = None,
+    schedule: list[dict] | None = None,
+    power: dict[str, float] | None = None,
+) -> dict:
+    """`predicted_margin`/`schedule`/`power` let a caller supply its own
+    per-game margin prediction and per-team power scalar (e.g.
+    publish_cfp_chance.py's live, in-season power -- see live_power.py)
+    instead of this module's own frozen-preseason-power estimate.
+    `predicted_margin` drives every real scheduled game; `power` drives only
+    the synthesized conference-championship games inside each trial
+    (standings.simulate_championship_games needs a single scalar per team,
+    not a pairwise blend -- see live_power.effective_power for how the
+    caller derives one). Everything else -- residual draws, standings/AQ
+    resolution, resume scoring -- is unchanged either way. Omitting all three
+    reproduces the original frozen-preseason-power behavior exactly."""
+    power, coef, residual_pool, team_conf, schedule, scaler, model = _build_inputs(schedule=schedule, power=power)
     all_teams = sorted(team_conf.keys())
-    hfa = coef[HOME_FIELD_FEATURE]
     n_games = len(schedule)
 
-    home_power = np.array([power[g["home"]] for g in schedule])
-    away_power = np.array([power[g["away"]] for g in schedule])
-    neutral = np.array([g["neutral"] for g in schedule])
-    predicted_margin = home_power - away_power + np.where(neutral, 0.0, hfa)
+    if predicted_margin is None:
+        hfa = coef[HOME_FIELD_FEATURE]
+        home_power = np.array([power[g["home"]] for g in schedule])
+        away_power = np.array([power[g["away"]] for g in schedule])
+        neutral = np.array([g["neutral"] for g in schedule])
+        predicted_margin = home_power - away_power + np.where(neutral, 0.0, hfa)
+    else:
+        predicted_margin = np.asarray(predicted_margin, dtype=float)
+        if predicted_margin.shape != (n_games,):
+            raise ValueError(f"predicted_margin must have shape ({n_games},), got {predicted_margin.shape}")
 
     # Games already played (real, current-season results pulled at simulation time) are held
     # fixed at their actual margin in every trial, not simulated -- only games that haven't
@@ -92,17 +142,22 @@ def simulate_season(n_sims: int = 2000, seed: int = 17) -> dict:
             margin = float(simulated_margin[trial, gi])
             home_id = team_conf[g["home"]]["team_id"]
             away_id = team_conf[g["away"]]["team_id"]
+            # classification="fbs" is required by historical_cfp_selection.build_resume_rows
+            # (added there to drop the FCS side's own row from an FBS-vs-FCS game -- see its
+            # "Fix FCS teams leaking into historical CFP resume model" fix). Every game in this
+            # schedule is already FBS-vs-FBS (season_schedule_2026 filters to homeClassification
+            # == awayClassification == "fbs"), so this is always correct here, never a guess.
             rows.append({
                 "team": g["home"], "team_id": home_id, "opponent": g["away"], "opponent_id": away_id,
                 "conference": g["home_conference"], "opponent_conference": g["away_conference"],
                 "win": int(hw), "loss": int(not hw), "points_for": margin, "points_against": 0.0,
-                "season_type": "regular",
+                "season_type": "regular", "classification": "fbs",
             })
             rows.append({
                 "team": g["away"], "team_id": away_id, "opponent": g["home"], "opponent_id": home_id,
                 "conference": g["away_conference"], "opponent_conference": g["home_conference"],
                 "win": int(not hw), "loss": int(hw), "points_for": -margin, "points_against": 0.0,
-                "season_type": "regular",
+                "season_type": "regular", "classification": "fbs",
             })
             team_wins[g["home"]] += 1 if hw else 0
             team_wins[g["away"]] += 0 if hw else 1

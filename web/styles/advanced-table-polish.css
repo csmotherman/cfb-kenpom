@@ -304,6 +304,46 @@ body:has(#advancedTable) #advancedTable .adv-table .sort-indicator {
   }
 }
 
+/* Defense carries the most metric columns of any static tab (12, vs. General's
+   5), which pushes its natural width well past the container's max width even
+   on wide monitors. Trim its desktop footprint -- identity columns, cell
+   padding, floor widths, and the tooltip icon -- so it fits without a
+   horizontal scrollbar on common laptop widths instead of only on very wide
+   screens. Scoped to data-view="defense" so no other tab's density changes. */
+@media (min-width: 641px) {
+  body:has(#advancedTable) #advancedTable .adv-table[data-view="defense"] .team-cell {
+    width: 148px;
+    min-width: 148px;
+    max-width: 148px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table[data-view="defense"] .record-cell {
+    width: 46px;
+    min-width: 46px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table[data-view="defense"] .adv-section-spacer {
+    width: 238px;
+    min-width: 238px;
+    max-width: 238px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table[data-view="defense"] .metric-cell {
+    min-width: 68px;
+    padding-inline: 5px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table[data-view="defense"] [data-metric-key="defPassRate"] {
+    min-width: 88px;
+  }
+
+  body:has(#advancedTable) #advancedTable .adv-table[data-view="defense"] .tip-trigger {
+    width: 11px;
+    height: 11px;
+    margin-left: 3px;
+  }
+}
+
 @media (max-width: 1120px) {
   body:has(#advancedTable) .advanced-tab-bar {
     grid-template-columns: minmax(0, 1fr) max-content;

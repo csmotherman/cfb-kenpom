@@ -169,6 +169,12 @@ jobs:
         run: python scripts/export_web_data.py
       - name: Audit every published season
         run: python scripts/validate_site_data.py
+      # A newer, more experimental piece of the pipeline (a 2,000-trial Monte
+      # Carlo CFP simulation) than everything above -- a failure here must
+      # never block the core ratings/predictions refresh from publishing.
+      - name: Publish live CFP chance into Advanced Analytics
+        run: python scripts/publish_cfp_chance.py --season "$SEASON"
+        continue-on-error: true
       - name: Publish refreshed 2026 premium data to Supabase
         run: python scripts/publish_premium_data.py --season "$SEASON"
 

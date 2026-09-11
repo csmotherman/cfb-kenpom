@@ -63,6 +63,10 @@ export type AdvancedRow = {
   // process-based (EPA/Success/Explosiveness) composite -- see the
   // methodology page.
   asm: number | null;
+  // CFP make-the-field chance (0-1 fraction), from a live Monte Carlo season
+  // simulation seeded with this week's in-season power. Live-season-only:
+  // null for every past (completed) season and every week but the latest.
+  cfpChancePct?: number | null;
   fieldPos: number | null;
   off: number | null;
   def: number | null;
