@@ -203,7 +203,9 @@ function advancedRank(
 function marginValue(row: AdvancedRow | undefined, offenseKey: keyof AdvancedRow, defenseKey: keyof AdvancedRow): number | null {
   const offense = advancedNumber(row, offenseKey);
   const defense = advancedNumber(row, defenseKey);
-  return offense === null || defense === null ? null : offense - defense;
+  // Both offense and defense-allowed edges are oriented higher-is-better,
+  // so a team's combined margin is their sum, not offense minus defense.
+  return offense === null || defense === null ? null : offense + defense;
 }
 
 function marginRank(
@@ -432,7 +434,7 @@ function TeamProfile({ slug }: { slug: string }) {
                 rows={advancedRows}
                 sections={EPA_SECTIONS}
                 formatter={(value) => signed(value, 3)}
-                note="Opponent-adjusted, confidence-weighted EPA. Defense is EPA allowed, so lower is better. Margin = offense minus defense allowed."
+                note="Opponent-adjusted, confidence-weighted EPA. Both offense and defense are oriented higher-is-better. Margin = offense plus defense allowed."
               />
             ) : tab === "success" ? (
               <EdgeTable
@@ -441,7 +443,7 @@ function TeamProfile({ slug }: { slug: string }) {
                 rows={advancedRows}
                 sections={SUCCESS_SECTIONS}
                 formatter={(value) => signed(value, 2)}
-                note="Opponent-adjusted, confidence-weighted success-rate edge. Defense allowed is lower-is-better. Margin = offense minus defense allowed."
+                note="Opponent-adjusted, confidence-weighted success-rate edge. Both offense and defense are oriented higher-is-better. Margin = offense plus defense allowed."
               />
             ) : (
               <ScheduleTab
@@ -507,7 +509,7 @@ function TeamProfile({ slug }: { slug: string }) {
         </section>
       </main>
 
-      <SiteFooter note="Team profiles use LEILA's latest published season snapshot. Rank colors are based on national rank among teams with available data. Defensive EPA and success values are allowed values, so lower is better. Schedule links open the corresponding pregame matchup page." />
+      <SiteFooter note="Team profiles use LEILA's latest published season snapshot. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Adj. Def. Schedule links open the corresponding pregame matchup page." />
     </>
   );
 }
@@ -572,11 +574,11 @@ function OverviewTab({
   }
 
   const epaOff = advancedRank(advancedRows, slug, "epaAdj");
-  const epaDef = advancedRank(advancedRows, slug, "epaAdjAllowed", true);
+  const epaDef = advancedRank(advancedRows, slug, "epaAdjAllowed");
   const passOff = advancedRank(advancedRows, slug, "passEpaAdj");
-  const passDef = advancedRank(advancedRows, slug, "passEpaAdjAllowed", true);
+  const passDef = advancedRank(advancedRows, slug, "passEpaAdjAllowed");
   const rushOff = advancedRank(advancedRows, slug, "rushEpaAdj");
-  const rushDef = advancedRank(advancedRows, slug, "rushEpaAdjAllowed", true);
+  const rushDef = advancedRank(advancedRows, slug, "rushEpaAdjAllowed");
 
   const offense: GroupMetric[] = [
     { label: "EPA / Play", value: signed(advanced.epaAdj, 3), rank: epaOff.rank, totalTeams: epaOff.total },
@@ -762,7 +764,7 @@ function defenseGroups(
   totalRated: number,
 ): MetricGroup[] {
   if (!stats) return [];
-  const epa = advancedRank(advancedRows, slug, "epaAdjAllowed", true);
+  const epa = advancedRank(advancedRows, slug, "epaAdjAllowed");
 
   return [
     {
@@ -854,7 +856,7 @@ function EdgeTable({
               const defenseValue = advancedNumber(row, metric.defenseKey);
               const margin = marginValue(row, metric.offenseKey, metric.defenseKey);
               const offenseRank = advancedRank(rows, row.slug, metric.offenseKey);
-              const defenseRank = advancedRank(rows, row.slug, metric.defenseKey, true);
+              const defenseRank = advancedRank(rows, row.slug, metric.defenseKey);
               const marginInfo = marginRank(rows, row.slug, metric.offenseKey, metric.defenseKey);
               return (
                 <div className="team-v2-edge-row" role="row" key={`${section.title}-${metric.label}`}>

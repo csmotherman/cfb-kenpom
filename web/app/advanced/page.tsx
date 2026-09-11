@@ -252,9 +252,8 @@ function pairedSections(source: MetricSection[], perspective: Perspective): AdvS
         fmt,
         primary: sectionIndex === 0 && metricIndex === 0 && perspective === "defense",
         rankable: true,
-        lowerBetter: true,
         kind: "snapshot",
-        tooltip: `${metric.tip} Defense allowed. Lower is better. ${CONFIDENCE_TIP}`,
+        tooltip: `${metric.tip} Defense allowed, opponent-adjusted. Higher is better (same orientation as Adj. Def). ${CONFIDENCE_TIP}`,
       };
       const margin: AdvColumn = {
         key: `${metric.prefix}Margin`,
@@ -263,7 +262,7 @@ function pairedSections(source: MetricSection[], perspective: Perspective): AdvS
         primary: sectionIndex === 0 && metricIndex === 0 && perspective === "margin",
         rankable: true,
         kind: "snapshot",
-        tooltip: `${metric.tip} Margin = offense adjusted value minus defense adjusted allowed value. Higher is better. ${CONFIDENCE_TIP}`,
+        tooltip: `${metric.tip} Margin = offense adjusted value plus defense adjusted allowed value (both already oriented higher-is-better). Higher is better. ${CONFIDENCE_TIP}`,
       };
       if (perspective === "offense") return [offense];
       if (perspective === "defense") return [defense];
@@ -300,10 +299,10 @@ function specialTab(key: "epa" | "successRate", perspective: Perspective): Tab {
   const directionNote = perspective === "offense"
     ? "Offense: higher is better."
     : perspective === "defense"
-      ? "Defense: lower is better."
+      ? "Defense: higher is better."
       : perspective === "margin"
-        ? "Margin = offense adjusted value minus defense adjusted allowed value. Higher is better."
-        : "Offense: higher is better. Defense: lower is better.";
+        ? "Margin = offense adjusted value plus defense adjusted allowed value (both already oriented higher-is-better). Higher is better."
+        : "Offense: higher is better. Defense: higher is better.";
   return {
     label: isEpa ? "EPA" : "Success Rate",
     primaryKey,
@@ -459,7 +458,7 @@ export default function AdvancedPage() {
         const defenseAllowedValue = out[`${metric.prefix}AdjAllowed`] as number | null;
         out[`${metric.prefix}Margin`] = na(offenseValue) || na(defenseAllowedValue)
           ? null
-          : offenseValue - defenseAllowedValue;
+          : offenseValue + defenseAllowedValue;
       });
       return out;
     });

@@ -333,7 +333,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
         </div>
       </main>
 
-      <SiteFooter note="Matchup pages use the most recent LEILA rating snapshot strictly before the selected game week. Rank colors are based on national rank among teams with available data. Defensive EPA and success values are allowed values, so lower is better." />
+      <SiteFooter note="Matchup pages use the most recent LEILA rating snapshot strictly before the selected game week. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Adj. Def." />
     </>
   );
 }
@@ -491,7 +491,7 @@ function teamSideRows({
   ): SideRow => ({
     label,
     offense: advancedDatum(advanced, advancedRows, slug, offenseKey, false, formatter),
-    defense: advancedDatum(advanced, advancedRows, slug, defenseKey, true, formatter),
+    defense: advancedDatum(advanced, advancedRows, slug, defenseKey, false, formatter),
   });
 
   return [
@@ -529,8 +529,8 @@ function headlineComparisonRows({
 }): HeadlineRow[] {
   const awayEpaOff = advancedDatum(awayAdvanced, advancedRows, awaySlug, "epaAdj", false, (value) => signed(value, 3));
   const homeEpaOff = advancedDatum(homeAdvanced, advancedRows, homeSlug, "epaAdj", false, (value) => signed(value, 3));
-  const awayEpaDef = advancedDatum(awayAdvanced, advancedRows, awaySlug, "epaAdjAllowed", true, (value) => signed(value, 3));
-  const homeEpaDef = advancedDatum(homeAdvanced, advancedRows, homeSlug, "epaAdjAllowed", true, (value) => signed(value, 3));
+  const awayEpaDef = advancedDatum(awayAdvanced, advancedRows, awaySlug, "epaAdjAllowed", false, (value) => signed(value, 3));
+  const homeEpaDef = advancedDatum(homeAdvanced, advancedRows, homeSlug, "epaAdjAllowed", false, (value) => signed(value, 3));
 
   return [
     {
