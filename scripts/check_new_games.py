@@ -1,11 +1,11 @@
 """Lightweight freshness gate for the live-season refresh workflow.
 
 The normal hourly path fetches only CFBD game metadata and refreshes when a
-completed FBS-participant game is new *or* when a previously published final
-score/partition changed. A daily recent-week sweep can additionally force the
-latest source partitions to be re-fetched so silent drive/PBP corrections are
-not missed just because the final score stayed the same. Manual full sweeps are
-supported for recovery/audits.
+completed FBS-participant game is new, when a previously published final score
+or source partition changes, or when upcoming schedule metadata changes. A
+daily recent-week sweep additionally forces the latest source partitions to be
+re-fetched so silent drive/PBP corrections are not missed when the final score
+stays the same. Manual full sweeps are supported for recovery/audits.
 """
 from __future__ import annotations
 
@@ -35,12 +35,6 @@ def known_game_ids(path: Path) -> set[str]:
 
 
 def published_schedule(path: Path) -> dict[str, dict]:
-    """Return the committed public schedule keyed by game ID.
-
-    This is deliberately used in addition to canonical team-games: canonical is
-    the processed-ID ledger, while schedule contains the final score and source
-    partition needed to detect upstream metadata corrections.
-    """
     if not path.exists():
         return {}
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -56,9 +50,8 @@ def published_schedule(path: Path) -> dict[str, dict]:
     return out
 
 
-def completed_source_games(client: CfbdClient, season: int) -> list[dict]:
-    # /games supports a season-wide query. This intentionally avoids drives and
-    # plays calls so the normal no-change hourly check stays cheap.
+def source_games(client: CfbdClient, season: int) -> list[dict]:
+    """Fetch season-wide game metadata only; no drives/PBP calls here."""
     response = client.get_json("/games", {"year": season, "classification": "fbs"})
     if not isinstance(response.payload, list):
         raise ValueError(f"Unexpected CFBD games payload for {season}")
@@ -66,13 +59,12 @@ def completed_source_games(client: CfbdClient, season: int) -> list[dict]:
         game
         for game in response.payload
         if isinstance(game, dict)
-        and game.get("completed") is True
         and game.get("id") is not None
         and has_fbs_participant(game)
     ]
     ids = [str(game["id"]) for game in games]
     if len(ids) != len(set(ids)):
-        raise ValueError("CFBD returned duplicate completed game IDs")
+        raise ValueError("CFBD returned duplicate game IDs")
     return games
 
 
@@ -80,7 +72,7 @@ def partition_key(game: dict) -> str:
     season_type = str(game.get("seasonType") or game.get("season_type") or "regular").lower()
     week = game.get("week")
     if week is None:
-        raise ValueError(f"Completed game {game.get('id')} has no week")
+        raise ValueError(f"Game {game.get('id')} has no source week")
     return f"{season_type}:{int(week)}"
 
 
@@ -95,21 +87,64 @@ def score_pair(game: dict) -> tuple[int | None, int | None]:
     return value("homePoints", "home_points"), value("awayPoints", "away_points")
 
 
-def metadata_changed(remote: dict, local: dict | None) -> bool:
+def first(game: dict, *keys: str):
+    for key in keys:
+        if key in game:
+            return game.get(key)
+    return None
+
+
+def completed_metadata_changed(remote: dict, local: dict | None) -> bool:
     if local is None:
         return False
     remote_score = score_pair(remote)
     local_score = score_pair(local)
     if None not in remote_score and remote_score != local_score:
         return True
-    remote_type = str(remote.get("seasonType") or remote.get("season_type") or "regular").lower()
-    local_type = str(local.get("seasonType") or local.get("season_type") or "regular").lower()
+    remote_type = str(first(remote, "seasonType", "season_type") or "regular").lower()
+    local_type = str(first(local, "seasonType", "season_type") or "regular").lower()
     try:
         remote_week = int(remote.get("week"))
-        local_week = int(local.get("week"))
     except (TypeError, ValueError):
         return True
-    return remote_type != local_type or remote_week != local_week or local.get("completed") is not True
+    # Public schedule week is the reconstructed site week, so never compare its
+    # numeric value to CFBD's source week here. Source-partition changes are
+    # caught through schedule metadata changes / the selected remote partition.
+    return remote_type != local_type or local.get("completed") is not True
+
+
+def schedule_metadata_changed(remote: dict, local: dict | None) -> bool:
+    """Detect user-visible schedule corrections for both future and final games."""
+    if local is None:
+        return True
+
+    remote_start = first(remote, "startDate", "start_date")
+    local_start = first(local, "startDate", "start_date")
+    remote_tbd = bool(first(remote, "startTimeTBD", "start_time_tbd") or False)
+    local_tbd = bool(first(local, "startTimeTBD", "start_time_tbd") or False)
+    remote_venue = first(remote, "venue")
+    if isinstance(remote_venue, dict):
+        remote_venue = remote_venue.get("name")
+    local_venue = first(local, "venue")
+
+    remote_home = first(remote, "homeId", "home_id")
+    remote_away = first(remote, "awayId", "away_id")
+    local_home = first(local, "homeTeamId", "home_id")
+    local_away = first(local, "awayTeamId", "away_id")
+
+    if remote_start is not None and str(remote_start) != str(local_start):
+        return True
+    if remote_tbd != local_tbd:
+        return True
+    if remote_venue is not None and local_venue is not None and str(remote_venue) != str(local_venue):
+        return True
+    if remote_home is not None and local_home is not None and int(remote_home) != int(local_home):
+        return True
+    if remote_away is not None and local_away is not None and int(remote_away) != int(local_away):
+        return True
+    if bool(remote.get("completed") is True) != bool(local.get("completed") is True):
+        return True
+    return False
 
 
 def write_output(name: str, value: str) -> None:
@@ -122,16 +157,8 @@ def write_output(name: str, value: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--season", type=int, default=2026)
-    parser.add_argument(
-        "--canonical",
-        type=Path,
-        help="Override the canonical team-games JSON used as the processed-game ledger.",
-    )
-    parser.add_argument(
-        "--schedule",
-        type=Path,
-        help="Override the committed public schedule used to detect final-score corrections.",
-    )
+    parser.add_argument("--canonical", type=Path)
+    parser.add_argument("--schedule", type=Path)
     parser.add_argument(
         "--refresh-recent",
         action="store_true",
@@ -150,21 +177,27 @@ def main() -> None:
     published = published_schedule(schedule_path)
 
     with CfbdClient() as client:
-        completed = completed_source_games(client, args.season)
+        all_games = source_games(client, args.season)
 
-    new_games = [game for game in completed if str(game["id"]) not in known]
-    corrected_games = [
+    completed = [game for game in all_games if game.get("completed") is True]
+    new_completed = [game for game in completed if str(game["id"]) not in known]
+    corrected_completed = [
         game for game in completed
-        if str(game["id"]) in known and metadata_changed(game, published.get(str(game["id"])))
+        if str(game["id"]) in known and completed_metadata_changed(game, published.get(str(game["id"])))
+    ]
+    schedule_changes = [
+        game for game in all_games
+        if schedule_metadata_changed(game, published.get(str(game["id"])))
     ]
 
-    selected = {str(game["id"]): game for game in new_games + corrected_games}
+    selected = {
+        str(game["id"]): game
+        for game in new_completed + corrected_completed + schedule_changes
+    }
 
     if args.refresh_all_completed:
         selected.update({str(game["id"]): game for game in completed})
     elif args.refresh_recent and completed:
-        # Source-week numbers, not site-week numbers: ingest refreshes CFBD
-        # partitions. Keep postseason/regular-season scopes independent.
         by_type: dict[str, list[int]] = {}
         for game in completed:
             season_type, week_text = partition_key(game).split(":", 1)
@@ -182,17 +215,18 @@ def main() -> None:
         selected.values(), key=lambda game: (int(game.get("week") or 0), str(game["id"]))
     )
     partitions = sorted({partition_key(game) for game in changed_games})
-    new_ids = sorted(str(game["id"]) for game in new_games)
-    corrected_ids = sorted(str(game["id"]) for game in corrected_games)
+    new_ids = sorted(str(game["id"]) for game in new_completed)
+    corrected_ids = sorted(str(game["id"]) for game in corrected_completed)
+    schedule_ids = sorted(str(game["id"]) for game in schedule_changes)
 
     has_changes = bool(changed_games)
     write_output("data_changes", "true" if has_changes else "false")
-    # Backward-compatible output for callers not yet migrated.
-    write_output("new_games", "true" if new_games else "false")
-    write_output("new_game_count", str(len(new_games)))
+    write_output("new_games", "true" if new_completed else "false")
+    write_output("new_game_count", str(len(new_completed)))
     write_output("changed_game_count", str(len(changed_games)))
     write_output("new_game_ids", ",".join(new_ids))
     write_output("corrected_game_ids", ",".join(corrected_ids))
+    write_output("schedule_changed_game_ids", ",".join(schedule_ids))
     write_output("refresh_partitions", " ".join(partitions))
 
     if not has_changes:
@@ -203,17 +237,17 @@ def main() -> None:
         return
 
     reasons = []
-    if new_games:
-        reasons.append(f"{len(new_games)} new completed")
-    if corrected_games:
-        reasons.append(f"{len(corrected_games)} corrected")
+    if new_completed:
+        reasons.append(f"{len(new_completed)} new completed")
+    if corrected_completed:
+        reasons.append(f"{len(corrected_completed)} corrected final")
+    if schedule_changes:
+        reasons.append(f"{len(schedule_changes)} schedule metadata change(s)")
     if args.refresh_recent:
         reasons.append("daily recent-partition sweep")
     if args.refresh_all_completed:
         reasons.append("manual full completed-partition sweep")
     print(f"Refresh required for {args.season}: " + ", ".join(reasons) + ".")
-    if corrected_ids:
-        print("Corrected game IDs: " + ",".join(corrected_ids))
     print("Refresh partitions: " + " ".join(partitions))
 
 
