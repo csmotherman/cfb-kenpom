@@ -140,11 +140,14 @@ def schedule_metadata_changed(remote: dict, local: dict | None) -> bool:
         return True
     if remote_tbd != local_tbd:
         return True
-    if remote_venue is not None and local_venue is not None and str(remote_venue) != str(local_venue):
+    # CFBD can fill fields that were previously unknown without changing the
+    # game's ID. Treat a newly known venue or participant ID as a real schedule
+    # correction, while a transient remote null does not erase known local data.
+    if remote_venue is not None and str(remote_venue) != str(local_venue):
         return True
-    if remote_home is not None and local_home is not None and int(remote_home) != int(local_home):
+    if remote_home is not None and (local_home is None or int(remote_home) != int(local_home)):
         return True
-    if remote_away is not None and local_away is not None and int(remote_away) != int(local_away):
+    if remote_away is not None and (local_away is None or int(remote_away) != int(local_away)):
         return True
     if bool(remote.get("completed") is True) != bool(local.get("completed") is True):
         return True
