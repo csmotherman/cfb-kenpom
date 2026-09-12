@@ -238,7 +238,8 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
         working-directory: web
-      - run: npm run lint && npm run build
+      - name: Lint and build Next.js production app
+        run: npm run lint && npm run build
         working-directory: web
 
       - name: Publish live CFP chance into Advanced Analytics candidate
