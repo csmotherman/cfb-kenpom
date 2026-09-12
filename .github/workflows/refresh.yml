@@ -7,12 +7,18 @@ on:
     paths:
       - ".github/workflows/refresh.yml"
   schedule:
-    # New-game detection is intentionally cheap: it only checks CFBD game
-    # metadata. Run it hourly so a game that CFBD marks complete after midnight
-    # is picked up on the next pass instead of leaving the site stale all day.
-    # Minute 17 avoids the busiest top-of-hour GitHub Actions scheduling window.
+    # Cheap metadata check every hour for newly completed or corrected games.
     - cron: "17 * * * *"
+    # Once daily, re-pull the latest two completed CFBD source weeks so silent
+    # drive/PBP corrections are eventually incorporated even when scores do not change.
+    - cron: "43 9 * * *"
   workflow_dispatch:
+    inputs:
+      full_refresh:
+        description: "Re-fetch every completed 2026 source partition"
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: refresh-rankings-data
@@ -33,20 +39,23 @@ jobs:
     outputs:
       should_run: ${{ steps.gate.outputs.should_run }}
     steps:
-      - name: Allow hourly and manual new-game checks
+      - name: Allow scheduled and manual source checks
         id: gate
         run: |
           echo "should_run=true" >> "$GITHUB_OUTPUT"
-          echo "Running new-game detection. The expensive refresh remains gated on finding a newly completed game." >> "$GITHUB_STEP_SUMMARY"
+          echo "Running source-freshness detection. Expensive rebuild work remains gated on an actual refresh partition." >> "$GITHUB_STEP_SUMMARY"
 
   detect-new-games:
     needs: schedule-gate
     if: needs.schedule-gate.outputs.should_run == 'true' && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     outputs:
+      data_changes: ${{ steps.detect.outputs.data_changes }}
       new_games: ${{ steps.detect.outputs.new_games }}
       new_game_count: ${{ steps.detect.outputs.new_game_count }}
+      changed_game_count: ${{ steps.detect.outputs.changed_game_count }}
       new_game_ids: ${{ steps.detect.outputs.new_game_ids }}
+      corrected_game_ids: ${{ steps.detect.outputs.corrected_game_ids }}
       refresh_partitions: ${{ steps.detect.outputs.refresh_partitions }}
     steps:
       - uses: actions/checkout@v4
@@ -55,17 +64,29 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -e .
-      - name: Check CFBD for newly completed games
+      - name: Check CFBD for new/corrected data
         id: detect
-        run: python scripts/check_new_games.py --season "$SEASON"
-      - name: Record no-op decision
-        if: steps.detect.outputs.new_games != 'true'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          FULL_REFRESH: ${{ inputs.full_refresh }}
         run: |
-          echo "No new completed 2026 games were found. PBP, ratings, metrics, Supabase, Git, and Vercel were not touched." >> "$GITHUB_STEP_SUMMARY"
+          args=()
+          if [ "$EVENT_NAME" = "schedule" ] && [ "$EVENT_SCHEDULE" = "43 9 * * *" ]; then
+            args+=(--refresh-recent)
+          fi
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$FULL_REFRESH" = "true" ]; then
+            args+=(--refresh-all-completed)
+          fi
+          python scripts/check_new_games.py --season "$SEASON" "${args[@]}"
+      - name: Record no-op decision
+        if: steps.detect.outputs.data_changes != 'true'
+        run: |
+          echo "No new, corrected, or scheduled sweep partitions were found. PBP, ratings, metrics, Supabase, Git, and Vercel were not touched." >> "$GITHUB_STEP_SUMMARY"
 
   refresh:
     needs: [schedule-gate, detect-new-games]
-    if: needs.schedule-gate.outputs.should_run == 'true' && needs.detect-new-games.outputs.new_games == 'true' && github.ref_name == github.event.repository.default_branch
+    if: needs.schedule-gate.outputs.should_run == 'true' && needs.detect-new-games.outputs.data_changes == 'true' && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -80,10 +101,7 @@ jobs:
       - run: pip install -e '.[models]'
 
       # Restore the previous raw/processed 2026 corpus. A successful v3 cache
-      # contains a marker proving it was bootstrapped from the complete season
-      # source corpus. Older v2 caches can contain only the partitions that were
-      # available to an earlier runner; rebuilding from one of those would drop
-      # already-published games when a new week begins.
+      # contains a marker proving it was bootstrapped from the complete season.
       - uses: actions/cache@v4
         with:
           path: |
@@ -94,21 +112,16 @@ jobs:
             cfb-kenpom-data-v3-${{ env.SEASON }}-
             cfb-kenpom-data-v2-${{ env.SEASON }}-
 
-      # Historical Advanced payloads are needed only once a real refresh is
-      # warranted. Hydration is bounded to one Supabase season per request and
-      # retries transient server errors; a no-game run never contacts Supabase.
-      - name: Hydrate private premium history
+      - name: Hydrate and verify private premium history
         run: python scripts/hydrate_premium_data.py
 
-      # The first successful v3 run deliberately refreshes the complete CFBD
-      # season corpus once. After that, the marker is restored with the cache and
-      # normal runs only refresh partitions containing newly completed games.
-      # This prevents a legacy/partial cache from replacing a complete published
-      # season with fewer games.
-      - name: Fetch games, drives and play-by-play for new games
+      # First successful v3 run bootstraps the complete corpus. Normal runs
+      # refresh only selected source partitions; daily/manual sweeps simply
+      # select more partitions through the same authoritative ingest path.
+      - name: Fetch games, drives and play-by-play for changed partitions
         env:
           REFRESH_PARTITIONS: ${{ needs.detect-new-games.outputs.refresh_partitions }}
-          NEW_GAME_COUNT: ${{ needs.detect-new-games.outputs.new_game_count }}
+          CHANGED_GAME_COUNT: ${{ needs.detect-new-games.outputs.changed_game_count }}
         run: |
           CACHE_MARKER="data/raw/.refresh-cache-v3-complete"
           if [ ! -f "$CACHE_MARKER" ]; then
@@ -122,16 +135,14 @@ jobs:
               args+=(--refresh-partition "$partition")
             done
             if [ ${#args[@]} -eq 0 ]; then
-              echo "New games were reported but no source partitions were resolved." >&2
+              echo "Refresh was requested but no source partitions were resolved." >&2
               exit 1
             fi
-            echo "Refreshing $NEW_GAME_COUNT newly completed game(s) in: $REFRESH_PARTITIONS"
+            echo "Refreshing $CHANGED_GAME_COUNT selected game(s) in: $REFRESH_PARTITIONS"
             python -m cfb_analytics.pipelines.ingest --season "$SEASON" "${args[@]}"
           fi
 
-      # From this point forward the complete 2026 season is rebuilt from the
-      # refreshed raw corpus so every downstream metric/rating is internally
-      # consistent with all games processed to date.
+      # Rebuild every downstream layer from the complete refreshed corpus.
       - name: Clean and materialize canonical plays
         run: python -m cfb_analytics.raw.cli canonical-plays --season "$SEASON"
       - name: Materialize derived drives
@@ -159,24 +170,20 @@ jobs:
         run: python -m cfb_analytics.pipelines.early_season_predictions publish
       - name: Export Next.js data
         run: python scripts/export_web_data.py
+      - name: Normalize schedule calendar week
+        run: python scripts/normalize_schedule_calendar.py --season "$SEASON"
 
-      # Integration tests that compare against web/public/data must run after
-      # the freshly rebuilt candidate has been exported. Otherwise the first
-      # legitimate game of a new week is compared against yesterday's checked-in
-      # JSON and the refresh blocks itself simply because the new week exists.
+      # Validate the exact candidate files that would be published.
       - name: Test publication gates
         run: python -m unittest discover -s tests
-      - name: Audit every published season
+      - name: Audit rating/model contracts
         run: python scripts/validate_site_data.py
-      # A newer, more experimental piece of the pipeline (a 2,000-trial Monte
-      # Carlo CFP simulation) than everything above -- a failure here must
-      # never block the core ratings/predictions refresh from publishing.
-      - name: Publish live CFP chance into Advanced Analytics
-        run: python scripts/publish_cfp_chance.py --season "$SEASON"
-        continue-on-error: true
-      - name: Publish refreshed 2026 premium data to Supabase
-        run: python scripts/publish_premium_data.py --season "$SEASON"
+      - name: Audit cross-artifact contracts
+        run: python scripts/audit_data_contracts.py --require-private
 
+      # The production web build is also a publication gate. Do this before any
+      # external premium mutation so a TypeScript/build failure cannot leave
+      # Supabase ahead of a candidate that never ships.
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -187,6 +194,16 @@ jobs:
       - run: npm run lint && npm run build
         working-directory: web
 
+      # CFP chance is experimental and may fail without blocking core ratings,
+      # but if it succeeds its mutation is audited again before Supabase publish.
+      - name: Publish live CFP chance into Advanced Analytics candidate
+        run: python scripts/publish_cfp_chance.py --season "$SEASON"
+        continue-on-error: true
+      - name: Re-audit private candidate after CFP mutation
+        run: python scripts/audit_data_contracts.py --require-private
+      - name: Publish validated premium data to Supabase
+        run: python scripts/publish_premium_data.py --season "$SEASON"
+
       - name: Remove private build artifacts
         run: |
           rm -f site/advanced-data.js
@@ -196,21 +213,21 @@ jobs:
         id: publish
         env:
           TARGET_BRANCH: ${{ github.event.repository.default_branch }}
-          NEW_GAME_COUNT: ${{ needs.detect-new-games.outputs.new_game_count }}
+          CHANGED_GAME_COUNT: ${{ needs.detect-new-games.outputs.changed_game_count }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           mkdir -p "prospective/$SEASON/predictions"
           git add "data/canonical/season=$SEASON" site/data.js site/search-index.js web/public/data "prospective/$SEASON/predictions"
           if git diff --staged --quiet; then
-            echo "New games were detected, but the validated public output did not change." >> "$GITHUB_STEP_SUMMARY"
+            echo "Refresh completed and validated, but the publishable output did not change." >> "$GITHUB_STEP_SUMMARY"
           else
-            git commit -m "Refresh $SEASON ratings after $NEW_GAME_COUNT new game(s)"
+            git commit -m "Refresh $SEASON data after $CHANGED_GAME_COUNT source game(s)"
             git fetch origin "$TARGET_BRANCH"
             git rebase "origin/$TARGET_BRANCH"
             git push origin "HEAD:$TARGET_BRANCH"
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Published refreshed $SEASON ratings and metrics after $NEW_GAME_COUNT new completed game(s)." >> "$GITHUB_STEP_SUMMARY"
+            echo "Published refreshed $SEASON data after validating all public/private contracts." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Notify Vercel of refreshed data
