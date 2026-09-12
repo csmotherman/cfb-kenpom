@@ -44,7 +44,8 @@ export default function TableFreshnessStamp() {
     let generatedAt: string | null = null;
 
     const installOrUpdate = () => {
-      if (stopped || !generatedAt) return;
+      const timestamp = generatedAt;
+      if (stopped || !timestamp) return;
 
       TARGETS.forEach((selector) => {
         const target = document.querySelector<HTMLElement>(selector);
@@ -65,8 +66,8 @@ export default function TableFreshnessStamp() {
 
         const time = stamp.querySelector("time");
         if (time) {
-          time.dateTime = generatedAt;
-          time.textContent = formatUpdatedAt(generatedAt);
+          time.dateTime = timestamp;
+          time.textContent = formatUpdatedAt(timestamp);
         }
       });
     };
