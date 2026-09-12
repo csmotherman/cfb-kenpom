@@ -1,10 +1,13 @@
 """Hydrate private premium datasets into ignored build files.
 
 This is used only in trusted local/CI environments. The hydrated files are
-ignored by Git and must never be committed to the public repository.
+ignored by Git and must never be committed to the public repository. Every
+payload is verified against the SHA stored when it was published before it is
+allowed into the build.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import random
@@ -34,20 +37,12 @@ def config() -> tuple[str, str]:
 
 
 def fetch_json(base_url: str, secret: str, path: str, *, retries: int = 4):
-    """Fetch one bounded Supabase response with retry/backoff.
-
-    Premium season payloads are large. Pulling every historical payload in one
-    PostgREST response previously produced intermittent HTTP 500s, so callers
-    intentionally request one season at a time.
-    """
+    """Fetch one bounded Supabase response with retry/backoff."""
     last_error: Exception | None = None
     for attempt in range(retries + 1):
         request = Request(
             base_url + path,
             headers={
-                # sb_secret_/sb_publishable_ keys are opaque, not JWTs --
-                # Supabase's docs call out `Authorization: Bearer` with one
-                # of these as a common mistake. `apikey` alone is correct.
                 "apikey": secret,
                 "Accept": "application/json",
             },
@@ -67,12 +62,39 @@ def fetch_json(base_url: str, secret: str, path: str, *, retries: int = 4):
     raise RuntimeError(f"Supabase request failed after retries: {last_error}")
 
 
+def payload_hash(payload: dict) -> str:
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def validate_advanced_payload(payload: dict, season: int) -> None:
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"Private Advanced payload for {season} is not an object")
+    weeks = payload.get("weeks")
+    by_week = payload.get("byWeek")
+    labels = payload.get("weekLabels", {})
+    if not isinstance(weeks, list) or not weeks or weeks != sorted(set(weeks)):
+        raise RuntimeError(f"Private Advanced payload for {season} has invalid weeks")
+    if not isinstance(by_week, dict) or set(by_week) != {str(w) for w in weeks}:
+        raise RuntimeError(f"Private Advanced payload for {season} has week/byWeek mismatch")
+    if not isinstance(labels, dict) or not set(labels).issubset({str(w) for w in weeks}):
+        raise RuntimeError(f"Private Advanced payload for {season} has invalid weekLabels")
+    for week in weeks:
+        rows = by_week[str(week)]
+        if not isinstance(rows, list):
+            raise RuntimeError(f"Private Advanced payload for {season} week {week} is not a list")
+        slugs = [row.get("slug") for row in rows if isinstance(row, dict)]
+        if len(slugs) != len(rows) or any(not isinstance(slug, str) or not slug for slug in slugs):
+            raise RuntimeError(f"Private Advanced payload for {season} week {week} has invalid team rows")
+        if len(slugs) != len(set(slugs)):
+            raise RuntimeError(f"Private Advanced payload for {season} week {week} has duplicate teams")
+
+
 def main() -> None:
     base_url, secret = config()
 
-    # Fetch only the tiny season catalog first. The old implementation selected
-    # every payload here, which had grown to tens of MB in one HTTP response and
-    # could make PostgREST return HTTP 500 before the refresh even reached CFBD.
+    # Fetch only the tiny season catalog first. Large payloads are intentionally
+    # fetched one season at a time to avoid oversized PostgREST responses.
     catalog_query = urlencode(
         {
             "select": "season",
@@ -91,7 +113,7 @@ def main() -> None:
     for season in seasons:
         season_query = urlencode(
             {
-                "select": "season,payload",
+                "select": "season,payload,source_sha",
                 "dataset_type": "eq.advanced",
                 "week": "eq.0",
                 "season": f"eq.{season}",
@@ -102,8 +124,17 @@ def main() -> None:
         result = fetch_json(base_url, secret, f"/rest/v1/premium_datasets?{season_query}")
         if len(result) != 1:
             raise RuntimeError(f"Expected one private Advanced payload for {season}, found {len(result)}")
-        rows.append(result[0])
-        print(f"Hydrated private Advanced season {season} from Supabase.")
+        row = result[0]
+        payload = row.get("payload")
+        validate_advanced_payload(payload, season)
+        expected_sha = row.get("source_sha")
+        actual_sha = payload_hash(payload)
+        if not isinstance(expected_sha, str) or expected_sha != actual_sha:
+            raise RuntimeError(
+                f"Private Advanced payload hash mismatch for {season}: stored source_sha does not match payload"
+            )
+        rows.append(row)
+        print(f"Hydrated and hash-verified private Advanced season {season} from Supabase.")
 
     years: list[int] = []
     weeks: dict[str, list[int]] = {}
@@ -133,7 +164,7 @@ def main() -> None:
         "window.CFF_ADV_DATA = " + json.dumps(data, separators=(",", ":"), allow_nan=False) + ";\n"
     )
     target.write_text(text)
-    print(f"Hydrated {len(years)} private Advanced Analytics seasons for this build.")
+    print(f"Hydrated {len(years)} hash-verified private Advanced Analytics seasons for this build.")
 
 
 if __name__ == "__main__":
