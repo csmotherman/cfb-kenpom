@@ -29,6 +29,9 @@ export default function MethodologyPage() {
             <span className="eyebrow">Core</span>
             <h2>Ratings</h2>
           </div>
+          <p>
+            In-season Adj. Net, Adj. Off and Adj. Def use only games from the season being rated. No prior-year team rating, recruiting input or preseason ranking is blended into LEILA&rsquo;s published ratings. Early-season estimates are stabilized only by regularization inside the current season&rsquo;s opponent network.
+          </p>
           <div className="methodology-definitions">
             <Definition term="Adj. Net" tag="Core" text="Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def" />
             <Definition term="Adj. Off" tag="Core" text="Opponent-adjusted offensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
