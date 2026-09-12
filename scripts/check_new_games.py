@@ -51,7 +51,7 @@ def published_schedule(path: Path) -> dict[str, dict]:
 
 
 def source_games(client: CfbdClient, season: int) -> list[dict]:
-    """Fetch season-wide game metadata only; no drives/PBP calls here."""
+    """Fetch season-wide FBS-participant game metadata only; no drives/PBP."""
     response = client.get_json("/games", {"year": season, "classification": "fbs"})
     if not isinstance(response.payload, list):
         raise ValueError(f"Unexpected CFBD games payload for {season}")
@@ -66,6 +66,11 @@ def source_games(client: CfbdClient, season: int) -> list[dict]:
     if len(ids) != len(set(ids)):
         raise ValueError("CFBD returned duplicate game IDs")
     return games
+
+
+def completed_source_games(client: CfbdClient, season: int) -> list[dict]:
+    """Compatibility helper retained for tests/callers that need finals only."""
+    return [game for game in source_games(client, season) if game.get("completed") is True]
 
 
 def partition_key(game: dict) -> str:
@@ -104,12 +109,11 @@ def completed_metadata_changed(remote: dict, local: dict | None) -> bool:
     remote_type = str(first(remote, "seasonType", "season_type") or "regular").lower()
     local_type = str(first(local, "seasonType", "season_type") or "regular").lower()
     try:
-        remote_week = int(remote.get("week"))
+        int(remote.get("week"))
     except (TypeError, ValueError):
         return True
-    # Public schedule week is the reconstructed site week, so never compare its
-    # numeric value to CFBD's source week here. Source-partition changes are
-    # caught through schedule metadata changes / the selected remote partition.
+    # Public `week` is a reconstructed site week and may differ from CFBD's
+    # source week, so its numeric value is intentionally not compared here.
     return remote_type != local_type or local.get("completed") is not True
 
 
