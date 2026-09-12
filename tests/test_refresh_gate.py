@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-from check_new_games import completed_source_games, known_game_ids, partition_key
+from check_new_games import completed_source_games, known_game_ids, partition_key, schedule_metadata_changed
 from cfb_analytics.pipelines.ingest import parse_partition
 from cfb_analytics.sources.cfbd.client import CfbdResponse
 
@@ -47,6 +47,63 @@ class RefreshGateTests(unittest.TestCase):
         game = {"id": 1, "seasonType": "REGULAR", "week": 3}
         self.assertEqual(partition_key(game), "regular:3")
         self.assertEqual(parse_partition("regular:3"), ("regular", 3))
+
+    def test_newly_known_schedule_fields_trigger_refresh(self):
+        local = {
+            "startDate": "2026-09-19T16:00:00.000Z",
+            "startTimeTBD": False,
+            "venue": None,
+            "homeTeamId": None,
+            "awayTeamId": None,
+            "completed": False,
+        }
+        remote = {
+            "startDate": "2026-09-19T16:00:00.000Z",
+            "startTimeTBD": False,
+            "venue": {"name": "Michigan Stadium"},
+            "homeId": 130,
+            "awayId": 2638,
+            "completed": False,
+        }
+        self.assertTrue(schedule_metadata_changed(remote, local))
+
+    def test_unchanged_schedule_metadata_does_not_trigger_refresh(self):
+        local = {
+            "startDate": "2026-09-19T16:00:00.000Z",
+            "startTimeTBD": False,
+            "venue": "Michigan Stadium",
+            "homeTeamId": 130,
+            "awayTeamId": 2638,
+            "completed": False,
+        }
+        remote = {
+            "startDate": "2026-09-19T16:00:00.000Z",
+            "startTimeTBD": False,
+            "venue": {"name": "Michigan Stadium"},
+            "homeId": 130,
+            "awayId": 2638,
+            "completed": False,
+        }
+        self.assertFalse(schedule_metadata_changed(remote, local))
+
+    def test_transient_remote_null_does_not_erase_known_schedule_fields(self):
+        local = {
+            "startDate": "2026-09-19T16:00:00.000Z",
+            "startTimeTBD": False,
+            "venue": "Michigan Stadium",
+            "homeTeamId": 130,
+            "awayTeamId": 2638,
+            "completed": False,
+        }
+        remote = {
+            "startDate": "2026-09-19T16:00:00.000Z",
+            "startTimeTBD": False,
+            "venue": None,
+            "homeId": None,
+            "awayId": None,
+            "completed": False,
+        }
+        self.assertFalse(schedule_metadata_changed(remote, local))
 
 
 if __name__ == "__main__":
