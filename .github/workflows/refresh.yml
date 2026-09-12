@@ -74,6 +74,12 @@ jobs:
           FULL_REFRESH: ${{ inputs.full_refresh }}
         run: |
           args=()
+          # Workflow-file changes are production-pipeline changes. Prove them
+          # against every completed 2026 source partition, not only the latest
+          # game, before treating the new workflow as production-ready.
+          if [ "$EVENT_NAME" = "push" ]; then
+            args+=(--refresh-all-completed)
+          fi
           if [ "$EVENT_NAME" = "schedule" ] && [ "$EVENT_SCHEDULE" = "43 9 * * *" ]; then
             args+=(--refresh-recent)
           fi
