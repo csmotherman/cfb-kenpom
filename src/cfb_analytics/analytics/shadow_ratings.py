@@ -24,6 +24,9 @@ COMPOSITE_SPECS = (
 COMPOSITE_WEIGHTS = (6.8693, 1.7265, -0.1906)
 COMPOSITE_VERSION = "epa-success-successful-yards-zpop-v1"
 MODEL_VERSION = "hierarchical-hfa-shadow-v1"
+SEASON_SCOPE = "current-season-only"
+USES_PRIOR_SEASON_TEAM_STRENGTH = False
+USES_PRESEASON_TEAM_PRIOR = False
 
 
 class ConvergenceError(RuntimeError):
@@ -86,6 +89,15 @@ def model_metadata(rows, *, model_mode, season, cutoff, input_version, lambda_te
                 hfaEnabled=hfa_enabled, compositeVersion=COMPOSITE_VERSION,
                 compositeWeights=list(COMPOSITE_WEIGHTS), season=season, cutoff=cutoff,
                 inputVersion=input_version, shadowOnly=True)
+    if model_mode == "hierarchical_hfa":
+        # These fields are part of the semantic model identity. Changing a live
+        # fit to use a prior-year/preseason team signal must therefore change
+        # the model key instead of silently reusing the current model identity.
+        meta.update(
+            seasonScope=SEASON_SCOPE,
+            usesPriorSeasonTeamStrength=USES_PRIOR_SEASON_TEAM_STRENGTH,
+            usesPreseasonTeamPrior=USES_PRESEASON_TEAM_PRIOR,
+        )
     # No shared legacy cache path; content+semantic configuration address every shadow fit.
     ordered = sorted(rows, key=lambda r: (str(r.get('gameId') or r.get('game_id')), str(r.get('team'))))
     source = json.dumps(ordered, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
@@ -188,7 +200,13 @@ def composite_from_fits(fits):
     for metric, *_ in COMPOSITE_SPECS:
         f = fits[metric]
         meta = f['modelMetadata']
-        identity = {k:meta[k] for k in ('modelMode','modelVersion','lambdaTeam','lambdaConference','hfaEnabled','compositeVersion','compositeWeights','season','cutoff','inputVersion','sourceHash')}
+        identity_keys = [
+            'modelMode','modelVersion','lambdaTeam','lambdaConference','hfaEnabled',
+            'compositeVersion','compositeWeights','season','cutoff','inputVersion','sourceHash',
+        ]
+        if meta.get('modelMode') == 'hierarchical_hfa':
+            identity_keys.extend(('seasonScope','usesPriorSeasonTeamStrength','usesPreseasonTeamPrior'))
+        identity = {k:meta[k] for k in identity_keys}
         if expected is not None and expected != identity:
             raise ValueError("Mixed model/input/cutoff composite")
         expected = identity
