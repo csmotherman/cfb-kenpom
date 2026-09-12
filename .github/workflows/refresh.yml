@@ -7,7 +7,8 @@ on:
     paths:
       - ".github/workflows/refresh.yml"
   schedule:
-    # Cheap metadata check every hour for newly completed or corrected games.
+    # Cheap metadata check every hour for newly completed/corrected games and
+    # calendar rollover. Minute 17 avoids the busiest top-of-hour window.
     - cron: "17 * * * *"
     # Once daily, re-pull the latest two completed CFBD source weeks so silent
     # drive/PBP corrections are eventually incorporated even when scores do not change.
@@ -43,7 +44,7 @@ jobs:
         id: gate
         run: |
           echo "should_run=true" >> "$GITHUB_OUTPUT"
-          echo "Running source-freshness detection. Expensive rebuild work remains gated on an actual refresh partition." >> "$GITHUB_STEP_SUMMARY"
+          echo "Running source-freshness and calendar checks. Expensive rebuild work remains gated on an actual refresh partition." >> "$GITHUB_STEP_SUMMARY"
 
   detect-new-games:
     needs: schedule-gate
@@ -56,6 +57,7 @@ jobs:
       changed_game_count: ${{ steps.detect.outputs.changed_game_count }}
       new_game_ids: ${{ steps.detect.outputs.new_game_ids }}
       corrected_game_ids: ${{ steps.detect.outputs.corrected_game_ids }}
+      schedule_changed_game_ids: ${{ steps.detect.outputs.schedule_changed_game_ids }}
       refresh_partitions: ${{ steps.detect.outputs.refresh_partitions }}
     steps:
       - uses: actions/checkout@v4
@@ -79,10 +81,56 @@ jobs:
             args+=(--refresh-all-completed)
           fi
           python scripts/check_new_games.py --season "$SEASON" "${args[@]}"
-      - name: Record no-op decision
+      - name: Record no-source-change decision
         if: steps.detect.outputs.data_changes != 'true'
         run: |
-          echo "No new, corrected, or scheduled sweep partitions were found. PBP, ratings, metrics, Supabase, Git, and Vercel were not touched." >> "$GITHUB_STEP_SUMMARY"
+          echo "No source partitions require a rebuild. The calendar rollover job will still verify currentWeek." >> "$GITHUB_STEP_SUMMARY"
+
+  # `currentWeek` is calendar state, not rating state. If no source rebuild is
+  # required, this tiny job still advances the committed schedule as soon as a
+  # new site's first kickoff begins. That lets Ratings/Advanced synthesize the
+  # new current week immediately instead of waiting for the first final score.
+  calendar-rollover:
+    needs: [schedule-gate, detect-new-games]
+    if: needs.schedule-gate.outputs.should_run == 'true' && needs.detect-new-games.outputs.data_changes != 'true' && github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Normalize current schedule week
+        id: calendar
+        run: |
+          python scripts/normalize_schedule_calendar.py --season "$SEASON"
+          if git diff --quiet -- "web/public/data/schedule/$SEASON.json"; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Schedule currentWeek is already correct." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Audit calendar-only candidate
+        if: steps.calendar.outputs.changed == 'true'
+        run: python scripts/audit_data_contracts.py
+      - name: Commit calendar rollover
+        if: steps.calendar.outputs.changed == 'true'
+        env:
+          TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "web/public/data/schedule/$SEASON.json"
+          git commit -m "Advance $SEASON schedule to current site week"
+          git fetch origin "$TARGET_BRANCH"
+          git rebase "origin/$TARGET_BRANCH"
+          git push origin "HEAD:$TARGET_BRANCH"
+      - name: Notify Vercel of calendar rollover
+        if: steps.calendar.outputs.changed == 'true'
+        env:
+          DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$DEPLOY_HOOK" ]; then
+            curl --fail --silent --show-error --retry 3 -X POST "$DEPLOY_HOOK" --output /dev/null
+          fi
 
   refresh:
     needs: [schedule-gate, detect-new-games]
@@ -100,8 +148,6 @@ jobs:
           cache: pip
       - run: pip install -e '.[models]'
 
-      # Restore the previous raw/processed 2026 corpus. A successful v3 cache
-      # contains a marker proving it was bootstrapped from the complete season.
       - uses: actions/cache@v4
         with:
           path: |
@@ -115,9 +161,6 @@ jobs:
       - name: Hydrate and verify private premium history
         run: python scripts/hydrate_premium_data.py
 
-      # First successful v3 run bootstraps the complete corpus. Normal runs
-      # refresh only selected source partitions; daily/manual sweeps simply
-      # select more partitions through the same authoritative ingest path.
       - name: Fetch games, drives and play-by-play for changed partitions
         env:
           REFRESH_PARTITIONS: ${{ needs.detect-new-games.outputs.refresh_partitions }}
@@ -142,7 +185,6 @@ jobs:
             python -m cfb_analytics.pipelines.ingest --season "$SEASON" "${args[@]}"
           fi
 
-      # Rebuild every downstream layer from the complete refreshed corpus.
       - name: Clean and materialize canonical plays
         run: python -m cfb_analytics.raw.cli canonical-plays --season "$SEASON"
       - name: Materialize derived drives
@@ -173,7 +215,6 @@ jobs:
       - name: Normalize schedule calendar week
         run: python scripts/normalize_schedule_calendar.py --season "$SEASON"
 
-      # Validate the exact candidate files that would be published.
       - name: Test publication gates
         run: python -m unittest discover -s tests
       - name: Audit rating/model contracts
@@ -181,9 +222,6 @@ jobs:
       - name: Audit cross-artifact contracts
         run: python scripts/audit_data_contracts.py --require-private
 
-      # The production web build is also a publication gate. Do this before any
-      # external premium mutation so a TypeScript/build failure cannot leave
-      # Supabase ahead of a candidate that never ships.
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -194,8 +232,6 @@ jobs:
       - run: npm run lint && npm run build
         working-directory: web
 
-      # CFP chance is experimental and may fail without blocking core ratings,
-      # but if it succeeds its mutation is audited again before Supabase publish.
       - name: Publish live CFP chance into Advanced Analytics candidate
         run: python scripts/publish_cfp_chance.py --season "$SEASON"
         continue-on-error: true
