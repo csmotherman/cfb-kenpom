@@ -76,7 +76,8 @@ jobs:
           args=()
           # Workflow-file changes are production-pipeline changes. Prove them
           # against every completed 2026 source partition, not only the latest
-          # game, before treating the new workflow as production-ready.
+          # game, before treating the new workflow as production-ready. This is
+          # also the final end-to-end proof path after integrity/audit changes.
           if [ "$EVENT_NAME" = "push" ]; then
             args+=(--refresh-all-completed)
           fi
