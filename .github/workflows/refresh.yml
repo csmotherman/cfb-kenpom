@@ -224,6 +224,8 @@ jobs:
 
       - name: Test publication gates
         run: python -m unittest discover -s tests
+      - name: Assert current-season-only rating contract
+        run: python -m unittest discover -s tests -p 'test_current_season_rating_contract.py'
       - name: Audit rating/model contracts
         run: python scripts/validate_site_data.py
       - name: Audit cross-artifact contracts
