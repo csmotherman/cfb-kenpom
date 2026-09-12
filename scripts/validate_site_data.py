@@ -15,6 +15,7 @@ METRICS = {"adjEM": "rank", "adjO": "adjORank", "adjD": "adjDRank", "sos": "sosR
 # table's `cff` snapshot).
 LEGACY_MODEL_MODE = "legacy"
 COMPOSITE_IDENTITY_TOLERANCE = 1e-9
+CURRENT_SEASON_SCOPE_START = 2026
 
 
 def rating_model_mode(rankings):
@@ -29,6 +30,22 @@ def require(condition, message):
 
 def finite(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def require_current_season_rating_contract(rankings):
+    """For live-era hierarchical seasons, the shipped artifact must explicitly
+    prove that LEILA's team-strength signal comes only from the season being
+    rated. Historical replay files from before this contract was introduced are
+    left byte-stable and continue to validate under their recorded model IDs."""
+    model = rankings.get("ratingModel") or {}
+    if model.get("modelMode", LEGACY_MODEL_MODE) == LEGACY_MODEL_MODE:
+        return
+    season = model.get("season")
+    if not isinstance(season, int) or season < CURRENT_SEASON_SCOPE_START:
+        return
+    require(model.get("seasonScope") == "current-season-only", f"Season {season} ratings are missing the current-season-only contract")
+    require(model.get("usesPriorSeasonTeamStrength") is False, f"Season {season} ratings allow prior-season team strength")
+    require(model.get("usesPreseasonTeamPrior") is False, f"Season {season} ratings allow a preseason team prior")
 
 
 def require_composite_identity(row):
@@ -49,6 +66,7 @@ def require_composite_identity(row):
 def validate_public_rankings(rankings):
     """Validate the public ratings payload without requiring private premium data."""
     mode = rating_model_mode(rankings)
+    require_current_season_rating_contract(rankings)
     weeks = rankings["weeks"]
     require(bool(weeks) and weeks == sorted(set(weeks)), "Weeks must be nonempty, unique, and chronological")
     require(set(rankings["byWeek"]) == set(map(str, weeks)), "Ratings week payloads are incomplete")
@@ -87,6 +105,7 @@ def validate_public_rankings(rankings):
 
 def validate_season(rankings, advanced, *, previous=None):
     mode = rating_model_mode(rankings)
+    require_current_season_rating_contract(rankings)
     weeks = rankings["weeks"]
     require(bool(weeks) and weeks == sorted(set(weeks)), "Weeks must be nonempty, unique, and chronological")
     require(weeks == advanced["weeks"], "Ratings and advanced weeks differ")
