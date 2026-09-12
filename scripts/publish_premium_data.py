@@ -2,19 +2,20 @@
 
 The source files are ignored build artifacts. This script must run before they
 are removed from a CI runner. It never prints dataset contents or secret keys.
-Every upsert is followed by a bounded read-after-write check of the stored
-source hash so a 2xx response alone is never treated as proof of publication.
+Every upsert is followed by a bounded read-after-write check of the stored,
+JSONB-stable source hash so a 2xx response alone is never proof of publication.
 """
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+from premium_integrity import payload_hash
 
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_SUPABASE_URL = "https://wmlzqmtsxqqxuiekmrqm.supabase.co"
@@ -79,7 +80,6 @@ def upsert(base_url: str, secret: str, row: dict) -> None:
         data=body,
         method="POST",
         headers={
-            # The new sb_secret_/sb_publishable_ keys are opaque, not JWTs.
             "apikey": secret,
             "Content-Type": "application/json",
             "Prefer": "resolution=merge-duplicates,return=minimal",
@@ -97,11 +97,6 @@ def upsert(base_url: str, secret: str, row: dict) -> None:
             f"(payload {len(body):,} bytes): HTTP {exc.code} {exc.reason} -- {detail}"
         ) from exc
     verify_persisted_hash(base_url, secret, row)
-
-
-def payload_hash(payload: dict) -> str:
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
-    return hashlib.sha256(canonical).hexdigest()
 
 
 def publish_advanced(base_url: str, secret: str, season: int | None) -> int:
