@@ -1,13 +1,13 @@
 """Hydrate private premium datasets into ignored build files.
 
-This is used only in trusted local/CI environments. The hydrated files are
-ignored by Git and must never be committed to the public repository. Every
-payload is verified against the SHA stored when it was published before it is
-allowed into the build.
+This is used only in trusted local/CI environments. Hydrated files are ignored
+by Git and must never be committed publicly. Premium integrity hashes are v2
+semantic hashes that survive PostgreSQL jsonb number normalization. Legacy v1
+hash metadata is migrated in place after schema validation; payload bytes are
+never changed by that migration.
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import random
@@ -16,6 +16,8 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+from premium_integrity import is_versioned_hash, payload_hash
 
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_SUPABASE_URL = "https://wmlzqmtsxqqxuiekmrqm.supabase.co"
@@ -37,15 +39,11 @@ def config() -> tuple[str, str]:
 
 
 def fetch_json(base_url: str, secret: str, path: str, *, retries: int = 4):
-    """Fetch one bounded Supabase response with retry/backoff."""
     last_error: Exception | None = None
     for attempt in range(retries + 1):
         request = Request(
             base_url + path,
-            headers={
-                "apikey": secret,
-                "Accept": "application/json",
-            },
+            headers={"apikey": secret, "Accept": "application/json"},
         )
         try:
             with urlopen(request, timeout=90) as response:
@@ -60,11 +58,6 @@ def fetch_json(base_url: str, secret: str, path: str, *, retries: int = 4):
                 raise
         time.sleep((2**attempt) + random.random())
     raise RuntimeError(f"Supabase request failed after retries: {last_error}")
-
-
-def payload_hash(payload: dict) -> str:
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
-    return hashlib.sha256(canonical).hexdigest()
 
 
 def validate_advanced_payload(payload: dict, season: int) -> None:
@@ -90,11 +83,62 @@ def validate_advanced_payload(payload: dict, season: int) -> None:
             raise RuntimeError(f"Private Advanced payload for {season} week {week} has duplicate teams")
 
 
+def legacy_hash(value) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(char in "0123456789abcdefABCDEF" for char in value)
+    )
+
+
+def migrate_legacy_hash(base_url: str, secret: str, season: int, stable_hash: str) -> None:
+    query = urlencode(
+        {
+            "dataset_type": "eq.advanced",
+            "season": f"eq.{season}",
+            "week": "eq.0",
+        },
+        safe=",.",
+    )
+    request = Request(
+        f"{base_url}/rest/v1/premium_datasets?{query}",
+        data=json.dumps({"source_sha": stable_hash}, separators=(",", ":")).encode(),
+        method="PATCH",
+        headers={
+            "apikey": secret,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal",
+        },
+    )
+    try:
+        with urlopen(request, timeout=90) as response:
+            if response.status not in (200, 204):
+                raise RuntimeError(f"HTTP {response.status}")
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:2000]
+        raise RuntimeError(
+            f"Failed to migrate premium integrity hash for season {season}: "
+            f"HTTP {exc.code} {exc.reason} -- {detail}"
+        ) from exc
+
+    verify_query = urlencode(
+        {
+            "select": "source_sha",
+            "dataset_type": "eq.advanced",
+            "season": f"eq.{season}",
+            "week": "eq.0",
+            "limit": "2",
+        },
+        safe=",.",
+    )
+    rows = fetch_json(base_url, secret, f"/rest/v1/premium_datasets?{verify_query}")
+    if len(rows) != 1 or rows[0].get("source_sha") != stable_hash:
+        raise RuntimeError(f"Premium integrity hash migration did not persist for season {season}")
+
+
 def main() -> None:
     base_url, secret = config()
 
-    # Fetch only the tiny season catalog first. Large payloads are intentionally
-    # fetched one season at a time to avoid oversized PostgREST responses.
     catalog_query = urlencode(
         {
             "select": "season",
@@ -129,12 +173,25 @@ def main() -> None:
         validate_advanced_payload(payload, season)
         expected_sha = row.get("source_sha")
         actual_sha = payload_hash(payload)
-        if not isinstance(expected_sha, str) or expected_sha != actual_sha:
-            raise RuntimeError(
-                f"Private Advanced payload hash mismatch for {season}: stored source_sha does not match payload"
-            )
+
+        if is_versioned_hash(expected_sha):
+            if expected_sha != actual_sha:
+                raise RuntimeError(
+                    f"Private Advanced payload integrity failure for {season}: v2 source_sha does not match payload"
+                )
+        elif legacy_hash(expected_sha):
+            # v1 hashed the pre-jsonb number spelling. That representation is
+            # irretrievably normalized by PostgreSQL, so it cannot be verified
+            # after readback. Migrate metadata only after the full payload has
+            # passed structural validation, then verify the PATCH persisted.
+            migrate_legacy_hash(base_url, secret, season, actual_sha)
+            row["source_sha"] = actual_sha
+            print(f"Migrated legacy premium integrity metadata for season {season} to v2.")
+        else:
+            raise RuntimeError(f"Private Advanced payload for {season} has an invalid source_sha format")
+
         rows.append(row)
-        print(f"Hydrated and hash-verified private Advanced season {season} from Supabase.")
+        print(f"Hydrated and integrity-verified private Advanced season {season} from Supabase.")
 
     years: list[int] = []
     weeks: dict[str, list[int]] = {}
@@ -164,7 +221,7 @@ def main() -> None:
         "window.CFF_ADV_DATA = " + json.dumps(data, separators=(",", ":"), allow_nan=False) + ";\n"
     )
     target.write_text(text)
-    print(f"Hydrated {len(years)} hash-verified private Advanced Analytics seasons for this build.")
+    print(f"Hydrated {len(years)} integrity-verified private Advanced Analytics seasons for this build.")
 
 
 if __name__ == "__main__":
