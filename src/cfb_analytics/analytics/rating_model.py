@@ -13,6 +13,12 @@ unpenalized home-field coefficient per metric, season-specific conference
 groups, and garbage-time-filtered canonical inputs. HFA is fitted and reported
 as metadata only -- the published ratings are neutral-field.
 
+The production hierarchical model is deliberately current-season-only. Every
+observation in a published season must belong to that same season; prior-season
+team strength, recruiting inputs and preseason team priors are not accepted as
+rating inputs. Regularization stabilizes the current season's network, but does
+not import another season's team ratings.
+
 Two model modes exist and the caller must always name one:
 
 * ``hierarchical_hfa`` -- the migrated methodology. AdjOff/AdjDef are the
@@ -38,6 +44,13 @@ LEGACY_RATING_MODEL_ID = "adj-rating-legacy-srs-ypp-v1"
 LAMBDA_TEAM = 200.0
 LAMBDA_CONFERENCE = 400.0
 HFA_ENABLED = True
+
+# Production-scope invariants. These are metadata as well as runtime guards so
+# downstream consumers can verify that an in-season LEILA rating contains no
+# team-strength signal from a prior season or a preseason model.
+SEASON_SCOPE = "current-season-only"
+USES_PRIOR_SEASON_TEAM_STRENGTH = False
+USES_PRESEASON_TEAM_PRIOR = False
 
 # The rating model reads garbage-time-filtered canonical plays. This is the ONLY
 # consumer of derived/games.py's opt-in exclude_garbage_time flag; every other
@@ -106,12 +119,22 @@ def fit_publication_composite(rows, *, season, cutoff, lambda_team=LAMBDA_TEAM,
     nothing. Callers must pass only games available at that cutoff (see
     build_real_data.py's per-site-week accumulation).
 
+    Published hierarchical ratings are current-season-only. This wrapper checks
+    that invariant before the solver is entered so a future caller cannot
+    accidentally blend a prior-year team row into an otherwise valid fit.
+
     Non-convergence, an unidentified HFA and invalid/degenerate inputs all raise
     rather than returning a usable-looking fit -- a bad fit must block
     publication, not be published.
     """
     if not rows:
         raise RatingModelError("Refusing to fit publication ratings from an empty rating graph")
+    row_seasons = {row.get("season") for row in rows}
+    if row_seasons != {season}:
+        found = ", ".join(sorted(repr(value) for value in row_seasons))
+        raise RatingModelError(
+            f"Publication ratings are {SEASON_SCOPE}: expected season {season}, found [{found}]"
+        )
     try:
         result = S.fit_composite(
             rows,
@@ -174,6 +197,9 @@ def rating_model_metadata(model_mode, *, season, cutoff, weeks=None, fits=None,
         "lambdaConference": LAMBDA_CONFERENCE,
         "hfaEnabled": HFA_ENABLED,
         "hfaInPublishedRatings": False,
+        "seasonScope": SEASON_SCOPE,
+        "usesPriorSeasonTeamStrength": USES_PRIOR_SEASON_TEAM_STRENGTH,
+        "usesPreseasonTeamPrior": USES_PRESEASON_TEAM_PRIOR,
         "garbageTimeExcluded": True,
         "garbageTimeDefinitionVersion": GARBAGE_TIME_VERSION,
         "compositeVersion": S.COMPOSITE_VERSION,
