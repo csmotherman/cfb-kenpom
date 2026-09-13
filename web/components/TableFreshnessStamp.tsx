@@ -4,19 +4,44 @@ import { useEffect } from "react";
 
 const META_PATH = "/data/meta.json";
 const POLL_MS = 60_000;
+const EASTERN_TIME_ZONE = "America/New_York";
 
 type FreshnessMeta = {
   dataVersion?: string;
+  generatedAt?: string;
 };
 
+function formatEasternTimestamp(value: string): string | null {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: EASTERN_TIME_ZONE,
+    timeZoneName: "short",
+  }).format(date);
+}
+
+function syncVisibleTimestamp(generatedAt: string | null) {
+  if (!generatedAt) return;
+  const formatted = formatEasternTimestamp(generatedAt);
+  if (!formatted) return;
+
+  document.querySelectorAll<HTMLTimeElement>("time.data-updated").forEach((element) => {
+    const nextText = `Data updated ${formatted}`;
+    if (element.textContent !== nextText) element.textContent = nextText;
+    if (element.dateTime !== generatedAt) element.dateTime = generatedAt;
+  });
+}
+
 /**
- * Watches the public data version without mutating React-owned DOM.
- *
- * Already-loaded seasons are cached in memory for fast navigation. If a newer
- * validated dataset is published while a tab is still open, reload once so all
- * cached public data moves to the same version. The visible "data updated"
- * timestamp is rendered declaratively by each page instead of being injected
- * into the DOM from here.
+ * Keeps already-open tabs on the newest published dataset and normalizes the
+ * visible data timestamp to U.S. Eastern time. Most pages render the timestamp
+ * declaratively; the DOM sync also covers legacy page renderers so every table
+ * shows the same refresh time while they are migrated to the shared format.
  */
 export default function TableFreshnessStamp() {
   useEffect(() => {
@@ -24,6 +49,12 @@ export default function TableFreshnessStamp() {
     let checking = false;
     let initialized = false;
     let baselineVersion: string | null = null;
+    let latestGeneratedAt: string | null = null;
+
+    const observer = new MutationObserver(() => {
+      if (!stopped) syncVisibleTimestamp(latestGeneratedAt);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     const checkFreshness = async () => {
       if (stopped || checking) return;
@@ -35,6 +66,12 @@ export default function TableFreshnessStamp() {
 
         const meta = (await response.json()) as FreshnessMeta;
         if (stopped) return;
+
+        latestGeneratedAt =
+          typeof meta.generatedAt === "string" && meta.generatedAt
+            ? meta.generatedAt
+            : null;
+        syncVisibleTimestamp(latestGeneratedAt);
 
         const nextVersion =
           typeof meta.dataVersion === "string" && meta.dataVersion
@@ -73,6 +110,7 @@ export default function TableFreshnessStamp() {
 
     return () => {
       stopped = true;
+      observer.disconnect();
       window.clearInterval(interval);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibilityChange);
