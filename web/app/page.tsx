@@ -175,7 +175,18 @@ export default function RatingsPage() {
             {loading ? "Loading season…" : `${year} • through ${weekLabel(Number(week), true)} • ${total} teams`}
           </span>
           <a className="utility-link" href="#methodology">Methodology ↗</a>
-          {updatedAt ? <time className="data-updated" dateTime={updatedAt}>Data updated {new Date(updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} UTC</time> : null}
+          {updatedAt ? (
+            <time className="data-updated" dateTime={updatedAt}>
+              Data updated {new Intl.DateTimeFormat("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                timeZone: "America/New_York",
+                timeZoneName: "short",
+              }).format(new Date(updatedAt))}
+            </time>
+          ) : null}
         </div>
       </section>
 
