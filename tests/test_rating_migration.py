@@ -148,7 +148,7 @@ class PossessionEfficiencyRatingTests(unittest.TestCase):
             fits=result["fits"],
             teams=3,
         )
-        self.assertEqual(meta["modelId"], "adj-rating-possession-v3")
+        self.assertEqual(meta["modelId"], "adj-rating-possession-v4")
         self.assertEqual(meta["modelMode"], "possession_efficiency")
         self.assertEqual(meta["normalization"], "none")
         self.assertEqual(meta["ridgeEquivalentPossessions"], 10.0)
@@ -198,7 +198,7 @@ class PossessionEfficiencyRatingTests(unittest.TestCase):
     def test_prior_season_row_is_rejected(self):
         rows = synthetic_round_robin()
         rows[0] = {**rows[0], "season": 2025}
-        with self.assertRaisesRegex(R.RatingModelError, "current-season-only"):
+        with self.assertRaisesRegex(R.RatingModelError, "expected season 2026"):
             self.fit(rows)
 
     def test_legacy_metadata_stays_available_for_rollback(self):

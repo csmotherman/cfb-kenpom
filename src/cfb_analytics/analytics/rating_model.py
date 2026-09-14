@@ -15,12 +15,23 @@ layer and Finishing Drives touchdown/field-goal adjudication. They are offensive
 drive points only, rather than scoreboard points that could include defensive or
 special-teams scores.
 
-The published rating imports no prior-season strength, preseason prior,
-recruiting information, conference-strength term, home-field coefficient, or
-z-score normalization. A small zero-centered ridge penalty is retained only to
-stabilize separate offense/defense effects while the early-season graph is
-sparse. It contains no team-specific information and naturally loses influence
-as each team accumulates possessions.
+The published rating imports no preseason prior, recruiting information,
+conference-strength term, home-field coefficient, or z-score normalization. A
+small zero-centered ridge penalty is retained only to stabilize separate
+offense/defense effects while the early-season graph is sparse. It contains no
+team-specific information and naturally loses influence as each team
+accumulates possessions.
+
+The one exception, added for weeks 1-3: a team's OWN rating is still fit
+purely from its own current-season games, never blended with its own prior
+year -- but the OPPONENT-strength term used to adjust for who a team played is
+tapered toward that opponent's final rating from the prior season (50% at
+site-week <= 2, linearly down to 0% by site-week 4), since with only 1-2 games
+played neither team's in-season number is trustworthy yet as a description of
+who the opponent actually was. This does not seed any team's own identity with
+last year's number; it only stabilizes what "a tough opponent" means before
+this season's schedule graph has connected enough to say for itself. See
+prior_season_weight() and _refine_with_prior_season_opponents() below.
 
 The historical ``hierarchical_hfa`` CLI mode name remains as a compatibility
 route for the site build. Published metadata identifies the actual methodology
@@ -41,13 +52,13 @@ from cfb_analytics.analytics.drive_ppd import (
     DRIVE_PPD_VERSION,
     build_team_game_drive_rows,
 )
-from cfb_analytics.analytics.iterative_ratings import fit_metric_ratings
+from cfb_analytics.analytics.iterative_ratings import _observations, fit_metric_ratings
 
 MODEL_MODES = ("hierarchical_hfa", "legacy")
 
-RATING_MODEL_ID = "adj-rating-possession-v3"
+RATING_MODEL_ID = "adj-rating-possession-v4"
 LEGACY_RATING_MODEL_ID = "adj-rating-legacy-srs-ypp-v1"
-MODEL_VERSION = "possession-efficiency-current-season-ridge-v3"
+MODEL_VERSION = "possession-efficiency-tapered-prior-opponent-v4"
 
 # Approximately one game's worth of offensive possessions. This is a neutral,
 # zero-effect stabilizer, not an external estimate of any team's strength.
@@ -56,10 +67,35 @@ LAMBDA_TEAM = RIDGE_EQUIVALENT_POSSESSIONS
 LAMBDA_CONFERENCE = 0.0
 HFA_ENABLED = False
 
-SEASON_SCOPE = "current-season-only"
-USES_PRIOR_SEASON_TEAM_STRENGTH = False
+# How much weight the prior season's final opponent rating carries in the
+# refinement pass below, by site-week. Walk-forward validated (2021-2026,
+# next-week-out): a real, if modest, accuracy/MAE improvement at week 1-2 that
+# fades to noise by week 3, so the taper reaches zero by week 4 on purpose --
+# past that point this season's own schedule graph is trusted alone, exactly
+# as before this feature existed.
+PRIOR_SEASON_TAPER_FULL_WEEK = 2
+PRIOR_SEASON_TAPER_ZERO_WEEK = 4
+PRIOR_SEASON_TAPER_START_WEIGHT = 0.5
+
+SEASON_SCOPE = "current-season-primary-with-tapered-prior-season-opponent-baseline"
+USES_PRIOR_SEASON_TEAM_STRENGTH = True
 USES_PRESEASON_TEAM_PRIOR = False
 USES_CONFERENCE_STRENGTH = False
+
+
+def prior_season_weight(site_week):
+    """0.5 at site_week<=2, linearly down to 0.0 by site_week>=4. See the
+    module docstring and PRIOR_SEASON_TAPER_* above for why these specific
+    values."""
+    if site_week is None:
+        return 0.0
+    if site_week <= PRIOR_SEASON_TAPER_FULL_WEEK:
+        return PRIOR_SEASON_TAPER_START_WEIGHT
+    if site_week >= PRIOR_SEASON_TAPER_ZERO_WEEK:
+        return 0.0
+    span = PRIOR_SEASON_TAPER_ZERO_WEEK - PRIOR_SEASON_TAPER_FULL_WEEK
+    remaining = PRIOR_SEASON_TAPER_ZERO_WEEK - site_week
+    return PRIOR_SEASON_TAPER_START_WEIGHT * remaining / span
 
 RATING_INPUT_VERSION = "validated-drive-ppd-v1"
 RATING_SCALE = 10.0  # points/drive effect -> points per 10 resolved possessions.
@@ -316,6 +352,75 @@ def _schedule_components(model_rows: list[dict[str, Any]]) -> int:
     return count
 
 
+def _refine_with_prior_season_opponents(
+    model_rows: list[dict[str, Any]],
+    *,
+    offense: dict[str, float],
+    defense: dict[str, float],
+    league_mean: float,
+    shrinkage: float,
+    prior_offense: dict[str, float],
+    prior_defense: dict[str, float],
+    weight: float,
+):
+    """One refinement pass on top of an already-converged current-season-only
+    fit: recompute each team's OWN offense/defense using a WEIGHT-blended
+    opponent baseline (that opponent's prior-season final rating blended with
+    their own converged current-season value) as the fixed reference point,
+    instead of the free-standing current-season-only value. Reuses the exact
+    per-team update formula fit_metric_ratings' own coordinate descent uses
+    (see its `raw`/`target` lines), just evaluated once instead of iterated
+    to convergence, since only the opponent side is being re-anchored -- a
+    team's own side never re-reads its own prior-season number.
+
+    Weight 0 must return (offense, defense) unchanged -- callers rely on this
+    to make "no prior season available" and "taper has reached zero" both
+    exact no-ops, not just approximately so.
+    """
+    if weight <= 0:
+        return offense, defense
+
+    blended_offense = {
+        team: weight * prior_offense[team] + (1 - weight) * value
+        if team in prior_offense
+        else value
+        for team, value in offense.items()
+    }
+    blended_defense = {
+        team: weight * prior_defense[team] + (1 - weight) * value
+        if team in prior_defense
+        else value
+        for team, value in defense.items()
+    }
+
+    observations = _observations(model_rows, POSSESSION_SPEC)
+    by_offense: dict[str, list[tuple[str, float, float]]] = defaultdict(list)
+    by_defense: dict[str, list[tuple[str, float, float]]] = defaultdict(list)
+    for team, opponent, value, obs_weight in observations:
+        by_offense[team].append((opponent, value, obs_weight))
+        by_defense[opponent].append((team, value, obs_weight))
+
+    refined_offense = dict(offense)
+    for team, games in by_offense.items():
+        total_weight = sum(w for _, _, w in games)
+        raw = sum(
+            w * (value - league_mean + blended_defense.get(opponent, 0.0))
+            for opponent, value, w in games
+        )
+        refined_offense[team] = raw / (total_weight + shrinkage)
+
+    refined_defense = dict(defense)
+    for team, games in by_defense.items():
+        total_weight = sum(w for _, _, w in games)
+        raw = sum(
+            w * (league_mean + blended_offense.get(opponent, 0.0) - value)
+            for opponent, value, w in games
+        )
+        refined_defense[team] = raw / (total_weight + shrinkage)
+
+    return refined_offense, refined_defense
+
+
 def _fit_possession_efficiency(
     rows: list[dict[str, Any]],
     *,
@@ -323,6 +428,9 @@ def _fit_possession_efficiency(
     cutoff: Any,
     input_version: str,
     ridge_equivalent_possessions: float,
+    prior_offense: dict[str, float] | None = None,
+    prior_defense: dict[str, float] | None = None,
+    prior_weight: float = 0.0,
 ):
     model_rows = _validated_model_rows(rows, season)
 
@@ -347,6 +455,22 @@ def _fit_possession_efficiency(
         raise RatingModelError("Possession-efficiency solver returned no rated teams")
     if set(offense) != set(defense):
         raise RatingModelError("Possession offense and defense universes differ")
+
+    prior_weight = float(prior_weight)
+    if not (0.0 <= prior_weight <= 1.0):
+        raise RatingModelError(f"prior_weight must be in [0, 1], got {prior_weight}")
+    used_prior_season = bool(prior_weight > 0 and prior_offense and prior_defense)
+    if used_prior_season:
+        offense, defense = _refine_with_prior_season_opponents(
+            model_rows,
+            offense=offense,
+            defense=defense,
+            league_mean=float(fit["leagueMean"]),
+            shrinkage=ridge_equivalent_possessions,
+            prior_offense=prior_offense,
+            prior_defense=prior_defense,
+            weight=prior_weight,
+        )
 
     ratings = {
         "AdjOff": {team: RATING_SCALE * float(offense[team]) for team in teams},
@@ -393,7 +517,8 @@ def _fit_possession_efficiency(
         "ridgeEquivalentPossessions": ridge_equivalent_possessions,
         "drivePpdVersion": DRIVE_PPD_VERSION,
         "usesConferenceStrength": False,
-        "usesPriorSeasonTeamStrength": False,
+        "usesPriorSeasonTeamStrength": used_prior_season,
+        "priorSeasonOpponentWeight": prior_weight,
         "usesPreseasonTeamPrior": False,
         "hfaEnabled": False,
         "rows": sorted(
@@ -423,6 +548,8 @@ def _fit_possession_efficiency(
         "ridgeEquivalentPossessions": ridge_equivalent_possessions,
         "leagueMeanPointsPerPossession": league_mean,
         "weightedRmsePointsPerPossession": weighted_rmse,
+        "usesPriorSeasonTeamStrength": used_prior_season,
+        "priorSeasonOpponentWeight": prior_weight,
         "modelMetadata": {"modelKey": model_key},
     }
     return {"fits": {"PossessionPoints": wrapped_fit}, "ratings": ratings}
@@ -437,8 +564,20 @@ def fit_publication_composite(
     lambda_conf=LAMBDA_CONFERENCE,
     hfa_enabled=HFA_ENABLED,
     input_version=RATING_INPUT_VERSION,
+    prior_offense=None,
+    prior_defense=None,
+    prior_weight=0.0,
 ):
-    """Fit current-season recursive possession offense and defense."""
+    """Fit current-season recursive possession offense and defense.
+
+    `prior_offense`/`prior_defense` are the PRIOR season's final AdjOff/AdjDef
+    (already divided back down by RATING_SCALE, i.e. in this function's own
+    internal units -- see _fit_possession_efficiency), keyed by team name.
+    `prior_weight` (from prior_season_weight(site_week), 0 by default) tapers
+    how much they blend into the OPPONENT side of the adjustment only -- see
+    _refine_with_prior_season_opponents. Omit prior_offense/prior_defense or
+    pass prior_weight=0 to fit exactly as before this feature existed.
+    """
     if not rows:
         raise RatingModelError(
             "Refusing to fit publication ratings from an empty rating graph"
@@ -463,6 +602,9 @@ def fit_publication_composite(
         cutoff=cutoff,
         input_version=input_version,
         ridge_equivalent_possessions=float(lambda_team),
+        prior_offense=prior_offense,
+        prior_defense=prior_defense,
+        prior_weight=prior_weight,
     )
     ratings = result["ratings"]
     teams = set(ratings["AdjNet"])
@@ -558,4 +700,14 @@ def rating_model_metadata(
                 "weightedRmsePointsPerPossession"
             ]
             meta["modelKey"] = possession_fit["modelMetadata"]["modelKey"]
+            # Overrides the static, "does this model support it at all" flag
+            # above with what actually happened for this specific cutoff --
+            # e.g. false again once the taper reaches zero by
+            # PRIOR_SEASON_TAPER_ZERO_WEEK, even though the model supports it.
+            meta["usesPriorSeasonTeamStrength"] = possession_fit[
+                "usesPriorSeasonTeamStrength"
+            ]
+            meta["priorSeasonOpponentWeight"] = possession_fit[
+                "priorSeasonOpponentWeight"
+            ]
     return meta

@@ -6,6 +6,8 @@ import json
 import math
 from pathlib import Path
 
+from cfb_analytics.analytics import rating_model as rating_models
+
 METRICS = {"adjEM": "rank", "adjO": "adjORank", "adjD": "adjDRank", "sos": "sosRank", "sor": "sorRank"}
 
 # adjEM/adjO/adjD keep their public names across the rating-model migration, so
@@ -35,17 +37,36 @@ def finite(value):
 def require_current_season_rating_contract(rankings):
     """For live-era hierarchical seasons, the shipped artifact must explicitly
     prove that LEILA's team-strength signal comes only from the season being
-    rated. Historical replay files from before this contract was introduced are
-    left byte-stable and continue to validate under their recorded model IDs."""
+    rated -- with one deliberate, bounded exception: rating_model.py tapers a
+    prior-season OPPONENT baseline into the adjustment for site-week<=3 (see
+    rating_model.prior_season_weight), walk-forward validated to improve
+    early-season accuracy. This check now enforces that the taper is exactly
+    what it claims to be -- engaged only within its own declared window, and
+    OFF (bit-for-bit, not just small) by the week it promises to reach zero.
+    A preseason team prior remains fully disallowed, unchanged.
+
+    Historical replay files from before this contract was introduced are left
+    byte-stable and continue to validate under their recorded model IDs."""
     model = rankings.get("ratingModel") or {}
     if model.get("modelMode", LEGACY_MODEL_MODE) == LEGACY_MODEL_MODE:
         return
     season = model.get("season")
     if not isinstance(season, int) or season < CURRENT_SEASON_SCOPE_START:
         return
-    require(model.get("seasonScope") == "current-season-only", f"Season {season} ratings are missing the current-season-only contract")
-    require(model.get("usesPriorSeasonTeamStrength") is False, f"Season {season} ratings allow prior-season team strength")
     require(model.get("usesPreseasonTeamPrior") is False, f"Season {season} ratings allow a preseason team prior")
+    site_week = (model.get("cutoff") or {}).get("siteWeek")
+    taper_weight = rating_models.prior_season_weight(site_week)
+    require(
+        model.get("priorSeasonOpponentWeight") == taper_weight,
+        f"Season {season} week {site_week} reports priorSeasonOpponentWeight="
+        f"{model.get('priorSeasonOpponentWeight')!r}, expected the declared taper value {taper_weight!r}",
+    )
+    if taper_weight <= 0:
+        require(
+            model.get("usesPriorSeasonTeamStrength") is False,
+            f"Season {season} week {site_week} is past the prior-season taper window "
+            "but still reports using prior-season team strength",
+        )
 
 
 def require_composite_identity(row):

@@ -377,9 +377,42 @@ def new_acc():
     }
 
 
-def build_year(year, rating_model):
+def _prior_season_possession_baseline(year, rating_model):
+    """That team's FINAL adjOff/adjDef from year-1, in fit_publication_composite's
+    own internal units (divided back down by RATING_SCALE) -- the reference
+    point rating_model.py's early-season taper blends into the OPPONENT side
+    of year's own opponent adjustment. use_prior_season_baseline=False here on
+    purpose: this reference fit must not itself recurse into year-2's prior,
+    it's a plain current-season-only fit for year-1, exactly as year-1 was
+    actually published (see rating_model.prior_season_weight's docstring).
+    Returns (None, None) if year-1 has no built data (e.g. the first season
+    in YEARS) rather than raising -- an unavailable prior season is a normal,
+    expected case, not a build failure.
+    """
+    try:
+        prior_weeks, _, _ = build_year(year - 1, rating_model, use_prior_season_baseline=False)
+    except (FileNotFoundError, ValueError):
+        return None, None
+    if not prior_weeks:
+        return None, None
+    last_wk = max(prior_weeks)
+    offense = {
+        r["team"]: r["adjOff"] / rating_models.RATING_SCALE
+        for r in prior_weeks[last_wk] if r.get("adjOff") is not None
+    }
+    defense = {
+        r["team"]: r["adjDef"] / rating_models.RATING_SCALE
+        for r in prior_weeks[last_wk] if r.get("adjDef") is not None
+    }
+    return offense, defense
+
+
+def build_year(year, rating_model, use_prior_season_baseline=True):
     rating_models.require_mode(rating_model)
     hierarchical = rating_model == "hierarchical_hfa"
+    prior_offense = prior_defense = None
+    if hierarchical and use_prior_season_baseline:
+        prior_offense, prior_defense = _prior_season_possession_baseline(year, rating_model)
     games = load_canonical_games(year)
     source = {str(g["id"]): g for path in (REPO / f"data/raw/cfbd/season={year}").glob("season_type=*/week=*/games.json") for g in json.loads(path.read_text())}
     completed = {gid for gid, g in source.items() if g.get("completed") is True}
@@ -686,6 +719,8 @@ def build_year(year, rating_model):
             fitted = rating_models.fit_publication_composite(
                 composite_history, season=year,
                 cutoff={"siteWeek": wk, "scope": "through-site-week"},
+                prior_offense=prior_offense, prior_defense=prior_defense,
+                prior_weight=rating_models.prior_season_weight(wk),
             )
             composite, composite_fits = fitted["ratings"], fitted["fits"]
 
