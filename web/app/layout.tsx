@@ -26,6 +26,7 @@ import "@/styles/team-profile-v2.css";
 import "@/styles/methodology.css";
 import "@/styles/network.css";
 import "@/styles/game-log.css";
+import "@/styles/article.css";
 import "@/styles/upgrade.css";
 import "@/styles/table-identity-polish.css";
 import "@/styles/table-freshness.css";
