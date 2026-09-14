@@ -199,7 +199,7 @@ export default function RatingsPage() {
           <span className="ratings-status">
             {loading ? "Loading season…" : `${year} • through ${weekLabel(Number(week), true)} • ${total} teams`}
           </span>
-          <a className="utility-link" href="#methodology">Methodology ↗</a>
+          <Link className="utility-link" href="/methodology">Methodology ↗</Link>
           {updatedAt ? (
             <time className="data-updated" dateTime={updatedAt}>
               Data updated {new Intl.DateTimeFormat("en-US", {
@@ -212,6 +212,17 @@ export default function RatingsPage() {
               }).format(new Date(updatedAt))}
             </time>
           ) : null}
+        </div>
+      </section>
+
+      <section className="onboarding-strip container" aria-label="New here">
+        <p className="onboarding-strip__lede">
+          <strong>Adj. Net</strong> ranks every FBS team by opponent-adjusted performance &mdash; Adj. Off + Adj. Def,
+          accounting for who they played, not just the scoreboard. Hover any column header for what it means.
+        </p>
+        <div className="onboarding-strip__links">
+          <Link href="/this-week">See this week&rsquo;s games →</Link>
+          <Link href="/methodology">How the ratings work →</Link>
         </div>
       </section>
 

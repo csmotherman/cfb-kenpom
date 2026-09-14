@@ -5,6 +5,7 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import { TipTrigger } from "@/components/Tooltip";
 import { getMeta, getRankingsSeason, getScheduleSeason } from "@/lib/data";
 import { logoUrl } from "@/lib/teamCode";
 import type { RankingsRow, RankingsSeason, ScheduleGame, ScheduleSeason } from "@/lib/types";
@@ -245,7 +246,10 @@ function WeeklyTeam({
           <small>{rating?.record || "—"}</small>
         </span>
       </Link>
-      <span className="weekly-team__adjnet mono">AdjNet {signed(rating?.adjEM)}</span>
+      <span className="weekly-team__adjnet mono">
+        Adj. Net {signed(rating?.adjEM)}
+        <TipTrigger text="Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def." />
+      </span>
     </div>
   );
 }

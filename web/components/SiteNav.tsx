@@ -7,8 +7,8 @@ import { isEarlyBetaActive } from "@/lib/earlyBeta";
 const LINKS = [
   { href: "/", label: "Ratings" },
   { href: "/this-week", label: "This Week" },
+  { href: "/predictions", label: "Predictions", premium: true },
   { href: "/advanced", label: "Advanced", premium: true },
-  { href: "/network", label: "Network" },
 ];
 
 export default function SiteNav() {

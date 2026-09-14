@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -375,6 +376,36 @@ export default function AdvancedPage() {
   const [filter, setFilter] = useState("");
   const [conference, setConference] = useState("");
   const [gameLogTarget, setGameLogTarget] = useState<{ team: Aggregated; column: AdvColumn } | null>(null);
+  const [showAllColumns, setShowAllColumns] = useState(false);
+
+  // Dismiss-once callout explaining the drillable-cell affordance. Defaults
+  // to hidden (matching server render) and only turns on client-side once
+  // localStorage confirms it hasn't been dismissed before, same SSR-safe
+  // shape as GameLogModal's `mounted` flag -- a per-viewer convenience, not
+  // state that needs to sync across devices or be read back by anyone else.
+  const [showDrillDownTip, setShowDrillDownTip] = useState(false);
+  /* eslint-disable react-hooks/set-state-in-effect -- one-time client-only
+     localStorage read on mount (matches the query-string-read pattern in
+     app/page.tsx and the SSR-safe mount flag in GameLogModal). */
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("leila:advancedDrillDownTipDismissed") !== "1") {
+        setShowDrillDownTip(true);
+      }
+    } catch {
+      // Private browsing / blocked storage -- just skip the tip.
+    }
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+  function dismissDrillDownTip() {
+    setShowDrillDownTip(false);
+    try {
+      localStorage.setItem("leila:advancedDrillDownTipDismissed", "1");
+    } catch {
+      // Nothing to persist if storage is unavailable; the tip just
+      // reappears next visit, which is an acceptable fallback.
+    }
+  }
 
   useEffect(() => {
     getMeta().then((meta) => {
@@ -543,6 +574,14 @@ export default function AdvancedPage() {
     [tabDef],
   );
 
+  // A new visitor lands on a tab with 5-7 sections and 10-14 columns all at
+  // once -- default to just the first ("Overall"/"Rating") section so the
+  // table is scannable, with an explicit opt-in to see everything. Resets to
+  // collapsed on every tab switch (see selectTab) rather than persisting, so
+  // it never looks like columns silently vanished.
+  const visibleSections = showAllColumns ? tabDef.sections : tabDef.sections.slice(0, 1);
+  const visibleColumns = useMemo(() => visibleSections.flatMap((section) => section.columns), [visibleSections]);
+
   const conferences = useMemo(() => [...new Set(teams.map((team) => team.conf))].filter(Boolean).sort(), [teams]);
 
   function onHeaderClick(key: string) {
@@ -559,12 +598,14 @@ export default function AdvancedPage() {
     setTab(nextTab);
     setSortKey(null);
     setSortDir("asc");
+    setShowAllColumns(false);
   }
 
   function selectPerspective(nextPerspective: Perspective) {
     setPerspective(nextPerspective);
     setSortKey(null);
     setSortDir("asc");
+    setShowAllColumns(false);
   }
 
   if (loadError) throw loadError;
@@ -584,7 +625,7 @@ export default function AdvancedPage() {
           </div>
           <div className="ratings-hero__meta">
             <span className="ratings-status">{loading ? "Loading season…" : `${year} • ${startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : ""} • ${teams.length} teams`}</span>
-            <a className="utility-link" href="#methodology">Methodology ↗</a>
+            <Link className="utility-link" href="/methodology">Methodology ↗</Link>
             {updatedAt ? <time className="data-updated" dateTime={updatedAt}>Data updated {new Date(updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} UTC</time> : null}
           </div>
         </section>
@@ -680,13 +721,39 @@ export default function AdvancedPage() {
 
             <p className="adv-note">{tabDef.note ?? "Rate stats use exactly the selected week range. Opponent-adjusted model stats are snapshots as of the selected end week."}</p>
           </div>
+
+          {tab === "general" || showDrillDownTip ? (
+            <div className="container advanced-callouts">
+              {tab === "general" ? (
+                <p className="advanced-callout advanced-callout--link">
+                  Early in a season, ASM can be skewed by how connected the schedule graph is yet.{" "}
+                  <Link href="/network">See the schedule network →</Link>
+                </p>
+              ) : null}
+              {showDrillDownTip ? (
+                <p className="advanced-callout advanced-callout--tip">
+                  Tip: click a highlighted stat (<span className="drillable-sample" aria-hidden="true" />) for its game-by-game breakdown.
+                  <button type="button" className="advanced-callout__dismiss" onClick={dismissDrillDownTip} aria-label="Dismiss tip">
+                    &times;
+                  </button>
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <main id="advancedTable" className="table-main container">
           <div className="advanced-table-shell">
-            <div className="advanced-table-summary" aria-hidden="true">
-              <span>{tabDef.label}</span>
-              <span>{tabDef.sections.map((section) => section.title).join(" • ")}</span>
+            <div className="advanced-table-summary">
+              <span aria-hidden="true">{tabDef.label}</span>
+              <span aria-hidden="true">{visibleSections.map((section) => section.title).join(" • ")}</span>
+              {tabDef.sections.length > 1 ? (
+                <button type="button" className="show-all-columns-toggle" onClick={() => setShowAllColumns((v) => !v)}>
+                  {showAllColumns
+                    ? "Show fewer columns"
+                    : `Show all columns (+${tabDef.sections.length - 1} more section${tabDef.sections.length - 1 === 1 ? "" : "s"})`}
+                </button>
+              ) : null}
             </div>
             <div className="table-scroll" role="region" aria-label="Advanced CFF analytics table" tabIndex={0}>
               <table className="data-table adv-table" data-view={tab} data-perspective={tabDef.supportsPerspective ? perspective : undefined}>
@@ -694,7 +761,7 @@ export default function AdvancedPage() {
                 <thead>
                   <tr className="adv-section-row">
                     <th scope="colgroup" colSpan={3} className="adv-section-spacer">Team</th>
-                    {tabDef.sections.map((section) => (
+                    {visibleSections.map((section) => (
                       <th key={section.title} scope="colgroup" colSpan={section.columns.length} className="adv-section-heading">
                         {section.title}
                       </th>
@@ -715,7 +782,7 @@ export default function AdvancedPage() {
                       <TipTrigger text="Record within the selected week range" />
                       <span className="sort-indicator">{sortKey === "wins" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
                     </th>
-                    {tabDef.columns.map((col) => (
+                    {visibleColumns.map((col) => (
                       <th
                         key={col.key}
                         scope="col"
@@ -734,14 +801,14 @@ export default function AdvancedPage() {
                   {loading ? (
                     Array.from({ length: 14 }).map((_, rowIndex) => (
                       <tr key={rowIndex} className="skeleton-row">
-                        {Array.from({ length: 3 + tabDef.columns.length }).map((__, cellIndex) => (
+                        {Array.from({ length: 3 + visibleColumns.length }).map((__, cellIndex) => (
                           <td key={cellIndex}><span className="skeleton-bar" style={{ width: (cellIndex === 1 ? 75 : 45 + ((cellIndex * 11) % 30)) + "%" }} /></td>
                         ))}
                       </tr>
                     ))
                   ) : visibleTeams.length === 0 ? (
                     <tr className="empty-row">
-                      <td colSpan={3 + tabDef.columns.length}>No teams match &ldquo;{filter}&rdquo;.</td>
+                      <td colSpan={3 + visibleColumns.length}>No teams match &ldquo;{filter}&rdquo;.</td>
                     </tr>
                   ) : (
                     visibleTeams.map((team) => (
@@ -754,7 +821,7 @@ export default function AdvancedPage() {
                           </div>
                         </td>
                         <td className="num record-cell">{team.record}</td>
-                        {tabDef.columns.map((col) => {
+                        {visibleColumns.map((col) => {
                           const value = team[col.key] as number | null;
                           const rank = team[`_rank_${col.key}`] as number | null;
                           const drillable = col.kind === "rate" && col.fmt !== "split0" && !!col.num && !!col.den;

@@ -114,6 +114,43 @@
   text-underline-offset: 3px;
 }
 
+/* Homepage "start here" strip -- a compact, always-visible orientation line
+   for a cold-start visitor, not a dismissible banner. */
+.onboarding-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-3);
+}
+.onboarding-strip__lede {
+  flex: 1 1 420px;
+  max-width: 620px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-ink-secondary);
+}
+.onboarding-strip__lede strong { color: var(--color-navy); }
+.onboarding-strip__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  flex: 0 0 auto;
+}
+.onboarding-strip__links a {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-navy);
+  white-space: nowrap;
+}
+.onboarding-strip__links a:hover { color: var(--color-gold-dark); }
+
+@media (max-width: 640px) {
+  .onboarding-strip { padding-left: var(--space-4); padding-right: var(--space-4); }
+}
+
 /* Controls */
 .control-bar {
   background: var(--color-paper-raised);
