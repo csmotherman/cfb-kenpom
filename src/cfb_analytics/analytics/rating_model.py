@@ -1,6 +1,6 @@
 """Live opponent-adjusted possession-efficiency model for AdjOff/AdjDef/AdjNet.
 
-LEILA now treats a possession as the fundamental unit of football efficiency:
+LEILA treats a possession as the fundamental unit of football efficiency:
 
     points / resolved possession
         = national mean + offense(team) - defense(opponent) + error
@@ -9,6 +9,11 @@ Every completed FBS-vs-FBS team-game from the current season is solved
 simultaneously. The resulting offense and defense effects therefore recurse
 through the entire schedule graph, in the same spirit that SRS recursively
 adjusts scoring margin for opponent strength.
+
+The possession points are reconstructed from the repository's validated drive
+layer and Finishing Drives touchdown/field-goal adjudication. They are offensive
+drive points only, rather than scoreboard points that could include defensive or
+special-teams scores.
 
 The published rating imports no prior-season strength, preseason prior,
 recruiting information, conference-strength term, home-field coefficient, or
@@ -27,8 +32,15 @@ import hashlib
 import json
 import math
 from collections import defaultdict, deque
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
+from cfb_analytics.analytics.drive_ppd import (
+    DRIVE_PPD_POINTS_FOUNDATION,
+    DRIVE_PPD_VERSION,
+    build_team_game_drive_rows,
+)
 from cfb_analytics.analytics.iterative_ratings import fit_metric_ratings
 
 MODEL_MODES = ("hierarchical_hfa", "legacy")
@@ -49,11 +61,11 @@ USES_PRIOR_SEASON_TEAM_STRENGTH = False
 USES_PRESEASON_TEAM_PRIOR = False
 USES_CONFERENCE_STRENGTH = False
 
-RATING_INPUT_VERSION = "canonical-possession-team-game-v1"
-RATING_SCALE = 10.0  # effect in points/drive -> points per 10 resolved possessions.
+RATING_INPUT_VERSION = "validated-drive-ppd-v1"
+RATING_SCALE = 10.0  # points/drive effect -> points per 10 resolved possessions.
 POSSESSION_SPEC = (
     "PossessionPoints",
-    "possessionPoints",
+    "offensiveDrivePoints",
     "resolvedPointPossessions",
 )
 
@@ -68,7 +80,7 @@ COMPOSITE_FIELDS = (
     "successfulPlayYards",
 )
 POSSESSION_FIELDS = (
-    "possessionPoints",
+    "offensiveDrivePoints",
     "resolvedPointPossessions",
 )
 
@@ -104,11 +116,65 @@ def _finite(value: Any) -> bool:
     )
 
 
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[3]
+
+
+@lru_cache(maxsize=8)
+def _drive_rating_fields(season: int) -> dict[tuple[str, str], dict[str, float]]:
+    """Materialize authoritative offensive drive points for one season.
+
+    The normal site-build row is the canonical team-game contract, which does
+    not carry the research drive-PPD fields. The raw ingredients have already
+    been produced earlier in the refresh workflow, so load those validated
+    drive and canonical-play partitions once and reuse the locked drive-PPD
+    aggregation instead of recreating possession scoring inside this model.
+    """
+    repo = _repo_root()
+    play_paths = sorted(
+        (repo / f"data/processed/canonical/season={season}").glob(
+            "season_type=*/week=*/plays.json"
+        )
+    )
+    drive_paths = sorted(
+        (repo / f"data/processed/derived/drives/season={season}").glob(
+            "season_type=*/week=*/drives.json"
+        )
+    )
+    if not play_paths or not drive_paths:
+        raise RatingModelError(
+            f"Season {season}: possession ratings require canonical plays and "
+            "validated derived drives from the current refresh"
+        )
+
+    plays = [play for path in play_paths for play in json.loads(path.read_text())]
+    drives = [drive for path in drive_paths for drive in json.loads(path.read_text())]
+    derived = build_team_game_drive_rows(drives, plays)
+
+    out: dict[tuple[str, str], dict[str, float]] = {}
+    for row in derived:
+        game_id = str(row.get("gameId") or "")
+        team = str(row.get("team") or "")
+        if not game_id or not team:
+            continue
+        key = (game_id, team)
+        if key in out:
+            raise RatingModelError(
+                f"Duplicate drive-efficiency row for {game_id} / {team}"
+            )
+        out[key] = {
+            "offensiveDrivePoints": float(row.get("offensiveDrivePoints") or 0.0),
+            "resolvedPointPossessions": float(row.get("resolvedPointPossessions") or 0.0),
+        }
+    return out
+
+
 def composite_input_row(row, metric_fields):
     """Build one current-season possession-rating observation.
 
-    Possession scoring comes from the locked canonical team-game/drive
-    contract. Conference fields, when present, are copied only for audit/debug
+    Drive scoring is taken from the locked validated-drive PPD foundation. For
+    synthetic/unit-test callers the two fields may be supplied directly on the
+    row. Conference fields, when present, are copied only for audit/debug
     visibility and never enter the numerical fit.
     """
     missing = [field for field in _REQUIRED_ROW_FIELDS if row.get(field) is None]
@@ -122,12 +188,26 @@ def composite_input_row(row, metric_fields):
         if row.get(optional) is not None:
             out[optional] = row[optional]
 
-    for field in POSSESSION_FIELDS:
-        if field not in row or row.get(field) is None:
-            raise RatingModelError(
-                f"Possession rating field {field!r} is missing for {row['team']}"
-            )
-        out[field] = row[field]
+    direct_points = row.get("offensiveDrivePoints")
+    direct_possessions = row.get("resolvedPointPossessions")
+    if direct_points is not None and direct_possessions is not None:
+        drive_fields = {
+            "offensiveDrivePoints": direct_points,
+            "resolvedPointPossessions": direct_possessions,
+        }
+    else:
+        key = (str(row["gameId"]), str(row["team"]))
+        drive_fields = _drive_rating_fields(int(row["season"])).get(key)
+        if drive_fields is None:
+            # Keep the symmetric game row for graph/audit integrity but give it
+            # zero statistical weight. Missing drive data must never be replaced
+            # with scoreboard points or another proxy.
+            drive_fields = {
+                "offensiveDrivePoints": 0.0,
+                "resolvedPointPossessions": 0.0,
+            }
+            out["driveMetricsMissing"] = True
+    out.update(drive_fields)
 
     if metric_fields is None:
         out.update({field: 0 for field in COMPOSITE_FIELDS})
@@ -171,7 +251,7 @@ def _validated_model_rows(rows: list[dict[str, Any]], season: int):
         seen.add(key)
         games[game_id].append((team, opponent))
 
-        points = row.get("possessionPoints")
+        points = row.get("offensiveDrivePoints")
         possessions = row.get("resolvedPointPossessions")
         if not _finite(points) or not _finite(possessions):
             raise RatingModelError(
@@ -186,12 +266,11 @@ def _validated_model_rows(rows: list[dict[str, Any]], season: int):
                 f"Negative resolved possession count for {game_id} / {team}"
             )
 
-        # Deliberately strip conference/site fields before the numerical solve.
         model_rows.append(
             {
                 "team": team,
                 "opponent": opponent,
-                "possessionPoints": float(points),
+                "offensiveDrivePoints": float(points),
                 "resolvedPointPossessions": float(possessions),
             }
         )
@@ -286,7 +365,7 @@ def _fit_possession_efficiency(
         weight = float(row["resolvedPointPossessions"])
         if weight <= 0:
             continue
-        value = float(row["possessionPoints"]) / weight
+        value = float(row["offensiveDrivePoints"]) / weight
         prediction = (
             league_mean
             + float(offense[row["team"]])
@@ -312,6 +391,7 @@ def _fit_possession_efficiency(
         "inputVersion": input_version,
         "scale": RATING_SCALE,
         "ridgeEquivalentPossessions": ridge_equivalent_possessions,
+        "drivePpdVersion": DRIVE_PPD_VERSION,
         "usesConferenceStrength": False,
         "usesPriorSeasonTeamStrength": False,
         "usesPreseasonTeamPrior": False,
@@ -432,17 +512,19 @@ def rating_model_metadata(
         "modelVersion": MODEL_VERSION,
         "netDefinition": "AdjNet = AdjOff + AdjDef",
         "offenseDefinition": (
-            "10 * opponent-adjusted points/resolved-possession offense effect"
+            "10 * recursively opponent-adjusted offensive points/resolved possession"
         ),
         "defenseDefinition": (
-            "10 * opponent-adjusted points/resolved-possession defense effect "
+            "10 * recursively opponent-adjusted points/resolved possession prevented "
             "(higher is better)"
         ),
         "ratingScale": "points per 10 resolved possessions above/below average FBS",
-        "metric": "points/resolved possession",
+        "metric": "offensive points/resolved possession",
         "opponentAdjustment": (
             "simultaneous recursive current-season offense-defense solve"
         ),
+        "pointsFoundation": DRIVE_PPD_POINTS_FOUNDATION,
+        "drivePpdVersion": DRIVE_PPD_VERSION,
         "stabilization": "zero-centered ridge to current-season FBS average",
         "ridgeEquivalentPossessions": RIDGE_EQUIVALENT_POSSESSIONS,
         "externalTeamStrengthInputsUsed": False,
@@ -452,8 +534,6 @@ def rating_model_metadata(
         "seasonScope": SEASON_SCOPE,
         "usesPriorSeasonTeamStrength": USES_PRIOR_SEASON_TEAM_STRENGTH,
         "usesPreseasonTeamPrior": USES_PRESEASON_TEAM_PRIOR,
-        # Drive scoring uses complete validated possessions; unlike the former
-        # EPA/play input it is not a garbage-time-filtered play statistic.
         "garbageTimeExcluded": False,
         "normalization": "none",
         "inputVersion": RATING_INPUT_VERSION,
