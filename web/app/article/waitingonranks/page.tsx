@@ -4,9 +4,9 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata = {
-  title: "Nobody Knows Who's Good Yet | LEILA Ratings",
+  title: "College Football Rankings Have a Week 4 Problem | LEILA Ratings",
   description:
-    "Every college football ranking published before Week 4 -- the AP Poll, ESPN's FPI, even LEILA's own ratings -- is closer to a guess than a measurement. Here's the data.",
+    "Early-season college football rankings are far less certain than they look. LEILA's schedule-network analysis and historical backtest show why Week 4 is the first meaningful national comparison point.",
   robots: { index: false, follow: false },
 };
 
@@ -29,11 +29,11 @@ export default function WaitingOnRanksArticle() {
       <main id="articleContent" className="container article-main">
         <header className="article-hero">
           <span className="eyebrow">Data Investigation</span>
-          <h1>Nobody Actually Knows Who&rsquo;s Good Right Now &mdash; Not the AP, Not ESPN, Not Even Us</h1>
+          <h1>College Football Rankings Have a Week 4 Problem</h1>
           <p className="article-dek">
-            Every ranking you&rsquo;re reading this early in the season &mdash; the AP Poll, the committee&rsquo;s
-            future darling, LEILA&rsquo;s own Adj. Net &mdash; is closer to a guess than a measurement. We can prove
-            it with our own data, and explain exactly why it happens. The short version: wait until Week 4.
+            Early-season rankings are not useless. They are simply much less certain than they look. The schedule
+            itself is too disconnected to compare most teams cleanly, and our own historical backtest shows how much
+            stability improves once teams reach roughly four games played.
           </p>
           <p className="article-byline">LEILA Ratings Data Desk</p>
         </header>
@@ -41,37 +41,33 @@ export default function WaitingOnRanksArticle() {
         <section className="article-section">
           <p>
             Every September, the same ritual plays out. A team wins two games against overmatched opponents, climbs
-            eleven spots in the AP Poll, and pundits spend a week arguing about whether they&rsquo;re &ldquo;for
-            real.&rdquo; Nobody stops to ask the more basic question: is there even enough information yet to know?
+            eleven spots in the AP Poll, and the national conversation immediately turns to whether it is
+            &ldquo;for real.&rdquo; The more important question comes first: is there enough information yet to compare
+            that team to the rest of the country with any confidence?
           </p>
           <p>
-            For most of the sport, in most weeks, the honest answer is no. Not because voters are lazy or biased
-            (though anchoring bias is real and well documented), but because of something more structural: through
-            the first two or three weeks of a season, the country&rsquo;s 136+ FBS teams simply haven&rsquo;t played
-            enough games against each other to be compared on the same scale. We built a page to show this happening
-            in real time &mdash; <Link href="/network">/network</Link> &mdash; and the numbers behind it are stark
-            enough that we think every fan should see them before they trust a single Week 1-3 ranking, including
-            ours.
+            Through the first two or three weeks, often there is not. That is not primarily a criticism of voters.
+            It is a structural problem. FBS teams have not played enough games against one another to form a single,
+            well-connected comparison network. We built <Link href="/network">a live network page</Link> to make
+            that problem visible, and the 2026 schedule shows exactly why early rankings should be treated as
+            estimates with wide uncertainty bands rather than settled measurements.
           </p>
         </section>
 
         <section className="article-section">
           <div className="article-section__heading">
             <span className="eyebrow">The Mechanism</span>
-            <h2>The networks nobody&rsquo;s talking about</h2>
+            <h2>The country is not one comparison pool yet</h2>
           </div>
           <p>
-            Every opponent-adjusted rating &mdash; ours, SP+, FPI, all of them &mdash; works by solving a giant,
-            simultaneous system: Team A&rsquo;s rating depends on who Team A played, which depends on who
-            <em> those</em> teams played, all the way out. For that system to mean anything, it needs one thing
-            first: a single, connected web of games tying every team in the country together. If Team A and Team B
-            haven&rsquo;t played each other, and don&rsquo;t share a common opponent, and don&rsquo;t share an
-            opponent-of-an-opponent, there is no chain of evidence connecting them at all. Their ratings aren&rsquo;t
-            wrong, exactly &mdash; they&rsquo;re just not comparable yet.
+            Opponent-adjusted ratings work through chains of evidence. Team A is evaluated against the teams it
+            played, those teams are evaluated against their opponents, and the system propagates outward. If two
+            teams do not share an opponent, an opponent-of-an-opponent, or any longer path connecting their schedules,
+            there is no results-based chain tying them together yet.
           </p>
           <p>
-            We pulled the actual, real 2026 FBS schedule from CFBD and asked a simple question: how many separate,
-            disconnected &ldquo;networks&rdquo; does the country split into, week by week?
+            We pulled the published 2026 FBS schedule from CFBD and asked a simple question: how many disconnected
+            networks does the country contain after each week?
           </p>
           <div className="article-table-wrap">
             <table className="article-table">
@@ -88,38 +84,36 @@ export default function WaitingOnRanksArticle() {
             </table>
           </div>
           <p>
-            Through two weeks &mdash; roughly where most of the country sits when the first &ldquo;real&rdquo; AP
-            Poll debates start &mdash; the sport is broken into <strong>39 separate islands</strong>. A team sitting
-            at the top of the biggest island (17 teams) and a team sitting atop a 2-team island aren&rsquo;t
-            measured against each other at all. It isn&rsquo;t until <strong>Week 4</strong> that this season&rsquo;s
-            actual schedule finally ties the entire country into one connected network &mdash; and even then, we
-            checked for weak points: zero of those connections are single-game &ldquo;bridges&rdquo; that could
-            still split the graph back apart, which is the good news. The catch is that by Week 4 most teams have
-            still played only 2-5 games, so every rating is still resting on a small sample even once it&rsquo;s
-            technically comparable.
+            Through two weeks, the sport is still split into <strong>39 separate islands</strong>. The largest
+            contains only 17 of 138 teams. A team leading one island and a team leading another are not yet being
+            measured through the same web of game results. By Week 3, the country is almost connected. By
+            <strong> Week 4</strong>, all 138 teams sit in one network, with no single-game bridge capable of splitting
+            that graph back apart.
           </p>
           <p>
-            This isn&rsquo;t hypothetical. Two weeks into the 2026 season, our own ASM metric &mdash; an
-            unshrunk, results-based rating built the same way most fan-facing power rankings are &mdash; had Sam
-            Houston ranked <strong>4th nationally</strong>. Sam Houston was 0-2. It happened because Sam Houston,
-            Troy, and Tulsa formed a thinly-connected pocket that also contained Oregon and Indiana, and a model with
-            no protection against small samples let that pocket&rsquo;s strength bleed onto three teams that hadn&rsquo;t
-            won a game. Adj. Net &mdash; LEILA&rsquo;s primary rating, which has shrinkage built in specifically to
-            guard against this &mdash; didn&rsquo;t make the same mistake. Most public rankings don&rsquo;t have that
-            protection at all.
+            Week 4 is not a magic line where uncertainty disappears. Most teams still have only a handful of games.
+            It is simply the first point this season when a national comparison is structurally defensible rather than
+            a comparison between disconnected pockets of the sport.
+          </p>
+          <p>
+            The danger is not theoretical. Two games into 2026, our unshrunk ASM rating had 0-2 Sam Houston ranked
+            <strong> 4th nationally</strong>. Sam Houston, Troy, and Tulsa occupied a thinly connected pocket that
+            also contained Oregon and Indiana, and a model without enough protection against small samples let that
+            pocket&rsquo;s strength bleed into an absurd ranking. LEILA&rsquo;s Adj. Net uses shrinkage specifically to
+            reduce that failure mode, but even a protected model cannot manufacture information that has not been
+            played onto the field yet.
           </p>
         </section>
 
         <section className="article-section">
           <div className="article-section__heading">
             <span className="eyebrow">We Checked Ourselves</span>
-            <h2>Even our own model fails this test at 2 games played</h2>
+            <h2>Our own historical ratings are unstable after two games</h2>
           </div>
           <p>
-            It would be easy to write all of this as a knock on the AP Poll and stop there. We didn&rsquo;t. We went
-            back through eleven full seasons of our own historical data (2014-2025, excluding 2020) and asked: how
-            well does our own rating &mdash; at the point each team had played about 2 games &mdash; actually
-            predict where teams end up at season&rsquo;s end?
+            It would be easy to turn this into an argument about the AP Poll and stop there. So we tested LEILA
+            instead. Across eleven full seasons of historical data (2014-2025, excluding 2020), we compared each
+            team&rsquo;s rating at roughly two games played and roughly four games played with its final-season rank.
           </p>
           <div className="article-stat-grid">
             <Stat value="0.71" label="~2 games played → final season rank correlation (Spearman ρ)" />
@@ -128,54 +122,53 @@ export default function WaitingOnRanksArticle() {
             <Stat value="5.8 / 10" label="Average overlap between the ~4-game top 10 and the final top 10" />
           </div>
           <p>
-            Read that middle number again: across eleven seasons, on average, fewer than half of the teams in a
-            team&rsquo;s own 2-games-played top 10 are still in the final top 10. And this is with a model built
-            specifically to resist early-season noise &mdash; hierarchical shrinkage toward the league mean, plus a
-            tapered prior-season baseline for opponent strength. Waiting until about 4 games played measurably
-            helps: rank correlation with the final season climbs from 0.71 to 0.83, and top-10 stability improves by
-            more than 40%. That match to our own network data above isn&rsquo;t a coincidence &mdash; 4 games in is
-            roughly when this season&rsquo;s schedule actually finishes connecting the country into one graph.
+            After roughly two games, rank correlation with the final season is already meaningful at 0.71. That is
+            why calling early ratings completely random would be wrong. But the top of the table is still volatile:
+            the average early top 10 shares only <strong>4.1 teams</strong> with the eventual final top 10.
           </p>
           <p>
-            If our own numbers, with our own safeguards, still can&rsquo;t hold a stable top 10 through the first
-            couple of games, it is not realistic to expect a human poll &mdash; filled out from memory, preseason
-            expectations, and one or two data points &mdash; to do meaningfully better.
+            Around four games played, correlation rises to <strong>0.83</strong> and average top-10 overlap improves to
+            <strong> 5.8 teams</strong>. That is a better than 40% improvement in top-10 stability. The timing lines
+            up with the network result above: as the schedule finally connects nationally, the ratings become
+            materially more informative too.
+          </p>
+          <p>
+            LEILA is built to resist early-season noise through hierarchical shrinkage toward the league mean and a
+            tapered prior-season baseline for opponent strength. If a model with those safeguards still moves this
+            much between two and four games, the correct takeaway is not that early rankings are worthless. It is that
+            they should be presented with far less certainty.
           </p>
         </section>
 
         <section className="article-section">
           <div className="article-section__heading">
             <span className="eyebrow">The Receipts</span>
-            <h2>The AP Poll&rsquo;s own numbers say the same thing</h2>
+            <h2>The AP Poll starts from an unstable baseline too</h2>
           </div>
           <p>
-            This isn&rsquo;t just a LEILA problem, and it isn&rsquo;t new. Across the twelve seasons of the College
-            Football Playoff era (2014-2025), a study of all 300 preseason-ranked AP teams found that only{" "}
-            <strong>57% finished the season in the final Top 25</strong> &mdash; and just{" "}
-            <strong>32% finished in the final top 10</strong>. Even the poll&rsquo;s most trusted tier isn&rsquo;t
-            safe from this: preseason top-5 teams finish in the final top 10 only 77% of the time, and by the back
-            of the poll (preseason 21-25), that drops to just 12%.
+            This is not only a LEILA problem. Across the twelve seasons of the College Football Playoff era
+            (2014-2025), a study of 300 preseason-ranked AP teams found that only <strong>57% finished in the final
+            Top 25</strong> and just <strong>32% finished in the final top 10</strong>. Preseason top-five teams were
+            much safer, finishing in the final top 10 77% of the time, but teams ranked 21-25 did so only 12% of the
+            time.
           </p>
           <p>
-            The AP doesn&rsquo;t re-poll from scratch every week, either. Voters are widely understood to anchor to
-            where a team started: a team ranked #3 in the preseason poll that wins two unconvincing games rarely
-            falls out of the top 10, while an unranked team that wins two blowouts rarely cracks it. That means most of the
-            unreliability baked into the preseason poll is still riding along in the Week 2 and Week 3 polls people
-            treat as fresh, current information.
+            Weekly polls also do not start from zero. Early results are interpreted through preseason expectations,
+            so uncertainty embedded in August can persist into September. That does not make the AP Poll useless;
+            it means a Week 2 ranking should not be treated as if two games have replaced the preseason prior with a
+            complete new measurement.
           </p>
         </section>
 
         <section className="article-section">
           <div className="article-section__heading">
-            <span className="eyebrow">Why It&rsquo;s Worse Than Ever</span>
-            <h2>Teams return less of themselves every single year</h2>
+            <span className="eyebrow">Why The Prior Is Weaker</span>
+            <h2>Last year&rsquo;s team is becoming a worse shortcut for this year&rsquo;s team</h2>
           </div>
           <p>
-            Even the flawed old system had one thing going for it: rosters used to be relatively stable year to
-            year, so &ldquo;this team was good last year and returns most of its players&rdquo; was a reasonable
-            prior. We can measure exactly how true that still is. CFBD tracks <strong>returning production</strong>{" "}
-            for every FBS team every year &mdash; the share of last season&rsquo;s on-field usage (plays, targets,
-            carries) walking back onto the field &mdash; and we pulled the national average back to 2014.
+            Early in a season, every rating system needs some prior belief while it waits for new evidence. That was
+            easier when rosters were more stable. CFBD&rsquo;s returning-production data gives us a direct way to measure
+            how much of the previous season&rsquo;s on-field usage actually returns.
           </p>
           <div className="article-table-wrap">
             <table className="article-table">
@@ -195,51 +188,36 @@ export default function WaitingOnRanksArticle() {
             </table>
           </div>
           <p className="article-table-caption">
-            *2021 is inflated by the NCAA&rsquo;s blanket COVID eligibility waiver, which let seniors stay an extra
-            year &mdash; the one point in this data where the old &ldquo;stable roster&rdquo; assumption briefly
-            got even more true, not less.
+            *2021 is inflated by the NCAA&rsquo;s blanket COVID eligibility waiver, which allowed many seniors to
+            return for an additional season.
           </p>
           <p>
-            Outside that one anomaly, the trend is one direction. In 2014, less than a third of FBS teams returned
-            under half their production. By <strong>2025</strong>, that was true of <strong>nearly two-thirds</strong> of
-            the sport, and the national average team returned barely <strong>40%</strong> of what it had the year
-            before &mdash; the lowest point in the eleven-year window, and a full 20 points below the 2014-2020
-            baseline. Colorado&rsquo;s 2023 team, the year Deion Sanders overhauled the roster, returned just{" "}
-            <strong>13% of its 2022 production</strong> &mdash; CFBD&rsquo;s own returning-production number for that
-            team, not a media estimate.
+            In 2014, 30% of FBS teams returned less than half of their production. In 2025, that figure reached
+            <strong> 65%</strong>, while the national average returning-production rate fell to
+            <strong> 39.9%</strong>. The 2026 average has rebounded slightly to 44.0%, but a majority of teams are
+            still below the 50% mark.
           </p>
           <p>
-            The forces behind it are well covered elsewhere: over <strong>3,350 FBS players</strong> entered the
-            transfer portal in the 2025 cycle alone (roughly a quarter of every scholarship player in the sport),
-            and industry-wide NIL payments in college football went from roughly <strong>$917 million</strong> in
-            2021-22 to a projected <strong>$2.55 billion</strong> in 2025-26, with average Power 4 roster spend
-            hitting an estimated <strong>$24.8 million</strong> in 2025 alone. But the returning-production number
-            above is the part that matters for this argument: it&rsquo;s a direct measurement of how much less
-            &ldquo;last year&rsquo;s team&rdquo; a team actually is this year, and it has been falling for four
-            straight non-anomalous seasons.
-          </p>
-          <p>
-            Put together, that&rsquo;s a compounding problem, not two separate ones. The schedule graph tells you
-            there isn&rsquo;t enough <em>data</em> yet to compare most teams. Falling returning production tells you
-            that even the <em>priors</em> you&rsquo;d normally lean on while waiting for data &mdash; last
-            year&rsquo;s tape, recruiting rankings, name recognition &mdash; are less trustworthy than they&rsquo;ve
-            ever been, because the actual players wearing the jersey have changed more than at any point in the
-            sport&rsquo;s history. There has never been a worse moment to trust a ranking built on vibes and
-            two games.
+            That matters because early rankings lean most heavily on priors precisely when current-season evidence is
+            thinnest. The schedule graph says there is not enough new data yet. Falling roster continuity says some of
+            the old data is less representative too. Those two problems compound one another.
           </p>
         </section>
 
         <section className="article-section article-actions">
           <div>
             <span className="eyebrow">What To Actually Do</span>
-            <h2>Wait for Week 4. Then check the network.</h2>
+            <h2>Wait for Week 4. Then keep the uncertainty in view.</h2>
             <p>
-              None of this means early-season football doesn&rsquo;t matter, or that you shouldn&rsquo;t watch it.
-              It means the number next to a team&rsquo;s name in Week 2 deserves a lot less certainty than the graphic
-              on your screen implies. We built LEILA&rsquo;s ratings with that in mind &mdash; hierarchical shrinkage
-              on Adj. Net, an honest &ldquo;résumé, not a power rating&rdquo; label on ASM, and a live page showing
-              exactly how connected this season&rsquo;s schedule graph actually is, so you don&rsquo;t have to take
-              our word for any of it.
+              Week 4 does not make a ranking final. It makes the national comparison more legitimate. By then, the
+              schedule has connected the country into one network and historical LEILA ratings are materially more
+              stable than they were after two games. That is the point where we should begin trusting the shape of the
+              rankings more, while remembering that four games are still only four games.
+            </p>
+            <p>
+              LEILA is built around that distinction: shrinkage on Adj. Net to guard against tiny samples, an honest
+              &ldquo;résumé, not a power rating&rdquo; label on ASM, and a live network page showing how much connective
+              evidence actually exists. Early-season uncertainty should be measured, not hidden.
             </p>
           </div>
           <div className="article-actions__links">
@@ -259,8 +237,6 @@ export default function WaitingOnRanksArticle() {
           week label, so the comparison is apples to apples. Returning-production figures are CFBD&rsquo;s own{" "}
           <code>/player/returning</code> data (national average and per-team &ldquo;usage&rdquo; share, 2014-2026;
           2013 has no published data). AP Poll historical figures via RotoWire&rsquo;s 12-year preseason-poll study.
-          Transfer portal and NIL figures via 247Sports, CBS Sports, Front Office Sports, Sports Illustrated, and
-          Opendorse&rsquo;s NIL industry reporting, current as of the 2025 offseason.
         </p>
       </main>
 
