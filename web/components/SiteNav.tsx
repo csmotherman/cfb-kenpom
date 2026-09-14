@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/", label: "Ratings" },
   { href: "/this-week", label: "This Week" },
   { href: "/advanced", label: "Advanced", premium: true },
+  { href: "/network", label: "Network" },
 ];
 
 export default function SiteNav() {
