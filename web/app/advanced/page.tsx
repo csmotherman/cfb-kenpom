@@ -6,6 +6,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
+import GameLogModal from "@/components/GameLogModal";
 import { getMeta, useAdvancedSeason } from "@/lib/data";
 import { columnRange, heatBackground } from "@/lib/heatmap";
 import type { AdvancedRow } from "@/lib/types";
@@ -42,6 +43,14 @@ type AdvColumn = {
   kind: ColKind;
   num?: string[];
   den?: string[];
+  // When set, the cell is click-to-drill-down: a game log opens showing this
+  // team's own per-game num/den next to the OPPONENT's running season-to-date
+  // opponentNum/opponentDen (the complementary side of the same stat family --
+  // e.g. this team's offensive YPP this game next to what that opponent's
+  // defense had allowed coming in). Only defined for the stat families
+  // build_game_logs.py publishes both sides of; see GameLogModal.
+  opponentNum?: string[];
+  opponentDen?: string[];
   tooltip: string;
   sourceRankKey?: "rank" | "adjORank" | "adjDRank";
 };
@@ -104,15 +113,15 @@ const OFFENSE_SECTIONS: AdvSection[] = [
     title: "Overall",
     columns: [
       { key: "adjO", label: "Adj. Off", fmt: "signed2", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "adjORank", tooltip: "The exact Adj. Off rating and national rank from the Ratings page at the selected end week." },
-      { key: "offYpp", label: "YPP", fmt: "plain1", rankable: true, kind: "rate", num: ["yppNum"], den: ["yppDen"], tooltip: "Offensive yards per play in the selected weeks (raw, not opponent-adjusted)." },
-      { key: "offSuccess", label: "Success", fmt: "pct1", rankable: true, kind: "rate", num: ["successNum"], den: ["successDen"], tooltip: "Offensive success rate in the selected weeks (raw, not opponent-adjusted)." },
+      { key: "offYpp", label: "YPP", fmt: "plain1", rankable: true, kind: "rate", num: ["yppNum"], den: ["yppDen"], opponentNum: ["yppNumA"], opponentDen: ["yppDenA"], tooltip: "Offensive yards per play in the selected weeks (raw, not opponent-adjusted)." },
+      { key: "offSuccess", label: "Success", fmt: "pct1", rankable: true, kind: "rate", num: ["successNum"], den: ["successDen"], opponentNum: ["successNumA"], opponentDen: ["successDenA"], tooltip: "Offensive success rate in the selected weeks (raw, not opponent-adjusted)." },
     ],
   },
   {
     title: "Style",
     columns: [
-      { key: "offPassSuccess", label: "Pass SR", fmt: "pct1", rankable: true, kind: "rate", num: ["passSuccessNum"], den: ["passSuccessDen"], tooltip: "Passing success rate in the selected weeks (raw)." },
-      { key: "offRushSuccess", label: "Rush SR", fmt: "pct1", rankable: true, kind: "rate", num: ["rushSuccessNum"], den: ["rushSuccessDen"], tooltip: "Rushing success rate in the selected weeks (raw)." },
+      { key: "offPassSuccess", label: "Pass SR", fmt: "pct1", rankable: true, kind: "rate", num: ["passSuccessNum"], den: ["passSuccessDen"], opponentNum: ["passSuccessNumA"], opponentDen: ["passSuccessDenA"], tooltip: "Passing success rate in the selected weeks (raw)." },
+      { key: "offRushSuccess", label: "Rush SR", fmt: "pct1", rankable: true, kind: "rate", num: ["rushSuccessNum"], den: ["rushSuccessDen"], opponentNum: ["rushSuccessNumA"], opponentDen: ["rushSuccessDenA"], tooltip: "Rushing success rate in the selected weeks (raw)." },
       { key: "offPassRate", label: "Pass | Run", fmt: "split0", kind: "rate", num: ["dropbacks"], den: ["dropbacks", "rushAttempts"], tooltip: "Offensive tendency: share of plays that were dropbacks vs. rush attempts in the selected weeks." },
     ],
   },
@@ -120,21 +129,21 @@ const OFFENSE_SECTIONS: AdvSection[] = [
     title: "Explosiveness",
     columns: [
       { key: "offExp", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted explosiveness edge (offense), as of the end week. Research-stage model." },
-      { key: "offExpRaw", label: "Raw %", fmt: "pct1", rankable: true, kind: "rate", num: ["explosiveNum"], den: ["explosiveDen"], tooltip: "Explosive-play rate in the selected weeks (raw)." },
+      { key: "offExpRaw", label: "Raw %", fmt: "pct1", rankable: true, kind: "rate", num: ["explosiveNum"], den: ["explosiveDen"], opponentNum: ["explosiveNumA"], opponentDen: ["explosiveDenA"], tooltip: "Explosive-play rate in the selected weeks (raw)." },
     ],
   },
   {
     title: "Finishing",
     columns: [
       { key: "offFin", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted finishing-drives edge (offense), as of the end week. Research-stage model." },
-      { key: "offFinRaw", label: "Pts/Opp", fmt: "plain1", rankable: true, kind: "rate", num: ["finNum"], den: ["finDen"], tooltip: "Points scored per resolved scoring opportunity in the selected weeks (raw)." },
+      { key: "offFinRaw", label: "Pts/Opp", fmt: "plain1", rankable: true, kind: "rate", num: ["finNum"], den: ["finDen"], opponentNum: ["finNumA"], opponentDen: ["finDenA"], tooltip: "Points scored per resolved scoring opportunity in the selected weeks (raw)." },
     ],
   },
   {
     title: "Havoc",
     columns: [
       { key: "offHavoc", label: "Avoid Adj", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Opponent-adjusted edge in avoiding TFLs, sacks, and turnovers, as of the end week." },
-      { key: "offHavocRaw", label: "Allowed %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["havocAllowedNum"], den: ["havocAllowedDen"], tooltip: "Share of offensive plays that gave up a TFL, sack, or turnover in the selected weeks. Lower is better." },
+      { key: "offHavocRaw", label: "Allowed %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["havocAllowedNum"], den: ["havocAllowedDen"], opponentNum: ["havocForcedNum"], opponentDen: ["havocForcedDen"], tooltip: "Share of offensive plays that gave up a TFL, sack, or turnover in the selected weeks. Lower is better." },
     ],
   },
 ];
@@ -144,15 +153,15 @@ const DEFENSE_SECTIONS: AdvSection[] = [
     title: "Overall",
     columns: [
       { key: "adjD", label: "Adj. Def", fmt: "signed2", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "adjDRank", tooltip: "The exact Adj. Def rating and national rank from the Ratings page at the selected end week." },
-      { key: "defYpp", label: "YPP", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["yppNumA"], den: ["yppDenA"], tooltip: "Yards per play allowed in the selected weeks (raw). Lower is better." },
-      { key: "defSuccess", label: "Success", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["successNumA"], den: ["successDenA"], tooltip: "Opponent success rate allowed in the selected weeks (raw). Lower is better." },
+      { key: "defYpp", label: "YPP", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["yppNumA"], den: ["yppDenA"], opponentNum: ["yppNum"], opponentDen: ["yppDen"], tooltip: "Yards per play allowed in the selected weeks (raw). Lower is better." },
+      { key: "defSuccess", label: "Success", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["successNumA"], den: ["successDenA"], opponentNum: ["successNum"], opponentDen: ["successDen"], tooltip: "Opponent success rate allowed in the selected weeks (raw). Lower is better." },
     ],
   },
   {
     title: "Opponent Style",
     columns: [
-      { key: "defPassSuccess", label: "Pass SR", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["passSuccessNumA"], den: ["passSuccessDenA"], tooltip: "Passing success rate allowed in the selected weeks (raw). Lower is better." },
-      { key: "defRushSuccess", label: "Rush SR", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["rushSuccessNumA"], den: ["rushSuccessDenA"], tooltip: "Rushing success rate allowed in the selected weeks (raw). Lower is better." },
+      { key: "defPassSuccess", label: "Pass SR", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["passSuccessNumA"], den: ["passSuccessDenA"], opponentNum: ["passSuccessNum"], opponentDen: ["passSuccessDen"], tooltip: "Passing success rate allowed in the selected weeks (raw). Lower is better." },
+      { key: "defRushSuccess", label: "Rush SR", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["rushSuccessNumA"], den: ["rushSuccessDenA"], opponentNum: ["rushSuccessNum"], opponentDen: ["rushSuccessDen"], tooltip: "Rushing success rate allowed in the selected weeks (raw). Lower is better." },
       { key: "defPassRate", label: "Pass | Run", fmt: "split0", kind: "rate", num: ["dropbacksFaced"], den: ["dropbacksFaced", "rushAttemptsFaced"], tooltip: "Opponent tendency against this defense in the selected weeks." },
     ],
   },
@@ -160,21 +169,21 @@ const DEFENSE_SECTIONS: AdvSection[] = [
     title: "Explosiveness",
     columns: [
       { key: "defExp", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted explosiveness-suppression edge. Higher is better." },
-      { key: "defExpRaw", label: "Expl %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["explosiveNumA"], den: ["explosiveDenA"], tooltip: "Explosive-play rate allowed in the selected weeks (raw). Lower is better." },
+      { key: "defExpRaw", label: "Expl %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["explosiveNumA"], den: ["explosiveDenA"], opponentNum: ["explosiveNum"], opponentDen: ["explosiveDen"], tooltip: "Explosive-play rate allowed in the selected weeks (raw). Lower is better." },
     ],
   },
   {
     title: "Finishing",
     columns: [
       { key: "defFin", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted finishing-drives suppression edge. Higher is better." },
-      { key: "defFinRaw", label: "Pts/Opp", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["finNumA"], den: ["finDenA"], tooltip: "Points allowed per opponent scoring opportunity in the selected weeks. Lower is better." },
+      { key: "defFinRaw", label: "Pts/Opp", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["finNumA"], den: ["finDenA"], opponentNum: ["finNum"], opponentDen: ["finDen"], tooltip: "Points allowed per opponent scoring opportunity in the selected weeks. Lower is better." },
     ],
   },
   {
     title: "Havoc",
     columns: [
       { key: "defHavoc", label: "Forced Adj", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Opponent-adjusted edge in forcing TFLs, sacks, and turnovers, as of the end week." },
-      { key: "defHavocRaw", label: "Forced %", fmt: "pct1", rankable: true, kind: "rate", num: ["havocForcedNum"], den: ["havocForcedDen"], tooltip: "Share of opponent plays turned into a TFL, sack, or turnover in the selected weeks." },
+      { key: "defHavocRaw", label: "Forced %", fmt: "pct1", rankable: true, kind: "rate", num: ["havocForcedNum"], den: ["havocForcedDen"], opponentNum: ["havocAllowedNum"], opponentDen: ["havocAllowedDen"], tooltip: "Share of opponent plays turned into a TFL, sack, or turnover in the selected weeks." },
     ],
   },
 ];
@@ -365,6 +374,7 @@ export default function AdvancedPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filter, setFilter] = useState("");
   const [conference, setConference] = useState("");
+  const [gameLogTarget, setGameLogTarget] = useState<{ team: Aggregated; column: AdvColumn } | null>(null);
 
   useEffect(() => {
     getMeta().then((meta) => {
@@ -747,12 +757,23 @@ export default function AdvancedPage() {
                         {tabDef.columns.map((col) => {
                           const value = team[col.key] as number | null;
                           const rank = team[`_rank_${col.key}`] as number | null;
+                          const drillable = col.kind === "rate" && col.fmt !== "split0" && !!col.num && !!col.den;
                           return (
                             <td
                               key={col.key}
-                              className={`num stat-cell metric-cell${col.primary ? " primary" : ""}${sectionStartKeys.has(col.key) ? " section-start" : ""}`}
+                              className={`num stat-cell metric-cell${col.primary ? " primary" : ""}${sectionStartKeys.has(col.key) ? " section-start" : ""}${drillable ? " drillable" : ""}`}
                               data-metric-key={col.key}
                               style={col.rankable ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined}
+                              role={drillable ? "button" : undefined}
+                              tabIndex={drillable ? 0 : undefined}
+                              aria-label={drillable ? `${team.team} ${col.label} game log` : undefined}
+                              onClick={drillable ? () => setGameLogTarget({ team, column: col }) : undefined}
+                              onKeyDown={drillable ? (e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  setGameLogTarget({ team, column: col });
+                                }
+                              } : undefined}
                             >
                               <span className="metric-value">{col.fmt === "split0" ? splitText(value) : FORMATTERS[col.fmt](value)}</span>
                               {col.rankable && rank ? <span className="rank-sub">#{rank}</span> : null}
@@ -772,6 +793,21 @@ export default function AdvancedPage() {
           <SiteFooter note="Records and metrics include completed FBS-vs-FBS games only. Advanced CFF combines selected-range rate statistics with end-week opponent-adjusted model snapshots." />
         </div>
       </div>
+
+      {gameLogTarget && startWeek !== null && endWeek !== null ? (
+        <GameLogModal
+          team={gameLogTarget.team.team}
+          teamId={gameLogTarget.team.teamId}
+          slug={gameLogTarget.team.slug}
+          year={year}
+          column={gameLogTarget.column}
+          startWeek={startWeek}
+          endWeek={endWeek}
+          weekLabel={weekLabel}
+          format={(v) => (gameLogTarget.column.fmt === "split0" ? splitText(v) : FORMATTERS[gameLogTarget.column.fmt](v))}
+          onClose={() => setGameLogTarget(null)}
+        />
+      ) : null}
     </>
   );
 }

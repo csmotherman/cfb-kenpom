@@ -1,0 +1,169 @@
+/* ========================================================================== */
+/* Advanced page -- drillable rate cells + game-log modal                     */
+/* ========================================================================== */
+
+.stat-cell.drillable {
+  cursor: pointer;
+  position: relative;
+}
+.stat-cell.drillable:hover,
+.stat-cell.drillable:focus-visible {
+  outline: 1.5px solid var(--color-gold-dark);
+  outline-offset: -1.5px;
+}
+.stat-cell.drillable::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-gold-dark);
+  opacity: 0;
+}
+.stat-cell.drillable:hover::after,
+.stat-cell.drillable:focus-visible::after { opacity: 0.85; }
+
+.game-log-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 6vh var(--space-4) var(--space-6);
+  background: rgba(23, 23, 23, 0.55);
+  overflow-y: auto;
+}
+
+.game-log-modal {
+  width: 100%;
+  max-width: 720px;
+  background: var(--color-paper-soft);
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-float);
+}
+
+.game-log-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-hairline);
+}
+.game-log-modal__title-stack { min-width: 0; }
+.game-log-modal__eyebrow {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+.game-log-modal__title-stack h2 {
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+.game-log-modal__close {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--color-hairline-strong);
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--color-ink-secondary);
+}
+.game-log-modal__close:hover { color: var(--color-ink); border-color: var(--color-navy); }
+
+.game-log-modal__note {
+  padding: var(--space-3) var(--space-5) 0;
+  font-size: 12px;
+  color: var(--color-ink-secondary);
+}
+
+.game-log-modal__empty {
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-ink-tertiary);
+}
+
+.game-log-modal__table-wrap {
+  margin-top: var(--space-3);
+  max-height: 55vh;
+  overflow-y: auto;
+}
+.game-log-modal__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.game-log-modal__table th {
+  position: sticky;
+  top: 0;
+  padding: 7px var(--space-4);
+  background: var(--color-paper-raised);
+  border-bottom: 1px solid var(--color-hairline-strong);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+  text-align: left;
+}
+.game-log-modal__table th.num,
+.game-log-modal__table td.num { text-align: right; }
+.game-log-modal__table td {
+  padding: 6px var(--space-4);
+  border-bottom: 1px solid var(--color-hairline);
+  font-family: var(--font-mono);
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+.game-log-modal__table tbody tr:hover { background: var(--color-paper-raised); }
+.game-log-modal__table tfoot td {
+  padding: 7px var(--space-4) var(--space-4);
+  border-bottom: none;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-ink-secondary);
+}
+
+.game-log-modal__opponent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.game-log-modal__homeaway {
+  font-size: 10px;
+  color: var(--color-ink-tertiary);
+}
+.game-log-modal__result.win { color: var(--color-up); }
+.game-log-modal__result.loss { color: var(--color-down); }
+
+.game-log-modal__dash { color: var(--color-ink-tertiary); font-style: italic; }
+.game-log-modal__diff {
+  margin-left: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.game-log-modal__diff.good { color: var(--color-up); }
+.game-log-modal__diff.bad { color: var(--color-down); }
+
+@media (max-width: 640px) {
+  .game-log-backdrop { padding: 0; align-items: stretch; }
+  .game-log-modal { max-width: none; min-height: 100%; border-radius: 0; }
+}

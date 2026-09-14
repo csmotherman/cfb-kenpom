@@ -214,6 +214,37 @@ export type ScheduleSeason = {
   byWeek: Record<string, ScheduleGame[]>;
 };
 
+// Raw per-game numerator/denominator counts, keyed exactly like the `wk`
+// per-week raw-count fields Advanced's rate columns already sum over (see
+// AdvColumn.num/den in app/advanced/page.tsx) -- just for one single game
+// (GameLogEntry.own) or one team's running season-to-date total through the
+// week before a given game (GameLogEntry.opponentContext).
+export type GameLogFields = Record<string, number>;
+
+export type GameLogEntry = {
+  gameId: string;
+  week: number;
+  opponent: string;
+  opponentSlug: string | null;
+  opponentTeamId: number | null;
+  opponentClassification: string | null;
+  homeAway: string;
+  win: boolean;
+  pointsFor: number | null;
+  pointsAgainst: number | null;
+  own: GameLogFields;
+  // Null when the opponent hadn't played an FBS-graded game yet (their own
+  // season opener, or an FCS opponent that never gets its own row).
+  opponentContext: (GameLogFields & { _gamesThroughWeek?: number }) | null;
+};
+
+export type GameLogSeason = {
+  version: string;
+  weeks: number[];
+  weekLabels: WeekLabels;
+  byTeam: Record<string, GameLogEntry[]>;
+};
+
 export type SearchIndexEntry = {
   team: string;
   slug: string;

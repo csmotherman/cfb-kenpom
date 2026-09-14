@@ -407,12 +407,15 @@ def _prior_season_possession_baseline(year, rating_model):
     return offense, defense
 
 
-def build_year(year, rating_model, use_prior_season_baseline=True):
-    rating_models.require_mode(rating_model)
-    hierarchical = rating_model == "hierarchical_hfa"
-    prior_offense = prior_defense = None
-    if hierarchical and use_prior_season_baseline:
-        prior_offense, prior_defense = _prior_season_possession_baseline(year, rating_model)
+def load_processed_team_games(year):
+    """The single source of truth for "every completed FBS team-game row this
+    season, tagged with its site week": canonical metrics, validated against
+    the raw CFBD completed-game list, with `_siteWeek` attached from
+    build_site_week_map and any game that map can't place dropped. Shared by
+    build_year (the rating/Advanced pipeline) and build_game_logs.py (the
+    per-game drill-down export) so both stay byte-for-byte consistent with
+    what a team's row actually contains for a given game.
+    """
     games = load_canonical_games(year)
     source = {str(g["id"]): g for path in (REPO / f"data/raw/cfbd/season={year}").glob("season_type=*/week=*/games.json") for g in json.loads(path.read_text())}
     completed = {gid for gid, g in source.items() if g.get("completed") is True}
@@ -426,16 +429,33 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
         raise ValueError(f"Season {year}: {len(completed - canonical_ids)} completed source games lack canonical metrics")
     from cfb_analytics.validation.integrity import validate_team_games
     validate_team_games(games)
-    iter_by_game = load_iterative(year)
-    poss_seconds = load_possession_seconds(year)
     site_week_by_game, _, week_labels = build_site_week_map(year)
 
     for row in games:
         gid = str(row.get("gameId") or row.get("game_id"))
         row["_siteWeek"] = site_week_by_game.get(gid)
     games = [r for r in games if r["_siteWeek"] is not None]
+    # build_team_games above materializes BOTH sides of every game (so an
+    # FBS-vs-FCS game gets the FCS opponent's own row too, mostly-null
+    # metrics and all) -- this site only ever tracks FBS teams as
+    # first-class rows, so that non-FBS side is dropped here rather than in
+    # every caller separately.
+    games = [r for r in games if r.get("classification") == "fbs"]
     games.sort(key=lambda r: r["_siteWeek"])
     weeks_present = sorted(set(r["_siteWeek"] for r in games))
+    return games, weeks_present, week_labels
+
+
+def build_year(year, rating_model, use_prior_season_baseline=True):
+    rating_models.require_mode(rating_model)
+    hierarchical = rating_model == "hierarchical_hfa"
+    prior_offense = prior_defense = None
+    if hierarchical and use_prior_season_baseline:
+        prior_offense, prior_defense = _prior_season_possession_baseline(year, rating_model)
+    games, weeks_present, week_labels = load_processed_team_games(year)
+    iter_by_game = load_iterative(year)
+    poss_seconds = load_possession_seconds(year)
+
     if not weeks_present:
         return {}, {}, rating_models.rating_model_metadata(rating_model, season=year, cutoff=None, weeks=[])
     week_labels = {wk: label for wk, label in week_labels.items() if wk in weeks_present}
@@ -507,14 +527,13 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
         wk_raw = defaultdict(lambda: defaultdict(float))
 
         for row in (r for r in games if r["_siteWeek"] == wk):
-            if row.get("classification") != "fbs":
-                # This is the FCS/lower-division opponent's OWN row for an
-                # FBS-vs-FCS game -- present here because validate_team_games
-                # above requires both symmetric sides of every game, but this
-                # site only ever tracks FBS teams as first-class rows. The
-                # FBS side's row for this same game (below) is what records
-                # the result and feeds fcs_games_log/team_game_log.
-                continue
+            # The FCS/lower-division opponent's own row for an FBS-vs-FCS
+            # game (present in the raw canonical corpus because
+            # validate_team_games requires both symmetric sides of every
+            # game) is already dropped in load_processed_team_games -- this
+            # site only ever tracks FBS teams as first-class rows. The FBS
+            # side's row for this same game is what records the result and
+            # feeds fcs_games_log/team_game_log below.
             name = row["team"]
             is_fbs_opponent = row.get("opponent_classification") == "fbs"
             acc = cum[name]

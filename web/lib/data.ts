@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { AdvancedSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
+import type { AdvancedSeason, GameLogSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
@@ -77,6 +77,9 @@ const advancedInflight = new Map<string, Promise<AdvancedSeason>>();
 
 const scheduleData = new Map<string, ScheduleSeason | null>();
 const scheduleInflight = new Map<string, Promise<ScheduleSeason | null>>();
+
+const gameLogData = new Map<string, GameLogSeason | null>();
+const gameLogInflight = new Map<string, Promise<GameLogSeason | null>>();
 
 const teamStatsData = new Map<string, TeamStatsSeason | null>();
 const teamStatsInflight = new Map<string, Promise<TeamStatsSeason | null>>();
@@ -210,6 +213,32 @@ export function getScheduleSeason(year: number | string): Promise<ScheduleSeason
       throw error;
     });
     scheduleInflight.set(key, entry);
+  }
+  return entry;
+}
+
+// Prototype-stage: served as a public static file (like schedule), NOT
+// routed through /api/premium the way Advanced's own numbers are. Advanced
+// itself is gated at app/advanced/layout.tsx, but this JSON is directly
+// fetchable by URL -- fine for testing the game-log-modal UX, but this
+// should move behind the same premium_datasets + /api/premium pattern as
+// getAdvancedSeason before shipping, since it exposes the same box-score
+// detail the Advanced paywall is meant to protect.
+export function getGameLogSeason(year: number | string): Promise<GameLogSeason | null> {
+  const key = String(year);
+  if (gameLogData.has(key)) return Promise.resolve(gameLogData.get(key) ?? null);
+  let entry = gameLogInflight.get(key);
+  if (!entry) {
+    entry = fetchOptionalJson<GameLogSeason>(`/data/gamelogs/${key}.json`).then((season) => {
+      gameLogData.set(key, season);
+      gameLogInflight.delete(key);
+      return season;
+    });
+    entry = entry.catch((error: Error) => {
+      gameLogInflight.delete(key);
+      throw error;
+    });
+    gameLogInflight.set(key, entry);
   }
   return entry;
 }
