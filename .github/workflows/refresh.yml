@@ -210,10 +210,10 @@ jobs:
         run: python -m cfb_analytics.pipelines.build_canonical --season "$SEASON"
       - name: Recompute 2026 ratings
         run: python -m cfb_analytics.pipelines.calculate_ratings --season "$SEASON"
-      - name: Compile 2026 stabilized flat EPA opponent-adjusted ratings and Advanced metrics
-        # The historical CLI route name is retained for filtered-input compatibility;
-        # rating_model.py publishes current-season EPA only, with a zero-centered
-        # identifiability penalty and no external or conference strength inputs.
+      - name: Compile 2026 recursive possession-efficiency ratings and Advanced metrics
+        # The historical CLI route name is retained for build compatibility;
+        # rating_model.py publishes current-season points-per-possession only,
+        # recursively opponent-adjusted with no prior or conference strength.
         run: python scripts/compile_site_data.py --season "$SEASON" --rating-model hierarchical_hfa
 
       - name: Score weekly predictions
