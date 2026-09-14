@@ -1,18 +1,25 @@
 """Live opponent-adjusted rating model behind published AdjOff/AdjDef/AdjNet.
 
-The publication model is intentionally simple and current-season-only:
+The publication model is current-season-only and intentionally flat:
 
     EPA/play = national mean + offense(team) - defense(opponent) + error
 
-It is the efficiency analogue of SRS. Every completed FBS-vs-FBS team-game is
-fit simultaneously from garbage-time-filtered current-season EPA. There is no
-prior-season team strength, no preseason prior, no conference-strength term, no
-team/conference ridge shrinkage, no z-score re-expansion, and no home-field
-coefficient in the published fit.
+Every completed FBS-vs-FBS team-game is fit simultaneously from
+current-season, garbage-time-filtered EPA. There is no prior-season team
+strength, preseason prior, recruiting input, conference-strength term, z-score
+normalization, or home-field coefficient.
+
+Separating offense and defense doubles the number of team parameters compared
+with ordinary SRS. Early in a season the FBS-vs-FBS schedule graph does not yet
+contain enough independent matchups to identify all of those parameters by pure
+least squares. A small zero-centered ridge penalty therefore stabilizes the
+solve. It imports no external team-strength information: it only pulls weakly
+identified offense/defense effects toward the current-season FBS average, and
+its influence naturally fades as each team accumulates more EPA plays.
 
 The historical ``hierarchical_hfa`` CLI mode name is retained only as a build
 compatibility route because ``build_real_data.py`` already uses that branch to
-materialize the garbage-time-filtered input population. The emitted metadata
+materialize the garbage-time-filtered input population. Published metadata
 identifies the actual methodology as ``flat_epa``.
 """
 from __future__ import annotations
@@ -23,17 +30,20 @@ import math
 from collections import defaultdict, deque
 from typing import Any
 
+from cfb_analytics.analytics.iterative_ratings import fit_metric_ratings
 from cfb_analytics.derived.games import GARBAGE_TIME_VERSION
 
 MODEL_MODES = ("hierarchical_hfa", "legacy")
 
-RATING_MODEL_ID = "adj-rating-flat-epa-v1"
+RATING_MODEL_ID = "adj-rating-flat-epa-v2"
 LEGACY_RATING_MODEL_ID = "adj-rating-legacy-srs-ypp-v1"
-MODEL_VERSION = "flat-epa-srs-style-v1"
+MODEL_VERSION = "flat-epa-current-season-ridge-v2"
 
-# Compatibility constants: the new publication model deliberately uses none of
-# these terms. Keeping the names prevents accidental import breakage elsewhere.
-LAMBDA_TEAM = 0.0
+# Roughly one game's worth of EPA opportunities. This is not prior-season
+# information; it is a zero-effect penalty used only to make the current-season
+# offense/defense decomposition identifiable and stable while the graph is sparse.
+RIDGE_EQUIVALENT_PLAYS = 50.0
+LAMBDA_TEAM = RIDGE_EQUIVALENT_PLAYS
 LAMBDA_CONFERENCE = 0.0
 HFA_ENABLED = False
 
@@ -44,6 +54,7 @@ USES_CONFERENCE_STRENGTH = False
 
 RATING_INPUT_VERSION = "canonical-production-garbage-filtered-v1"
 RATING_SCALE = 100.0  # EPA/play effect -> EPA per 100 plays.
+EPA_SPEC = ("EPA", "epaSum", "epaPlays")
 
 # build_real_data already asks the canonical derived layer for these fields.
 # The publication rating itself consumes EPA only; the remaining fields stay in
@@ -91,8 +102,8 @@ def _finite(value: Any) -> bool:
 def composite_input_row(row, metric_fields):
     """One rating-model observation with garbage-time-filtered metric counts.
 
-    Conference fields are intentionally not required or consumed. If they are
-    present they are copied for audit/debugging only.
+    Conference fields are intentionally not required or consumed. If present,
+    they are copied for audit/debugging only and never enter the fit.
     """
     missing = [field for field in _REQUIRED_ROW_FIELDS if row.get(field) is None]
     if missing:
@@ -118,9 +129,11 @@ def composite_input_row(row, metric_fields):
     return out
 
 
-def _eligible_epa_rows(rows: list[dict[str, Any]], season: int):
+def _validated_model_rows(rows: list[dict[str, Any]], season: int):
+    """Validate the current-season FBS graph and return EPA-only solver rows."""
     seen: set[tuple[str, str]] = set()
-    eligible: list[tuple[str, str, float, float, str]] = []
+    games: dict[str, list[tuple[str, str]]] = defaultdict(list)
+    model_rows: list[dict[str, Any]] = []
 
     for row in rows:
         if row.get("season") != season:
@@ -143,55 +156,64 @@ def _eligible_epa_rows(rows: list[dict[str, Any]], season: int):
         if key in seen:
             raise RatingModelError(f"Duplicate team-game rating row: {game_id} / {team}")
         seen.add(key)
+        games[game_id].append((team, opponent))
 
         epa_sum = row.get("epaSum")
         epa_plays = row.get("epaPlays")
         if not _finite(epa_sum) or not _finite(epa_plays):
             raise RatingModelError(f"Non-finite EPA input for {game_id} / {team}")
-        weight = float(epa_plays)
-        if weight <= 0:
-            continue
-        eligible.append((team, opponent, float(epa_sum) / weight, weight, game_id))
+        if float(epa_plays) < 0:
+            raise RatingModelError(f"Negative EPA play count for {game_id} / {team}")
 
-    if not eligible:
+        # Deliberately strip conference/site fields before the numerical solve.
+        model_rows.append(
+            {
+                "team": team,
+                "opponent": opponent,
+                "epaSum": float(epa_sum),
+                "epaPlays": float(epa_plays),
+            }
+        )
+
+    if not model_rows:
+        raise RatingModelError("No rating observations were supplied")
+
+    for game_id, pair in games.items():
+        if len(pair) != 2:
+            raise RatingModelError(f"Game {game_id} must have exactly two team rows")
+        (team_a, opp_a), (team_b, opp_b) = pair
+        if team_a != opp_b or team_b != opp_a:
+            raise RatingModelError(f"Game {game_id} has conflicting opponents")
+
+    if not any(row["epaPlays"] > 0 for row in model_rows):
         raise RatingModelError("No eligible EPA observations for publication ratings")
-    return eligible
+    return model_rows
 
 
-def _factor_components(
-    teams: list[str],
-    observations: list[tuple[str, str, float, float, str]],
-):
-    """Connected components of the offense-vs-defense factor graph.
+def _schedule_components(model_rows: list[dict[str, Any]]) -> int:
+    adjacency: dict[str, set[str]] = defaultdict(set)
+    teams: set[str] = set()
+    for row in model_rows:
+        if row["epaPlays"] <= 0:
+            continue
+        team, opponent = row["team"], row["opponent"]
+        teams.update((team, opponent))
+        adjacency[team].add(opponent)
+        adjacency[opponent].add(team)
 
-    Each observation joins O(team) to D(opponent). A disconnected factor
-    component has its own additive gauge; centering each component independently
-    is the same minimum-information convention SRS uses for disconnected
-    schedule components.
-    """
-    nodes = [("O", team) for team in teams] + [("D", team) for team in teams]
-    adjacency: dict[tuple[str, str], set[tuple[str, str]]] = defaultdict(set)
-    for team, opponent, *_ in observations:
-        left, right = ("O", team), ("D", opponent)
-        adjacency[left].add(right)
-        adjacency[right].add(left)
-
-    remaining = set(nodes)
-    components: list[list[tuple[str, str]]] = []
+    remaining = set(teams)
+    count = 0
     while remaining:
-        root = min(remaining)
-        remaining.remove(root)
-        component = [root]
+        count += 1
+        root = remaining.pop()
         queue = deque([root])
         while queue:
-            node = queue.popleft()
-            for neighbor in adjacency.get(node, ()):
-                if neighbor in remaining:
-                    remaining.remove(neighbor)
-                    component.append(neighbor)
-                    queue.append(neighbor)
-        components.append(component)
-    return components
+            team = queue.popleft()
+            for opponent in adjacency.get(team, ()):
+                if opponent in remaining:
+                    remaining.remove(opponent)
+                    queue.append(opponent)
+    return count
 
 
 def _fit_flat_epa(
@@ -200,161 +222,93 @@ def _fit_flat_epa(
     season: int,
     cutoff: Any,
     input_version: str,
-    tolerance: float = 1e-10,
-    max_iterations: int = 10000,
+    ridge_equivalent_plays: float,
 ):
-    observations = _eligible_epa_rows(rows, season)
-    teams = sorted(
-        {team for team, _, _, _, _ in observations}
-        | {opponent for _, opponent, _, _, _ in observations}
+    model_rows = _validated_model_rows(rows, season)
+
+    fit = fit_metric_ratings(
+        model_rows,
+        EPA_SPEC,
+        shrinkage=ridge_equivalent_plays,
+        damping=1.0,
+        tolerance=1e-9,
+        max_iterations=10000,
     )
-
-    total_weight = sum(weight for _, _, _, weight, _ in observations)
-    national_mean = (
-        sum(value * weight for _, _, value, weight, _ in observations) / total_weight
-    )
-
-    by_offense: dict[str, list[tuple[str, float, float]]] = defaultdict(list)
-    by_defense: dict[str, list[tuple[str, float, float]]] = defaultdict(list)
-    for team, opponent, value, weight, _ in observations:
-        by_offense[team].append((opponent, value, weight))
-        by_defense[opponent].append((team, value, weight))
-
-    offense = {team: 0.0 for team in teams}
-    defense = {team: 0.0 for team in teams}
-    components = _factor_components(teams, observations)
-
-    converged = False
-    max_delta = float("inf")
-    iteration = 0
-
-    for iteration in range(1, max_iterations + 1):
-        previous_offense = dict(offense)
-        previous_defense = dict(defense)
-
-        new_offense = dict(offense)
-        for team, games in by_offense.items():
-            weight = sum(w for _, _, w in games)
-            new_offense[team] = (
-                sum(
-                    w * (value - national_mean + defense[opponent])
-                    for opponent, value, w in games
-                )
-                / weight
-            )
-
-        new_defense = dict(defense)
-        for team, games in by_defense.items():
-            weight = sum(w for _, _, w in games)
-            new_defense[team] = (
-                sum(
-                    w * (national_mean + new_offense[opponent] - value)
-                    for opponent, value, w in games
-                )
-                / weight
-            )
-
-        # Fix each independent additive gauge without changing any fitted edge.
-        for component in components:
-            values = [
-                new_offense[team] if side == "O" else new_defense[team]
-                for side, team in component
-            ]
-            shift = sum(values) / len(values)
-            for side, team in component:
-                if side == "O":
-                    new_offense[team] -= shift
-                else:
-                    new_defense[team] -= shift
-
-        offense, defense = new_offense, new_defense
-        max_delta = max(
-            max(abs(offense[t] - previous_offense[t]) for t in teams),
-            max(abs(defense[t] - previous_defense[t]) for t in teams),
-        )
-        if max_delta <= tolerance:
-            converged = True
-            break
-
-    if not converged:
+    if not fit.get("converged"):
         raise RatingModelError(
-            f"Flat EPA solver did not converge at cutoff {cutoff} after "
-            f"{max_iterations} iterations (max delta {max_delta:.3g})"
+            f"Flat EPA solver did not converge at cutoff {cutoff}; "
+            f"max delta {fit.get('maxDelta')}"
         )
 
-    # Center offense and defense independently around average FBS while
-    # preserving every prediction by moving the intercept accordingly.
-    off_mean = sum(offense.values()) / len(offense)
-    def_mean = sum(defense.values()) / len(defense)
-    offense = {team: value - off_mean for team, value in offense.items()}
-    defense = {team: value - def_mean for team, value in defense.items()}
-    fitted_mean = national_mean + off_mean - def_mean
-
-    weighted_sse = 0.0
-    for team, opponent, value, weight, _ in observations:
-        prediction = fitted_mean + offense[team] - defense[opponent]
-        weighted_sse += weight * (value - prediction) ** 2
-    weighted_rmse = math.sqrt(weighted_sse / total_weight)
+    offense = fit.get("offense", {})
+    defense = fit.get("defense", {})
+    teams = sorted(set(offense) & set(defense))
+    if not teams:
+        raise RatingModelError("Flat EPA solver returned no rated teams")
+    if set(offense) != set(defense):
+        raise RatingModelError("Flat EPA offense and defense universes differ")
 
     ratings = {
-        "AdjOff": {team: RATING_SCALE * offense[team] for team in teams},
-        "AdjDef": {team: RATING_SCALE * defense[team] for team in teams},
+        "AdjOff": {team: RATING_SCALE * float(offense[team]) for team in teams},
+        "AdjDef": {team: RATING_SCALE * float(defense[team]) for team in teams},
     }
     ratings["AdjNet"] = {
         team: ratings["AdjOff"][team] + ratings["AdjDef"][team] for team in teams
     }
 
-    ordered_rows = sorted(
-        (
+    league_mean = float(fit["leagueMean"])
+    weighted_sse = 0.0
+    total_weight = 0.0
+    observations = 0
+    source_rows = []
+    for row in model_rows:
+        weight = float(row["epaPlays"])
+        if weight <= 0:
+            continue
+        value = float(row["epaSum"]) / weight
+        prediction = league_mean + float(offense[row["team"]]) - float(defense[row["opponent"]])
+        weighted_sse += weight * (value - prediction) ** 2
+        total_weight += weight
+        observations += 1
+        source_rows.append(
             {
-                "team": team,
-                "opponent": opponent,
+                "team": row["team"],
+                "opponent": row["opponent"],
                 "value": value,
                 "weight": weight,
-                "gameId": game_id,
             }
-            for team, opponent, value, weight, game_id in observations
-        ),
-        key=lambda row: (row["gameId"], row["team"]),
-    )
+        )
+    weighted_rmse = math.sqrt(weighted_sse / total_weight)
+
     identity = {
         "modelVersion": MODEL_VERSION,
         "season": season,
         "cutoff": cutoff,
         "inputVersion": input_version,
         "scale": RATING_SCALE,
+        "ridgeEquivalentPlays": ridge_equivalent_plays,
         "usesConferenceStrength": False,
         "usesPriorSeasonTeamStrength": False,
         "usesPreseasonTeamPrior": False,
         "hfaEnabled": False,
-        "shrinkage": 0.0,
-        "rows": ordered_rows,
+        "rows": sorted(source_rows, key=lambda row: (row["team"], row["opponent"], row["value"])),
     }
     model_key = hashlib.sha256(
-        json.dumps(
-            identity,
-            sort_keys=True,
-            separators=(",", ":"),
-            allow_nan=False,
-        ).encode()
+        json.dumps(identity, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
     ).hexdigest()
 
-    fit = {
-        "converged": True,
-        "iterations": iteration,
-        "maxDelta": max_delta,
-        "observations": len(observations),
+    wrapped_fit = {
+        **fit,
+        "observations": observations,
         "teams": len(teams),
-        "factorComponents": len(components),
-        "leagueMeanEpaPerPlay": fitted_mean,
+        "scheduleComponents": _schedule_components(model_rows),
+        "parameterCount": 2 * len(teams),
+        "ridgeEquivalentPlays": ridge_equivalent_plays,
+        "leagueMeanEpaPerPlay": league_mean,
         "weightedRmseEpaPerPlay": weighted_rmse,
-        "offense": offense,
-        "defense": defense,
-        "hfa": 0.0,
-        "hfaAvailable": False,
         "modelMetadata": {"modelKey": model_key},
     }
-    return {"fits": {"EPA": fit}, "ratings": ratings}
+    return {"fits": {"EPA": wrapped_fit}, "ratings": ratings}
 
 
 def fit_publication_composite(
@@ -367,18 +321,19 @@ def fit_publication_composite(
     hfa_enabled=HFA_ENABLED,
     input_version=RATING_INPUT_VERSION,
 ):
-    """Fit current-season, flat opponent-adjusted EPA offense and defense.
+    """Fit current-season flat opponent-adjusted EPA offense and defense.
 
-    The legacy keyword arguments remain in the signature only so existing build
-    callers cannot break silently. Any attempt to re-introduce shrinkage,
-    conference strength, or HFA is rejected.
+    ``lambda_team`` is a zero-centered within-season stability penalty measured
+    in equivalent EPA plays. It does not contain any historical/team-strength
+    data. Conference strength and HFA remain forbidden.
     """
     if not rows:
+        raise RatingModelError("Refusing to fit publication ratings from an empty rating graph")
+    if not _finite(lambda_team) or float(lambda_team) != RIDGE_EQUIVALENT_PLAYS:
         raise RatingModelError(
-            "Refusing to fit publication ratings from an empty rating graph"
+            f"Flat EPA publication ratings require the frozen current-season "
+            f"ridge of {RIDGE_EQUIVALENT_PLAYS:g} equivalent plays"
         )
-    if lambda_team not in (None, 0, 0.0):
-        raise RatingModelError("Flat EPA publication ratings do not use team shrinkage")
     if lambda_conf not in (None, 0, 0.0):
         raise RatingModelError("Flat EPA publication ratings do not use conference strength")
     if hfa_enabled not in (False, None):
@@ -389,6 +344,7 @@ def fit_publication_composite(
         season=season,
         cutoff=cutoff,
         input_version=input_version,
+        ridge_equivalent_plays=float(lambda_team),
     )
     ratings = result["ratings"]
     teams = set(ratings["AdjNet"])
@@ -441,8 +397,10 @@ def rating_model_metadata(
         "defenseDefinition": "100 * opponent-adjusted EPA/play defense effect (higher is better)",
         "ratingScale": "EPA per 100 plays above/below average FBS",
         "metric": "EPA/play",
-        "opponentAdjustment": "simultaneous flat least-squares-style offense-defense solve",
-        "teamShrinkage": 0.0,
+        "opponentAdjustment": "simultaneous flat current-season offense-defense solve",
+        "stabilization": "zero-centered ridge to current-season FBS average",
+        "ridgeEquivalentPlays": RIDGE_EQUIVALENT_PLAYS,
+        "externalTeamStrengthInputsUsed": False,
         "conferenceStrengthUsed": False,
         "hfaEnabled": False,
         "hfaInPublishedRatings": False,
@@ -465,7 +423,8 @@ def rating_model_metadata(
         if epa_fit:
             meta["iterations"] = epa_fit["iterations"]
             meta["observations"] = epa_fit["observations"]
-            meta["factorComponents"] = epa_fit["factorComponents"]
+            meta["scheduleComponents"] = epa_fit["scheduleComponents"]
+            meta["parameterCount"] = epa_fit["parameterCount"]
             meta["leagueMeanEpaPerPlay"] = epa_fit["leagueMeanEpaPerPlay"]
             meta["weightedRmseEpaPerPlay"] = epa_fit["weightedRmseEpaPerPlay"]
             meta["modelKey"] = epa_fit["modelMetadata"]["modelKey"]
