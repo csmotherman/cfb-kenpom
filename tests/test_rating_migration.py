@@ -26,10 +26,8 @@ def row(
         "opponent_classification": "fbs",
         "neutral_site": False,
         "home_away": "home" if home else "away",
-        "possessionPoints": points_per_possession * possessions,
+        "offensiveDrivePoints": points_per_possession * possessions,
         "resolvedPointPossessions": possessions,
-        # Compatibility/audit fields retained on the rating-input row but not
-        # consumed by the possession model.
         "epaSum": 0.0,
         "epaPlays": 60,
         "successfulPlays": 0,
@@ -39,7 +37,6 @@ def row(
 
 
 def synthetic_round_robin():
-    # Underlying ordering: A > B > C on both offense and defense.
     return [
         row("1", "A", "B", 3.0, home=True),
         row("1", "B", "A", 1.5, home=False),
@@ -116,7 +113,7 @@ class PossessionEfficiencyRatingTests(unittest.TestCase):
         doubled = []
         for r in synthetic_round_robin():
             r = dict(r)
-            r["possessionPoints"] *= 2
+            r["offensiveDrivePoints"] *= 2
             doubled.append(r)
         scaled = self.fit(doubled)["ratings"]
         for label in ("AdjOff", "AdjDef", "AdjNet"):
@@ -164,13 +161,14 @@ class PossessionEfficiencyRatingTests(unittest.TestCase):
         self.assertFalse(meta["hfaEnabled"])
         self.assertFalse(meta["usesPriorSeasonTeamStrength"])
         self.assertFalse(meta["usesPreseasonTeamPrior"])
-        self.assertEqual(meta["metric"], "points/resolved possession")
+        self.assertEqual(meta["metric"], "offensive points/resolved possession")
         self.assertEqual(
             meta["ratingScale"],
             "points per 10 resolved possessions above/below average FBS",
         )
+        self.assertEqual(meta["inputVersion"], "validated-drive-ppd-v1")
 
-    def test_composite_input_uses_possessions_and_ignores_conference_strength(self):
+    def test_composite_input_uses_validated_drive_points_and_ignores_conference_strength(self):
         base = synthetic_round_robin()[0]
         base.pop("conference")
         base.pop("opponent_conference")
@@ -178,7 +176,24 @@ class PossessionEfficiencyRatingTests(unittest.TestCase):
         built = R.composite_input_row(base, fields)
         self.assertNotIn("conference", built)
         self.assertEqual(built["resolvedPointPossessions"], 10)
-        self.assertEqual(built["possessionPoints"], 30.0)
+        self.assertEqual(built["offensiveDrivePoints"], 30.0)
+
+    def test_missing_drive_row_gets_zero_weight_instead_of_scoreboard_proxy(self):
+        base = synthetic_round_robin()[0]
+        base.pop("offensiveDrivePoints")
+        base.pop("resolvedPointPossessions")
+        original = R._drive_rating_fields
+        try:
+            R._drive_rating_fields = lambda season: {}
+            built = R.composite_input_row(
+                base,
+                {field: base[field] for field in R.COMPOSITE_FIELDS},
+            )
+        finally:
+            R._drive_rating_fields = original
+        self.assertEqual(built["resolvedPointPossessions"], 0.0)
+        self.assertEqual(built["offensiveDrivePoints"], 0.0)
+        self.assertTrue(built["driveMetricsMissing"])
 
     def test_prior_season_row_is_rejected(self):
         rows = synthetic_round_robin()
