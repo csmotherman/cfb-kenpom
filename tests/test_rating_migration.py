@@ -25,8 +25,7 @@ def row(game_id, team, opponent, epa_per_play, plays=60, *, season=2026, home=Tr
 
 
 def synthetic_round_robin():
-    # Truth: mu=0, offense A/B/C = +.20/0/-.20,
-    # defense A/B/C = +.10/0/-.10. Better defense is positive.
+    # Underlying ordering: A > B > C on both offense and defense.
     return [
         row("1", "A", "B", 0.20, home=True),
         row("1", "B", "A", -0.10, home=False),
@@ -34,6 +33,15 @@ def synthetic_round_robin():
         row("2", "C", "A", -0.30, home=False),
         row("3", "B", "C", 0.10, home=True),
         row("3", "C", "B", -0.20, home=False),
+    ]
+
+
+def sparse_two_game_graph():
+    return [
+        row("1", "A", "B", 0.60, home=True),
+        row("1", "B", "A", -0.40, home=False),
+        row("2", "C", "D", 0.50, home=True),
+        row("2", "D", "C", -0.30, home=False),
     ]
 
 
@@ -45,14 +53,22 @@ class FlatEpaRatingTests(unittest.TestCase):
             cutoff={"siteWeek": 2, "scope": "through-site-week"},
         )
 
-    def test_recovers_known_opponent_adjusted_offense_and_defense(self):
+    def test_recovers_expected_offense_and_defense_order_without_external_strength(self):
         ratings = self.fit()["ratings"]
-        self.assertAlmostEqual(ratings["AdjOff"]["A"], 20.0, places=7)
-        self.assertAlmostEqual(ratings["AdjOff"]["B"], 0.0, places=7)
-        self.assertAlmostEqual(ratings["AdjOff"]["C"], -20.0, places=7)
-        self.assertAlmostEqual(ratings["AdjDef"]["A"], 10.0, places=7)
-        self.assertAlmostEqual(ratings["AdjDef"]["B"], 0.0, places=7)
-        self.assertAlmostEqual(ratings["AdjDef"]["C"], -10.0, places=7)
+        self.assertGreater(ratings["AdjOff"]["A"], ratings["AdjOff"]["B"])
+        self.assertGreater(ratings["AdjOff"]["B"], ratings["AdjOff"]["C"])
+        self.assertGreater(ratings["AdjDef"]["A"], ratings["AdjDef"]["B"])
+        self.assertGreater(ratings["AdjDef"]["B"], ratings["AdjDef"]["C"])
+        self.assertAlmostEqual(sum(ratings["AdjOff"].values()), 0.0, places=9)
+        self.assertAlmostEqual(sum(ratings["AdjDef"].values()), 0.0, places=9)
+
+    def test_sparse_graph_is_stabilized_instead_of_exactly_overfit(self):
+        result = self.fit(sparse_two_game_graph())
+        fit = result["fits"]["EPA"]
+        self.assertGreater(fit["weightedRmseEpaPerPlay"], 0.01)
+        self.assertEqual(fit["ridgeEquivalentPlays"], R.RIDGE_EQUIVALENT_PLAYS)
+        self.assertGreater(fit["scheduleComponents"], 1)
+        self.assertTrue(all(abs(v) < 60 for v in result["ratings"]["AdjNet"].values()))
 
     def test_adj_net_is_exact_sum_of_sides(self):
         ratings = self.fit()["ratings"]
@@ -78,7 +94,7 @@ class FlatEpaRatingTests(unittest.TestCase):
             r["home_away"] = "away" if r["home_away"] == "home" else "home"
         self.assertEqual(self.fit(original)["ratings"], self.fit(changed)["ratings"])
 
-    def test_scale_is_raw_epa_per_100_plays_not_zscore(self):
+    def test_scale_is_epa_per_100_plays_not_zscore(self):
         base = self.fit()["ratings"]
         doubled = []
         for r in synthetic_round_robin():
@@ -90,21 +106,22 @@ class FlatEpaRatingTests(unittest.TestCase):
             for team in base[label]:
                 self.assertAlmostEqual(scaled[label][team], 2 * base[label][team], places=7)
 
-    def test_no_regularization_or_hidden_context_can_be_enabled(self):
+    def test_frozen_stabilization_cannot_be_replaced_with_hidden_context(self):
         rows = synthetic_round_robin()
         with self.assertRaises(R.RatingModelError):
-            R.fit_publication_composite(rows, season=2026, cutoff=2, lambda_team=1)
+            R.fit_publication_composite(rows, season=2026, cutoff=2, lambda_team=0)
+        with self.assertRaises(R.RatingModelError):
+            R.fit_publication_composite(rows, season=2026, cutoff=2, lambda_team=100)
         with self.assertRaises(R.RatingModelError):
             R.fit_publication_composite(rows, season=2026, cutoff=2, lambda_conf=1)
         with self.assertRaises(R.RatingModelError):
             R.fit_publication_composite(rows, season=2026, cutoff=2, hfa_enabled=True)
 
-    def test_solver_metadata_exposes_data_only_method(self):
+    def test_solver_metadata_exposes_current_season_data_only_method(self):
         result = self.fit()
         fit = result["fits"]["EPA"]
         self.assertTrue(fit["converged"])
         self.assertEqual(fit["observations"], 6)
-        self.assertGreaterEqual(fit["factorComponents"], 1)
         meta = R.rating_model_metadata(
             "hierarchical_hfa",
             season=2026,
@@ -113,10 +130,15 @@ class FlatEpaRatingTests(unittest.TestCase):
             fits=result["fits"],
             teams=3,
         )
-        self.assertEqual(meta["modelId"], "adj-rating-flat-epa-v1")
+        self.assertEqual(meta["modelId"], "adj-rating-flat-epa-v2")
         self.assertEqual(meta["modelMode"], "flat_epa")
         self.assertEqual(meta["normalization"], "none")
-        self.assertEqual(meta["teamShrinkage"], 0.0)
+        self.assertEqual(meta["ridgeEquivalentPlays"], 50.0)
+        self.assertEqual(
+            meta["stabilization"],
+            "zero-centered ridge to current-season FBS average",
+        )
+        self.assertFalse(meta["externalTeamStrengthInputsUsed"])
         self.assertFalse(meta["conferenceStrengthUsed"])
         self.assertFalse(meta["hfaEnabled"])
         self.assertFalse(meta["usesPriorSeasonTeamStrength"])

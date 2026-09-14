@@ -210,9 +210,10 @@ jobs:
         run: python -m cfb_analytics.pipelines.build_canonical --season "$SEASON"
       - name: Recompute 2026 ratings
         run: python -m cfb_analytics.pipelines.calculate_ratings --season "$SEASON"
-      - name: Compile 2026 flat EPA opponent-adjusted ratings and Advanced metrics
+      - name: Compile 2026 stabilized flat EPA opponent-adjusted ratings and Advanced metrics
         # The historical CLI route name is retained for filtered-input compatibility;
-        # rating_model.py now publishes the data-only flat EPA methodology.
+        # rating_model.py publishes current-season EPA only, with a zero-centered
+        # identifiability penalty and no external or conference strength inputs.
         run: python scripts/compile_site_data.py --season "$SEASON" --rating-model hierarchical_hfa
 
       - name: Score weekly predictions
