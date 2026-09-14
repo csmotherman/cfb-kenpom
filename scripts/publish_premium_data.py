@@ -10,8 +10,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import time
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -72,31 +73,61 @@ def verify_persisted_hash(base_url: str, secret: str, row: dict) -> None:
         )
 
 
-def upsert(base_url: str, secret: str, row: dict) -> None:
+def upsert(base_url: str, secret: str, row: dict, retries: int = 3) -> None:
     query = urlencode({"on_conflict": "dataset_type,season,week"}, safe=",")
     body = json.dumps([row], separators=(",", ":"), allow_nan=False).encode()
-    request = Request(
-        f"{base_url}/rest/v1/premium_datasets?{query}",
-        data=body,
-        method="POST",
-        headers={
-            "apikey": secret,
-            "Content-Type": "application/json",
-            "Prefer": "resolution=merge-duplicates,return=minimal",
-        },
-    )
-    try:
-        with urlopen(request, timeout=90) as response:
-            if response.status not in (200, 201, 204):
-                raise RuntimeError(f"Supabase premium upsert failed with HTTP {response.status}")
-    except HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")[:2000]
-        raise RuntimeError(
-            f"Supabase premium upsert failed for {row['dataset_type']} "
-            f"season={row['season']} week={row['week']} "
-            f"(payload {len(body):,} bytes): HTTP {exc.code} {exc.reason} -- {detail}"
-        ) from exc
-    verify_persisted_hash(base_url, secret, row)
+    context = f"{row['dataset_type']} season={row['season']} week={row['week']} (payload {len(body):,} bytes)"
+    print(f"  publishing {context}...", flush=True)
+    last_error: Exception | None = None
+    for attempt in range(1, retries + 1):
+        request = Request(
+            f"{base_url}/rest/v1/premium_datasets?{query}",
+            data=body,
+            method="POST",
+            headers={
+                # The new sb_secret_/sb_publishable_ keys are opaque, not JWTs --
+                # Supabase's own docs call out sending them as `Authorization:
+                # Bearer` as a common mistake. `apikey` alone is both required
+                # and sufficient for a secret key against /rest/v1/.
+                "apikey": secret,
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates,return=minimal",
+            },
+        )
+        try:
+            with urlopen(request, timeout=90) as response:
+                if response.status not in (200, 201, 204):
+                    raise RuntimeError(f"Supabase premium upsert failed with HTTP {response.status}")
+            verify_persisted_hash(base_url, secret, row)
+            return
+        except HTTPError as exc:
+            # A clean HTTP error response -- surface Supabase/PostgREST's own
+            # error body (never our payload or the secret) so a failure says
+            # WHY -- e.g. a request-size limit on a multi-megabyte season
+            # blob -- instead of just "HTTP 500". Retrying won't fix a
+            # deterministic rejection like this, so fail immediately.
+            detail = exc.read().decode("utf-8", errors="replace")[:2000]
+            raise RuntimeError(
+                f"Supabase premium upsert failed for {context}: HTTP {exc.code} {exc.reason} -- {detail}"
+            ) from exc
+        except (URLError, OSError) as exc:
+            # Connection-level failure (DNS, TLS reset, broken pipe mid-upload)
+            # -- no HTTP response to read a reason from. Could be transient,
+            # or could be a gateway silently dropping an oversized request
+            # before it ever produces a clean HTTP error; retry a couple
+            # times before giving up so a flaky network blip doesn't read the
+            # same as a hard size limit.
+            last_error = exc
+            if attempt < retries:
+                print(f"    attempt {attempt} failed ({exc!r}), retrying...", flush=True)
+                time.sleep(2 * attempt)
+                continue
+            raise RuntimeError(
+                f"Supabase premium upsert failed for {context} after {retries} attempts "
+                f"with a connection-level error (no HTTP response): {last_error!r}. "
+                f"If this keeps happening only on large seasons, it's likely a request-size "
+                f"limit on the connection between here and Supabase, not a transient blip."
+            ) from exc
 
 
 def publish_advanced(base_url: str, secret: str, season: int | None) -> int:
