@@ -113,32 +113,33 @@ export default function WaitingOnRanksArticle() {
         <section className="article-section">
           <div className="article-section__heading">
             <span className="eyebrow">We Checked Ourselves</span>
-            <h2>Even our own model fails this test in Week 2</h2>
+            <h2>Even our own model fails this test at 2 games played</h2>
           </div>
           <p>
             It would be easy to write all of this as a knock on the AP Poll and stop there. We didn&rsquo;t. We went
-            back through eleven full seasons of our own historical data (2014-2025) and asked: how well does our own
-            Week 2 Adj. Net actually predict where teams end up at season&rsquo;s end?
+            back through eleven full seasons of our own historical data (2014-2025, excluding 2020) and asked: how
+            well does our own rating &mdash; at the point each team had played about 2 games &mdash; actually
+            predict where teams end up at season&rsquo;s end?
           </p>
           <div className="article-stat-grid">
-            <Stat value="0.72" label="Week 2 → final season rank correlation (Spearman ρ)" />
-            <Stat value="4.3 / 10" label="Average overlap between Week 2's top 10 and the final top 10" />
-            <Stat value="0.83" label="Week 4 → final season rank correlation" />
-            <Stat value="5.6 / 10" label="Average overlap between Week 4's top 10 and the final top 10" />
+            <Stat value="0.71" label="~2 games played → final season rank correlation (Spearman ρ)" />
+            <Stat value="4.1 / 10" label="Average overlap between the ~2-game top 10 and the final top 10" />
+            <Stat value="0.83" label="~4 games played → final season rank correlation" />
+            <Stat value="5.8 / 10" label="Average overlap between the ~4-game top 10 and the final top 10" />
           </div>
           <p>
-            Read that middle number again: across eleven seasons, on average, fewer than half of the teams in our
-            own Week 2 top 10 are still in the final top 10. And this is with a model built specifically to resist
-            early-season noise &mdash; hierarchical shrinkage toward the league mean, plus a tapered prior-season
-            baseline for opponent strength. Waiting just two more weeks measurably helps: by Week 4, rank correlation
-            with the final season jumps from 0.72 to 0.83, and top-10 stability improves by nearly a third. That
-            match to our own network data above isn&rsquo;t a coincidence &mdash; Week 4 is when the schedule
-            actually finishes connecting the country into one graph.
+            Read that middle number again: across eleven seasons, on average, fewer than half of the teams in a
+            team&rsquo;s own 2-games-played top 10 are still in the final top 10. And this is with a model built
+            specifically to resist early-season noise &mdash; hierarchical shrinkage toward the league mean, plus a
+            tapered prior-season baseline for opponent strength. Waiting until about 4 games played measurably
+            helps: rank correlation with the final season climbs from 0.71 to 0.83, and top-10 stability improves by
+            more than 40%. That match to our own network data above isn&rsquo;t a coincidence &mdash; 4 games in is
+            roughly when this season&rsquo;s schedule actually finishes connecting the country into one graph.
           </p>
           <p>
-            If our own numbers, with our own safeguards, still can&rsquo;t hold a stable top 10 through the first two
-            weeks, it is not realistic to expect a human poll &mdash; filled out from memory, preseason expectations,
-            and one or two data points &mdash; to do meaningfully better.
+            If our own numbers, with our own safeguards, still can&rsquo;t hold a stable top 10 through the first
+            couple of games, it is not realistic to expect a human poll &mdash; filled out from memory, preseason
+            expectations, and one or two data points &mdash; to do meaningfully better.
           </p>
         </section>
 
@@ -221,11 +222,15 @@ export default function WaitingOnRanksArticle() {
         </section>
 
         <p className="article-footnote">
-          Network and correlation figures are LEILA Ratings&rsquo; own analysis of the published 2026 FBS schedule
-          (via CFBD) and eleven historical seasons (2014-2025, excluding 2020) of LEILA&rsquo;s own rating history.
-          AP Poll historical figures via RotoWire&rsquo;s 12-year preseason-poll study. Transfer portal and NIL
-          figures via 247Sports, CBS Sports, Front Office Sports, Sports Illustrated, and Opendorse&rsquo;s NIL
-          industry reporting, current as of the 2025 offseason.
+          Network figures are LEILA Ratings&rsquo; own analysis of the published 2026 FBS schedule (via CFBD).
+          Correlation figures are our own analysis of eleven historical seasons (2014-2025, excluding 2020, which
+          has no published data) of LEILA&rsquo;s own rating history, computed with scipy&rsquo;s Spearman
+          implementation. Because the site&rsquo;s week-numbering shifted slightly across seasons (2014-2015 run
+          about one week &ldquo;ahead&rdquo; of 2016-2024 at the same calendar point, and 2025 ran about one week
+          &ldquo;behind&rdquo;), each season is aligned by median games played (&asymp;2 and &asymp;4), not by raw
+          week label, so the comparison is apples to apples. AP Poll historical figures via RotoWire&rsquo;s
+          12-year preseason-poll study. Transfer portal and NIL figures via 247Sports, CBS Sports, Front Office
+          Sports, Sports Illustrated, and Opendorse&rsquo;s NIL industry reporting, current as of the 2025 offseason.
         </p>
       </main>
 
