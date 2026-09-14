@@ -61,6 +61,19 @@ function pregameRatingWeek(rankings: RankingsSeason, gameWeek: number): number |
   return prior.length ? prior[prior.length - 1] : null;
 }
 
+// schedule.currentWeek tracks the latest week with any started game -- once
+// that week's games wrap (e.g. Monday after a Thursday-Saturday slate), it
+// still points at the just-finished week until the next week's first
+// kickoff. A page about picking upcoming games should default to the next
+// week with something left to predict, not the one that just ended.
+function defaultPredictionsWeek(schedule: ScheduleSeason): number {
+  for (const week of schedule.weeks) {
+    const games = schedule.byWeek[String(week)] ?? [];
+    if (games.some((g) => !g.completed)) return week;
+  }
+  return schedule.currentWeek;
+}
+
 function gameTimeLabel(game: ScheduleGame): string {
   if (game.completed) return "Final";
   if (game.startTimeTBD || !game.startDate) return "Time TBA";
@@ -87,6 +100,10 @@ function signed(value: number, digits = 1): string {
 
 function pct(n: number | null): string {
   return n === null ? "—" : `${Math.round(n * 100)}%`;
+}
+
+function pickText(winner: string, margin: number): string {
+  return `${winner} to win by ${Math.abs(margin).toFixed(1)}`;
 }
 
 export default function PredictionsPage() {
@@ -117,7 +134,7 @@ export default function PredictionsPage() {
       setSeason(latestSeason);
       setSchedule(scheduleData);
       setRankings(rankingData);
-      setSelectedWeek(scheduleData?.currentWeek ?? null);
+      setSelectedWeek(scheduleData ? defaultPredictionsWeek(scheduleData) : null);
       getPreseasonPower(latestSeason).then((p) => { if (!cancelled) setPower(p); }).catch(() => {});
     })().catch((error: Error) => { if (!cancelled) setLoadError(error); });
     return () => { cancelled = true; };
@@ -400,11 +417,11 @@ export default function PredictionsPage() {
                             <span className="predictions-table__dash">—</span>
                           ) : edgeIsRealPick ? (
                             <span className="predictions-table__pick">
-                              {prediction!.predictedWinner} <span className="mono">{signed(prediction!.predictedMargin)}</span>
+                              {pickText(prediction!.predictedWinner, prediction!.predictedMargin)}
                             </span>
                           ) : (
                             <span className="predictions-table__context" title="No graded pick this week -- Adj. Net comparison shown for context only.">
-                              Adj. Net <span className="mono">{signed(edgeValue)}</span> {edgeValue >= 0 ? game.homeTeam : game.awayTeam}
+                              Adj. Net: {pickText(edgeValue >= 0 ? game.homeTeam : game.awayTeam, edgeValue)}
                             </span>
                           )}
                         </td>

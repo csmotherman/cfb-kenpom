@@ -278,6 +278,21 @@
    via the shared .data-table/.control-bar conventions from ratings.css. */
 .predictions-unlock-link { white-space: nowrap; }
 .predictions-table { min-width: 720px; }
+/* Sortable headers use plain <button> elements for the sort control, same as
+   Ratings/Advanced -- those pages get a reset from dense-ratings.css scoped
+   to #ratingsTable/.adv-table only, which this table's own class doesn't
+   match, so without this the browser's default button chrome (its own
+   background + system text color) shows up inside the dark header instead
+   of inheriting the header's white text. */
+.predictions-table .column-sort {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  text-transform: inherit;
+}
 .predictions-table__row { cursor: pointer; }
 .predictions-table__row:focus-visible { outline: 2px solid var(--color-gold-dark); outline-offset: -2px; }
 .predictions-table__time { font-family: var(--font-mono); font-size: 11.5px; color: var(--color-ink-secondary); white-space: nowrap; }
@@ -306,15 +321,15 @@
 .predictions-table__context {
   font-size: 12px;
   font-style: italic;
-  color: var(--color-ink-tertiary);
+  color: var(--color-navy);
   white-space: nowrap;
   cursor: help;
 }
-.predictions-table__dash { color: var(--color-ink-tertiary); }
+.predictions-table__dash { color: var(--color-navy); }
 .predictions-table__locked {
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--color-ink-tertiary);
+  color: var(--color-navy);
   white-space: nowrap;
 }
 
