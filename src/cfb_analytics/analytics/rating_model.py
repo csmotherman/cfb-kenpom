@@ -1,26 +1,25 @@
-"""Live opponent-adjusted rating model behind published AdjOff/AdjDef/AdjNet.
+"""Live opponent-adjusted possession-efficiency model for AdjOff/AdjDef/AdjNet.
 
-The publication model is current-season-only and intentionally flat:
+LEILA now treats a possession as the fundamental unit of football efficiency:
 
-    EPA/play = national mean + offense(team) - defense(opponent) + error
+    points / resolved possession
+        = national mean + offense(team) - defense(opponent) + error
 
-Every completed FBS-vs-FBS team-game is fit simultaneously from
-current-season, garbage-time-filtered EPA. There is no prior-season team
-strength, preseason prior, recruiting input, conference-strength term, z-score
-normalization, or home-field coefficient.
+Every completed FBS-vs-FBS team-game from the current season is solved
+simultaneously. The resulting offense and defense effects therefore recurse
+through the entire schedule graph, in the same spirit that SRS recursively
+adjusts scoring margin for opponent strength.
 
-Separating offense and defense doubles the number of team parameters compared
-with ordinary SRS. Early in a season the FBS-vs-FBS schedule graph does not yet
-contain enough independent matchups to identify all of those parameters by pure
-least squares. A small zero-centered ridge penalty therefore stabilizes the
-solve. It imports no external team-strength information: it only pulls weakly
-identified offense/defense effects toward the current-season FBS average, and
-its influence naturally fades as each team accumulates more EPA plays.
+The published rating imports no prior-season strength, preseason prior,
+recruiting information, conference-strength term, home-field coefficient, or
+z-score normalization. A small zero-centered ridge penalty is retained only to
+stabilize separate offense/defense effects while the early-season graph is
+sparse. It contains no team-specific information and naturally loses influence
+as each team accumulates possessions.
 
-The historical ``hierarchical_hfa`` CLI mode name is retained only as a build
-compatibility route because ``build_real_data.py`` already uses that branch to
-materialize the garbage-time-filtered input population. Published metadata
-identifies the actual methodology as ``flat_epa``.
+The historical ``hierarchical_hfa`` CLI mode name remains as a compatibility
+route for the site build. Published metadata identifies the actual methodology
+as ``possession_efficiency``.
 """
 from __future__ import annotations
 
@@ -31,19 +30,17 @@ from collections import defaultdict, deque
 from typing import Any
 
 from cfb_analytics.analytics.iterative_ratings import fit_metric_ratings
-from cfb_analytics.derived.games import GARBAGE_TIME_VERSION
 
 MODEL_MODES = ("hierarchical_hfa", "legacy")
 
-RATING_MODEL_ID = "adj-rating-flat-epa-v2"
+RATING_MODEL_ID = "adj-rating-possession-v3"
 LEGACY_RATING_MODEL_ID = "adj-rating-legacy-srs-ypp-v1"
-MODEL_VERSION = "flat-epa-current-season-ridge-v2"
+MODEL_VERSION = "possession-efficiency-current-season-ridge-v3"
 
-# Roughly one game's worth of EPA opportunities. This is not prior-season
-# information; it is a zero-effect penalty used only to make the current-season
-# offense/defense decomposition identifiable and stable while the graph is sparse.
-RIDGE_EQUIVALENT_PLAYS = 50.0
-LAMBDA_TEAM = RIDGE_EQUIVALENT_PLAYS
+# Approximately one game's worth of offensive possessions. This is a neutral,
+# zero-effect stabilizer, not an external estimate of any team's strength.
+RIDGE_EQUIVALENT_POSSESSIONS = 10.0
+LAMBDA_TEAM = RIDGE_EQUIVALENT_POSSESSIONS
 LAMBDA_CONFERENCE = 0.0
 HFA_ENABLED = False
 
@@ -52,19 +49,27 @@ USES_PRIOR_SEASON_TEAM_STRENGTH = False
 USES_PRESEASON_TEAM_PRIOR = False
 USES_CONFERENCE_STRENGTH = False
 
-RATING_INPUT_VERSION = "canonical-production-garbage-filtered-v1"
-RATING_SCALE = 100.0  # EPA/play effect -> EPA per 100 plays.
-EPA_SPEC = ("EPA", "epaSum", "epaPlays")
+RATING_INPUT_VERSION = "canonical-possession-team-game-v1"
+RATING_SCALE = 10.0  # effect in points/drive -> points per 10 resolved possessions.
+POSSESSION_SPEC = (
+    "PossessionPoints",
+    "possessionPoints",
+    "resolvedPointPossessions",
+)
 
-# build_real_data already asks the canonical derived layer for these fields.
-# The publication rating itself consumes EPA only; the remaining fields stay in
-# the input contract so this build route remains backward-compatible.
+# These play-level fields remain on the composite-input row for compatibility
+# with the existing site-build route and its audit trail. They are not inputs to
+# the possession rating itself.
 COMPOSITE_FIELDS = (
     "epaSum",
     "epaPlays",
     "successfulPlays",
     "successEligiblePlays",
     "successfulPlayYards",
+)
+POSSESSION_FIELDS = (
+    "possessionPoints",
+    "resolvedPointPossessions",
 )
 
 _REQUIRED_ROW_FIELDS = (
@@ -100,10 +105,11 @@ def _finite(value: Any) -> bool:
 
 
 def composite_input_row(row, metric_fields):
-    """One rating-model observation with garbage-time-filtered metric counts.
+    """Build one current-season possession-rating observation.
 
-    Conference fields are intentionally not required or consumed. If present,
-    they are copied for audit/debugging only and never enter the fit.
+    Possession scoring comes from the locked canonical team-game/drive
+    contract. Conference fields, when present, are copied only for audit/debug
+    visibility and never enter the numerical fit.
     """
     missing = [field for field in _REQUIRED_ROW_FIELDS if row.get(field) is None]
     if missing:
@@ -115,6 +121,13 @@ def composite_input_row(row, metric_fields):
     for optional in ("conference", "opponent_conference"):
         if row.get(optional) is not None:
             out[optional] = row[optional]
+
+    for field in POSSESSION_FIELDS:
+        if field not in row or row.get(field) is None:
+            raise RatingModelError(
+                f"Possession rating field {field!r} is missing for {row['team']}"
+            )
+        out[field] = row[field]
 
     if metric_fields is None:
         out.update({field: 0 for field in COMPOSITE_FIELDS})
@@ -130,7 +143,7 @@ def composite_input_row(row, metric_fields):
 
 
 def _validated_model_rows(rows: list[dict[str, Any]], season: int):
-    """Validate the current-season FBS graph and return EPA-only solver rows."""
+    """Validate the current-season closed FBS graph and return possession rows."""
     seen: set[tuple[str, str]] = set()
     games: dict[str, list[tuple[str, str]]] = defaultdict(list)
     model_rows: list[dict[str, Any]] = []
@@ -158,20 +171,28 @@ def _validated_model_rows(rows: list[dict[str, Any]], season: int):
         seen.add(key)
         games[game_id].append((team, opponent))
 
-        epa_sum = row.get("epaSum")
-        epa_plays = row.get("epaPlays")
-        if not _finite(epa_sum) or not _finite(epa_plays):
-            raise RatingModelError(f"Non-finite EPA input for {game_id} / {team}")
-        if float(epa_plays) < 0:
-            raise RatingModelError(f"Negative EPA play count for {game_id} / {team}")
+        points = row.get("possessionPoints")
+        possessions = row.get("resolvedPointPossessions")
+        if not _finite(points) or not _finite(possessions):
+            raise RatingModelError(
+                f"Non-finite possession input for {game_id} / {team}"
+            )
+        if float(points) < 0:
+            raise RatingModelError(
+                f"Negative possession points for {game_id} / {team}"
+            )
+        if float(possessions) < 0:
+            raise RatingModelError(
+                f"Negative resolved possession count for {game_id} / {team}"
+            )
 
         # Deliberately strip conference/site fields before the numerical solve.
         model_rows.append(
             {
                 "team": team,
                 "opponent": opponent,
-                "epaSum": float(epa_sum),
-                "epaPlays": float(epa_plays),
+                "possessionPoints": float(points),
+                "resolvedPointPossessions": float(possessions),
             }
         )
 
@@ -185,8 +206,8 @@ def _validated_model_rows(rows: list[dict[str, Any]], season: int):
         if team_a != opp_b or team_b != opp_a:
             raise RatingModelError(f"Game {game_id} has conflicting opponents")
 
-    if not any(row["epaPlays"] > 0 for row in model_rows):
-        raise RatingModelError("No eligible EPA observations for publication ratings")
+    if not any(row["resolvedPointPossessions"] > 0 for row in model_rows):
+        raise RatingModelError("No resolved possession observations for publication ratings")
     return model_rows
 
 
@@ -194,7 +215,7 @@ def _schedule_components(model_rows: list[dict[str, Any]]) -> int:
     adjacency: dict[str, set[str]] = defaultdict(set)
     teams: set[str] = set()
     for row in model_rows:
-        if row["epaPlays"] <= 0:
+        if row["resolvedPointPossessions"] <= 0:
             continue
         team, opponent = row["team"], row["opponent"]
         teams.update((team, opponent))
@@ -216,27 +237,27 @@ def _schedule_components(model_rows: list[dict[str, Any]]) -> int:
     return count
 
 
-def _fit_flat_epa(
+def _fit_possession_efficiency(
     rows: list[dict[str, Any]],
     *,
     season: int,
     cutoff: Any,
     input_version: str,
-    ridge_equivalent_plays: float,
+    ridge_equivalent_possessions: float,
 ):
     model_rows = _validated_model_rows(rows, season)
 
     fit = fit_metric_ratings(
         model_rows,
-        EPA_SPEC,
-        shrinkage=ridge_equivalent_plays,
+        POSSESSION_SPEC,
+        shrinkage=ridge_equivalent_possessions,
         damping=1.0,
         tolerance=1e-9,
         max_iterations=10000,
     )
     if not fit.get("converged"):
         raise RatingModelError(
-            f"Flat EPA solver did not converge at cutoff {cutoff}; "
+            f"Possession-efficiency solver did not converge at cutoff {cutoff}; "
             f"max delta {fit.get('maxDelta')}"
         )
 
@@ -244,9 +265,9 @@ def _fit_flat_epa(
     defense = fit.get("defense", {})
     teams = sorted(set(offense) & set(defense))
     if not teams:
-        raise RatingModelError("Flat EPA solver returned no rated teams")
+        raise RatingModelError("Possession-efficiency solver returned no rated teams")
     if set(offense) != set(defense):
-        raise RatingModelError("Flat EPA offense and defense universes differ")
+        raise RatingModelError("Possession offense and defense universes differ")
 
     ratings = {
         "AdjOff": {team: RATING_SCALE * float(offense[team]) for team in teams},
@@ -262,11 +283,15 @@ def _fit_flat_epa(
     observations = 0
     source_rows = []
     for row in model_rows:
-        weight = float(row["epaPlays"])
+        weight = float(row["resolvedPointPossessions"])
         if weight <= 0:
             continue
-        value = float(row["epaSum"]) / weight
-        prediction = league_mean + float(offense[row["team"]]) - float(defense[row["opponent"]])
+        value = float(row["possessionPoints"]) / weight
+        prediction = (
+            league_mean
+            + float(offense[row["team"]])
+            - float(defense[row["opponent"]])
+        )
         weighted_sse += weight * (value - prediction) ** 2
         total_weight += weight
         observations += 1
@@ -274,8 +299,8 @@ def _fit_flat_epa(
             {
                 "team": row["team"],
                 "opponent": row["opponent"],
-                "value": value,
-                "weight": weight,
+                "pointsPerResolvedPossession": value,
+                "resolvedPossessions": weight,
             }
         )
     weighted_rmse = math.sqrt(weighted_sse / total_weight)
@@ -286,15 +311,27 @@ def _fit_flat_epa(
         "cutoff": cutoff,
         "inputVersion": input_version,
         "scale": RATING_SCALE,
-        "ridgeEquivalentPlays": ridge_equivalent_plays,
+        "ridgeEquivalentPossessions": ridge_equivalent_possessions,
         "usesConferenceStrength": False,
         "usesPriorSeasonTeamStrength": False,
         "usesPreseasonTeamPrior": False,
         "hfaEnabled": False,
-        "rows": sorted(source_rows, key=lambda row: (row["team"], row["opponent"], row["value"])),
+        "rows": sorted(
+            source_rows,
+            key=lambda row: (
+                row["team"],
+                row["opponent"],
+                row["pointsPerResolvedPossession"],
+            ),
+        ),
     }
     model_key = hashlib.sha256(
-        json.dumps(identity, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+        json.dumps(
+            identity,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode()
     ).hexdigest()
 
     wrapped_fit = {
@@ -303,12 +340,12 @@ def _fit_flat_epa(
         "teams": len(teams),
         "scheduleComponents": _schedule_components(model_rows),
         "parameterCount": 2 * len(teams),
-        "ridgeEquivalentPlays": ridge_equivalent_plays,
-        "leagueMeanEpaPerPlay": league_mean,
-        "weightedRmseEpaPerPlay": weighted_rmse,
+        "ridgeEquivalentPossessions": ridge_equivalent_possessions,
+        "leagueMeanPointsPerPossession": league_mean,
+        "weightedRmsePointsPerPossession": weighted_rmse,
         "modelMetadata": {"modelKey": model_key},
     }
-    return {"fits": {"EPA": wrapped_fit}, "ratings": ratings}
+    return {"fits": {"PossessionPoints": wrapped_fit}, "ratings": ratings}
 
 
 def fit_publication_composite(
@@ -321,30 +358,31 @@ def fit_publication_composite(
     hfa_enabled=HFA_ENABLED,
     input_version=RATING_INPUT_VERSION,
 ):
-    """Fit current-season flat opponent-adjusted EPA offense and defense.
-
-    ``lambda_team`` is a zero-centered within-season stability penalty measured
-    in equivalent EPA plays. It does not contain any historical/team-strength
-    data. Conference strength and HFA remain forbidden.
-    """
+    """Fit current-season recursive possession offense and defense."""
     if not rows:
-        raise RatingModelError("Refusing to fit publication ratings from an empty rating graph")
-    if not _finite(lambda_team) or float(lambda_team) != RIDGE_EQUIVALENT_PLAYS:
         raise RatingModelError(
-            f"Flat EPA publication ratings require the frozen current-season "
-            f"ridge of {RIDGE_EQUIVALENT_PLAYS:g} equivalent plays"
+            "Refusing to fit publication ratings from an empty rating graph"
+        )
+    if not _finite(lambda_team) or float(lambda_team) != RIDGE_EQUIVALENT_POSSESSIONS:
+        raise RatingModelError(
+            "Possession publication ratings require the frozen current-season "
+            f"ridge of {RIDGE_EQUIVALENT_POSSESSIONS:g} equivalent possessions"
         )
     if lambda_conf not in (None, 0, 0.0):
-        raise RatingModelError("Flat EPA publication ratings do not use conference strength")
+        raise RatingModelError(
+            "Possession publication ratings do not use conference strength"
+        )
     if hfa_enabled not in (False, None):
-        raise RatingModelError("Flat EPA publication ratings do not use an HFA coefficient")
+        raise RatingModelError(
+            "Possession publication ratings do not use an HFA coefficient"
+        )
 
-    result = _fit_flat_epa(
+    result = _fit_possession_efficiency(
         rows,
         season=season,
         cutoff=cutoff,
         input_version=input_version,
-        ridge_equivalent_plays=float(lambda_team),
+        ridge_equivalent_possessions=float(lambda_team),
     )
     ratings = result["ratings"]
     teams = set(ratings["AdjNet"])
@@ -389,17 +427,24 @@ def rating_model_metadata(
 
     meta = {
         "modelId": RATING_MODEL_ID,
-        "modelMode": "flat_epa",
+        "modelMode": "possession_efficiency",
         "compatibilityBuildRoute": "hierarchical_hfa",
         "modelVersion": MODEL_VERSION,
         "netDefinition": "AdjNet = AdjOff + AdjDef",
-        "offenseDefinition": "100 * opponent-adjusted EPA/play offense effect",
-        "defenseDefinition": "100 * opponent-adjusted EPA/play defense effect (higher is better)",
-        "ratingScale": "EPA per 100 plays above/below average FBS",
-        "metric": "EPA/play",
-        "opponentAdjustment": "simultaneous flat current-season offense-defense solve",
+        "offenseDefinition": (
+            "10 * opponent-adjusted points/resolved-possession offense effect"
+        ),
+        "defenseDefinition": (
+            "10 * opponent-adjusted points/resolved-possession defense effect "
+            "(higher is better)"
+        ),
+        "ratingScale": "points per 10 resolved possessions above/below average FBS",
+        "metric": "points/resolved possession",
+        "opponentAdjustment": (
+            "simultaneous recursive current-season offense-defense solve"
+        ),
         "stabilization": "zero-centered ridge to current-season FBS average",
-        "ridgeEquivalentPlays": RIDGE_EQUIVALENT_PLAYS,
+        "ridgeEquivalentPossessions": RIDGE_EQUIVALENT_POSSESSIONS,
         "externalTeamStrengthInputsUsed": False,
         "conferenceStrengthUsed": False,
         "hfaEnabled": False,
@@ -407,8 +452,9 @@ def rating_model_metadata(
         "seasonScope": SEASON_SCOPE,
         "usesPriorSeasonTeamStrength": USES_PRIOR_SEASON_TEAM_STRENGTH,
         "usesPreseasonTeamPrior": USES_PRESEASON_TEAM_PRIOR,
-        "garbageTimeExcluded": True,
-        "garbageTimeDefinitionVersion": GARBAGE_TIME_VERSION,
+        # Drive scoring uses complete validated possessions; unlike the former
+        # EPA/play input it is not a garbage-time-filtered play statistic.
+        "garbageTimeExcluded": False,
         "normalization": "none",
         "inputVersion": RATING_INPUT_VERSION,
         "season": season,
@@ -419,13 +465,17 @@ def rating_model_metadata(
         "teams": teams,
     }
     if fits:
-        epa_fit = fits.get("EPA")
-        if epa_fit:
-            meta["iterations"] = epa_fit["iterations"]
-            meta["observations"] = epa_fit["observations"]
-            meta["scheduleComponents"] = epa_fit["scheduleComponents"]
-            meta["parameterCount"] = epa_fit["parameterCount"]
-            meta["leagueMeanEpaPerPlay"] = epa_fit["leagueMeanEpaPerPlay"]
-            meta["weightedRmseEpaPerPlay"] = epa_fit["weightedRmseEpaPerPlay"]
-            meta["modelKey"] = epa_fit["modelMetadata"]["modelKey"]
+        possession_fit = fits.get("PossessionPoints")
+        if possession_fit:
+            meta["iterations"] = possession_fit["iterations"]
+            meta["observations"] = possession_fit["observations"]
+            meta["scheduleComponents"] = possession_fit["scheduleComponents"]
+            meta["parameterCount"] = possession_fit["parameterCount"]
+            meta["leagueMeanPointsPerPossession"] = possession_fit[
+                "leagueMeanPointsPerPossession"
+            ]
+            meta["weightedRmsePointsPerPossession"] = possession_fit[
+                "weightedRmsePointsPerPossession"
+            ]
+            meta["modelKey"] = possession_fit["modelMetadata"]["modelKey"]
     return meta
