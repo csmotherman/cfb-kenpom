@@ -1,10 +1,20 @@
-"""Publication-contract tests for the flat current-season EPA rating model."""
+"""Publication-contract tests for current-season possession-efficiency ratings."""
 import unittest
 
 from cfb_analytics.analytics import rating_model as R
 
 
-def row(game_id, team, opponent, epa_per_play, plays=60, *, season=2026, home=True, conference="X"):
+def row(
+    game_id,
+    team,
+    opponent,
+    points_per_possession,
+    possessions=10,
+    *,
+    season=2026,
+    home=True,
+    conference="X",
+):
     return {
         "season": season,
         "gameId": str(game_id),
@@ -16,10 +26,14 @@ def row(game_id, team, opponent, epa_per_play, plays=60, *, season=2026, home=Tr
         "opponent_classification": "fbs",
         "neutral_site": False,
         "home_away": "home" if home else "away",
-        "epaSum": epa_per_play * plays,
-        "epaPlays": plays,
+        "possessionPoints": points_per_possession * possessions,
+        "resolvedPointPossessions": possessions,
+        # Compatibility/audit fields retained on the rating-input row but not
+        # consumed by the possession model.
+        "epaSum": 0.0,
+        "epaPlays": 60,
         "successfulPlays": 0,
-        "successEligiblePlays": plays,
+        "successEligiblePlays": 60,
         "successfulPlayYards": 0.0,
     }
 
@@ -27,25 +41,25 @@ def row(game_id, team, opponent, epa_per_play, plays=60, *, season=2026, home=Tr
 def synthetic_round_robin():
     # Underlying ordering: A > B > C on both offense and defense.
     return [
-        row("1", "A", "B", 0.20, home=True),
-        row("1", "B", "A", -0.10, home=False),
-        row("2", "A", "C", 0.30, home=True),
-        row("2", "C", "A", -0.30, home=False),
-        row("3", "B", "C", 0.10, home=True),
-        row("3", "C", "B", -0.20, home=False),
+        row("1", "A", "B", 3.0, home=True),
+        row("1", "B", "A", 1.5, home=False),
+        row("2", "A", "C", 3.5, home=True),
+        row("2", "C", "A", 1.0, home=False),
+        row("3", "B", "C", 2.5, home=True),
+        row("3", "C", "B", 1.5, home=False),
     ]
 
 
 def sparse_two_game_graph():
     return [
-        row("1", "A", "B", 0.60, home=True),
-        row("1", "B", "A", -0.40, home=False),
-        row("2", "C", "D", 0.50, home=True),
-        row("2", "D", "C", -0.30, home=False),
+        row("1", "A", "B", 5.0, home=True),
+        row("1", "B", "A", 0.5, home=False),
+        row("2", "C", "D", 4.5, home=True),
+        row("2", "D", "C", 1.0, home=False),
     ]
 
 
-class FlatEpaRatingTests(unittest.TestCase):
+class PossessionEfficiencyRatingTests(unittest.TestCase):
     def fit(self, rows=None):
         return R.fit_publication_composite(
             rows or synthetic_round_robin(),
@@ -64,11 +78,14 @@ class FlatEpaRatingTests(unittest.TestCase):
 
     def test_sparse_graph_is_stabilized_instead_of_exactly_overfit(self):
         result = self.fit(sparse_two_game_graph())
-        fit = result["fits"]["EPA"]
-        self.assertGreater(fit["weightedRmseEpaPerPlay"], 0.01)
-        self.assertEqual(fit["ridgeEquivalentPlays"], R.RIDGE_EQUIVALENT_PLAYS)
+        fit = result["fits"]["PossessionPoints"]
+        self.assertGreater(fit["weightedRmsePointsPerPossession"], 0.01)
+        self.assertEqual(
+            fit["ridgeEquivalentPossessions"],
+            R.RIDGE_EQUIVALENT_POSSESSIONS,
+        )
         self.assertGreater(fit["scheduleComponents"], 1)
-        self.assertTrue(all(abs(v) < 60 for v in result["ratings"]["AdjNet"].values()))
+        self.assertTrue(all(abs(v) < 50 for v in result["ratings"]["AdjNet"].values()))
 
     def test_adj_net_is_exact_sum_of_sides(self):
         ratings = self.fit()["ratings"]
@@ -94,32 +111,36 @@ class FlatEpaRatingTests(unittest.TestCase):
             r["home_away"] = "away" if r["home_away"] == "home" else "home"
         self.assertEqual(self.fit(original)["ratings"], self.fit(changed)["ratings"])
 
-    def test_scale_is_epa_per_100_plays_not_zscore(self):
+    def test_scale_is_points_per_ten_possessions_not_zscore(self):
         base = self.fit()["ratings"]
         doubled = []
         for r in synthetic_round_robin():
             r = dict(r)
-            r["epaSum"] *= 2
+            r["possessionPoints"] *= 2
             doubled.append(r)
         scaled = self.fit(doubled)["ratings"]
         for label in ("AdjOff", "AdjDef", "AdjNet"):
             for team in base[label]:
-                self.assertAlmostEqual(scaled[label][team], 2 * base[label][team], places=7)
+                self.assertAlmostEqual(
+                    scaled[label][team],
+                    2 * base[label][team],
+                    places=7,
+                )
 
     def test_frozen_stabilization_cannot_be_replaced_with_hidden_context(self):
         rows = synthetic_round_robin()
         with self.assertRaises(R.RatingModelError):
             R.fit_publication_composite(rows, season=2026, cutoff=2, lambda_team=0)
         with self.assertRaises(R.RatingModelError):
-            R.fit_publication_composite(rows, season=2026, cutoff=2, lambda_team=100)
+            R.fit_publication_composite(rows, season=2026, cutoff=2, lambda_team=20)
         with self.assertRaises(R.RatingModelError):
             R.fit_publication_composite(rows, season=2026, cutoff=2, lambda_conf=1)
         with self.assertRaises(R.RatingModelError):
             R.fit_publication_composite(rows, season=2026, cutoff=2, hfa_enabled=True)
 
-    def test_solver_metadata_exposes_current_season_data_only_method(self):
+    def test_solver_metadata_exposes_current_season_possession_method(self):
         result = self.fit()
-        fit = result["fits"]["EPA"]
+        fit = result["fits"]["PossessionPoints"]
         self.assertTrue(fit["converged"])
         self.assertEqual(fit["observations"], 6)
         meta = R.rating_model_metadata(
@@ -130,10 +151,10 @@ class FlatEpaRatingTests(unittest.TestCase):
             fits=result["fits"],
             teams=3,
         )
-        self.assertEqual(meta["modelId"], "adj-rating-flat-epa-v2")
-        self.assertEqual(meta["modelMode"], "flat_epa")
+        self.assertEqual(meta["modelId"], "adj-rating-possession-v3")
+        self.assertEqual(meta["modelMode"], "possession_efficiency")
         self.assertEqual(meta["normalization"], "none")
-        self.assertEqual(meta["ridgeEquivalentPlays"], 50.0)
+        self.assertEqual(meta["ridgeEquivalentPossessions"], 10.0)
         self.assertEqual(
             meta["stabilization"],
             "zero-centered ridge to current-season FBS average",
@@ -143,16 +164,21 @@ class FlatEpaRatingTests(unittest.TestCase):
         self.assertFalse(meta["hfaEnabled"])
         self.assertFalse(meta["usesPriorSeasonTeamStrength"])
         self.assertFalse(meta["usesPreseasonTeamPrior"])
-        self.assertEqual(meta["ratingScale"], "EPA per 100 plays above/below average FBS")
+        self.assertEqual(meta["metric"], "points/resolved possession")
+        self.assertEqual(
+            meta["ratingScale"],
+            "points per 10 resolved possessions above/below average FBS",
+        )
 
-    def test_missing_conference_is_allowed_because_conference_is_not_a_model_input(self):
+    def test_composite_input_uses_possessions_and_ignores_conference_strength(self):
         base = synthetic_round_robin()[0]
         base.pop("conference")
         base.pop("opponent_conference")
         fields = {field: base[field] for field in R.COMPOSITE_FIELDS}
         built = R.composite_input_row(base, fields)
         self.assertNotIn("conference", built)
-        self.assertEqual(built["epaPlays"], 60)
+        self.assertEqual(built["resolvedPointPossessions"], 10)
+        self.assertEqual(built["possessionPoints"], 30.0)
 
     def test_prior_season_row_is_rejected(self):
         rows = synthetic_round_robin()
