@@ -243,7 +243,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
         <main className="container weekly-state">
           <h2>Matchup not found</h2>
           <p>This game is not in the published FBS-vs-FBS schedule snapshot.</p>
-          <Link href="/this-week">Back to This Week →</Link>
+          <Link href="/predictions">Back to Predictions →</Link>
         </main>
       </>
     );

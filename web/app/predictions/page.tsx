@@ -1,32 +1,67 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { logoUrl } from "@/lib/teamCode";
-import { getMeta, getPredictionsWeek, getPreseasonPower, getRankingsSeason, getScheduleSeason } from "@/lib/data";
-import type { PredictionGame, PreseasonPower, RankingsSeason, ScheduleGame, ScheduleSeason } from "@/lib/types";
+import {
+  PremiumAccessError,
+  getMeta,
+  getPredictionsWeek,
+  getPreseasonPower,
+  getRankingsSeason,
+  getScheduleSeason,
+} from "@/lib/data";
+import type {
+  PredictionGame,
+  PreseasonPower,
+  RankingsRow,
+  RankingsSeason,
+  ScheduleGame,
+  ScheduleSeason,
+} from "@/lib/types";
 
-type PredictionsFilter = "all" | "top25" | "best";
+type GamesFilter = "all" | "top25" | "best";
+type SortKey = "kickoff" | "matchup" | "pick" | "confidence";
+type Access = "unknown" | "locked" | "unlocked";
 
-const FILTERS: { key: PredictionsFilter; label: string }[] = [
+// The early-season model only scores games until a team's own schedule is
+// long enough for Adj. Net to take over (see the copy below) -- a null
+// result for an unlocked week means "not published for this week," not an
+// error, and the table falls back to a plain Adj. Net comparison instead of
+// going blank, so this page stays useful as the season's single "this
+// week's games" destination all year, not just weeks 1-5.
+type Row = {
+  game: ScheduleGame;
+  homeRating: RankingsRow | undefined;
+  awayRating: RankingsRow | undefined;
+  prediction: PredictionGame | undefined;
+  // Signed to the home team (positive = home favored) so every row sorts on
+  // the same axis regardless of who the model likes -- real predicted margin
+  // when published, else the raw Adj. Net differential as context only.
+  edgeValue: number | null;
+  edgeIsRealPick: boolean;
+};
+
+const FILTERS: { key: GamesFilter; label: string }[] = [
   { key: "all", label: "All Games" },
   { key: "top25", label: "Top 25" },
   { key: "best", label: "Best Matchups" },
 ];
 
-// Rankings publish a week later than predictions can (see the lookahead
-// comment below) -- so "ranked" for a given game week means the latest
-// rankings week that had already posted before that week's games kicked off.
-function pregameRankWeek(rankings: RankingsSeason, gameWeek: number): number | null {
+function na(v: unknown): v is null | undefined {
+  return v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
+}
+
+function pregameRatingWeek(rankings: RankingsSeason, gameWeek: number): number | null {
   const prior = rankings.weeks.filter((w) => w < gameWeek);
   return prior.length ? prior[prior.length - 1] : null;
 }
 
-function gameTimeLabel(game: ScheduleGame | undefined): string {
-  if (!game) return "Time TBA";
+function gameTimeLabel(game: ScheduleGame): string {
   if (game.completed) return "Final";
   if (game.startTimeTBD || !game.startDate) return "Time TBA";
   const date = new Date(game.startDate);
@@ -40,121 +75,186 @@ function gameTimeLabel(game: ScheduleGame | undefined): string {
   });
 }
 
-function sortByKickoff(games: PredictionGame[], scheduleByGameId: Map<string, ScheduleGame>): PredictionGame[] {
-  const kickoffMs = (g: PredictionGame): number => {
-    const sched = scheduleByGameId.get(g.gameId);
-    if (!sched || sched.startTimeTBD || !sched.startDate) return Infinity;
-    const ms = new Date(sched.startDate).getTime();
-    return Number.isNaN(ms) ? Infinity : ms;
-  };
-  return [...games].sort((a, b) => kickoffMs(a) - kickoffMs(b) || a.gameId.localeCompare(b.gameId));
+function kickoffMs(game: ScheduleGame): number {
+  if (game.startTimeTBD || !game.startDate) return Infinity;
+  const ms = new Date(game.startDate).getTime();
+  return Number.isNaN(ms) ? Infinity : ms;
 }
 
-function signedMargin(n: number): string {
-  return (n >= 0 ? "+" : "") + n.toFixed(1);
+function signed(value: number, digits = 1): string {
+  return `${value >= 0 ? "+" : ""}${value.toFixed(digits)}`;
 }
 
 function pct(n: number | null): string {
   return n === null ? "—" : `${Math.round(n * 100)}%`;
 }
 
-type ConfidenceTier = { key: "lock" | "lean" | "toss-up"; label: string };
-
-function confidenceTier(n: number | null): ConfidenceTier {
-  if (n === null) return { key: "toss-up", label: "Unrated" };
-  if (n >= 0.85) return { key: "lock", label: "Lock" };
-  if (n >= 0.65) return { key: "lean", label: "Lean" };
-  return { key: "toss-up", label: "Toss-up" };
-}
-
 export default function PredictionsPage() {
+  const router = useRouter();
   const [loadError, setLoadError] = useState<Error | null>(null);
-  const [status, setStatus] = useState<"loading" | "no-data" | "ready">("loading");
   const [season, setSeason] = useState<number | null>(null);
-  const [week, setWeek] = useState<number | null>(null);
-  const [games, setGames] = useState<PredictionGame[]>([]);
-  const [power, setPower] = useState<PreseasonPower | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleSeason | null | undefined>(undefined);
   const [rankings, setRankings] = useState<RankingsSeason | null>(null);
-  const [schedule, setSchedule] = useState<ScheduleSeason | null>(null);
-  const [filter, setFilter] = useState<PredictionsFilter>("all");
+  const [power, setPower] = useState<PreseasonPower | null>(null);
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+  const [predictionsByWeek, setPredictionsByWeek] = useState<Map<number, PredictionGame[]>>(new Map());
+  const [access, setAccess] = useState<Access>("unknown");
+  const [filter, setFilter] = useState<GamesFilter>("all");
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("kickoff");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const meta = await getMeta();
       const latestSeason = meta.rankingsYears[meta.rankingsYears.length - 1];
-      const seasonData = await getRankingsSeason(latestSeason);
-      const currentWeek = seasonData.weeks[seasonData.weeks.length - 1];
+      const [scheduleData, rankingData] = await Promise.all([
+        getScheduleSeason(latestSeason),
+        getRankingsSeason(latestSeason),
+      ]);
       if (cancelled) return;
       setSeason(latestSeason);
-      setWeek(currentWeek);
-      setRankings(seasonData);
-
+      setSchedule(scheduleData);
+      setRankings(rankingData);
+      setSelectedWeek(scheduleData?.currentWeek ?? null);
       getPreseasonPower(latestSeason).then((p) => { if (!cancelled) setPower(p); }).catch(() => {});
-      getScheduleSeason(latestSeason).then((s) => { if (!cancelled) setSchedule(s); }).catch(() => {});
-
-      // Predictions are published for early-season weeks specifically (see
-      // early_season_predictions.py) -- a week with no file yet just means
-      // this model hasn't scored it (either too early in the pipeline, or
-      // past the early-season window where LEILA's own AdjNet/SOR takes over).
-      // The predictions pipeline often runs ahead of `currentWeek`, which
-      // tracks the *rankings* week (only bumped once a week is fully final)
-      // -- so a slate for the upcoming week can already be published while
-      // rankings are still sitting on the prior one. Probe a couple weeks
-      // ahead first and walk backward, landing on the latest published
-      // slate; falling back below currentWeek covers a Tuesday-morning
-      // visitor mid-week who wants last week's slate wrapping up, not a
-      // blank page.
-      const lookahead = 2;
-      const candidates: number[] = [];
-      for (let w = currentWeek + lookahead; w >= Math.max(1, currentWeek - 1); w--) candidates.push(w);
-      for (const candidate of candidates) {
-        const predictions = await getPredictionsWeek(latestSeason, candidate);
-        if (cancelled) return;
-        if (predictions && predictions.games.length > 0) {
-          setWeek(candidate);
-          setGames(predictions.games);
-          setStatus("ready");
-          return;
-        }
-      }
-      setStatus("no-data");
     })().catch((error: Error) => { if (!cancelled) setLoadError(error); });
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  const scheduleByGameId = useMemo(() => {
-    const map = new Map<string, ScheduleGame>();
-    if (schedule && week !== null) {
-      for (const g of schedule.byWeek[String(week)] ?? []) map.set(g.gameId, g);
-    }
+  useEffect(() => {
+    document.title = season ? `${season} Predictions | LEILA Ratings` : "Predictions | LEILA Ratings";
+  }, [season]);
+
+  // Fetch each week's predictions on demand as the user browses weeks, and
+  // remember a season-wide "locked" verdict the first time we see one so we
+  // stop making requests we already know will 401/403 -- the game list
+  // itself never depends on this, only the Pick/Win % columns do.
+  useEffect(() => {
+    if (season === null || selectedWeek === null) return;
+    if (access === "locked") return;
+    if (predictionsByWeek.has(selectedWeek)) return;
+    let cancelled = false;
+    getPredictionsWeek(season, selectedWeek)
+      .then((weekData) => {
+        if (cancelled) return;
+        setAccess("unlocked");
+        setPredictionsByWeek((prev) => new Map(prev).set(selectedWeek, weekData?.games ?? []));
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        if (error instanceof PremiumAccessError) {
+          setAccess("locked");
+          return;
+        }
+        // Non-access errors (network blip, 500) just leave this week showing
+        // the Adj. Net fallback rather than taking down the whole page.
+        setPredictionsByWeek((prev) => new Map(prev).set(selectedWeek, []));
+      });
+    return () => { cancelled = true; };
+  }, [season, selectedWeek, access, predictionsByWeek]);
+
+  const ratingWeek = useMemo(() => {
+    if (!rankings || selectedWeek === null) return null;
+    return pregameRatingWeek(rankings, selectedWeek);
+  }, [rankings, selectedWeek]);
+
+  const ratingsBySlug = useMemo(() => {
+    const map = new Map<string, RankingsRow>();
+    if (!rankings || ratingWeek === null) return map;
+    for (const row of rankings.byWeek[String(ratingWeek)] || []) map.set(row.slug, row);
     return map;
-  }, [schedule, week]);
+  }, [rankings, ratingWeek]);
 
   const topRanked = useMemo(() => {
     const map = new Map<number, number>();
-    if (!rankings || week === null) return map;
-    const rankWeek = pregameRankWeek(rankings, week);
-    if (rankWeek === null) return map;
-    for (const row of rankings.byWeek[String(rankWeek)] ?? []) {
+    if (!rankings || ratingWeek === null) return map;
+    for (const row of rankings.byWeek[String(ratingWeek)] || []) {
       if (row.rank !== null && row.rank <= 25) map.set(row.teamId, row.rank);
     }
     return map;
-  }, [rankings, week]);
+  }, [rankings, ratingWeek]);
 
-  const orderedGames = useMemo(() => sortByKickoff(games, scheduleByGameId), [games, scheduleByGameId]);
+  const predictionsByGameId = useMemo(() => {
+    const map = new Map<string, PredictionGame>();
+    if (selectedWeek === null) return map;
+    for (const p of predictionsByWeek.get(selectedWeek) ?? []) map.set(p.gameId, p);
+    return map;
+  }, [predictionsByWeek, selectedWeek]);
 
-  const gamesByFilter = useMemo(() => ({
-    all: orderedGames,
-    top25: orderedGames.filter((g) => topRanked.has(g.homeTeamId) || topRanked.has(g.awayTeamId)),
-    best: orderedGames.filter((g) => topRanked.has(g.homeTeamId) && topRanked.has(g.awayTeamId)),
-  }), [orderedGames, topRanked]);
+  const rows = useMemo((): Row[] => {
+    if (!schedule || selectedWeek === null) return [];
+    const games = schedule.byWeek[String(selectedWeek)] ?? [];
+    return games.map((game) => {
+      const homeRating = ratingsBySlug.get(game.homeSlug);
+      const awayRating = ratingsBySlug.get(game.awaySlug);
+      const prediction = predictionsByGameId.get(game.gameId);
+      let edgeValue: number | null = null;
+      let edgeIsRealPick = false;
+      if (prediction) {
+        edgeValue = prediction.predictedWinner === game.homeTeam ? prediction.predictedMargin : -prediction.predictedMargin;
+        edgeIsRealPick = true;
+      } else if (access === "unlocked" && !na(homeRating?.adjEM) && !na(awayRating?.adjEM)) {
+        edgeValue = homeRating!.adjEM! - awayRating!.adjEM!;
+      }
+      return { game, homeRating, awayRating, prediction, edgeValue, edgeIsRealPick };
+    });
+  }, [schedule, selectedWeek, ratingsBySlug, predictionsByGameId, access]);
 
-  const rankOf = (teamId: number): number | null => topRanked.get(teamId) ?? null;
+  const rowsByFilter = useMemo(() => ({
+    all: rows,
+    top25: rows.filter((r) => topRanked.has(r.game.homeTeamId) || topRanked.has(r.game.awayTeamId)),
+    best: rows.filter((r) => topRanked.has(r.game.homeTeamId) && topRanked.has(r.game.awayTeamId)),
+  }), [rows, topRanked]);
 
-  const visibleGames = gamesByFilter[filter];
+  const searched = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    const base = rowsByFilter[filter];
+    if (!needle) return base;
+    return base.filter((r) => r.game.homeTeam.toLowerCase().includes(needle) || r.game.awayTeam.toLowerCase().includes(needle));
+  }, [rowsByFilter, filter, search]);
+
+  const sorted = useMemo(() => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    const out = [...searched];
+    out.sort((a, b) => {
+      switch (sortKey) {
+        case "matchup":
+          return a.game.homeTeam.localeCompare(b.game.homeTeam) * dir;
+        case "pick": {
+          if (a.edgeValue === null) return b.edgeValue === null ? 0 : 1;
+          if (b.edgeValue === null) return -1;
+          return (Math.abs(a.edgeValue) - Math.abs(b.edgeValue)) * dir;
+        }
+        case "confidence": {
+          const av = a.prediction?.confidence ?? null;
+          const bv = b.prediction?.confidence ?? null;
+          if (av === null) return bv === null ? 0 : 1;
+          if (bv === null) return -1;
+          return (av - bv) * dir;
+        }
+        case "kickoff":
+        default:
+          return (kickoffMs(a.game) - kickoffMs(b.game)) * dir;
+      }
+    });
+    return out;
+  }, [searched, sortKey, sortDir]);
+
+  function onHeaderClick(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "kickoff" || key === "matchup" ? "asc" : "desc");
+    }
+  }
+
+  function goToMatchup(gameId: string) {
+    if (season === null) return;
+    router.push(`/matchup/${season}/${encodeURIComponent(gameId)}`);
+  }
 
   if (loadError) throw loadError;
 
@@ -164,145 +264,182 @@ export default function PredictionsPage() {
       <SiteHeader tagline="Weekly Game Predictions" />
       <SiteNav />
 
-      <nav className="breadcrumbs" aria-label="Breadcrumb">
-        <Link href="/">Ratings</Link>
-        <span className="crumb-sep">/</span>
-        <span className="crumb-current">Predictions</span>
-      </nav>
-
-      <section className="advanced-intro">
-        <div className="advanced-intro__copy">
-          <div className="advanced-intro__eyebrow">
-            <span className="eyebrow">Weekly Predictions</span>
-            <span className="advanced-intro__badge">Beta</span>
-          </div>
-          <h1>This week&rsquo;s game-by-game picks</h1>
-          <p>
-            Model-projected winners and margins for published early-season FBS matchups. Weeks 1&ndash;5 blend a
-            preseason power rating with real results as they come in; once a team&rsquo;s schedule is long enough
-            for LEILA&rsquo;s own opponent-adjusted Adj. Net to take over, predictions retire in favor of that.
+      <section className="ratings-hero container" aria-labelledby="predictionsTitle">
+        <div className="ratings-hero__copy">
+          <span className="eyebrow">LEILA Predictions</span>
+          <h1 id="predictionsTitle">{season ? `${season} Predictions` : "Predictions"}</h1>
+          <p className="ratings-hero__description">
+            Every FBS-vs-FBS game, sortable and searchable. Weeks 1-5ish blend a preseason power rating with real
+            results as they come in; once a team&rsquo;s schedule is long enough for LEILA&rsquo;s own Adj. Net to
+            take over, the Pick column falls back to an Adj. Net comparison instead of a graded pick.
           </p>
         </div>
       </section>
 
       <main id="predictionsContent" className="container predictions-main">
-        {status === "loading" ? (
-          <div className="predictions-state">Loading predictions…</div>
-        ) : status === "no-data" ? (
-          <div className="predictions-state">
-            <h2>No predictions published for {season} yet</h2>
-            <p>
-              The season is currently through Week {week}. Predictions publish once a week&rsquo;s prior week is
-              fully final and this early-season model can still add something &mdash; check back soon.
-            </p>
-          </div>
+        {schedule === undefined ? (
+          <p className="network-loading">Loading this week&rsquo;s slate…</p>
+        ) : schedule === null ? (
+          <p className="network-loading">Weekly schedule data is publishing with the next ratings refresh.</p>
         ) : (
-          <div className="predictions-list">
-            <div className="weekly-section-heading">
-              <div>
-                <span className="eyebrow">LEILA Predictions</span>
-                <h2>Week {week}</h2>
+          <>
+            <div className="control-bar">
+              <div className="control-bar__inner">
+                <span className="control-label">Week</span>
+                <nav className="week-nav" aria-label="Schedule week">
+                  {schedule.weeks.map((week) => (
+                    <button
+                      key={week}
+                      type="button"
+                      className={week === selectedWeek ? "active" : undefined}
+                      aria-pressed={week === selectedWeek}
+                      onClick={() => setSelectedWeek(week)}
+                    >
+                      {schedule.weekLabels?.[String(week)] || `Wk ${week}`}
+                    </button>
+                  ))}
+                </nav>
+
+                <div className="filter-box">
+                  <label className="sr-only" htmlFor="predictionsSearch">Search teams</label>
+                  <input
+                    id="predictionsSearch"
+                    type="search"
+                    placeholder="Search team…"
+                    autoComplete="off"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
               </div>
-              <span>{predictionsSummary(games)}</span>
+              <div className="control-bar__inner control-bar__inner--secondary">
+                <div className="predictions-filters" role="tablist" aria-label="Filter games">
+                  {FILTERS.map((f) => (
+                    <button
+                      key={f.key}
+                      type="button"
+                      role="tab"
+                      aria-selected={filter === f.key}
+                      className={`predictions-filters__btn${filter === f.key ? " active" : ""}`}
+                      onClick={() => setFilter(f.key)}
+                    >
+                      {f.label}
+                      <span className="predictions-filters__count">{rowsByFilter[f.key].length}</span>
+                    </button>
+                  ))}
+                </div>
+                {access === "locked" ? (
+                  <Link className="utility-link predictions-unlock-link" href="/upgrade?feature=predictions">
+                    Unlock picks &amp; win % →
+                  </Link>
+                ) : null}
+              </div>
             </div>
 
-            <div className="predictions-filters" role="tablist" aria-label="Filter predictions">
-              {FILTERS.map((f) => (
-                <button
-                  key={f.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={filter === f.key}
-                  className={`predictions-filters__btn${filter === f.key ? " active" : ""}`}
-                  onClick={() => setFilter(f.key)}
-                >
-                  {f.label}
-                  <span className="predictions-filters__count">{gamesByFilter[f.key].length}</span>
-                </button>
-              ))}
-            </div>
-
-            {visibleGames.length === 0 ? (
-              <p className="predictions-empty">
-                No games match this filter this week &mdash; try{" "}
-                <button type="button" className="predictions-empty__reset" onClick={() => setFilter("all")}>
-                  All Games
-                </button>
-                .
+            {sorted.length === 0 ? (
+              <p className="network-loading">
+                {search.trim() ? `No games match "${search}".` : "No FBS-vs-FBS games are listed for this week."}
               </p>
             ) : (
-              <div className="predictions-grid">
-                {visibleGames.map((g) => (
-                  <PredictionRow
-                    key={g.gameId}
-                    game={g}
-                    schedule={scheduleByGameId.get(g.gameId)}
-                    homeRank={rankOf(g.homeTeamId)}
-                    awayRank={rankOf(g.awayTeamId)}
-                  />
-                ))}
+              <div className="table-scroll" role="region" aria-label="Weekly predictions table" tabIndex={0}>
+                <table className="data-table predictions-table">
+                  <thead>
+                    <tr>
+                      <th scope="col" className="sortable" aria-sort={sortKey === "kickoff" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                        <button type="button" className="column-sort" onClick={() => onHeaderClick("kickoff")}>Kickoff</button>
+                        <span className="sort-indicator">{sortKey === "kickoff" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
+                      </th>
+                      <th scope="col" className="sortable" aria-sort={sortKey === "matchup" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                        <button type="button" className="column-sort" onClick={() => onHeaderClick("matchup")}>Matchup</button>
+                        <span className="sort-indicator">{sortKey === "matchup" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
+                      </th>
+                      <th scope="col" className="num sortable" aria-sort={sortKey === "pick" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                        <button type="button" className="column-sort" onClick={() => onHeaderClick("pick")}>Pick</button>
+                        <span className="sort-indicator">{sortKey === "pick" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
+                      </th>
+                      <th scope="col" className="num sortable" aria-sort={sortKey === "confidence" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                        <button type="button" className="column-sort" onClick={() => onHeaderClick("confidence")}>Win %</button>
+                        <span className="sort-indicator">{sortKey === "confidence" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sorted.map(({ game, prediction, edgeValue, edgeIsRealPick }) => (
+                      <tr
+                        key={game.gameId}
+                        className="predictions-table__row"
+                        tabIndex={0}
+                        role="link"
+                        aria-label={`View matchup preview: ${game.awayTeam} at ${game.homeTeam}`}
+                        onClick={() => goToMatchup(game.gameId)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            goToMatchup(game.gameId);
+                          }
+                        }}
+                      >
+                        <td className="predictions-table__time">
+                          {game.completed && game.awayPoints !== null && game.homePoints !== null ? (
+                            <span className="mono">{game.awayPoints}–{game.homePoints} Final</span>
+                          ) : (
+                            gameTimeLabel(game)
+                          )}
+                        </td>
+                        <td>
+                          <div className="predictions-table__matchup">
+                            <TeamCell team={game.awayTeam} teamId={game.awayTeamId} rank={topRanked.get(game.awayTeamId) ?? null} />
+                            <span className="predictions-table__at">{game.neutralSite ? "vs" : "@"}</span>
+                            <TeamCell team={game.homeTeam} teamId={game.homeTeamId} rank={topRanked.get(game.homeTeamId) ?? null} />
+                          </div>
+                        </td>
+                        <td className="num">
+                          {access === "locked" ? (
+                            <span className="predictions-table__locked">🔒 Locked</span>
+                          ) : edgeValue === null ? (
+                            <span className="predictions-table__dash">—</span>
+                          ) : edgeIsRealPick ? (
+                            <span className="predictions-table__pick">
+                              {prediction!.predictedWinner} <span className="mono">{signed(prediction!.predictedMargin)}</span>
+                            </span>
+                          ) : (
+                            <span className="predictions-table__context" title="No graded pick this week -- Adj. Net comparison shown for context only.">
+                              Adj. Net <span className="mono">{signed(edgeValue)}</span> {edgeValue >= 0 ? game.homeTeam : game.awayTeam}
+                            </span>
+                          )}
+                        </td>
+                        <td className="num">
+                          {access === "locked" ? (
+                            <span className="predictions-table__dash">—</span>
+                          ) : (
+                            <span className="mono">{pct(prediction?.confidence ?? null)}</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
-          </div>
+          </>
         )}
 
         {power ? <PreseasonPowerTable power={power} /> : null}
       </main>
 
-      <SiteFooter note="Weekly Predictions are model-generated projections, not betting advice. Early-season margins and win probabilities blend LEILA's preseason power rating with real results as they accumulate; see the Preseason Power table above for that model's own walk-forward accuracy record." />
+      <SiteFooter note="Weekly Predictions are model-generated projections, not betting advice. Once the early-season model retires for a game, the Pick column shows a plain Adj. Net comparison instead of a graded pick -- that context is not itself a validated prediction." />
     </>
   );
 }
 
-function predictionsSummary(games: PredictionGame[]): string {
-  const locks = games.filter((g) => (g.confidence ?? 0) >= 0.85).length;
-  const tossUps = games.filter((g) => g.confidence !== null && g.confidence < 0.65).length;
-  const parts = [`${games.length} game${games.length === 1 ? "" : "s"}`];
-  if (locks > 0) parts.push(`${locks} lock${locks === 1 ? "" : "s"}`);
-  if (tossUps > 0) parts.push(`${tossUps} toss-up${tossUps === 1 ? "" : "s"}`);
-  return parts.join(" · ");
-}
-
-function PredictionRow({
-  game,
-  schedule,
-  homeRank,
-  awayRank,
-}: {
-  game: PredictionGame;
-  schedule: ScheduleGame | undefined;
-  homeRank: number | null;
-  awayRank: number | null;
-}) {
-  const tier = confidenceTier(game.confidence);
-  const homeIsWinner = game.predictedWinner === game.homeTeam;
-
+function TeamCell({ team, teamId, rank }: { team: string; teamId: number; rank: number | null }) {
   return (
-    <article className={`predictions-row predictions-row--${tier.key}`}>
-      <div className="predictions-row__time">{gameTimeLabel(schedule)}</div>
-      <div className="predictions-row__matchup">
-        <TeamChip team={game.awayTeam} teamId={game.awayTeamId} isWinner={!homeIsWinner} rank={awayRank} />
-        <span className="predictions-row__at">at</span>
-        <TeamChip team={game.homeTeam} teamId={game.homeTeamId} isWinner={homeIsWinner} rank={homeRank} />
-      </div>
-
-      <div className="predictions-row__pick">
-        <span className="predictions-row__pick-label">Pick</span>
-        <strong>{game.predictedWinner}</strong>
-        <span className="mono predictions-row__margin">{signedMargin(game.predictedMargin)}</span>
-      </div>
-
-      <div className="predictions-row__confidence">
-        <span className={`predictions-row__tier predictions-row__tier--${tier.key}`}>{tier.label}</span>
-        <div className="predictions-row__meter" role="presentation">
-          <div
-            className="predictions-row__meter-fill"
-            style={{ width: `${Math.round((game.confidence ?? 0) * 100)}%` }}
-          />
-        </div>
-        <span className="mono predictions-row__confidence-value">{pct(game.confidence)}</span>
-      </div>
-    </article>
+    <span className="predictions-table__team">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={logoUrl(teamId)} alt="" loading="lazy" decoding="async" />
+      {rank !== null ? <span className="predictions-table__rank">#{rank}</span> : null}
+      {team}
+    </span>
   );
 }
 
@@ -329,7 +466,7 @@ function PreseasonPowerTable({ power }: { power: PreseasonPower }) {
             <img src={logoUrl(t.teamId ?? 0)} alt="" loading="lazy" decoding="async" />
             <span className="predictions-power__team">{t.team}</span>
             <span className="predictions-power__conf">{t.conf}</span>
-            <span className="mono predictions-power__score">{signedMargin(t.powerScore)}</span>
+            <span className="mono predictions-power__score">{signed(t.powerScore)}</span>
           </li>
         ))}
       </ol>
@@ -338,26 +475,5 @@ function PreseasonPowerTable({ power }: { power: PreseasonPower }) {
         straight-up, {power.backtest.mae.toFixed(1)}-point average error. {power.backtest.description}
       </p>
     </section>
-  );
-}
-
-function TeamChip({
-  team,
-  teamId,
-  isWinner,
-  rank,
-}: {
-  team: string;
-  teamId: number;
-  isWinner: boolean;
-  rank: number | null;
-}) {
-  return (
-    <span className={`predictions-row__team${isWinner ? " predictions-row__team--winner" : ""}`}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={logoUrl(teamId)} alt="" loading="lazy" decoding="async" />
-      {rank !== null ? <span className="predictions-row__rank-badge">#{rank}</span> : null}
-      {team}
-    </span>
   );
 }

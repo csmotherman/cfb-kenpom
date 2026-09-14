@@ -274,6 +274,50 @@
   .predictions-power__conf { display: none; }
 }
 
+/* Weekly Predictions table -- replaces the old card list; sortable/searchable
+   via the shared .data-table/.control-bar conventions from ratings.css. */
+.predictions-unlock-link { white-space: nowrap; }
+.predictions-table { min-width: 720px; }
+.predictions-table__row { cursor: pointer; }
+.predictions-table__row:focus-visible { outline: 2px solid var(--color-gold-dark); outline-offset: -2px; }
+.predictions-table__time { font-family: var(--font-mono); font-size: 11.5px; color: var(--color-ink-secondary); white-space: nowrap; }
+.predictions-table__matchup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.predictions-table__team {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.predictions-table__team img { width: 20px; height: 20px; object-fit: contain; }
+.predictions-table__rank {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-ink-tertiary);
+}
+.predictions-table__at { color: var(--color-ink-tertiary); font-size: 11px; text-transform: uppercase; }
+.predictions-table__pick { font-weight: 700; color: var(--color-navy); white-space: nowrap; }
+.predictions-table__context {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-ink-tertiary);
+  white-space: nowrap;
+  cursor: help;
+}
+.predictions-table__dash { color: var(--color-ink-tertiary); }
+.predictions-table__locked {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-ink-tertiary);
+  white-space: nowrap;
+}
+
 .data-updated { font-size: 9px; color: var(--color-ink-tertiary); }
 .loading-state { padding-block: 32px; }
 .loading-state h1 { font-family: var(--font-display); color: var(--color-navy); }

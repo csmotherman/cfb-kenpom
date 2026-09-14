@@ -123,7 +123,7 @@ export default function MethodologyPage() {
           </div>
           <div className="methodology-actions__links">
             <Link href="/">View ratings →</Link>
-            <Link href="/this-week">Open This Week →</Link>
+            <Link href="/predictions">Open Predictions →</Link>
           </div>
         </section>
       </main>

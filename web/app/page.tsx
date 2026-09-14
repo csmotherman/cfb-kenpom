@@ -221,7 +221,7 @@ export default function RatingsPage() {
           accounting for who they played, not just the scoreboard. Hover any column header for what it means.
         </p>
         <div className="onboarding-strip__links">
-          <Link href="/this-week">See this week&rsquo;s games →</Link>
+          <Link href="/predictions">See this week&rsquo;s games →</Link>
           <Link href="/methodology">How the ratings work →</Link>
         </div>
       </section>

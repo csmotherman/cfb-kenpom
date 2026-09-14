@@ -3,6 +3,16 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
 
+  async redirects() {
+    return [
+      {
+        source: "/this-week",
+        destination: "/predictions",
+        permanent: true,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {
