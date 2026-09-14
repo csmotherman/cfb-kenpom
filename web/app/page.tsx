@@ -39,6 +39,38 @@ function statText(value: number | null, useSign: boolean, decimals: number) {
   return useSign ? (value >= 0 ? "+" : "") + value.toFixed(decimals) : value.toFixed(decimals);
 }
 
+function RankChangeBadge({ change }: { change: number | null | undefined }) {
+  if (change === null || change === undefined) {
+    return (
+      <span className="rank-change rank-change--new" aria-label="New to this week's rankings" title="New to this week's rankings">
+        NEW
+      </span>
+    );
+  }
+
+  if (change > 0) {
+    return (
+      <span className="rank-change rank-change--up" aria-label={`Up ${change} spots from last week`} title={`Up ${change} spots from last week`}>
+        ▲{change}
+      </span>
+    );
+  }
+
+  if (change < 0) {
+    return (
+      <span className="rank-change rank-change--down" aria-label={`Down ${Math.abs(change)} spots from last week`} title={`Down ${Math.abs(change)} spots from last week`}>
+        ▼{Math.abs(change)}
+      </span>
+    );
+  }
+
+  return (
+    <span className="rank-change rank-change--flat" aria-label="No change from last week" title="No change from last week">
+      —
+    </span>
+  );
+}
+
 export default function RatingsPage() {
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
@@ -142,13 +174,6 @@ export default function RatingsPage() {
       setSortKey(col.key);
       setSortDir(col.defaultDir);
     }
-  }
-
-  function deltaCell(change: number | null | undefined) {
-    if (change === null || change === undefined) return <td className="num delta-cell delta-new">NEW</td>;
-    if (change > 0) return <td className="num delta-cell delta-up">▲{change}</td>;
-    if (change < 0) return <td className="num delta-cell delta-down">▼{Math.abs(change)}</td>;
-    return <td className="num delta-cell delta-flat">—</td>;
   }
 
   const total = rows.length;
@@ -277,14 +302,7 @@ export default function RatingsPage() {
             <caption className="sr-only">LEILA Ratings college football rankings</caption>
             <thead>
               <tr>
-                {COLUMNS.slice(0, 1).map((col) => (
-                  <HeaderCell key={col.key} col={col} sortKey={sortKey} sortDir={sortDir} onClick={onHeaderClick} />
-                ))}
-                <th scope="col" className="num delta-cell">
-                  Wk Δ
-                  <TipTrigger text="Change in overall rank from the previous week." />
-                </th>
-                {COLUMNS.slice(1, 2).map((col) => (
+                {COLUMNS.slice(0, 2).map((col) => (
                   <HeaderCell key={col.key} col={col} sortKey={sortKey} sortDir={sortDir} onClick={onHeaderClick} />
                 ))}
                 <th scope="col" className="num record-cell">W-L</th>
@@ -297,22 +315,26 @@ export default function RatingsPage() {
               {loading ? (
                 Array.from({ length: 9 }).map((_, i) => (
                   <tr key={i} className="skeleton-row">
-                    {Array.from({ length: 9 }).map((__, c) => (
+                    {Array.from({ length: 8 }).map((__, c) => (
                       <td key={c}>
-                        <span className="skeleton-bar" style={{ width: (c === 2 ? 70 : 40 + ((c * 13) % 30)) + "%" }} />
+                        <span className="skeleton-bar" style={{ width: (c === 1 ? 70 : 40 + ((c * 13) % 30)) + "%" }} />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
                 <tr className="empty-row">
-                  <td colSpan={9}>No teams match the current filters.</td>
+                  <td colSpan={8}>No teams match the current filters.</td>
                 </tr>
               ) : (
                 filtered.map((t) => (
                   <tr key={t.slug} className={t.rank !== null && t.rank <= 10 ? "rank-tier-top10" : undefined}>
-                    <td className="num rank-cell">{t.rank === null ? "—" : t.rank}</td>
-                    {deltaCell(t.rank === null ? undefined : t.rankChange)}
+                    <td className="num rank-cell">
+                      <span className="rank-cell-inner">
+                        <span className="rank-value">{t.rank === null ? "—" : t.rank}</span>
+                        {t.rank !== null ? <RankChangeBadge change={t.rankChange} /> : null}
+                      </span>
+                    </td>
                     <td className="team-cell">
                       <div className="team-cell-stack">
                         <TeamLink team={t.team} teamId={t.teamId} slug={t.slug} />
@@ -367,13 +389,17 @@ function HeaderCell({
       data-metric-key={col.key}
       aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
     >
-      <button type="button" className="column-sort" onClick={() => onClick(col)}>
+      <button type="button" className="column-sort" onClick={() => onHeaderClickSafe(onClick, col)}>
         {col.label}
         <span className="sort-indicator" aria-hidden="true">{active ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
       </button>
       {col.tooltip ? <TipTrigger text={col.tooltip} /> : null}
     </th>
   );
+}
+
+function onHeaderClickSafe(onClick: (col: Column) => void, col: Column) {
+  onClick(col);
 }
 
 function StatCell({
