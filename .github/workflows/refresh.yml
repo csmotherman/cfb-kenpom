@@ -214,6 +214,7 @@ jobs:
         # The historical CLI route name is retained for build compatibility;
         # rating_model.py publishes current-season points-per-possession only,
         # recursively opponent-adjusted with no prior or conference strength.
+        # Drive scoring is sourced from validated derived drives + canonical plays.
         run: python scripts/compile_site_data.py --season "$SEASON" --rating-model hierarchical_hfa
 
       - name: Score weekly predictions
