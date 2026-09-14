@@ -150,17 +150,16 @@ export default function WaitingOnRanksArticle() {
           </div>
           <p>
             This isn&rsquo;t just a LEILA problem, and it isn&rsquo;t new. Across the twelve seasons of the College
-            Football Playoff era (2014-2025), research tracking all 300 preseason-ranked team-seasons found that only{" "}
-            <strong>57% of preseason AP Top 25 teams finished the season in the final Top 25</strong>. Only{" "}
-            <strong>32% of preseason top-10 teams finished in the final top 10</strong>. In the
-            &ldquo;modern transfer-portal era,&rdquo; the average overlap between a preseason Top 25 and the final
-            Top 25 has fallen to about 12 of 25 teams &mdash; roughly a coin flip, down from a 15-of-25 average in
-            the 2007-2016 window.
+            Football Playoff era (2014-2025), a study of all 300 preseason-ranked AP teams found that only{" "}
+            <strong>57% finished the season in the final Top 25</strong> &mdash; and just{" "}
+            <strong>32% finished in the final top 10</strong>. Even the poll&rsquo;s most trusted tier isn&rsquo;t
+            safe from this: preseason top-5 teams finish in the final top 10 only 77% of the time, and by the back
+            of the poll (preseason 21-25), that drops to just 12%.
           </p>
           <p>
-            The AP doesn&rsquo;t re-poll from scratch every week, either. Voters are demonstrably anchored to where
-            a team started: a team ranked #3 in the preseason poll that wins two unconvincing games rarely falls out
-            of the top 10, while an unranked team that wins two blowouts rarely cracks it. That means most of the
+            The AP doesn&rsquo;t re-poll from scratch every week, either. Voters are widely understood to anchor to
+            where a team started: a team ranked #3 in the preseason poll that wins two unconvincing games rarely
+            falls out of the top 10, while an unranked team that wins two blowouts rarely cracks it. That means most of the
             unreliability baked into the preseason poll is still riding along in the Week 2 and Week 3 polls people
             treat as fresh, current information.
           </p>
