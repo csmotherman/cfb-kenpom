@@ -27,6 +27,7 @@ import "@/styles/methodology.css";
 import "@/styles/upgrade.css";
 import "@/styles/table-identity-polish.css";
 import "@/styles/table-freshness.css";
+import "@/styles/ratings-table-polish.css";
 
 export const metadata: Metadata = {
   title: "LEILA Ratings | College Football Analytics",
