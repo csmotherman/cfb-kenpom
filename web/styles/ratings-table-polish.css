@@ -1,0 +1,251 @@
+/* ========================================================================== */
+/* LEILA Ratings — final ratings-table identity layout                        */
+/* Rank movement belongs to RK. On phones, keep every public rating visible   */
+/* without allowing Team to collide with W-L or the metric columns.            */
+/* ========================================================================== */
+
+#ratingsTable .rank-cell-inner {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+#ratingsTable .rank-value {
+  font-weight: 800;
+  color: var(--color-navy);
+}
+
+#ratingsTable .rank-change {
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+#ratingsTable .rank-change--up { color: #2f7d4b; }
+#ratingsTable .rank-change--down { color: #a4473f; }
+#ratingsTable .rank-change--flat { color: #858278; }
+#ratingsTable .rank-change--new { color: #9a7628; }
+
+/* The separate weekly-delta column no longer exists. Give a little of that
+   recovered space to rank movement and the rest to the team identity. */
+@media (min-width: 641px) {
+  #ratingsTable .rank-cell {
+    width: 64px;
+    min-width: 64px;
+    max-width: 64px;
+  }
+
+  #ratingsTable .team-cell {
+    width: 176px;
+    min-width: 176px;
+    max-width: 176px;
+  }
+
+  #ratingsTable .record-cell {
+    width: 54px;
+    min-width: 54px;
+    max-width: 54px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* One compact, deterministic grid. 390px matches the common iPhone
+     viewport; narrower phones get only a tiny horizontal scroll rather than
+     crushed labels or overlapping values. */
+  body:has(#ratingsTable) .table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #ratingsTable {
+    width: 100% !important;
+    min-width: 390px !important;
+    table-layout: fixed !important;
+  }
+
+  #ratingsTable th,
+  #ratingsTable td {
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 44px;
+    padding: 5px 2px !important;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  /* 100% total: RK 10 + Team 31 + W-L 8 + metrics 51. */
+  #ratingsTable .rank-cell {
+    width: 10% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  #ratingsTable .team-cell {
+    width: 31% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  #ratingsTable .record-cell {
+    width: 8% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  #ratingsTable [data-metric-key="adjEM"] { width: 12% !important; }
+  #ratingsTable [data-metric-key="adjO"] { width: 10.5% !important; }
+  #ratingsTable [data-metric-key="adjD"] { width: 10.5% !important; }
+  #ratingsTable [data-metric-key="sos"] { width: 9% !important; }
+  #ratingsTable [data-metric-key="sor"] { width: 9% !important; }
+
+  /* Undo the older sticky identity-rail experiment. It was fighting the
+     fixed-width phone grid and causing columns to pile on top of each other. */
+  #ratingsTable tbody .rank-cell,
+  #ratingsTable tbody .team-cell {
+    position: static !important;
+    left: auto !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+    background: inherit !important;
+  }
+
+  #ratingsTable thead .rank-cell,
+  #ratingsTable thead .team-cell {
+    position: sticky !important;
+    top: 0 !important;
+    left: auto !important;
+    z-index: 12 !important;
+    background: #e8e4d9 !important;
+    box-shadow: none !important;
+  }
+
+  #ratingsTable thead th {
+    overflow: hidden;
+    text-overflow: clip;
+    font-size: 8px !important;
+    letter-spacing: -0.035em !important;
+  }
+
+  #ratingsTable thead .column-sort {
+    max-width: 100%;
+    padding: 4px 0 !important;
+    white-space: nowrap;
+  }
+
+  #ratingsTable .sort-indicator {
+    width: auto !important;
+    margin-left: 1px;
+    font-size: 6px !important;
+  }
+
+  #ratingsTable .rank-cell-inner {
+    width: 100%;
+    gap: 2px;
+  }
+
+  #ratingsTable .rank-value {
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  #ratingsTable .rank-change {
+    font-size: 7px;
+    transform: translateY(-1px);
+  }
+
+  #ratingsTable .team-cell {
+    overflow: hidden;
+    text-align: left !important;
+  }
+
+  #ratingsTable .team-cell-stack {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 30px;
+    padding-left: 24px;
+    overflow: hidden;
+  }
+
+  #ratingsTable .team-link {
+    display: block !important;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    line-height: 1.16;
+  }
+
+  #ratingsTable .team-logo {
+    position: absolute !important;
+    left: 0 !important;
+    top: 50% !important;
+    width: 21px !important;
+    height: 21px !important;
+    transform: translateY(-50%) !important;
+  }
+
+  #ratingsTable .team-name {
+    display: block !important;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10.5px !important;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  #ratingsTable .team-conf-label {
+    display: block !important;
+    margin: 2px 0 0 !important;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 8px !important;
+    line-height: 1;
+    color: #777263;
+  }
+
+  #ratingsTable .record-cell,
+  #ratingsTable .stat-cell {
+    overflow: hidden;
+    text-align: center !important;
+    font-size: 10px !important;
+    letter-spacing: -0.025em;
+  }
+
+  #ratingsTable .stat-cell.primary {
+    font-weight: 800;
+  }
+
+  #ratingsTable .rank-sub {
+    display: block !important;
+    margin: 2px 0 0 !important;
+    font-size: 7.5px !important;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  #ratingsTable .tip-trigger {
+    display: none !important;
+  }
+
+  /* The team/record boundary needs to be unambiguous, but not heavy. */
+  #ratingsTable .record-cell {
+    border-left: 1px solid rgba(188, 181, 164, 0.55);
+  }
+}
