@@ -95,6 +95,12 @@
   margin: var(--space-4) 0;
   overflow-x: auto;
 }
+.article-section p.article-table-caption {
+  margin-top: -8px;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-ink-tertiary);
+}
 .article-table {
   width: 100%;
   max-width: 520px;

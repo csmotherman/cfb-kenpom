@@ -168,30 +168,59 @@ export default function WaitingOnRanksArticle() {
         <section className="article-section">
           <div className="article-section__heading">
             <span className="eyebrow">Why It&rsquo;s Worse Than Ever</span>
-            <h2>NIL and the transfer portal broke the one thing polls used to lean on</h2>
+            <h2>Teams return less of themselves every single year</h2>
           </div>
           <p>
-            Even the flawed old system had one thing going for it: rosters used to be relatively stable year to year,
-            so &ldquo;this team was good last year and returns most of its players&rdquo; was a reasonable prior.
-            That prior is gone. Over <strong>3,350 FBS players</strong> entered the transfer portal in the 2025
-            cycle &mdash; roughly a quarter of every scholarship player in the sport moving programs in a single
-            offseason, more than double the number just three cycles earlier. Colorado, under Deion Sanders, lost
-            61% of its entire 2023 roster class to the portal in one cycle. Nationally, the share of transfers who
-            are themselves repeat transfers &mdash; players bouncing a second or third time &mdash; rose to 31% in
-            the 2024-25 cycle.
+            Even the flawed old system had one thing going for it: rosters used to be relatively stable year to
+            year, so &ldquo;this team was good last year and returns most of its players&rdquo; was a reasonable
+            prior. We can measure exactly how true that still is. CFBD tracks <strong>returning production</strong>{" "}
+            for every FBS team every year &mdash; the share of last season&rsquo;s on-field usage (plays, targets,
+            carries) walking back onto the field &mdash; and we pulled the national average back to 2014.
+          </p>
+          <div className="article-table-wrap">
+            <table className="article-table">
+              <thead><tr><th>Season</th><th>Avg. returning production</th><th>Teams under 50% returning</th></tr></thead>
+              <tbody>
+                <tr><td>2014</td><td>59.5%</td><td>30%</td></tr>
+                <tr><td>2016</td><td>63.8%</td><td>23%</td></tr>
+                <tr><td>2018</td><td>60.4%</td><td>32%</td></tr>
+                <tr><td>2020</td><td>61.8%</td><td>29%</td></tr>
+                <tr><td>2021*</td><td>69.4%</td><td>19%</td></tr>
+                <tr><td>2022</td><td>55.6%</td><td>39%</td></tr>
+                <tr><td>2023</td><td>55.2%</td><td>45%</td></tr>
+                <tr><td>2024</td><td>47.6%</td><td>56%</td></tr>
+                <tr><td className="hi">2025</td><td className="hi">39.9%</td><td className="hi">65%</td></tr>
+                <tr><td>2026</td><td>44.0%</td><td>59%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="article-table-caption">
+            *2021 is inflated by the NCAA&rsquo;s blanket COVID eligibility waiver, which let seniors stay an extra
+            year &mdash; the one point in this data where the old &ldquo;stable roster&rdquo; assumption briefly
+            got even more true, not less.
           </p>
           <p>
-            Money moved just as fast. Industry-wide NIL payments in college football went from roughly{" "}
-            <strong>$917 million</strong> in 2021-22 to a projected <strong>$2.55 billion</strong> in 2025-26.
-            Average Power 4 roster spend (NIL plus revenue-share) hit an estimated <strong>$24.8 million</strong> in
-            2025, up from $9.4 million the year before. Texas alone reportedly spent up to $40 million building its
-            2025 roster. The on-field effect shows up in the results: SEC games averaged a margin of victory of just
-            10.0 points in 2025, the tightest the conference has been since 2006 &mdash; exactly what you&rsquo;d
-            expect if talent is spreading out faster than anyone can track.
+            Outside that one anomaly, the trend is one direction. In 2014, less than a third of FBS teams returned
+            under half their production. By <strong>2025</strong>, that was true of <strong>nearly two-thirds</strong> of
+            the sport, and the national average team returned barely <strong>40%</strong> of what it had the year
+            before &mdash; the lowest point in the eleven-year window, and a full 20 points below the 2014-2020
+            baseline. Colorado&rsquo;s 2023 team, the year Deion Sanders overhauled the roster, returned just{" "}
+            <strong>13% of its 2022 production</strong> &mdash; CFBD&rsquo;s own returning-production number for that
+            team, not a media estimate.
+          </p>
+          <p>
+            The forces behind it are well covered elsewhere: over <strong>3,350 FBS players</strong> entered the
+            transfer portal in the 2025 cycle alone (roughly a quarter of every scholarship player in the sport),
+            and industry-wide NIL payments in college football went from roughly <strong>$917 million</strong> in
+            2021-22 to a projected <strong>$2.55 billion</strong> in 2025-26, with average Power 4 roster spend
+            hitting an estimated <strong>$24.8 million</strong> in 2025 alone. But the returning-production number
+            above is the part that matters for this argument: it&rsquo;s a direct measurement of how much less
+            &ldquo;last year&rsquo;s team&rdquo; a team actually is this year, and it has been falling for four
+            straight non-anomalous seasons.
           </p>
           <p>
             Put together, that&rsquo;s a compounding problem, not two separate ones. The schedule graph tells you
-            there isn&rsquo;t enough <em>data</em> yet to compare most teams. The transfer portal and NIL tell you
+            there isn&rsquo;t enough <em>data</em> yet to compare most teams. Falling returning production tells you
             that even the <em>priors</em> you&rsquo;d normally lean on while waiting for data &mdash; last
             year&rsquo;s tape, recruiting rankings, name recognition &mdash; are less trustworthy than they&rsquo;ve
             ever been, because the actual players wearing the jersey have changed more than at any point in the
@@ -227,9 +256,11 @@ export default function WaitingOnRanksArticle() {
           implementation. Because the site&rsquo;s week-numbering shifted slightly across seasons (2014-2015 run
           about one week &ldquo;ahead&rdquo; of 2016-2024 at the same calendar point, and 2025 ran about one week
           &ldquo;behind&rdquo;), each season is aligned by median games played (&asymp;2 and &asymp;4), not by raw
-          week label, so the comparison is apples to apples. AP Poll historical figures via RotoWire&rsquo;s
-          12-year preseason-poll study. Transfer portal and NIL figures via 247Sports, CBS Sports, Front Office
-          Sports, Sports Illustrated, and Opendorse&rsquo;s NIL industry reporting, current as of the 2025 offseason.
+          week label, so the comparison is apples to apples. Returning-production figures are CFBD&rsquo;s own{" "}
+          <code>/player/returning</code> data (national average and per-team &ldquo;usage&rdquo; share, 2014-2026;
+          2013 has no published data). AP Poll historical figures via RotoWire&rsquo;s 12-year preseason-poll study.
+          Transfer portal and NIL figures via 247Sports, CBS Sports, Front Office Sports, Sports Illustrated, and
+          Opendorse&rsquo;s NIL industry reporting, current as of the 2025 offseason.
         </p>
       </main>
 
