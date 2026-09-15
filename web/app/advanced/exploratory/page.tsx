@@ -28,14 +28,13 @@ const FORMATTERS: Record<string, (v: number | null) => string> = {
 const EMPTY_WEEKS: number[] = [];
 const EMPTY_BY_WEEK: Record<string, ExploratoryRow[]> = {};
 
-type TableView = "series" | "possessions" | "style" | "turnovers" | "penalties";
+type TableView = "series" | "possessions" | "style";
 
+const PROFILE_SECTIONS = SECTIONS.slice(0, 5);
 const TABLE_VIEWS = [
-  { key: "series" as const, label: "Series", sections: SECTIONS.slice(0, 2) },
-  { key: "possessions" as const, label: "Possessions", sections: SECTIONS.slice(2, 4) },
-  { key: "style" as const, label: "Style & Risk", sections: SECTIONS.slice(4, 5) },
-  { key: "turnovers" as const, label: "Turnovers", sections: SECTIONS.slice(5, 7) },
-  { key: "penalties" as const, label: "Penalties", sections: SECTIONS.slice(7, 9) },
+  { key: "series" as const, label: "Series", sections: PROFILE_SECTIONS.slice(0, 2) },
+  { key: "possessions" as const, label: "Possessions", sections: PROFILE_SECTIONS.slice(2, 4) },
+  { key: "style" as const, label: "Style & Risk", sections: PROFILE_SECTIONS.slice(4, 5) },
 ];
 
 export default function ExploratoryPage() {
@@ -190,8 +189,8 @@ export default function ExploratoryPage() {
           <h1 id="exploratoryTitle">{year} Series &amp; Drive-Level Statistics</h1>
           <p className="ratings-hero__description">
             Research-stage stats that explain how teams sustain drives, recover after bad downs, stay clean on
-            possessions, and rely on (or avoid) explosive plays and costly mistakes -- built from LEILA&rsquo;s
-            canonical play-by-play, not just box-score snapshots.
+            possessions, and create value with or without explosive plays -- built from LEILA&rsquo;s canonical
+            play-by-play, not just box-score snapshots.
           </p>
         </div>
         <div className="ratings-hero__meta">
@@ -440,7 +439,7 @@ export default function ExploratoryPage() {
               <strong>Quick read:</strong> green is a strength, red is an area to watch. The label in the last column translates national rank into plain football language.
             </div>
 
-            {SECTIONS.map((group) => (
+            {PROFILE_SECTIONS.map((group) => (
               <section className="exploratory-profile-section" key={group.title}>
                 <h3>{group.title}</h3>
                 <table className="exploratory-profile-table">
