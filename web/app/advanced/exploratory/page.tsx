@@ -8,7 +8,7 @@ import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
 import { getMeta, useExploratorySeason } from "@/lib/data";
-import { ALL_COLUMNS, SECTION_START_KEYS, SECTIONS, SERIES_OFFENSE, aggregateExploratory, rankExploratory, minimumN, fanTier, type Aggregated } from "@/lib/exploratory";
+import { ALL_COLUMNS, SECTIONS, SERIES_OFFENSE, aggregateExploratory, rankExploratory, minimumN, fanTier, type Aggregated } from "@/lib/exploratory";
 import { columnRange, heatBackground } from "@/lib/heatmap";
 import type { ExploratorySeason, ExploratoryRow } from "@/lib/types";
 
@@ -26,6 +26,14 @@ const FORMATTERS: Record<string, (v: number | null) => string> = {
 const EMPTY_WEEKS: number[] = [];
 const EMPTY_BY_WEEK: Record<string, ExploratoryRow[]> = {};
 
+type TableView = "series" | "possessions" | "style";
+
+const TABLE_VIEWS = [
+  { key: "series" as const, label: "Series", sections: SECTIONS.slice(0, 2) },
+  { key: "possessions" as const, label: "Possessions", sections: SECTIONS.slice(2, 4) },
+  { key: "style" as const, label: "Style & Risk", sections: SECTIONS.slice(4) },
+];
+
 export default function ExploratoryPage() {
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [years, setYears] = useState<number[]>([]);
@@ -37,6 +45,7 @@ export default function ExploratoryPage() {
   const [filter, setFilter] = useState("");
   const [conference, setConference] = useState("");
   const [profileTeam, setProfileTeam] = useState<Aggregated | null>(null);
+  const [tableView, setTableView] = useState<TableView>("series");
 
   useEffect(() => {
     getMeta().then((meta) => {
@@ -85,6 +94,11 @@ export default function ExploratoryPage() {
   }, [seasonByWeek, weeks, startWeek, endWeek]);
 
   const rankedTeams = useMemo(() => rankExploratory(teams), [teams]);
+
+  const activeView = TABLE_VIEWS.find((view) => view.key === tableView) ?? TABLE_VIEWS[0];
+  const activeSections = activeView.sections;
+  const activeColumns = activeSections.flatMap((section) => section.columns);
+  const activeSectionStartKeys = new Set(activeSections.map((section) => section.columns[0]?.key).filter(Boolean));
 
   const visibleTeams = useMemo(() => {
     const needle = filter.trim().toLowerCase();
@@ -137,6 +151,17 @@ export default function ExploratoryPage() {
       const column = ALL_COLUMNS.find((c) => c.key === key);
       setSortKey(key);
       setSortDir(key === "team" ? "asc" : column?.lowerBetter ? "asc" : "desc");
+    }
+  }
+
+  function selectTableView(nextView: TableView) {
+    const next = TABLE_VIEWS.find((view) => view.key === nextView) ?? TABLE_VIEWS[0];
+    const nextColumns = next.sections.flatMap((section) => section.columns);
+    setTableView(nextView);
+    if (sortKey !== "team" && !nextColumns.some((column) => column.key === sortKey)) {
+      const firstColumn = nextColumns[0];
+      setSortKey(firstColumn.key);
+      setSortDir(firstColumn.lowerBetter ? "asc" : "desc");
     }
   }
 
@@ -264,16 +289,31 @@ export default function ExploratoryPage() {
       </div>
 
       <main id="exploratoryTable" className="table-main container">
-        <div className="advanced-table-shell">
-          <div className="table-scroll" role="region" aria-label="Exploratory analytics table" tabIndex={0}>
-            <table className="data-table adv-table">
-              <caption className="sr-only">LEILA Exploratory team analytics</caption>
+        <nav className="exploratory-table-tabs" aria-label="Exploratory metric groups" role="tablist">
+          {TABLE_VIEWS.map((view) => (
+            <button
+              key={view.key}
+              type="button"
+              role="tab"
+              aria-selected={tableView === view.key}
+              className={tableView === view.key ? "active" : undefined}
+              onClick={() => selectTableView(view.key)}
+            >
+              {view.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="advanced-table-shell exploratory-table-shell">
+          <div className="table-scroll" role="region" aria-label={`${activeView.label} exploratory analytics table`} tabIndex={0}>
+            <table className={`data-table adv-table exploratory-table exploratory-table--${tableView}`}>
+              <caption className="sr-only">LEILA Exploratory {activeView.label} team analytics</caption>
               <thead>
                 <tr className="adv-section-row">
                   <th scope="colgroup" colSpan={2} className="adv-section-spacer">Team</th>
-                  {SECTIONS.map((section) => (
+                  {activeSections.map((section) => (
                     <th key={section.title} scope="colgroup" colSpan={section.columns.length} className="adv-section-heading">
-                      {section.title}
+                      {section.title.includes(" · ") ? section.title.split(" · ")[1] : section.title}
                     </th>
                   ))}
                 </tr>
@@ -287,11 +327,11 @@ export default function ExploratoryPage() {
                     <span className="sort-indicator">{sortKey === "team" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
                   </th>
                   <th scope="col" className="profile-cell">Profile</th>
-                  {ALL_COLUMNS.map((col) => (
+                  {activeColumns.map((col) => (
                     <th
                       key={col.key}
                       scope="col"
-                      className={`num metric-cell sortable${SECTION_START_KEYS.has(col.key) ? " section-start" : ""}`}
+                      className={`num metric-cell sortable${activeSectionStartKeys.has(col.key) ? " section-start" : ""}`}
                       aria-sort={sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
                     >
                       <button type="button" className="column-sort" onClick={() => onHeaderClick(col.key)}>{col.label}</button>
@@ -305,7 +345,7 @@ export default function ExploratoryPage() {
                 {loading ? (
                   Array.from({ length: 14 }).map((_, rowIndex) => (
                     <tr key={rowIndex} className="skeleton-row">
-                      {Array.from({ length: 2 + ALL_COLUMNS.length }).map((__, cellIndex) => (
+                      {Array.from({ length: 2 + activeColumns.length }).map((__, cellIndex) => (
                         <td key={cellIndex}>
                           <span className="skeleton-bar" style={{ width: (cellIndex === 0 ? 75 : 45 + ((cellIndex * 11) % 30)) + "%" }} />
                         </td>
@@ -314,7 +354,7 @@ export default function ExploratoryPage() {
                   ))
                 ) : visibleTeams.length === 0 ? (
                   <tr className="empty-row">
-                    <td colSpan={2 + ALL_COLUMNS.length}>No teams match &ldquo;{filter}&rdquo;.</td>
+                    <td colSpan={2 + activeColumns.length}>No teams match &ldquo;{filter}&rdquo;.</td>
                   </tr>
                 ) : (
                   visibleTeams.map((team) => (
@@ -330,7 +370,7 @@ export default function ExploratoryPage() {
                           View Profile
                         </button>
                       </td>
-                      {ALL_COLUMNS.map((col) => {
+                      {activeColumns.map((col) => {
                         const value = team[col.key] as number | null;
                         const n = team[`${col.key}_n`] as number;
                         const rank = team[`_rank_${col.key}`] as number | null;
@@ -339,7 +379,7 @@ export default function ExploratoryPage() {
                         return (
                           <td
                             key={col.key}
-                            className={`num stat-cell metric-cell${SECTION_START_KEYS.has(col.key) ? " section-start" : ""}${smallSample ? " small-sample" : ""}`}
+                            className={`num stat-cell metric-cell${activeSectionStartKeys.has(col.key) ? " section-start" : ""}${smallSample ? " small-sample" : ""}`}
                             style={!smallSample && !col.noHeatmap ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined}
                             title={`N=${n}`}
                           >
