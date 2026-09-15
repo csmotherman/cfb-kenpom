@@ -319,20 +319,24 @@
   font-size: 6.5px;
 }
 
-/* Reuse the old footer TeamLink only as the header logo, and remove all bottom-footer content. */
+/* Bottom action bar closes the visual frame without reintroducing duplicate team content. */
 .exploratory-profile-footer {
-  height: 0;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 34px;
+  margin-top: 6px;
+  padding: 5px 9px;
+  border-top: 1px solid var(--color-hairline);
+  background: rgba(20, 39, 66, 0.035);
 }
 
+/* Reuse the old footer TeamLink only as the header logo. */
 .exploratory-profile-footer .team-link {
   position: absolute;
   z-index: 5;
-  top: 39px;
+  top: -365px;
   left: 18px;
   width: 32px;
   height: 32px;
@@ -348,9 +352,29 @@
   object-fit: contain;
 }
 
-.exploratory-profile-footer .team-name,
-.exploratory-profile-footer .exploratory-profile-done {
+.exploratory-profile-footer .team-name {
   display: none;
+}
+
+.exploratory-profile-footer .exploratory-profile-done {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  height: 24px;
+  padding: 0 12px;
+  border: 1px solid #142742;
+  border-radius: 3px;
+  background: #142742;
+  color: #fff;
+  font: 700 8px/1 var(--font-body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.exploratory-profile-footer .exploratory-profile-done:hover {
+  background: #203a5f;
 }
 
 /* Safety fallback for short desktop windows: only scroll when the viewport is unusually short. */
@@ -439,8 +463,13 @@
     display: none;
   }
 
+  .exploratory-profile-footer {
+    padding: 6px 8px;
+  }
+
   .exploratory-profile-footer .team-link {
-    top: 38px;
+    top: auto;
+    bottom: calc(100% + 300px);
     left: 16px;
   }
 }
