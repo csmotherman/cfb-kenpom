@@ -38,37 +38,37 @@ type ExpColumn = {
 
 const OFFENSE_COLUMNS: ExpColumn[] = [
   {
-    key: "seriesConversionRate", label: "Series Conv.",
+    key: "seriesConversionRate", label: "Series Conversion %",
     num: "seriesConversions", den: "seriesOpportunities",
-    tooltip: "Percentage of fresh sets of downs that produce another first down or touchdown before the possession ends -- on any down, not just 3rd.",
+    tooltip: "How often a fresh set of downs ends with another first down or a touchdown. It counts conversions on any down, not just 3rd down.",
   },
   {
-    key: "recoveryRate", label: "Recovery",
+    key: "recoveryRate", label: "Recovery %",
     num: "recoveredSeries", den: "recoveryOpportunities",
-    tooltip: "Percentage of series that still earn another first down or touchdown after the offense has an unsuccessful 1st- or 2nd-down play.",
+    tooltip: "After an unsuccessful 1st- or 2nd-down play, how often the offense still earns another first down or touchdown in that same series.",
   },
   {
-    key: "longDownAvoidanceRate", label: "Long-Down Avoid.",
+    key: "longDownAvoidanceRate", label: "Avoid 3rd & Long %",
     num: "longDownAvoidanceSeries", den: "eligibleSeries",
-    tooltip: "Percentage of series that never reach 3rd-and-7 or longer. Converting on 1st or 2nd down counts in its favor, not against it.",
+    tooltip: "How often the offense gets through a series without facing 3rd-and-7 or longer. Higher means it stays on schedule more often.",
   },
 ];
 
 const DEFENSE_COLUMNS: ExpColumn[] = [
   {
-    key: "seriesStopRate", label: "Series Stop",
+    key: "seriesStopRate", label: "Series Stop %",
     num: "seriesStops", den: "seriesStopOpportunities",
-    tooltip: "Percentage of opponent series the defense keeps from earning another first down or touchdown.",
+    tooltip: "How often the defense ends an opponent's fresh set of downs before the offense gains another first down or scores a touchdown.",
   },
   {
-    key: "closeoutRate", label: "Closeout",
+    key: "closeoutRate", label: "Closeout %",
     num: "closeouts", den: "closeoutOpportunities",
-    tooltip: "Percentage of opponent series that fail to earn another first down after the defense creates an unsuccessful 1st- or 2nd-down play.",
+    tooltip: "After the defense wins an early down, how often it finishes the series without allowing another first down or touchdown.",
   },
   {
-    key: "longDownCreationRate", label: "Long-Down Create",
+    key: "longDownCreationRate", label: "Force 3rd & Long %",
     num: "longDownsCreated", den: "longDownCreationOpportunities",
-    tooltip: "Percentage of opponent series the defense forces into 3rd-and-7 or longer.",
+    tooltip: "How often the defense forces an opponent into 3rd-and-7 or longer. Higher means more obvious passing situations created.",
   },
 ];
 
@@ -100,6 +100,7 @@ export default function ExploratoryPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [filter, setFilter] = useState("");
   const [conference, setConference] = useState("");
+  const [profileTeam, setProfileTeam] = useState<Aggregated | null>(null);
 
   useEffect(() => {
     getMeta().then((meta) => {
@@ -107,6 +108,20 @@ export default function ExploratoryPage() {
       setYear(String(meta.advancedYears[meta.advancedYears.length - 1]));
     }).catch(setLoadError);
   }, []);
+
+  useEffect(() => {
+    if (!profileTeam) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setProfileTeam(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [profileTeam]);
 
   const season: ExploratorySeason | undefined = useExploratorySeason(year || null);
   const loading = !season;
@@ -214,6 +229,8 @@ export default function ExploratoryPage() {
 
   if (loadError) throw loadError;
 
+  const activeRangeLabel = startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : "Selected weeks";
+
   return (
     <>
       <a className="skip-link" href="#exploratoryTable">Skip to exploratory analytics</a>
@@ -225,13 +242,12 @@ export default function ExploratoryPage() {
           <span className="eyebrow">Advanced · Exploratory</span>
           <h1 id="exploratoryTitle">{year} Series-Level Statistics</h1>
           <p className="ratings-hero__description">
-            Series Conversion, Recovery, Closeout, and Long-Down statistics -- research-stage numbers built from
-            every fresh set of downs, not just 3rd-down snapshots.
+            Research-stage stats that explain how teams sustain drives, recover after bad downs, finish defensive wins, and control 3rd-and-long situations.
           </p>
         </div>
         <div className="ratings-hero__meta">
           <span className="ratings-status">
-            {loading ? "Loading season…" : `${year} • ${startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : ""} • ${teams.length} teams`}
+            {loading ? "Loading season…" : `${year} • ${activeRangeLabel} • ${teams.length} teams`}
           </span>
           <Link className="utility-link" href="/methodology">Methodology ↗</Link>
         </div>
@@ -258,7 +274,7 @@ export default function ExploratoryPage() {
                 type="button"
                 className={String(seasonYear) === year ? "active" : undefined}
                 aria-pressed={String(seasonYear) === year}
-                onClick={() => { setYear(String(seasonYear)); setConference(""); }}
+                onClick={() => { setYear(String(seasonYear)); setConference(""); setProfileTeam(null); }}
               >
                 {seasonYear}
               </button>
@@ -290,6 +306,7 @@ export default function ExploratoryPage() {
               onChange={(e) => {
                 const value = Number(e.target.value);
                 setStartWeek(value);
+                setProfileTeam(null);
                 if (endWeek !== null && value > endWeek) setEndWeek(value);
               }}
             >
@@ -303,6 +320,7 @@ export default function ExploratoryPage() {
               onChange={(e) => {
                 const value = Number(e.target.value);
                 setEndWeek(value);
+                setProfileTeam(null);
                 if (startWeek !== null && value < startWeek) setStartWeek(value);
               }}
             >
@@ -310,7 +328,7 @@ export default function ExploratoryPage() {
             </select>
           </div>
         </div>
-        <p className="container adv-note">Every rate sums the raw counts across the selected week range, then divides -- never an average of weekly percentages. Grayed-out cells fell below {MIN_RELIABLE_N} series and are shown without a rank.</p>
+        <p className="container adv-note">Every rate sums the raw counts across the selected week range, then divides. Grayed-out cells fell below {MIN_RELIABLE_N} qualifying series and are shown without a national rank.</p>
       </div>
 
       <main id="exploratoryTable" className="table-main container">
@@ -320,7 +338,7 @@ export default function ExploratoryPage() {
               <caption className="sr-only">LEILA Exploratory series-level team analytics</caption>
               <thead>
                 <tr className="adv-section-row">
-                  <th scope="colgroup" colSpan={2} className="adv-section-spacer">Team</th>
+                  <th scope="colgroup" colSpan={3} className="adv-section-spacer">Team</th>
                   <th scope="colgroup" colSpan={OFFENSE_COLUMNS.length} className="adv-section-heading">Offense</th>
                   <th scope="colgroup" colSpan={DEFENSE_COLUMNS.length} className="adv-section-heading">Defense</th>
                 </tr>
@@ -330,6 +348,7 @@ export default function ExploratoryPage() {
                     <span className="sort-indicator">{sortKey === "team" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
                   </th>
                   <th scope="col" className="num record-cell">Conf</th>
+                  <th scope="col" className="profile-cell">Profile</th>
                   {ALL_COLUMNS.map((col, i) => (
                     <th
                       key={col.key}
@@ -348,14 +367,14 @@ export default function ExploratoryPage() {
                 {loading ? (
                   Array.from({ length: 14 }).map((_, rowIndex) => (
                     <tr key={rowIndex} className="skeleton-row">
-                      {Array.from({ length: 2 + ALL_COLUMNS.length }).map((__, cellIndex) => (
+                      {Array.from({ length: 3 + ALL_COLUMNS.length }).map((__, cellIndex) => (
                         <td key={cellIndex}><span className="skeleton-bar" style={{ width: (cellIndex === 0 ? 75 : 45 + ((cellIndex * 11) % 30)) + "%" }} /></td>
                       ))}
                     </tr>
                   ))
                 ) : visibleTeams.length === 0 ? (
                   <tr className="empty-row">
-                    <td colSpan={2 + ALL_COLUMNS.length}>No teams match &ldquo;{filter}&rdquo;.</td>
+                    <td colSpan={3 + ALL_COLUMNS.length}>No teams match &ldquo;{filter}&rdquo;.</td>
                   </tr>
                 ) : (
                   visibleTeams.map((team) => (
@@ -364,6 +383,11 @@ export default function ExploratoryPage() {
                         <TeamLink team={team.team} teamId={team.teamId} slug={team.slug} />
                       </td>
                       <td className="num record-cell">{team.conf}</td>
+                      <td className="profile-cell">
+                        <button type="button" className="exploratory-profile-button" onClick={() => setProfileTeam(team)}>
+                          View Profile
+                        </button>
+                      </td>
                       {ALL_COLUMNS.map((col, i) => {
                         const value = team[col.key] as number | null;
                         const n = team[`${col.key}_n`] as number;
@@ -389,6 +413,71 @@ export default function ExploratoryPage() {
           </div>
         </div>
       </main>
+
+      {profileTeam && (
+        <div
+          className="exploratory-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setProfileTeam(null);
+          }}
+        >
+          <section
+            className="exploratory-profile-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exploratoryProfileTitle"
+          >
+            <header className="exploratory-profile-header">
+              <div>
+                <span className="eyebrow">Exploratory Profile · {year} · {activeRangeLabel}</span>
+                <h2 id="exploratoryProfileTitle">{profileTeam.team}</h2>
+                <p>{profileTeam.conf} · Research-stage series analytics</p>
+              </div>
+              <button type="button" className="exploratory-modal-close" aria-label="Close exploratory profile" onClick={() => setProfileTeam(null)}>×</button>
+            </header>
+
+            <div className="exploratory-profile-note">
+              These metrics describe how {profileTeam.team} sustains and ends series. They do not affect LEILA Ratings or predictions.
+            </div>
+
+            {[
+              { title: "Offense", columns: OFFENSE_COLUMNS },
+              { title: "Defense", columns: DEFENSE_COLUMNS },
+            ].map((group) => (
+              <section className="exploratory-profile-section" key={group.title}>
+                <h3>{group.title}</h3>
+                <div className="exploratory-profile-metrics">
+                  {group.columns.map((col) => {
+                    const value = profileTeam[col.key] as number | null;
+                    const n = profileTeam[`${col.key}_n`] as number;
+                    const rank = profileTeam[`_rank_${col.key}`] as number | null;
+                    const smallSample = n < MIN_RELIABLE_N;
+                    return (
+                      <div className="exploratory-profile-metric" key={col.key}>
+                        <div className="exploratory-profile-metric__heading">
+                          <strong>{col.label}</strong>
+                          <span className="exploratory-profile-metric__value">{pct1(value)}</span>
+                        </div>
+                        <div className="exploratory-profile-metric__meta">
+                          <span>{rank ? `#${rank} nationally` : smallSample ? "Small sample · no rank" : "Not ranked"}</span>
+                          <span>N={n}</span>
+                        </div>
+                        <p>{col.tooltip}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+
+            <footer className="exploratory-profile-footer">
+              <TeamLink team={profileTeam.team} teamId={profileTeam.teamId} slug={profileTeam.slug} />
+              <button type="button" className="exploratory-profile-done" onClick={() => setProfileTeam(null)}>Close</button>
+            </footer>
+          </section>
+        </div>
+      )}
 
       <div id="methodology" tabIndex={-1}>
         <SiteFooter note="Exploratory statistics include completed FBS-vs-FBS games only and are built from LEILA's canonical play-by-play. They are research-stage and do not feed Adj. Net, Adj. Off, Adj. Def, ASM, or any prediction model." />
