@@ -20,24 +20,24 @@ export const SERIES_OFFENSE: ExpColumn[] = [
     label: "Series Conversion %",
     num: "seriesConversions",
     den: "seriesOpportunities",
-    tooltip: "How often a fresh set of downs ends with another first down or a touchdown. It counts conversions on any down, not just 3rd down.",
-    profileNote: "Keeps the chains moving on any down",
+    tooltip: "Converted series divided by eligible series. A series converts when the offense earns another first down or scores a touchdown before that set of downs ends.",
+    profileNote: "Converted series ÷ eligible series",
   },
   {
     key: "recoveryRate",
     label: "Recovery %",
     num: "recoveredSeries",
     den: "recoveryOpportunities",
-    tooltip: "After an unsuccessful 1st- or 2nd-down play, how often the offense still earns another first down or touchdown in that same series.",
-    profileNote: "Bounces back after a bad early down",
+    tooltip: "Recovered series divided by series with an unsuccessful 1st- or 2nd-down play. A recovery means the offense still earns another first down or touchdown in that same series.",
+    profileNote: "Recovered bad-down series ÷ early-down failures",
   },
   {
     key: "longDownAvoidanceRate",
     label: "Avoid 3rd & Long %",
     num: "longDownAvoidanceSeries",
     den: "eligibleSeries",
-    tooltip: "How often the offense gets through a series without facing 3rd-and-7 or longer. Higher means it stays on schedule more often.",
-    profileNote: "Stays out of obvious passing situations",
+    tooltip: "Series that never reach 3rd-and-7 or longer divided by eligible series. Higher means the offense stays ahead of the chains more often.",
+    profileNote: "Series avoiding 3rd & 7+ ÷ eligible series",
   },
 ];
 
@@ -47,24 +47,24 @@ const SERIES_DEFENSE: ExpColumn[] = [
     label: "Series Stop %",
     num: "seriesStops",
     den: "seriesStopOpportunities",
-    tooltip: "How often the defense ends an opponent's fresh set of downs before the offense gains another first down or scores a touchdown.",
-    profileNote: "Ends an opponent's fresh set of downs",
+    tooltip: "Opponent series stopped before another first down or touchdown divided by opponent eligible series.",
+    profileNote: "Opponent series stopped ÷ opponent series",
   },
   {
     key: "closeoutRate",
     label: "Closeout %",
     num: "closeouts",
     den: "closeoutOpportunities",
-    tooltip: "After the defense wins an early down, how often it finishes the series without allowing another first down or touchdown.",
-    profileNote: "Finishes the job after winning an early down",
+    tooltip: "Closeouts divided by opponent series with an unsuccessful early-down play. A closeout means the defense prevents a later first down or touchdown in that series.",
+    profileNote: "Early-down wins finished ÷ closeout chances",
   },
   {
     key: "longDownCreationRate",
     label: "Force 3rd & Long %",
     num: "longDownsCreated",
     den: "longDownCreationOpportunities",
-    tooltip: "How often the defense forces an opponent into 3rd-and-7 or longer. Higher means more obvious passing situations created.",
-    profileNote: "Creates obvious passing situations",
+    tooltip: "Opponent series that reach 3rd-and-7 or longer divided by opponent eligible series. Higher means more obvious passing situations created.",
+    profileNote: "Opponent series reaching 3rd & 7+ ÷ opponent series",
   },
 ];
 
@@ -72,14 +72,14 @@ const POSSESSIONS_OFFENSE: ExpColumn[] = [
   {
     key: "cleanDriveRate", label: "Clean Drive %",
     num: "cleanDrives", den: "eligibleDrives",
-    tooltip: "How often the offense gets through an entire possession without a turnover, sack, TFL, costly accepted penalty, or failed 4th down.",
-    profileNote: "Avoids the self-inflicted mistakes that stall a drive",
+    tooltip: "Clean drives divided by eligible drives. A drive is clean when it has no turnover, sack, TFL, costly accepted offensive penalty, or failed 4th down.",
+    profileNote: "Mistake-free drives ÷ eligible drives",
   },
   {
     key: "driveKillerRate", label: "Drive Killer %",
     num: "drivesKilled", den: "drivesWithKillerEvent",
-    tooltip: "How often a major mistake (turnover, sack, TFL, costly penalty, failed 4th down) actually puts the drive away for good, of the drives that had one.",
-    profileNote: "How often one mistake ends the whole possession",
+    tooltip: "Killed drives divided by drives containing a tracked mistake. A drive is killed when the offense never earns another first down or touchdown after the final qualifying mistake.",
+    profileNote: "Killed mistake-drives ÷ mistake-drives",
     lowerBetter: true,
   },
 ];
@@ -88,15 +88,15 @@ const POSSESSIONS_DEFENSE: ExpColumn[] = [
   {
     key: "cleanDriveRateAllowed", label: "Clean Drive Allowed %",
     num: "cleanDrivesAllowed", den: "eligibleDrivesFaced",
-    tooltip: "How often the opponent's offense gets through an entire possession against this defense without a mistake. Lower is better defense.",
-    profileNote: "Lets opponents drive mistake-free too often, or not",
+    tooltip: "Opponent clean drives divided by opponent eligible drives. Lower is better because fewer possessions stay completely free of major negative events.",
+    profileNote: "Opponent clean drives ÷ opponent drives",
     lowerBetter: true,
   },
   {
     key: "driveKillerRateForced", label: "Drive Killer Forced %",
     num: "drivesKilledForced", den: "drivesWithKillerEventForced",
-    tooltip: "Of opponent drives that had a major mistake against this defense, how often the defense actually finished the drive off.",
-    profileNote: "Turns an opponent's mistake into a dead drive",
+    tooltip: "Opponent mistake-drives that never recover divided by opponent drives containing a tracked mistake. This measures finishing the drive after a mistake occurs, not creating the mistake itself.",
+    profileNote: "Opponent killed mistake-drives ÷ opponent mistake-drives",
   },
 ];
 
@@ -104,43 +104,43 @@ const STYLE_RISK: ExpColumn[] = [
   {
     key: "explosiveDependency", label: "Explosive Dependency %",
     num: "explosivePositiveEpa", den: "positiveEpa",
-    tooltip: "Share of an offense's positive EPA generated by explosive plays (rush 10+ yards, pass 20+ yards). Descriptive, not a quality signal -- high dependency can mean dangerous, or volatile.",
-    profileNote: "How much of the offense rides on its biggest plays",
+    tooltip: "Positive EPA from explosive plays divided by all positive EPA. Explosive plays are rushes of 10+ yards or passes of 20+ yards. This describes style, not quality.",
+    profileNote: "Explosive positive EPA ÷ all positive EPA",
     noHeatmap: true,
   },
   {
     key: "nonExplosiveEpaPerPlay", label: "Non-Explosive EPA/play",
     num: "nonExplosiveEpa", den: "nonExplosivePlays",
-    tooltip: "How efficient the offense is when explosive plays are removed from the picture.",
-    profileNote: "How the offense performs once the big plays are set aside",
+    tooltip: "EPA from non-explosive plays divided by the number of non-explosive plays. Higher means the offense creates more value without relying on big gains.",
+    profileNote: "Non-explosive EPA ÷ non-explosive plays",
     fmt: "signed3",
   },
   {
     key: "failureRate", label: "Failure Rate",
     num: "negativeEpaPlays", den: "epaEligiblePlays",
-    tooltip: "How often the offense produces a negative-EPA play.",
-    profileNote: "How often a play actively hurts the offense",
+    tooltip: "Negative-EPA plays divided by all EPA-eligible offensive plays. Lower means fewer plays reduce the offense's expected scoring value.",
+    profileNote: "Negative-EPA plays ÷ EPA-eligible plays",
     lowerBetter: true,
   },
   {
     key: "averageFailureDamage", label: "Avg Failure Damage",
     num: "negativeEpaMagnitudeSum", den: "negativeEpaPlays",
-    tooltip: "How costly the offense's bad plays are when they happen.",
-    profileNote: "How bad the bad plays really are",
+    tooltip: "Total negative EPA lost divided by the number of negative-EPA plays. Lower means the offense's bad plays are less damaging when they happen.",
+    profileNote: "Negative EPA lost ÷ negative-EPA plays",
     fmt: "plain3", lowerBetter: true,
   },
   {
     key: "failureBurden", label: "Failure Burden",
     num: "negativeEpaMagnitudeSum", den: "epaEligiblePlays",
-    tooltip: "How much negative EPA the offense gives away per play through mistakes and failed plays. Failure Rate times Average Failure Damage.",
-    profileNote: "The full cost of an offense's mistakes, per play",
+    tooltip: "Total negative EPA lost divided by all EPA-eligible plays. It combines how often bad plays happen with how damaging they are.",
+    profileNote: "Negative EPA lost ÷ all EPA-eligible plays",
     fmt: "plain3", lowerBetter: true,
   },
   {
     key: "failurePressure", label: "Failure Pressure",
     num: "opponentNegativeEpaMagnitudeSum", den: "opponentEpaEligiblePlays",
-    tooltip: "How much negative EPA the defense forces opponents to absorb per play.",
-    profileNote: "How much damage the defense inflicts through opponent mistakes",
+    tooltip: "Opponent negative EPA lost divided by opponent EPA-eligible plays. Higher means the defense forces more negative-play damage per snap.",
+    profileNote: "Opponent negative EPA lost ÷ opponent eligible plays",
     fmt: "plain3",
   },
 ];
@@ -187,7 +187,6 @@ export function fanTier(rank: number | null, total: number, smallSample: boolean
   if (percentile <= 0.80) return { label: "Below Avg", className: "profile-tier--below" };
   return { label: "Needs Work", className: "profile-tier--poor" };
 }
-
 
 /** Research denominator floors. Secondary existing diagnostic columns retain 20. */
 export function minimumN(col: ExpColumn): number {
