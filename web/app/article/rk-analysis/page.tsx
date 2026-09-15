@@ -2,6 +2,7 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import { logoUrl } from "@/lib/teamCode";
 
 export const metadata = {
   title: "What Turnovers Actually Cost: PPA/Play Before and After | LEILA Ratings",
@@ -25,6 +26,15 @@ type TeamSwing = {
   withTurnovers: number;
 };
 
+const TEAM_IDS: Record<string, number> = {
+  Michigan: 130,
+  Oklahoma: 201,
+  Alabama: 333,
+  Kentucky: 96,
+  Texas: 251,
+  "Ohio State": 194,
+};
+
 const SCALE_MIN = -0.2;
 const SCALE_MAX = 0.4;
 const SCALE_RANGE = SCALE_MAX - SCALE_MIN;
@@ -38,11 +48,51 @@ function barMetrics(value: number) {
   return { left, width: widthPct, tone };
 }
 
+function TeamLogo({ team, size = 20 }: { team: string; size?: number }) {
+  const teamId = TEAM_IDS[team];
+  if (!teamId) return null;
+  return (
+    // Server Component: no onError fallback here (that needs a client
+    // component). Fine for this article's fixed, known-good set of six
+    // team IDs.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      className="ppa-team-logo"
+      src={logoUrl(teamId)}
+      alt=""
+      width={size}
+      height={size}
+      loading="lazy"
+      decoding="async"
+    />
+  );
+}
+
+function PpaChip({ value, decimals = 2, small }: { value: number; decimals?: number; small?: boolean }) {
+  const tone = value >= 0 ? "pos" : "neg";
+  return (
+    <span className={`ppa-chip ppa-chip--${tone}${small ? " ppa-chip--sm" : ""}`}>
+      {value >= 0 ? "+" : ""}
+      {value.toFixed(decimals)}
+    </span>
+  );
+}
+
 function Stat({ value, label, tone }: { value: string; label: string; tone?: "up" | "down" }) {
   return (
     <div className={`article-stat${tone ? ` article-stat--${tone}` : ""}`}>
       <strong>{value}</strong>
       <span>{label}</span>
+    </div>
+  );
+}
+
+function MatchupStrip({ teamA, teamB }: { teamA: string; teamB: string }) {
+  return (
+    <div className="ppa-matchup-strip">
+      <TeamLogo team={teamA} size={40} />
+      <span className="ppa-matchup-strip__vs">vs</span>
+      <TeamLogo team={teamB} size={40} />
     </div>
   );
 }
@@ -76,7 +126,10 @@ function PpaSwingChart({ teams }: { teams: TeamSwing[] }) {
         return (
           <div className="ppa-swing-row" key={t.team}>
             <div className="ppa-swing-row__team">
-              {t.team}
+              <div className="ppa-swing-row__team-label">
+                <TeamLogo team={t.team} size={24} />
+                <span>{t.team}</span>
+              </div>
               <span className="ppa-swing-row__team-sub">
                 {t.turnovers} turnover{t.turnovers === 1 ? "" : "s"}
               </span>
@@ -85,16 +138,17 @@ function PpaSwingChart({ teams }: { teams: TeamSwing[] }) {
               <div className="ppa-swing-row__bar-line">
                 <span className="ppa-swing-row__bar-tag">W/o TO</span>
                 <PpaBar value={t.without} />
-                <span className="ppa-swing-row__bar-value">{t.without.toFixed(3)}</span>
+                <PpaChip value={t.without} decimals={3} small />
               </div>
               <div className="ppa-swing-row__bar-line">
                 <span className="ppa-swing-row__bar-tag">W/ TO</span>
                 <PpaBar value={t.withTurnovers} />
-                <span className="ppa-swing-row__bar-value">{t.withTurnovers.toFixed(3)}</span>
+                <PpaChip value={t.withTurnovers} decimals={3} small />
               </div>
             </div>
-            <div className={`ppa-swing-row__delta ${delta >= 0 ? "up" : "down"}`}>
-              {delta >= 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(3)}
+            <div className="ppa-swing-row__delta">
+              <span className="ppa-swing-row__delta-arrow">{delta >= 0 ? "▲" : "▼"}</span>
+              <PpaChip value={delta} decimals={3} small />
             </div>
           </div>
         );
@@ -117,16 +171,16 @@ function TurnoverTable({ plays }: { plays: TurnoverPlay[] }) {
             return (
               <tr key={`${p.qtrClock}-${p.team}-${p.description}`}>
                 <td>{p.qtrClock}</td>
-                <td>{p.team}</td>
+                <td className="ppa-team-cell">
+                  <TeamLogo team={p.team} />
+                  <span>{p.team}</span>
+                </td>
                 <td>
                   {p.description}
                   {isDefensiveTd && <span className="ppa-td-pill">Defensive TD</span>}
                   {isBackbreaker && <span className="ppa-backbreaker">Back-breaker</span>}
                 </td>
-                <td className={p.value >= 0 ? "ppa-pos" : "ppa-neg"}>
-                  {p.value >= 0 ? "+" : ""}
-                  {p.value.toFixed(2)}
-                </td>
+                <td><PpaChip value={p.value} /></td>
               </tr>
             );
           })}
@@ -199,6 +253,7 @@ export default function RkAnalysisArticle() {
           <div className="article-section__heading">
             <span className="eyebrow">Game 1</span>
             <h2>Michigan 17, Oklahoma 10</h2>
+            <MatchupStrip teamA="Michigan" teamB="Oklahoma" />
           </div>
           <p>
             Oklahoma turned it over twice; Michigan turned it over zero times &mdash; but Michigan still fumbled
@@ -217,6 +272,7 @@ export default function RkAnalysisArticle() {
           <div className="article-section__heading">
             <span className="eyebrow">Game 2</span>
             <h2>Alabama 45, Kentucky 17</h2>
+            <MatchupStrip teamA="Alabama" teamB="Kentucky" />
           </div>
           <p>
             Six total turnovers in this one &mdash; Alabama gave it away three times, Kentucky three times, and two
@@ -235,6 +291,7 @@ export default function RkAnalysisArticle() {
           <div className="article-section__heading">
             <span className="eyebrow">Game 3</span>
             <h2>Texas 24, Ohio State 23</h2>
+            <MatchupStrip teamA="Texas" teamB="Ohio State" />
           </div>
           <p>
             Texas turned it over twice, Ohio State once &mdash; on the final play of the game, with the outcome
