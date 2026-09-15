@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { AdvancedSeason, ExploratorySeason, GameLogSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
+import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
@@ -94,6 +94,9 @@ const predictionsTrackRecordInflight = new Map<string, Promise<PredictionsTrackR
 
 const preseasonPowerData = new Map<string, PreseasonPower | null>();
 const preseasonPowerInflight = new Map<string, Promise<PreseasonPower | null>>();
+
+const cfpResultsData = new Map<string, CfpSeasonResult | null>();
+const cfpResultsInflight = new Map<string, Promise<CfpSeasonResult | null>>();
 
 let metaPromise: Promise<SiteMeta> | null = null;
 let searchIndexPromise: Promise<SearchIndexEntry[]> | null = null;
@@ -430,6 +433,40 @@ export function getPredictionsTrackRecord(year: number | string): Promise<Predic
 // Public and ungated -- the model itself (a full-field ranking from prior
 // results, recruiting and QB continuity), not the weekly picks derived
 // from it, which stay behind getPredictionsWeek's gate.
+// Public, free historical fact (see lib/types.ts's CfpSeasonResult). Missing
+// for a season whose CFP hasn't been played yet, or is still in progress --
+// that's a real, expected 404, not an error.
+export function getCfpResultsSeason(year: number | string): Promise<CfpSeasonResult | null> {
+  const key = String(year);
+  if (cfpResultsData.has(key)) return Promise.resolve(cfpResultsData.get(key) ?? null);
+  let entry = cfpResultsInflight.get(key);
+  if (!entry) {
+    entry = fetchOptionalJson<CfpSeasonResult>(`/data/cfp-results/${key}.json`).then((result) => {
+      cfpResultsData.set(key, result);
+      cfpResultsInflight.delete(key);
+      notify();
+      return result;
+    });
+    entry = entry.catch((error: Error) => {
+      cfpResultsInflight.delete(key);
+      throw error;
+    });
+    cfpResultsInflight.set(key, entry);
+  }
+  return entry;
+}
+
+export function useCfpResultsSeason(year: string | null): CfpSeasonResult | null | undefined {
+  useEffect(() => {
+    if (year) getCfpResultsSeason(year).catch(() => {});
+  }, [year]);
+  return useSyncExternalStore(
+    subscribe,
+    () => (year ? cfpResultsData.get(year) : undefined),
+    () => undefined
+  );
+}
+
 export function getPreseasonPower(year: number | string): Promise<PreseasonPower | null> {
   const key = String(year);
   if (preseasonPowerData.has(key)) return Promise.resolve(preseasonPowerData.get(key) ?? null);

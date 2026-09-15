@@ -412,6 +412,21 @@ export type MatchupEdge = {
   throughWeek: number;
 };
 
+// Public, free historical fact -- who made the CFP field, and who played in
+// the championship game -- derived straight from CFBD's own structured
+// `playoff` field on each postseason game (see scripts/export_cfp_results.py).
+// `champion`/`runnerUp` are null until that season's championship game has
+// been played.
+export type CfpTeamRef = { teamId: number; team: string };
+
+export type CfpSeasonResult = {
+  season: number;
+  fieldSize: number;
+  participants: CfpTeamRef[];
+  champion: CfpTeamRef | null;
+  runnerUp: CfpTeamRef | null;
+};
+
 export type MatchupEdgesGame = {
   season: number;
   gameId: string;

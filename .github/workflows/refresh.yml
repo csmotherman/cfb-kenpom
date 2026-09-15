@@ -227,6 +227,8 @@ jobs:
         run: python -m cfb_analytics.pipelines.early_season_predictions publish
       - name: Export Next.js data
         run: python scripts/export_web_data.py
+      - name: Export CFP field/champion/runner-up markers
+        run: python scripts/export_cfp_results.py --season "$SEASON"
       - name: Normalize schedule calendar week
         run: python scripts/normalize_schedule_calendar.py --season "$SEASON"
 

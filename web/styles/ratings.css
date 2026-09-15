@@ -324,6 +324,22 @@
   font-weight: 650;
   color: var(--color-ink);
 }
+
+/* CFP field/champion/runner-up markers on a past season's team-name cell.
+   inset box-shadow (not border) so nothing shifts column widths or fights
+   border-collapse, and so it still composes with the sticky-column divider
+   shadow #ratingsTable .team-cell already carries at mobile widths. */
+.data-table td.team-cell--cfp {
+  box-shadow: inset 0 0 0 2px var(--color-navy);
+}
+.data-table td.team-cell--cfp-champion {
+  box-shadow: inset 0 0 0 3px var(--color-gold);
+  background: rgba(197, 154, 67, 0.12);
+}
+.data-table td.team-cell--cfp-runner-up {
+  box-shadow: inset 0 0 0 3px #9aa4b2;
+  background: rgba(154, 164, 178, 0.14);
+}
 .data-table td.conf-cell {
   font-size: 10.5px;
   font-weight: 700;
