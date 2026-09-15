@@ -27,9 +27,9 @@ export function cfpCellClass(status: CfpStatus, baseClass = "team-cell"): string
 }
 
 export function cfpLabel(status: CfpStatus): string | null {
-  if (status === "champion") return "CFP Champion";
-  if (status === "runnerUp") return "CFP Runner-Up";
-  if (status === "participant") return "CFP";
+  if (status === "champion") return "Champion";
+  if (status === "runnerUp") return "Runner-Up";
+  if (status === "participant") return "Playoff";
   return null;
 }
 
