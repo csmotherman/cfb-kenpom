@@ -164,7 +164,151 @@
   color: var(--color-ink-tertiary);
 }
 
+/* ---- Conditional formatting: positive/negative PPA values ---- */
+.article-table td.ppa-pos { color: var(--color-up); font-weight: 700; }
+.article-table td.ppa-neg { color: var(--color-down); font-weight: 700; }
+
+.ppa-td-pill,
+.ppa-backbreaker {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.ppa-td-pill { background: rgba(139, 58, 58, 0.12); color: var(--color-down); }
+.ppa-backbreaker { background: var(--color-down); color: #fff; }
+
+/* ---- Chart legend ---- */
+.ppa-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: var(--space-4) 0 0;
+  font-size: 10.5px;
+  color: var(--color-ink-tertiary);
+}
+.ppa-chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.ppa-chart-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.ppa-chart-legend i.up { background: var(--color-up); }
+.ppa-chart-legend i.down { background: var(--color-down); }
+
+/* ---- PPA with/without-turnovers bar chart ---- */
+.ppa-swing-chart {
+  margin: var(--space-4) 0;
+  border: 1px solid var(--color-hairline-strong);
+  background: var(--color-paper-soft);
+}
+.ppa-swing-row {
+  display: grid;
+  grid-template-columns: 108px 1fr 80px;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-hairline);
+}
+.ppa-swing-row:last-child { border-bottom: 0; }
+.ppa-swing-row__team {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-navy);
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+.ppa-swing-row__team-sub {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--color-ink-tertiary);
+}
+.ppa-swing-row__bars { display: flex; flex-direction: column; gap: 6px; }
+.ppa-swing-row__bar-line {
+  display: grid;
+  grid-template-columns: 48px 1fr 56px;
+  align-items: center;
+  gap: 8px;
+}
+.ppa-swing-row__bar-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-tertiary);
+  text-transform: uppercase;
+}
+.ppa-swing-row__bar-value {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-align: right;
+}
+.ppa-bar-track {
+  position: relative;
+  height: 12px;
+  background: var(--color-hairline);
+  border-radius: 2px;
+}
+.ppa-bar-zero {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: var(--color-hairline-strong);
+}
+.ppa-bar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 2px;
+  min-width: 2px;
+}
+.ppa-swing-row__delta {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 800;
+  text-align: right;
+  white-space: nowrap;
+}
+.ppa-swing-row__delta.up { color: var(--color-up); }
+.ppa-swing-row__delta.down { color: var(--color-down); }
+
+/* ---- Key-insight callout ---- */
+.article-callout {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4) var(--space-5);
+  border-left: 4px solid var(--color-gold);
+  background: var(--color-paper-soft);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.32;
+  color: var(--color-navy);
+}
+.article-callout--down { border-left-color: var(--color-down); }
+.article-callout--up { border-left-color: var(--color-up); }
+
+/* ---- Stat card tone accents ---- */
+.article-stat--up { box-shadow: inset 3px 0 0 var(--color-up); }
+.article-stat--down { box-shadow: inset 3px 0 0 var(--color-down); }
+
 @media (max-width: 640px) {
   .article-main { padding-left: var(--space-4); padding-right: var(--space-4); }
   .article-actions { flex-direction: column; align-items: flex-start; }
+  .ppa-swing-row { grid-template-columns: 1fr; gap: var(--space-2); }
+  .ppa-swing-row__delta { text-align: left; }
+  .ppa-swing-row__bar-line { grid-template-columns: 42px 1fr 48px; }
+  .article-callout { font-size: 16px; padding: var(--space-3) var(--space-4); }
 }

@@ -10,14 +10,162 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-function Stat({ value, label }: { value: string; label: string }) {
+type TurnoverPlay = {
+  qtrClock: string;
+  team: string;
+  description: string;
+  value: number;
+};
+
+type TeamSwing = {
+  team: string;
+  turnovers: number;
+  without: number;
+  withTurnovers: number;
+};
+
+const SCALE_MIN = -0.2;
+const SCALE_MAX = 0.4;
+const SCALE_RANGE = SCALE_MAX - SCALE_MIN;
+const ZERO_PCT = ((0 - SCALE_MIN) / SCALE_RANGE) * 100;
+
+function barMetrics(value: number) {
+  const clamped = Math.max(SCALE_MIN, Math.min(SCALE_MAX, value));
+  const widthPct = (Math.abs(clamped) / SCALE_RANGE) * 100;
+  const tone: "up" | "down" = clamped >= 0 ? "up" : "down";
+  const left = tone === "up" ? ZERO_PCT : ZERO_PCT - widthPct;
+  return { left, width: widthPct, tone };
+}
+
+function Stat({ value, label, tone }: { value: string; label: string; tone?: "up" | "down" }) {
   return (
-    <div className="article-stat">
+    <div className={`article-stat${tone ? ` article-stat--${tone}` : ""}`}>
       <strong>{value}</strong>
       <span>{label}</span>
     </div>
   );
 }
+
+function Callout({ tone, children }: { tone?: "up" | "down"; children: React.ReactNode }) {
+  return <div className={`article-callout${tone ? ` article-callout--${tone}` : ""}`}>{children}</div>;
+}
+
+function PpaBar({ value }: { value: number }) {
+  const { left, width, tone } = barMetrics(value);
+  return (
+    <div className="ppa-bar-track">
+      <span className="ppa-bar-zero" style={{ left: `${ZERO_PCT}%` }} />
+      <span
+        className="ppa-bar-fill"
+        style={{
+          left: `${left}%`,
+          width: `${width}%`,
+          background: tone === "up" ? "var(--color-up)" : "var(--color-down)",
+        }}
+      />
+    </div>
+  );
+}
+
+function PpaSwingChart({ teams }: { teams: TeamSwing[] }) {
+  return (
+    <div className="ppa-swing-chart">
+      {teams.map((t) => {
+        const delta = t.withTurnovers - t.without;
+        return (
+          <div className="ppa-swing-row" key={t.team}>
+            <div className="ppa-swing-row__team">
+              {t.team}
+              <span className="ppa-swing-row__team-sub">
+                {t.turnovers} turnover{t.turnovers === 1 ? "" : "s"}
+              </span>
+            </div>
+            <div className="ppa-swing-row__bars">
+              <div className="ppa-swing-row__bar-line">
+                <span className="ppa-swing-row__bar-tag">W/o TO</span>
+                <PpaBar value={t.without} />
+                <span className="ppa-swing-row__bar-value">{t.without.toFixed(3)}</span>
+              </div>
+              <div className="ppa-swing-row__bar-line">
+                <span className="ppa-swing-row__bar-tag">W/ TO</span>
+                <PpaBar value={t.withTurnovers} />
+                <span className="ppa-swing-row__bar-value">{t.withTurnovers.toFixed(3)}</span>
+              </div>
+            </div>
+            <div className={`ppa-swing-row__delta ${delta >= 0 ? "up" : "down"}`}>
+              {delta >= 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(3)}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function TurnoverTable({ plays }: { plays: TurnoverPlay[] }) {
+  return (
+    <div className="article-table-wrap">
+      <table className="article-table article-table--wide">
+        <thead>
+          <tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>PPA on the play</th></tr>
+        </thead>
+        <tbody>
+          {plays.map((p) => {
+            const isDefensiveTd = /TOUCHDOWN/.test(p.description);
+            const isBackbreaker = p.value <= -5;
+            return (
+              <tr key={`${p.qtrClock}-${p.team}-${p.description}`}>
+                <td>{p.qtrClock}</td>
+                <td>{p.team}</td>
+                <td>
+                  {p.description}
+                  {isDefensiveTd && <span className="ppa-td-pill">Defensive TD</span>}
+                  {isBackbreaker && <span className="ppa-backbreaker">Back-breaker</span>}
+                </td>
+                <td className={p.value >= 0 ? "ppa-pos" : "ppa-neg"}>
+                  {p.value >= 0 ? "+" : ""}
+                  {p.value.toFixed(2)}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const MICHIGAN_OKLAHOMA_PLAYS: TurnoverPlay[] = [
+  { qtrClock: "Q2, 13:32", team: "Oklahoma", description: "Mateer completes to Livingstone for 8 yards, fumbles, recovered by Michigan (Bowles)", value: -3.34 },
+  { qtrClock: "Q4, 8:49", team: "Oklahoma", description: "Mateer intercepted by J.Hill, returned 24 yards", value: 0.23 },
+];
+const MICHIGAN_OKLAHOMA_SWING: TeamSwing[] = [
+  { team: "Michigan", turnovers: 0, without: 0.101, withTurnovers: 0.064 },
+  { team: "Oklahoma", turnovers: 2, without: 0.083, withTurnovers: 0.025 },
+];
+
+const ALABAMA_KENTUCKY_PLAYS: TurnoverPlay[] = [
+  { qtrClock: "Q1, 10:15", team: "Alabama", description: "Russell intercepted by Humphrey-Grace, returned 2 yards", value: -6.61 },
+  { qtrClock: "Q1, 7:17", team: "Alabama", description: "Russell sacked, fumbles, recovered by Kentucky (C.Works)", value: -0.96 },
+  { qtrClock: "Q1, 6:44", team: "Kentucky", description: "Minchey intercepted by L.Metz, returned 34 yards", value: -7.23 },
+  { qtrClock: "Q2, 0:55", team: "Alabama", description: "Russell intercepted by J.Castell", value: 0.02 },
+  { qtrClock: "Q3, 5:47", team: "Kentucky", description: "Minchey sacked, fumbles, recovered by Alabama (I.Faga)", value: -0.51 },
+  { qtrClock: "Q4, 2:42", team: "Kentucky", description: "Patterson rushes for 3 yards, fumbles, recovered by Alabama (I.Taylor)", value: -1.66 },
+];
+const ALABAMA_KENTUCKY_SWING: TeamSwing[] = [
+  { team: "Alabama", turnovers: 3, without: 0.353, withTurnovers: 0.190 },
+  { team: "Kentucky", turnovers: 3, without: 0.001, withTurnovers: -0.168 },
+];
+
+const TEXAS_OHIOSTATE_PLAYS: TurnoverPlay[] = [
+  { qtrClock: "Q1, 14:49", team: "Texas", description: "Manning completes to R.Brown, fumbles, recovered by Ohio State (J.Timmons)", value: -0.73 },
+  { qtrClock: "Q1, 10:15", team: "Texas", description: "Manning intercepted by J.McClain, returned 7 yards", value: -2.05 },
+  { qtrClock: "Q4, 0:17", team: "Ohio State", description: "Sayin intercepted by G.Littleton, final play of the game", value: 0.14 },
+];
+const TEXAS_OHIOSTATE_SWING: TeamSwing[] = [
+  { team: "Texas", turnovers: 2, without: 0.193, withTurnovers: 0.163 },
+  { team: "Ohio State", turnovers: 1, without: 0.148, withTurnovers: 0.148 },
+];
 
 export default function RkAnalysisArticle() {
   return (
@@ -40,6 +188,12 @@ export default function RkAnalysisArticle() {
           <p className="article-byline">LEILA Ratings Data Desk</p>
         </header>
 
+        <div className="ppa-chart-legend">
+          <span><i className="up" /> Positive PPA/play</span>
+          <span><i className="down" /> Negative PPA/play</span>
+          <span>Every bar below is scaled from -0.20 to +0.40 PPA/play, so you can compare games directly.</span>
+        </div>
+
         <section className="article-section">
           <div className="article-section__heading">
             <span className="eyebrow">Game 1</span>
@@ -50,30 +204,12 @@ export default function RkAnalysisArticle() {
             twice and recovered both themselves, and those plays carry real PPA value even when possession never
             changes hands.
           </p>
-          <div className="article-table-wrap">
-            <table className="article-table article-table--wide">
-              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>PPA on the play</th></tr></thead>
-              <tbody>
-                <tr><td>Q2, 13:32</td><td>Oklahoma</td><td>Mateer completes to Livingstone for 8 yards, fumbles, recovered by Michigan (Bowles)</td><td>-3.34</td></tr>
-                <tr><td>Q4, 8:49</td><td>Oklahoma</td><td>Mateer intercepted by J.Hill, returned 24 yards</td><td>+0.23</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div className="article-table-wrap">
-            <table className="article-table">
-              <thead><tr><th>Team</th><th>Turnovers</th><th>PPA/play without turnovers</th><th>PPA/play with turnovers</th></tr></thead>
-              <tbody>
-                <tr><td>Michigan</td><td>0</td><td>0.101</td><td>0.064</td></tr>
-                <tr><td>Oklahoma</td><td>2</td><td>0.083</td><td>0.025</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p>
-            Oklahoma&rsquo;s process looks closer to Michigan&rsquo;s once you strip out the giveaways &mdash; 0.083
-            to 0.101 is a real but modest gap. Include the turnovers and it widens to 0.025 versus 0.064: Oklahoma&rsquo;s
-            two possessions ending in Michigan&rsquo;s hands did roughly as much damage as the rest of the box score
-            suggests they should have.
-          </p>
+          <TurnoverTable plays={MICHIGAN_OKLAHOMA_PLAYS} />
+          <PpaSwingChart teams={MICHIGAN_OKLAHOMA_SWING} />
+          <Callout tone="down">
+            Oklahoma&rsquo;s process looked close to Michigan&rsquo;s on clean snaps &mdash; 0.083 to 0.101. Count
+            the turnovers and the gap more than doubles, to 0.025 versus 0.064.
+          </Callout>
         </section>
 
         <section className="article-section">
@@ -85,35 +221,13 @@ export default function RkAnalysisArticle() {
             Six total turnovers in this one &mdash; Alabama gave it away three times, Kentucky three times, and two
             of the six went the distance for defensive touchdowns.
           </p>
-          <div className="article-table-wrap">
-            <table className="article-table article-table--wide">
-              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>PPA on the play</th></tr></thead>
-              <tbody>
-                <tr><td>Q1, 10:15</td><td>Alabama</td><td>Russell intercepted by Humphrey-Grace, returned 2 yards for a TOUCHDOWN</td><td>-6.61</td></tr>
-                <tr><td>Q1, 7:17</td><td>Alabama</td><td>Russell sacked, fumbles, recovered by Kentucky (C.Works)</td><td>-0.96</td></tr>
-                <tr><td>Q1, 6:44</td><td>Kentucky</td><td>Minchey intercepted by L.Metz, returned 34 yards for a TOUCHDOWN</td><td>-7.23</td></tr>
-                <tr><td>Q2, 0:55</td><td>Alabama</td><td>Russell intercepted by J.Castell</td><td>+0.02</td></tr>
-                <tr><td>Q3, 5:47</td><td>Kentucky</td><td>Minchey sacked, fumbles, recovered by Alabama (I.Faga)</td><td>-0.51</td></tr>
-                <tr><td>Q4, 2:42</td><td>Kentucky</td><td>Patterson rushes for 3 yards, fumbles, recovered by Alabama (I.Taylor)</td><td>-1.66</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div className="article-table-wrap">
-            <table className="article-table">
-              <thead><tr><th>Team</th><th>Turnovers</th><th>PPA/play without turnovers</th><th>PPA/play with turnovers</th></tr></thead>
-              <tbody>
-                <tr><td>Alabama</td><td>3</td><td>0.353</td><td>0.190</td></tr>
-                <tr><td>Kentucky</td><td>3</td><td>0.001</td><td className="hi">-0.168</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p>
-            This is the game where the turnovers change the story the most. Strip them out and Kentucky&rsquo;s
-            process looked dead even &mdash; 0.001 PPA/play, essentially a coin flip. Put the turnovers back and
-            Kentucky drops to -0.168, while Alabama, who also gave the ball away three times, still comes out at a
-            strong +0.190. Alabama&rsquo;s offense earned the win on non-turnover snaps too, but the turnover margin
-            is what turned a competitive process into a 28-point final.
-          </p>
+          <TurnoverTable plays={ALABAMA_KENTUCKY_PLAYS} />
+          <PpaSwingChart teams={ALABAMA_KENTUCKY_SWING} />
+          <Callout tone="down">
+            Before turnovers, Kentucky&rsquo;s offense looked like a coin flip at 0.001 PPA/play. After, they&rsquo;re
+            underwater at -0.168 &mdash; the largest swing of any team in these three games. Alabama gave the ball
+            away just as many times and still finished at a strong +0.190.
+          </Callout>
         </section>
 
         <section className="article-section">
@@ -125,31 +239,13 @@ export default function RkAnalysisArticle() {
             Texas turned it over twice, Ohio State once &mdash; on the final play of the game, with the outcome
             already decided.
           </p>
-          <div className="article-table-wrap">
-            <table className="article-table article-table--wide">
-              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>PPA on the play</th></tr></thead>
-              <tbody>
-                <tr><td>Q1, 14:49</td><td>Texas</td><td>Manning completes to R.Brown, fumbles, recovered by Ohio State (J.Timmons)</td><td>-0.73</td></tr>
-                <tr><td>Q1, 10:15</td><td>Texas</td><td>Manning intercepted by J.McClain, returned 7 yards</td><td>-2.05</td></tr>
-                <tr><td>Q4, 0:17</td><td>Ohio State</td><td>Sayin intercepted by G.Littleton, final play of the game</td><td>+0.14</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div className="article-table-wrap">
-            <table className="article-table">
-              <thead><tr><th>Team</th><th>Turnovers</th><th>PPA/play without turnovers</th><th>PPA/play with turnovers</th></tr></thead>
-              <tbody>
-                <tr><td>Texas</td><td>2</td><td>0.193</td><td>0.163</td></tr>
-                <tr><td>Ohio State</td><td>1</td><td>0.148</td><td>0.148</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p>
-            Ohio State&rsquo;s number doesn&rsquo;t move at all &mdash; one low-value, game-ending pick spread across
-            63 plays barely registers. Texas&rsquo;s does: two first-half giveaways, including one that handed Ohio
-            State a short field, pull their PPA/play down from 0.193 to 0.163. Texas still finishes ahead of Ohio
-            State either way, but the margin between them is noticeably tighter once the turnovers count.
-          </p>
+          <TurnoverTable plays={TEXAS_OHIOSTATE_PLAYS} />
+          <PpaSwingChart teams={TEXAS_OHIOSTATE_SWING} />
+          <Callout>
+            One low-value, game-ending pick doesn&rsquo;t move Ohio State&rsquo;s number at all. Texas&rsquo;s two
+            first-half giveaways do &mdash; pulling them from 0.193 down to 0.163, and tightening the gap between
+            these two teams.
+          </Callout>
         </section>
 
         <section className="article-section">
@@ -159,8 +255,8 @@ export default function RkAnalysisArticle() {
           </div>
           <div className="article-stat-grid">
             <Stat value="11" label="Total turnovers across the three games" />
-            <Stat value="-22.7" label="Combined PPA value on those 11 plays" />
-            <Stat value="-0.169" label="Kentucky's swing, the largest of any team" />
+            <Stat value="-22.7" label="Combined PPA value on those 11 plays" tone="down" />
+            <Stat value="-0.169" label="Kentucky's swing, the largest of any team" tone="down" />
             <Stat value="0.000" label="Ohio State's swing, the smallest of any team" />
           </div>
           <p>
