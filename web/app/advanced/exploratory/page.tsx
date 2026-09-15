@@ -395,7 +395,7 @@ export default function ExploratoryPage() {
               <caption className="sr-only">LEILA Exploratory series-level team analytics</caption>
               <thead>
                 <tr className="adv-section-row">
-                  <th scope="colgroup" colSpan={3} className="adv-section-spacer">Team</th>
+                  <th scope="colgroup" colSpan={2} className="adv-section-spacer">Team</th>
                   <th scope="colgroup" colSpan={OFFENSE_COLUMNS.length} className="adv-section-heading">Offense</th>
                   <th scope="colgroup" colSpan={DEFENSE_COLUMNS.length} className="adv-section-heading">Defense</th>
                 </tr>
@@ -408,7 +408,6 @@ export default function ExploratoryPage() {
                     <button type="button" className="column-sort" onClick={() => onHeaderClick("team")}>Team</button>
                     <span className="sort-indicator">{sortKey === "team" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
                   </th>
-                  <th scope="col" className="num record-cell">Conf</th>
                   <th scope="col" className="profile-cell">Profile</th>
                   {ALL_COLUMNS.map((col, index) => (
                     <th
@@ -428,7 +427,7 @@ export default function ExploratoryPage() {
                 {loading ? (
                   Array.from({ length: 14 }).map((_, rowIndex) => (
                     <tr key={rowIndex} className="skeleton-row">
-                      {Array.from({ length: 3 + ALL_COLUMNS.length }).map((__, cellIndex) => (
+                      {Array.from({ length: 2 + ALL_COLUMNS.length }).map((__, cellIndex) => (
                         <td key={cellIndex}>
                           <span className="skeleton-bar" style={{ width: (cellIndex === 0 ? 75 : 45 + ((cellIndex * 11) % 30)) + "%" }} />
                         </td>
@@ -437,15 +436,17 @@ export default function ExploratoryPage() {
                   ))
                 ) : visibleTeams.length === 0 ? (
                   <tr className="empty-row">
-                    <td colSpan={3 + ALL_COLUMNS.length}>No teams match &ldquo;{filter}&rdquo;.</td>
+                    <td colSpan={2 + ALL_COLUMNS.length}>No teams match &ldquo;{filter}&rdquo;.</td>
                   </tr>
                 ) : (
                   visibleTeams.map((team) => (
                     <tr key={team.slug}>
                       <td className="team-cell">
-                        <TeamLink team={team.team} teamId={team.teamId} slug={team.slug} />
+                        <div className="team-cell-stack">
+                          <TeamLink team={team.team} teamId={team.teamId} slug={team.slug} />
+                          <span className="team-conf-label">{team.conf}</span>
+                        </div>
                       </td>
-                      <td className="num record-cell">{team.conf}</td>
                       <td className="profile-cell">
                         <button type="button" className="exploratory-profile-button" onClick={() => setProfileTeam(team)}>
                           View Profile
