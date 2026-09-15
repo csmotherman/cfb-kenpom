@@ -574,11 +574,7 @@ export default function AdvancedPage() {
     [tabDef],
   );
 
-  // A new visitor lands on a tab with 5-7 sections and 10-14 columns all at
-  // once -- default to just the first ("Overall"/"Rating") section so the
-  // table is scannable, with an explicit opt-in to see everything. Resets to
-  // collapsed on every tab switch (see selectTab) rather than persisting, so
-  // it never looks like columns silently vanished.
+  const specialColumnsTab = tab === "epa" || tab === "successRate";
   const visibleSections = showAllColumns ? tabDef.sections : tabDef.sections.slice(0, 1);
   const visibleColumns = useMemo(() => visibleSections.flatMap((section) => section.columns), [visibleSections]);
 
@@ -598,14 +594,14 @@ export default function AdvancedPage() {
     setTab(nextTab);
     setSortKey(null);
     setSortDir("asc");
-    setShowAllColumns(false);
+    setShowAllColumns(nextTab === "epa" || nextTab === "successRate");
   }
 
   function selectPerspective(nextPerspective: Perspective) {
     setPerspective(nextPerspective);
     setSortKey(null);
     setSortDir("asc");
-    setShowAllColumns(false);
+    setShowAllColumns(true);
   }
 
   if (loadError) throw loadError;
@@ -753,7 +749,11 @@ export default function AdvancedPage() {
               <span aria-hidden="true">{tabDef.label}</span>
               <span aria-hidden="true">{visibleSections.map((section) => section.title).join(" • ")}</span>
               {tabDef.sections.length > 1 ? (
-                <button type="button" className="show-all-columns-toggle" onClick={() => setShowAllColumns((v) => !v)}>
+                <button
+                  type="button"
+                  className={`show-all-columns-toggle${specialColumnsTab ? " show-all-columns-toggle--mobile-only" : ""}`}
+                  onClick={() => setShowAllColumns((v) => !v)}
+                >
                   {showAllColumns
                     ? "Show fewer columns"
                     : `Show all columns (+${tabDef.sections.length - 1} more section${tabDef.sections.length - 1 === 1 ? "" : "s"})`}
