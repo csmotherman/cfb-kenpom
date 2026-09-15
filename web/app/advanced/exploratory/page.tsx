@@ -8,8 +8,9 @@ import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
 import { TipTrigger } from "@/components/Tooltip";
 import { getMeta, useExploratorySeason } from "@/lib/data";
+import { ALL_COLUMNS, SECTION_START_KEYS, SECTIONS, SERIES_OFFENSE, aggregateExploratory, rankExploratory, minimumN, fanTier, type Aggregated } from "@/lib/exploratory";
 import { columnRange, heatBackground } from "@/lib/heatmap";
-import type { ExploratorySeason, ExploratoryRow, ExploratoryWeekCounts } from "@/lib/types";
+import type { ExploratorySeason, ExploratoryRow } from "@/lib/types";
 
 function na(v: unknown): v is null | undefined {
   return v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
@@ -21,206 +22,6 @@ const FORMATTERS: Record<string, (v: number | null) => string> = {
   plain3: (v) => (na(v) ? "—" : v.toFixed(3)),
   signed3: (v) => (na(v) ? "—" : (v >= 0 ? "+" : "") + v.toFixed(3)),
 };
-
-// A single week's sample sizes for these metrics cluster well above this on
-// a normal team-week (median ~29 series opportunities, ~18 recovery
-// opportunities per team per week across the 2025 corpus audit) but the low
-// end (single-digit-to-teens) carries real binomial noise -- e.g. a 70% true
-// rate at N=15 has a standard error north of 10 points. One shared threshold
-// across every rate on this page rather than per-metric tuning, since their
-// single-week denominators sit in a similar range.
-const MIN_RELIABLE_N = 20;
-
-type ExpColumn = {
-  key: string;
-  label: string;
-  num: keyof ExploratoryWeekCounts;
-  den: keyof ExploratoryWeekCounts;
-  tooltip: string;
-  profileNote: string;
-  fmt?: keyof typeof FORMATTERS;
-  lowerBetter?: boolean;
-  noHeatmap?: boolean;
-};
-
-type ExpSection = { title: string; columns: ExpColumn[] };
-
-const SERIES_OFFENSE: ExpColumn[] = [
-  {
-    key: "seriesConversionRate",
-    label: "Series Conversion %",
-    num: "seriesConversions",
-    den: "seriesOpportunities",
-    tooltip: "How often a fresh set of downs ends with another first down or a touchdown. It counts conversions on any down, not just 3rd down.",
-    profileNote: "Keeps the chains moving on any down",
-  },
-  {
-    key: "recoveryRate",
-    label: "Recovery %",
-    num: "recoveredSeries",
-    den: "recoveryOpportunities",
-    tooltip: "After an unsuccessful 1st- or 2nd-down play, how often the offense still earns another first down or touchdown in that same series.",
-    profileNote: "Bounces back after a bad early down",
-  },
-  {
-    key: "longDownAvoidanceRate",
-    label: "Avoid 3rd & Long %",
-    num: "longDownAvoidanceSeries",
-    den: "eligibleSeries",
-    tooltip: "How often the offense gets through a series without facing 3rd-and-7 or longer. Higher means it stays on schedule more often.",
-    profileNote: "Stays out of obvious passing situations",
-  },
-];
-
-const SERIES_DEFENSE: ExpColumn[] = [
-  {
-    key: "seriesStopRate",
-    label: "Series Stop %",
-    num: "seriesStops",
-    den: "seriesStopOpportunities",
-    tooltip: "How often the defense ends an opponent's fresh set of downs before the offense gains another first down or scores a touchdown.",
-    profileNote: "Ends an opponent's fresh set of downs",
-  },
-  {
-    key: "closeoutRate",
-    label: "Closeout %",
-    num: "closeouts",
-    den: "closeoutOpportunities",
-    tooltip: "After the defense wins an early down, how often it finishes the series without allowing another first down or touchdown.",
-    profileNote: "Finishes the job after winning an early down",
-  },
-  {
-    key: "longDownCreationRate",
-    label: "Force 3rd & Long %",
-    num: "longDownsCreated",
-    den: "longDownCreationOpportunities",
-    tooltip: "How often the defense forces an opponent into 3rd-and-7 or longer. Higher means more obvious passing situations created.",
-    profileNote: "Creates obvious passing situations",
-  },
-];
-
-const POSSESSIONS_OFFENSE: ExpColumn[] = [
-  {
-    key: "cleanDriveRate", label: "Clean Drive %",
-    num: "cleanDrives", den: "eligibleDrives",
-    tooltip: "How often the offense gets through an entire possession without a turnover, sack, TFL, costly accepted penalty, or failed 4th down.",
-    profileNote: "Avoids the self-inflicted mistakes that stall a drive",
-  },
-  {
-    key: "driveKillerRate", label: "Drive Killer %",
-    num: "drivesKilled", den: "drivesWithKillerEvent",
-    tooltip: "How often a major mistake (turnover, sack, TFL, costly penalty, failed 4th down) actually puts the drive away for good, of the drives that had one.",
-    profileNote: "How often one mistake ends the whole possession",
-    lowerBetter: true,
-  },
-];
-
-const POSSESSIONS_DEFENSE: ExpColumn[] = [
-  {
-    key: "cleanDriveRateAllowed", label: "Clean Drive % Allowed",
-    num: "cleanDrivesAllowed", den: "eligibleDrivesFaced",
-    tooltip: "How often the opponent's offense gets through an entire possession against this defense without a mistake. Lower is better defense.",
-    profileNote: "Lets opponents drive mistake-free too often, or not",
-    lowerBetter: true,
-  },
-  {
-    key: "driveKillerRateForced", label: "Drive Killer % Forced",
-    num: "drivesKilledForced", den: "drivesWithKillerEventForced",
-    tooltip: "Of opponent drives that had a major mistake against this defense, how often the defense actually finished the drive off.",
-    profileNote: "Turns an opponent's mistake into a dead drive",
-  },
-];
-
-const STYLE_RISK: ExpColumn[] = [
-  {
-    key: "explosiveDependency", label: "Explosive Dependency",
-    num: "explosivePositiveEpa", den: "positiveEpa",
-    tooltip: "Share of an offense's positive EPA generated by explosive plays (rush 10+ yards, pass 20+ yards). Descriptive, not a quality signal -- high dependency can mean dangerous, or volatile.",
-    profileNote: "How much of the offense rides on its biggest plays",
-    noHeatmap: true,
-  },
-  {
-    key: "nonExplosiveEpaPerPlay", label: "Non-Explosive EPA/play",
-    num: "nonExplosiveEpa", den: "nonExplosivePlays",
-    tooltip: "How efficient the offense is when explosive plays are removed from the picture.",
-    profileNote: "How the offense performs once the big plays are set aside",
-    fmt: "signed3",
-  },
-  {
-    key: "failureRate", label: "Failure Rate",
-    num: "negativeEpaPlays", den: "epaEligiblePlays",
-    tooltip: "How often the offense produces a negative-EPA play.",
-    profileNote: "How often a play actively hurts the offense",
-    lowerBetter: true,
-  },
-  {
-    key: "averageFailureDamage", label: "Avg Failure Damage",
-    num: "negativeEpaMagnitudeSum", den: "negativeEpaPlays",
-    tooltip: "How costly the offense's bad plays are when they happen.",
-    profileNote: "How bad the bad plays really are",
-    fmt: "plain3", lowerBetter: true,
-  },
-  {
-    key: "failureBurden", label: "Failure Burden",
-    num: "negativeEpaMagnitudeSum", den: "epaEligiblePlays",
-    tooltip: "How much negative EPA the offense gives away per play through mistakes and failed plays. Failure Rate times Average Failure Damage.",
-    profileNote: "The full cost of an offense's mistakes, per play",
-    fmt: "plain3", lowerBetter: true,
-  },
-  {
-    key: "failurePressure", label: "Failure Pressure",
-    num: "opponentNegativeEpaMagnitudeSum", den: "opponentEpaEligiblePlays",
-    tooltip: "How much negative EPA the defense forces opponents to absorb per play.",
-    profileNote: "How much damage the defense inflicts through opponent mistakes",
-    fmt: "plain3",
-  },
-];
-
-// Points per Scoring Opportunity (and its opponent mirror) is deliberately
-// NOT a column here -- a row-level check found it byte-for-byte identical to
-// the existing Finishing Drives points-per-opportunity stat (0 mismatches
-// across 1,616 2025 rows). Exposing it under a second name on this page
-// would just be the same number twice; see Finishing Drives on /advanced
-// instead. The underlying scoringOpportunity* fields still get computed and
-// exported (useful for other research), just never surfaced as a page column.
-
-const SECTIONS: ExpSection[] = [
-  { title: "Series · Offense", columns: SERIES_OFFENSE },
-  { title: "Series · Defense", columns: SERIES_DEFENSE },
-  { title: "Possessions · Offense", columns: POSSESSIONS_OFFENSE },
-  { title: "Possessions · Defense", columns: POSSESSIONS_DEFENSE },
-  { title: "Style / Risk", columns: STYLE_RISK },
-];
-
-const ALL_COLUMNS: ExpColumn[] = SECTIONS.flatMap((s) => s.columns);
-const SECTION_START_KEYS = new Set(SECTIONS.map((s) => s.columns[0]?.key).filter(Boolean));
-
-function sumField(wk: Partial<ExploratoryWeekCounts>, field: keyof ExploratoryWeekCounts): number {
-  return wk[field] ?? 0;
-}
-
-type Aggregated = {
-  team: string;
-  slug: string;
-  teamId: number;
-  conf: string;
-  wk: Partial<ExploratoryWeekCounts>;
-  [key: string]: unknown;
-};
-
-type FanTier = { label: string; className: string };
-
-function fanTier(rank: number | null, total: number, smallSample: boolean): FanTier {
-  if (smallSample) return { label: "Small Sample", className: "profile-tier--sample" };
-  if (!rank || total <= 0) return { label: "No Rank", className: "profile-tier--sample" };
-  const percentile = rank / total;
-  if (percentile <= 0.10) return { label: "Elite", className: "profile-tier--elite" };
-  if (percentile <= 0.25) return { label: "Strong", className: "profile-tier--strong" };
-  if (percentile <= 0.40) return { label: "Good", className: "profile-tier--good" };
-  if (percentile <= 0.60) return { label: "Average", className: "profile-tier--average" };
-  if (percentile <= 0.80) return { label: "Below Avg", className: "profile-tier--below" };
-  return { label: "Needs Work", className: "profile-tier--poor" };
-}
 
 const EMPTY_WEEKS: number[] = [];
 const EMPTY_BY_WEEK: Record<string, ExploratoryRow[]> = {};
@@ -280,54 +81,10 @@ export default function ExploratoryPage() {
 
   const teams = useMemo<Aggregated[]>(() => {
     if (startWeek === null || endWeek === null) return [];
-    const selectedWeeks = weeks.filter((week) => week >= startWeek && week <= endWeek);
-    const byTeam = new Map<string, Aggregated>();
-
-    selectedWeeks.forEach((week) => {
-      const rows = seasonByWeek[String(week)] || [];
-      rows.forEach((row) => {
-        let acc = byTeam.get(row.slug);
-        if (!acc) {
-          acc = { team: row.team, slug: row.slug, teamId: row.teamId, conf: row.conf, wk: {} };
-          byTeam.set(row.slug, acc);
-        }
-        const wkData = row.wk || {};
-        (Object.keys(wkData) as (keyof ExploratoryWeekCounts)[]).forEach((key) => {
-          acc!.wk[key] = (acc!.wk[key] ?? 0) + (wkData[key] ?? 0);
-        });
-      });
-    });
-
-    return Array.from(byTeam.values()).map((acc) => {
-      const out: Aggregated = { ...acc };
-      ALL_COLUMNS.forEach((col) => {
-        const num = sumField(acc.wk, col.num);
-        const den = sumField(acc.wk, col.den);
-        out[col.key] = den > 0 ? num / den : null;
-        out[`${col.key}_n`] = den;
-      });
-      return out;
-    });
+    return aggregateExploratory(seasonByWeek, weeks, startWeek, endWeek);
   }, [seasonByWeek, weeks, startWeek, endWeek]);
 
-  const rankedTeams = useMemo(() => {
-    const withRanks = teams.map((team) => ({ ...team }));
-    ALL_COLUMNS.forEach((col) => {
-      const ranked = withRanks.filter(
-        (team) => !na(team[col.key] as number | null) && (team[`${col.key}_n`] as number) >= MIN_RELIABLE_N
-      );
-      ranked.sort((a, b) => {
-        const av = a[col.key] as number;
-        const bv = b[col.key] as number;
-        return col.lowerBetter ? av - bv : bv - av;
-      });
-      ranked.forEach((team, index) => { team[`_rank_${col.key}`] = index + 1; });
-      withRanks.forEach((team) => {
-        if (team[`_rank_${col.key}`] === undefined) team[`_rank_${col.key}`] = null;
-      });
-    });
-    return withRanks;
-  }, [teams]);
+  const rankedTeams = useMemo(() => rankExploratory(teams), [teams]);
 
   const visibleTeams = useMemo(() => {
     const needle = filter.trim().toLowerCase();
@@ -351,7 +108,7 @@ export default function ExploratoryPage() {
     ALL_COLUMNS.forEach((col) => {
       ranges[col.key] = columnRange(
         teams
-          .filter((team) => (team[`${col.key}_n`] as number) >= MIN_RELIABLE_N)
+          .filter((team) => (team[`${col.key}_n`] as number) >= minimumN(col))
           .map((team) => team[col.key] as number | null)
       );
     });
@@ -362,7 +119,7 @@ export default function ExploratoryPage() {
     const counts: Record<string, number> = {};
     ALL_COLUMNS.forEach((col) => {
       counts[col.key] = teams.filter(
-        (team) => !na(team[col.key] as number | null) && (team[`${col.key}_n`] as number) >= MIN_RELIABLE_N
+        (team) => !na(team[col.key] as number | null) && (team[`${col.key}_n`] as number) >= minimumN(col)
       ).length;
     });
     return counts;
@@ -501,7 +258,7 @@ export default function ExploratoryPage() {
         </div>
         <p className="container adv-note">
           Every rate sums the raw counts across the selected week range, then divides -- never an average of
-          weekly percentages. Grayed-out cells fell below {MIN_RELIABLE_N} in their sample and are shown without a
+          weekly percentages. Grayed-out cells fall below their metric’s sample floor (25 series, 16 recovery opportunities, or 10 for Wave 2; 20 for secondary failure diagnostics) and are shown without a
           national rank. Explosive Dependency is descriptive -- it is not color-coded good or bad.
         </p>
       </div>
@@ -577,7 +334,7 @@ export default function ExploratoryPage() {
                         const value = team[col.key] as number | null;
                         const n = team[`${col.key}_n`] as number;
                         const rank = team[`_rank_${col.key}`] as number | null;
-                        const smallSample = n < MIN_RELIABLE_N;
+                        const smallSample = n < minimumN(col);
                         const format = FORMATTERS[col.fmt ?? "pct1"];
                         return (
                           <td
@@ -651,12 +408,10 @@ export default function ExploratoryPage() {
                       const value = profileTeam[col.key] as number | null;
                       const n = profileTeam[`${col.key}_n`] as number;
                       const rank = profileTeam[`_rank_${col.key}`] as number | null;
-                      const smallSample = n < MIN_RELIABLE_N;
+                      const smallSample = n < minimumN(col);
                       const eligibleCount = eligibleCounts[col.key] ?? 0;
                       const format = FORMATTERS[col.fmt ?? "pct1"];
-                      const tier = col.noHeatmap
-                        ? { label: "Descriptive", className: "profile-tier--sample" }
-                        : fanTier(rank, eligibleCount, smallSample);
+                      const tier = fanTier(rank, eligibleCount, smallSample, col.noHeatmap);
                       return (
                         <tr key={col.key}>
                           <td className="profile-metric-name">

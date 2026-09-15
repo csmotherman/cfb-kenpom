@@ -1,0 +1,5 @@
+# Pregame inputs and individual predictions contain premium game data.
+snapshots-*.json.gz
+predictions.json.gz
+generic-checkpoint.json
+control-checkpoint.json
