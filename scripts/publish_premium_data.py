@@ -101,12 +101,23 @@ def upsert(base_url: str, secret: str, row: dict, retries: int = 3) -> None:
             verify_persisted_hash(base_url, secret, row)
             return
         except HTTPError as exc:
-            # A clean HTTP error response -- surface Supabase/PostgREST's own
-            # error body (never our payload or the secret) so a failure says
-            # WHY -- e.g. a request-size limit on a multi-megabyte season
-            # blob -- instead of just "HTTP 500". Retrying won't fix a
-            # deterministic rejection like this, so fail immediately.
             detail = exc.read().decode("utf-8", errors="replace")[:2000]
+            if exc.code >= 500 and attempt < retries:
+                # 5xx (including Cloudflare's 520-527 edge-connectivity codes,
+                # which have shown up twice fronting Supabase's own API) is
+                # the origin/edge having a bad moment, not a rejection of
+                # this specific request -- retry the same way a
+                # connection-level failure below does. A 4xx is a real
+                # rejection (bad payload, size limit, auth) and still fails
+                # immediately; retrying that would just repeat the same error.
+                last_error = RuntimeError(f"HTTP {exc.code} {exc.reason} -- {detail}")
+                print(f"    attempt {attempt} failed (HTTP {exc.code}), retrying...", flush=True)
+                time.sleep(2 * attempt)
+                continue
+            # A clean, non-retryable HTTP error response -- surface Supabase/
+            # PostgREST's own error body (never our payload or the secret) so
+            # a failure says WHY -- e.g. a request-size limit on a
+            # multi-megabyte season blob -- instead of just "HTTP 500".
             raise RuntimeError(
                 f"Supabase premium upsert failed for {context}: HTTP {exc.code} {exc.reason} -- {detail}"
             ) from exc
