@@ -15,6 +15,7 @@ type TurnoverPlay = {
   team: string;
   description: string;
   value: number;
+  defensiveTd?: boolean;
 };
 
 type TeamSwing = {
@@ -111,7 +112,7 @@ function TurnoverTable({ plays }: { plays: TurnoverPlay[] }) {
         </thead>
         <tbody>
           {plays.map((p) => {
-            const isDefensiveTd = /TOUCHDOWN/.test(p.description);
+            const isDefensiveTd = Boolean(p.defensiveTd);
             const isBackbreaker = p.value <= -5;
             return (
               <tr key={`${p.qtrClock}-${p.team}-${p.description}`}>
@@ -145,9 +146,9 @@ const MICHIGAN_OKLAHOMA_SWING: TeamSwing[] = [
 ];
 
 const ALABAMA_KENTUCKY_PLAYS: TurnoverPlay[] = [
-  { qtrClock: "Q1, 10:15", team: "Alabama", description: "Russell intercepted by Humphrey-Grace, returned 2 yards", value: -6.61 },
+  { qtrClock: "Q1, 10:15", team: "Alabama", description: "Russell intercepted by Humphrey-Grace, returned 2 yards", value: -6.61, defensiveTd: true },
   { qtrClock: "Q1, 7:17", team: "Alabama", description: "Russell sacked, fumbles, recovered by Kentucky (C.Works)", value: -0.96 },
-  { qtrClock: "Q1, 6:44", team: "Kentucky", description: "Minchey intercepted by L.Metz, returned 34 yards", value: -7.23 },
+  { qtrClock: "Q1, 6:44", team: "Kentucky", description: "Minchey intercepted by L.Metz, returned 34 yards", value: -7.23, defensiveTd: true },
   { qtrClock: "Q2, 0:55", team: "Alabama", description: "Russell intercepted by J.Castell", value: 0.02 },
   { qtrClock: "Q3, 5:47", team: "Kentucky", description: "Minchey sacked, fumbles, recovered by Alabama (I.Faga)", value: -0.51 },
   { qtrClock: "Q4, 2:42", team: "Kentucky", description: "Patterson rushes for 3 yards, fumbles, recovered by Alabama (I.Taylor)", value: -1.66 },
