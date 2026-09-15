@@ -57,6 +57,17 @@
   padding-bottom: 3px;
 }
 
+/* The first column now states the actual calculation in plain football terms. */
+.exploratory-profile-table thead th:first-child {
+  font-size: 0;
+}
+.exploratory-profile-table thead th:first-child::after {
+  content: "How it's calculated";
+  font: 800 8px/1 var(--font-body);
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
 .exploratory-profile-table thead th:nth-child(1) { width: 49%; }
 .exploratory-profile-table thead th:nth-child(2) { width: 16%; }
 .exploratory-profile-table thead th:nth-child(3) { width: 15%; }
@@ -89,6 +100,12 @@
 .profile-rank small {
   margin-top: 1px;
   font-size: 7px;
+}
+
+/* Explosive Dependency's denominator is positive EPA, not a count of plays.
+   Hiding the generic N label avoids implying that a decimal EPA total is a sample size. */
+.exploratory-profile-section:last-of-type .exploratory-profile-table tbody tr:first-child .profile-rate small {
+  display: none;
 }
 
 .profile-tier {
