@@ -4,9 +4,9 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata = {
-  title: "EPA/Play Already Hides Your Turnovers | LEILA Ratings",
+  title: "PPA/Play Already Hides Your Turnovers | LEILA Ratings",
   description:
-    "We audited every turnover in three Week 2 classics -- Texas-Ohio State, Alabama-Kentucky, Michigan-Oklahoma -- against CFBD's official box score, then checked how many actually show up in EPA per play. Of 11 real turnovers, only 2 do.",
+    "We audited every turnover in three Week 2 classics -- Texas-Ohio State, Alabama-Kentucky, Michigan-Oklahoma -- against CFBD's official box score, then checked how many actually show up in PPA per play. Of 11 real turnovers, only 2 do.",
   robots: { index: false, follow: false },
 };
 
@@ -29,9 +29,9 @@ export default function RkAnalysisArticle() {
       <main id="articleContent" className="container article-main">
         <header className="article-hero">
           <span className="eyebrow">Data Investigation</span>
-          <h1>EPA/Play Already Hides Almost All of Your Turnovers</h1>
+          <h1>PPA/Play Already Hides Almost All of Your Turnovers</h1>
           <p className="article-dek">
-            We set out to compare each team&rsquo;s EPA per play with turnovers included against the published number
+            We set out to compare each team&rsquo;s PPA per play with turnovers included against the published number
             (which excludes them) in three Week 2 classics: Texas-Ohio State, Alabama-Kentucky, and Michigan-Oklahoma.
             The first pass at this got the turnover count wrong, so we redid it against CFBD&rsquo;s official box
             score, play by play, until every number below matched. Here&rsquo;s what actually happened.
@@ -41,16 +41,18 @@ export default function RkAnalysisArticle() {
 
         <section className="article-section">
           <p>
-            EPA (expected points added) per play is the backbone of most modern offensive and defensive ratings,
-            including LEILA&rsquo;s own. Our eligibility rule for counting a play toward that average is simple: it
-            has to be a real offensive scrimmage snap, not a penalty or no-play, and CFBD has to have actually
-            produced a value for it.
+            PPA (predicted points added) is CFBD&rsquo;s own play-level model &mdash; the same kind of metric most
+            sites, including this one, refer to as &ldquo;EPA&rdquo; (expected points added). We use CFBD&rsquo;s
+            PPA directly rather than fitting our own, so &ldquo;EPA&rdquo; on LEILA Ratings has always meant PPA per
+            play under the hood. This piece uses PPA throughout, since that&rsquo;s the actual field being measured.
+            Our eligibility rule for counting a play toward the average is simple: it has to be a real offensive
+            scrimmage snap, not a penalty or no-play, and CFBD has to have actually produced a value for it.
           </p>
           <p>
             That rule turns out to exclude almost every turnover &mdash; not because of a methodology choice, but
             because the play-by-play feed logs a turnover&rsquo;s <em>return</em> (the interception return, the
             fumble recovery) as its own separate play, flagged as a non-offensive snap. The original throw or
-            handoff that actually lost the ball usually carries no separate EPA value once the return is logged this
+            handoff that actually lost the ball usually carries no separate PPA value once the return is logged this
             way.
           </p>
           <p>
@@ -68,13 +70,13 @@ export default function RkAnalysisArticle() {
           </div>
           <p>
             Box score: <strong>Oklahoma 2 turnovers, Michigan 0.</strong> Both of Oklahoma&rsquo;s are logged as
-            return/recovery plays rather than offensive snaps, so <strong>neither has a usable EPA value</strong>{" "}
-            &mdash; the published EPA/play for both teams is identical whether you count turnovers or not, because
+            return/recovery plays rather than offensive snaps, so <strong>neither has a usable PPA value</strong>{" "}
+            &mdash; the published PPA/play for both teams is identical whether you count turnovers or not, because
             there&rsquo;s nothing to add.
           </p>
           <div className="article-table-wrap">
             <table className="article-table article-table--wide">
-              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>CFBD play value</th><th>EPA-visible?</th></tr></thead>
+              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>CFBD play value</th><th>PPA-visible?</th></tr></thead>
               <tbody>
                 <tr><td>Q2, 13:32</td><td>Oklahoma</td><td>Mateer completes to Livingstone for 8 yards, fumbles, recovered by Michigan (Bowles)</td><td>-3.34</td><td>No</td></tr>
                 <tr><td>Q4, 8:49</td><td>Oklahoma</td><td>Mateer intercepted by J.Hill, returned 24 yards</td><td>+0.23</td><td>No</td></tr>
@@ -83,7 +85,7 @@ export default function RkAnalysisArticle() {
           </div>
           <div className="article-table-wrap">
             <table className="article-table">
-              <thead><tr><th>Team</th><th>Box score turnovers</th><th>Offense EPA/play</th><th>Defense EPA/play allowed</th></tr></thead>
+              <thead><tr><th>Team</th><th>Box score turnovers</th><th>Offense PPA/play</th><th>Defense PPA/play allowed</th></tr></thead>
               <tbody>
                 <tr><td>Michigan</td><td>0</td><td>0.101</td><td>0.083</td></tr>
                 <tr><td>Oklahoma</td><td>2</td><td>0.083</td><td>0.101</td></tr>
@@ -108,11 +110,11 @@ export default function RkAnalysisArticle() {
             &ldquo;genuine&rdquo; turnover between both teams, because two of the real fumbles were logged by CFBD
             with a structured label that says &ldquo;Fumble Recovery (Own)&rdquo; while the actual play text says
             the <em>opponent</em> recovered it. Trusting the label instead of the text undercounted both teams.
-            Corrected, here&rsquo;s every turnover and whether it reaches EPA:
+            Corrected, here&rsquo;s every turnover and whether it reaches PPA:
           </p>
           <div className="article-table-wrap">
             <table className="article-table article-table--wide">
-              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>CFBD play value</th><th>EPA-visible?</th></tr></thead>
+              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>CFBD play value</th><th>PPA-visible?</th></tr></thead>
               <tbody>
                 <tr><td>Q1, 10:15</td><td>Alabama</td><td>Russell intercepted by Humphrey-Grace, returned 2 yards for a TOUCHDOWN</td><td>-6.61</td><td>No</td></tr>
                 <tr><td>Q1, 7:17</td><td>Alabama</td><td>Russell sacked, fumbles, recovered by Kentucky (C.Works)</td><td>-0.96</td><td>No</td></tr>
@@ -125,12 +127,12 @@ export default function RkAnalysisArticle() {
           </div>
           <p>
             Five of six real turnovers in this game &mdash; including both pick-six returns, worth a combined
-            -13.8 points by CFBD&rsquo;s own model &mdash; never touch either offense&rsquo;s published EPA/play.
+            -13.8 points by CFBD&rsquo;s own model &mdash; never touch either offense&rsquo;s published PPA/play.
             Only Alabama&rsquo;s late interception is countable, and it barely moves anything:
           </p>
           <div className="article-table-wrap">
             <table className="article-table">
-              <thead><tr><th>Team</th><th>Box score turnovers</th><th>Published Off. EPA/play</th><th>+ the one EPA-visible turnover</th></tr></thead>
+              <thead><tr><th>Team</th><th>Box score turnovers</th><th>Published Off. PPA/play</th><th>+ the one PPA-visible turnover</th></tr></thead>
               <tbody>
                 <tr><td>Alabama</td><td>3</td><td>0.353</td><td>0.347</td></tr>
                 <tr><td>Kentucky</td><td>3</td><td>0.001</td><td className="hi">0.001 &mdash; unchanged</td></tr>
@@ -155,13 +157,13 @@ export default function RkAnalysisArticle() {
             A one-point game, and this is the one where the invisible plays actually matter for how the game is
             remembered. Texas fumbled a short pass away on its opening drive (recovered by Ohio State) and threw a
             first-half interception that set up an Ohio State scoring chance &mdash; both logged as return/recovery
-            plays, both invisible to EPA. Ohio State&rsquo;s only turnover was a desperation interception on the
-            final, game-ending snap, which <em>is</em> EPA-visible (+0.14) but happened after the outcome was
+            plays, both invisible to PPA. Ohio State&rsquo;s only turnover was a desperation interception on the
+            final, game-ending snap, which <em>is</em> PPA-visible (+0.14) but happened after the outcome was
             essentially decided.
           </p>
           <div className="article-table-wrap">
             <table className="article-table article-table--wide">
-              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>CFBD play value</th><th>EPA-visible?</th></tr></thead>
+              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>CFBD play value</th><th>PPA-visible?</th></tr></thead>
               <tbody>
                 <tr><td>Q1, 14:49</td><td>Texas</td><td>Manning completes to R.Brown, fumbles, recovered by Ohio State (J.Timmons)</td><td>-0.73</td><td>No</td></tr>
                 <tr><td>Q1, 10:15</td><td>Texas</td><td>Manning intercepted by J.McClain, returned 7 yards</td><td>-2.05</td><td>No</td></tr>
@@ -171,7 +173,7 @@ export default function RkAnalysisArticle() {
           </div>
           <div className="article-table-wrap">
             <table className="article-table">
-              <thead><tr><th>Team</th><th>Box score turnovers</th><th>Offense EPA/play</th><th>Defense EPA/play allowed</th></tr></thead>
+              <thead><tr><th>Team</th><th>Box score turnovers</th><th>Offense PPA/play</th><th>Defense PPA/play allowed</th></tr></thead>
               <tbody>
                 <tr><td>Texas</td><td>2</td><td>0.193</td><td>0.148</td></tr>
                 <tr><td>Ohio State</td><td>1</td><td>0.148</td><td>0.193</td></tr>
@@ -188,18 +190,18 @@ export default function RkAnalysisArticle() {
         <section className="article-section">
           <div className="article-section__heading">
             <span className="eyebrow">What This Actually Means</span>
-            <h2>11 real turnovers. 2 show up in EPA.</h2>
+            <h2>11 real turnovers. 2 show up in PPA.</h2>
           </div>
           <div className="article-stat-grid">
             <Stat value="11" label="Real turnovers across all 3 games, verified against CFBD's box score" />
-            <Stat value="2" label="That are EPA-visible on the offense that committed them" />
-            <Stat value="9" label="Real turnovers with zero EPA footprint -- including both pick-sixes" />
+            <Stat value="2" label="That are PPA-visible on the offense that committed them" />
+            <Stat value="9" label="Real turnovers with zero PPA footprint -- including both pick-sixes" />
             <Stat value="-22.9" label="Combined CFBD play value on turnovers that never reach a published number" />
           </div>
           <p>
             The finding isn&rsquo;t &ldquo;turnovers barely mattered in these 3 games&rdquo; &mdash; two of them were
             pick-six touchdowns and a third set up a scoring chance in a one-point game. The finding is that{" "}
-            <strong>the published EPA/play number is already much closer to &ldquo;EPA without turnovers&rdquo; than
+            <strong>the published PPA/play number is already much closer to &ldquo;PPA without turnovers&rdquo; than
             most readers would assume</strong>, for a structural reason that has nothing to do with how good or bad
             a team&rsquo;s process actually was.
           </p>
@@ -237,12 +239,13 @@ export default function RkAnalysisArticle() {
 
         <p className="article-footnote">
           Turnover counts are CFBD&rsquo;s official box score (<code>/games/teams</code>, <code>turnovers</code>{" "}
-          category) for gameIds 401856679, 401856674, and 401856682 (Week 2, 2026). EPA figures use the offensive-EPA
-          eligibility rule published site-wide (a real scrimmage snap, an offensive play, a non-null CFBD PPA value,
-          no penalty/no-play modifier). Each turnover was matched to its play-by-play row by hand, cross-referencing
-          the play text (not CFBD&rsquo;s structured recovery label, which was found to be unreliable on at least two
-          plays) against the box score total for that team, so every game&rsquo;s turnover count above reconciles
-          exactly with CFBD&rsquo;s own official stat.
+          category) for gameIds 401856679, 401856674, and 401856682 (Week 2, 2026). PPA figures use the
+          offensive-PPA eligibility rule published site-wide (a real scrimmage snap, an offensive play, a non-null
+          CFBD PPA value, no penalty/no-play modifier) &mdash; the same field this site otherwise labels
+          &ldquo;EPA&rdquo; for readability. Each turnover was matched to its play-by-play row by hand,
+          cross-referencing the play text (not CFBD&rsquo;s structured recovery label, which was found to be
+          unreliable on at least two plays) against the box score total for that team, so every game&rsquo;s
+          turnover count above reconciles exactly with CFBD&rsquo;s own official stat.
         </p>
       </main>
 
