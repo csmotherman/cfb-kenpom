@@ -38,35 +38,62 @@
 }
 
 /* Keep the research table dense without letting identity columns bleed into
-   the metrics. */
+   the metrics. The larger minimum width is intentional: squeezing the team,
+   conference, and profile columns caused long names to paint over neighbors. */
 #exploratoryTable .adv-table {
   width: 100%;
-  min-width: 1040px;
+  min-width: 1260px;
   table-layout: fixed;
 }
 
 #exploratoryTable .adv-table .team-cell {
-  width: 185px;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+  overflow: hidden;
+}
+
+#exploratoryTable .adv-table .team-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+#exploratoryTable .adv-table .team-link .team-logo {
+  flex: 0 0 auto;
+}
+
+#exploratoryTable .adv-table .team-link .team-name {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #exploratoryTable .adv-table .record-cell {
-  width: 88px;
-  min-width: 88px;
-  max-width: 88px;
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
   padding-left: 7px;
   padding-right: 7px;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: normal;
-  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+  font-size: 10.5px;
   text-align: center;
   vertical-align: middle;
 }
 
 #exploratoryTable .adv-table .profile-cell {
-  width: 84px;
-  min-width: 84px;
-  max-width: 84px;
+  width: 82px;
+  min-width: 82px;
+  max-width: 82px;
   padding-left: 4px;
   padding-right: 4px;
   text-align: center;
@@ -88,7 +115,7 @@
 .exploratory-profile-button {
   display: block;
   width: 100%;
-  max-width: 72px;
+  max-width: 70px;
   margin: 0 auto;
   box-sizing: border-box;
   appearance: none;
@@ -96,12 +123,11 @@
   background: var(--color-paper);
   color: var(--color-navy);
   border-radius: var(--radius-sm);
-  padding: 4px 3px;
-  font: 800 9px/1 var(--font-body);
-  letter-spacing: -0.01em;
+  padding: 4px 2px;
+  font: 800 8.75px/1 var(--font-body);
+  letter-spacing: -0.015em;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: clip;
   cursor: pointer;
 }
 .exploratory-profile-button:hover,
@@ -280,29 +306,32 @@
   .exploratory-subnav { padding-left: var(--space-4); padding-right: var(--space-4); }
 
   #exploratoryTable .adv-table {
-    min-width: 960px;
+    min-width: 1180px;
   }
 
   #exploratoryTable .adv-table .team-cell {
-    width: 156px;
+    width: 190px;
+    min-width: 190px;
+    max-width: 190px;
   }
 
   #exploratoryTable .adv-table .record-cell {
+    width: 90px;
+    min-width: 90px;
+    max-width: 90px;
+    font-size: 9.5px;
+  }
+
+  #exploratoryTable .adv-table .profile-cell {
     width: 76px;
     min-width: 76px;
     max-width: 76px;
   }
 
-  #exploratoryTable .adv-table .profile-cell {
-    width: 74px;
-    min-width: 74px;
-    max-width: 74px;
-  }
-
   .exploratory-profile-button {
-    max-width: 62px;
-    font-size: 8.5px;
-    padding: 4px 2px;
+    max-width: 64px;
+    font-size: 8px;
+    padding: 4px 1px;
   }
 
   .exploratory-modal-backdrop {
