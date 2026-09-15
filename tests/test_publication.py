@@ -244,6 +244,51 @@ class EpaDerivedLayerTests(unittest.TestCase):
         not_scrimmage = {**clean, "isScrimmagePlay": False}
         self.assertIsNone(classify_epa(not_scrimmage))
 
+    def test_epa_counts_turnovers_merged_into_a_non_scrimmage_return_row(self):
+        # A "Pass Interception Return"/"Fumble Recovery (Opponent)"-style row:
+        # CFBD merges the original snap with the return, so isScrimmagePlay/
+        # isOffensivePlay are correctly False for the return itself, but the
+        # offense's own snap value (ppa) still belongs to the offense.
+        from cfb_analytics.analytics.epa import classify_epa
+        merged_turnover_return = {
+            "ppa": -2.5, "isScrimmagePlay": False, "isOffensivePlay": False,
+            "hasStateTransitionModifier": True, "hasNoPlayContext": False,
+            "isTurnover": True, "eventCategory": "TURNOVER",
+        }
+        self.assertEqual(classify_epa(merged_turnover_return), -2.5)
+
+    def test_epa_still_excludes_a_turnover_nullified_by_penalty(self):
+        from cfb_analytics.analytics.epa import classify_epa
+        no_played_turnover = {
+            "ppa": -2.5, "isScrimmagePlay": False, "isOffensivePlay": False,
+            "hasStateTransitionModifier": True, "hasNoPlayContext": True,
+            "isTurnover": True, "eventCategory": "TURNOVER",
+        }
+        self.assertIsNone(classify_epa(no_played_turnover))
+
+    def test_epa_leaves_non_turnover_category_special_teams_untouched(self):
+        # isTurnover=True but not the TURNOVER category (e.g. a defensive
+        # 2pt conversion) must NOT get the exemption -- only genuine
+        # interception/fumble rows do.
+        from cfb_analytics.analytics.epa import classify_epa
+        defensive_two_point = {
+            "ppa": -2.0, "isScrimmagePlay": False, "isOffensivePlay": False,
+            "hasStateTransitionModifier": False, "hasNoPlayContext": False,
+            "isTurnover": True, "eventCategory": "CONVERSION",
+        }
+        self.assertIsNone(classify_epa(defensive_two_point))
+
+    def test_epa_still_excludes_non_turnover_non_scrimmage_plays(self):
+        # A real special-teams return (punt/kickoff) with no offensive snap
+        # attached must still be excluded -- only turnovers get the pass.
+        from cfb_analytics.analytics.epa import classify_epa
+        punt_return = {
+            "ppa": 0.8, "isScrimmagePlay": False, "isOffensivePlay": False,
+            "hasStateTransitionModifier": False, "hasNoPlayContext": False,
+            "isTurnover": False, "eventCategory": "SPECIAL_TEAMS",
+        }
+        self.assertIsNone(classify_epa(punt_return))
+
     def test_pass_rush_epa_sums_reconcile_to_overall_and_down_splits_are_captured(self):
         from cfb_analytics.derived.games import _metric_fields
         plays = [
@@ -297,12 +342,20 @@ class GarbageTimeExclusionTests(unittest.TestCase):
 
     # Season totals of the validated research population (2025, FBS-vs-FBS),
     # from the shadow-ratings reconciliation: production's unfiltered
-    # aggregation runs ~14% high on EPA-eligible snaps (102,543) against the
-    # study's garbage-time-filtered 90,018.
+    # aggregation runs ~14% high on EPA-eligible snaps (105,081) against the
+    # study's garbage-time-filtered 92,210.
+    #
+    # epaPlays/epaSum below were recomputed for epa-v2-cfbd-ppa-turnovers-
+    # included (see epa.py) -- turnovers previously excluded wholesale by
+    # the scrimmage-snap gate (most interceptions/fumbles, since CFBD merges
+    # the original snap with the return into one non-scrimmage row) are now
+    # counted toward the offense that had the ball. successEligiblePlays/
+    # successfulPlays/successfulPlayYards are untouched: classify_success()
+    # was not part of this change.
     RESEARCH_2025 = {
-        "epaPlays": 90018, "successEligiblePlays": 90092,
+        "epaPlays": 92210, "successEligiblePlays": 90092,
         "successfulPlays": 38371, "successfulPlayYards": 467382,
-        "epaSum": 19619.32137786548,
+        "epaSum": 15574.13755504639,
     }
 
     def _snap(self, period=4, minutes=2, seconds=0, offense_score=0, defense_score=0):
@@ -387,7 +440,7 @@ class GarbageTimeExclusionTests(unittest.TestCase):
             else:
                 self.assertEqual(total, expected, msg=key)
         unfiltered = metric_fields_by_team_game(self._plays_2025(), False)
-        self.assertEqual(sum(f["epaPlays"] for f in unfiltered.values()), 102543)
+        self.assertEqual(sum(f["epaPlays"] for f in unfiltered.values()), 105081)
 
 
 class EarlySeasonBlendTests(unittest.TestCase):

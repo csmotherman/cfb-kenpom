@@ -24,6 +24,15 @@ def _family(p):
  s=str(p.get("eventSubtype") or "").lower()
  if "rush" in s:return "rush"
  if any(x in s for x in ("pass","sack")):return "pass"
+ # Turnover eventSubtypes (INTERCEPTION*, FUMBLE*) don't preserve whether the
+ # down that produced them was a rush or a pass/sack -- CFBD's source data
+ # merges the original snap with the return into one row before we ever see
+ # it. Fall back to the text-derived semantic label (already computed by
+ # canonical/plays.py) for exactly these rows; every other play already
+ # resolves above and never reaches this branch.
+ t=str(p.get("textPlayType") or "")
+ if t=="RUSH":return "rush"
+ if t in ("SACK","INTERCEPTION","PASS_COMPLETE","PASS_INCOMPLETE"):return "pass"
  return None
 # Garbage time. CFBD's own `excludeGarbageTime` is a flag forwarded to their
 # hosted win-probability model (see sources/cfbd/client.py); canonical plays
