@@ -6,7 +6,7 @@ import SiteFooter from "@/components/SiteFooter";
 export const metadata = {
   title: "EPA/Play Already Hides Your Turnovers | LEILA Ratings",
   description:
-    "We tried to compare EPA per play with vs. without turnovers for three Week 2 classics -- Texas-Ohio State, Alabama-Kentucky, Michigan-Oklahoma -- and found that standard EPA accounting already excludes almost every one of them, for a structural reason that has nothing to do with methodology choices.",
+    "We audited every turnover in three Week 2 classics -- Texas-Ohio State, Alabama-Kentucky, Michigan-Oklahoma -- against CFBD's official box score, then checked how many actually show up in EPA per play. Of 11 real turnovers, only 2 do.",
   robots: { index: false, follow: false },
 };
 
@@ -33,9 +33,8 @@ export default function RkAnalysisArticle() {
           <p className="article-dek">
             We set out to compare each team&rsquo;s EPA per play with turnovers included against the published number
             (which excludes them) in three Week 2 classics: Texas-Ohio State, Alabama-Kentucky, and Michigan-Oklahoma.
-            The comparison turned out to be far harder than it should be &mdash; not because of a methodology choice
-            we made, but because of how play-by-play data represents a turnover in the first place. Here&rsquo;s what
-            we found, game by game.
+            The first pass at this got the turnover count wrong, so we redid it against CFBD&rsquo;s official box
+            score, play by play, until every number below matched. Here&rsquo;s what actually happened.
           </p>
           <p className="article-byline">LEILA Ratings Data Desk</p>
         </header>
@@ -43,19 +42,22 @@ export default function RkAnalysisArticle() {
         <section className="article-section">
           <p>
             EPA (expected points added) per play is the backbone of most modern offensive and defensive ratings,
-            including LEILA&rsquo;s own. The number CFBD publishes for a play &mdash; and the number every site
-            downstream of it, including this one, sums up into &ldquo;EPA/play&rdquo; &mdash; comes from CFBD&rsquo;s
-            own play-level model. Our own eligibility rule for counting a play toward that average is simple: it has
-            to be a real offensive scrimmage snap, not a penalty or no-play, and CFBD has to have actually produced a
-            number for it.
+            including LEILA&rsquo;s own. Our eligibility rule for counting a play toward that average is simple: it
+            has to be a real offensive scrimmage snap, not a penalty or no-play, and CFBD has to have actually
+            produced a value for it.
           </p>
           <p>
-            That rule turns out to already exclude almost every turnover in the games we checked &mdash; not because
-            we (or anyone) decided turnovers shouldn&rsquo;t count, but because the play-by-play feed logs a
-            turnover&rsquo;s <em>return</em> (the interception return, the fumble recovery) as its own separate play,
-            and that return play is flagged as a non-offensive snap. The original throw or handoff that actually lost
-            the ball often carries no separate EPA value of its own once the return is logged this way. We went game
-            by game to see exactly how much of each result was going untouched.
+            That rule turns out to exclude almost every turnover &mdash; not because of a methodology choice, but
+            because the play-by-play feed logs a turnover&rsquo;s <em>return</em> (the interception return, the
+            fumble recovery) as its own separate play, flagged as a non-offensive snap. The original throw or
+            handoff that actually lost the ball usually carries no separate EPA value once the return is logged this
+            way.
+          </p>
+          <p>
+            <strong>We verified every turnover below against CFBD&rsquo;s official box score</strong> (the{" "}
+            <code>/games/teams</code> endpoint&rsquo;s <code>turnovers</code> stat) before counting it, and read the
+            actual play-by-play text for each one rather than trusting CFBD&rsquo;s own structured labels &mdash;
+            which turned out to matter. More on that at the end.
           </p>
         </section>
 
@@ -65,26 +67,25 @@ export default function RkAnalysisArticle() {
             <h2>Michigan 17, Oklahoma 10</h2>
           </div>
           <p>
-            Four plays in this game were flagged as turnovers: two Michigan fumbles (recovered by Michigan both
-            times &mdash; no ball actually changed hands), one Oklahoma fumble Michigan recovered, and one Oklahoma
-            interception return. <strong>All four are logged as return/recovery plays, not offensive snaps</strong>,
-            so none of them carry a play-level EPA value that counts toward either team&rsquo;s number. Combined,
-            those four plays represent about <strong>-5.0 points</strong> of real CFBD-modeled value that simply
-            never touches either team&rsquo;s published EPA/play.
+            Box score: <strong>Oklahoma 2 turnovers, Michigan 0.</strong> Oklahoma&rsquo;s two are a first-quarter
+            interception and a second-quarter fumble lost on a completed pass. Both are logged as return/recovery
+            plays rather than offensive snaps, so <strong>neither has a usable EPA value</strong> &mdash; the
+            published EPA/play for both teams is identical whether you count turnovers or not, because there&rsquo;s
+            nothing to add.
           </p>
           <div className="article-table-wrap">
             <table className="article-table">
-              <thead><tr><th>Team</th><th>Offense EPA/play</th><th>Defense EPA/play allowed</th></tr></thead>
+              <thead><tr><th>Team</th><th>Box score turnovers</th><th>Offense EPA/play</th><th>Defense EPA/play allowed</th></tr></thead>
               <tbody>
-                <tr><td>Michigan</td><td>0.101</td><td>0.083</td></tr>
-                <tr><td>Oklahoma</td><td>0.083</td><td>0.101</td></tr>
+                <tr><td>Michigan</td><td>0</td><td>0.101</td><td>0.083</td></tr>
+                <tr><td>Oklahoma</td><td>2</td><td>0.083</td><td>0.101</td></tr>
               </tbody>
             </table>
           </div>
           <p>
-            There is no &ldquo;with turnovers&rdquo; column here because there&rsquo;s nothing to add. These are the
-            same numbers either way &mdash; a clean, if slightly unsatisfying, illustration of the underlying
-            problem: this comparison genuinely does not exist for every game.
+            Michigan also fumbled twice, but recovered both themselves &mdash; no possession changed, so the box
+            score correctly shows 0 turnovers for them despite the raw play-by-play flagging those two fumbles the
+            same way it flags a real one.
           </p>
         </section>
 
@@ -94,43 +95,45 @@ export default function RkAnalysisArticle() {
             <h2>Alabama 45, Kentucky 17</h2>
           </div>
           <p>
-            This is where it gets interesting. Ten plays were flagged as turnovers &mdash; the richest case of the
-            three &mdash; but only <strong>one</strong> of them turned out to be both a genuine change of possession
-            <em>and</em> a play with a real, countable EPA value: a low-stakes late Alabama interception (+0.02 EPA,
-            barely worth anything on its own). The other nine split into two very different problems.
-          </p>
-          <p>
-            <strong>Six were invisible</strong> the same way as in the Michigan-Oklahoma game &mdash; logged as
-            return/recovery plays, carrying real CFBD values that never reach either team&rsquo;s number. That
-            group includes both of this game&rsquo;s backbreaking momentum swings: Alabama&rsquo;s
-            interception-return touchdown (-6.6 EPA) and Kentucky&rsquo;s own interception-return touchdown
-            (-7.2 EPA) against them. Two of the biggest plays of the game, by CFBD&rsquo;s own model, and neither
-            one is in the published EPA/play for either offense.
-          </p>
-          <p>
-            <strong>Two were false positives</strong> &mdash; a Kentucky fumble and an Alabama fumble that were each
-            recovered by the team that fumbled. No possession changed on either play, but both are flagged as
-            turnovers anyway, and our own eligibility rule excludes them along with everything else that carries
-            that flag. That&rsquo;s arguably a mistake in the other direction: Kentucky&rsquo;s fumble came on a play
-            that had just picked up a first down (+0.92 EPA) before the ball came loose, and excluding it drags an
-            already-poor offensive day down further than it should be.
+            Box score: <strong>Alabama 3 turnovers (2 interceptions, 1 fumble), Kentucky 3 (1 interception, 2
+            fumbles).</strong> This is the game our first pass got wrong &mdash; we initially found only one
+            &ldquo;genuine&rdquo; turnover between both teams, because two of the real fumbles were logged by CFBD
+            with a structured label that says &ldquo;Fumble Recovery (Own)&rdquo; while the actual play text says
+            the <em>opponent</em> recovered it. Trusting the label instead of the text undercounted both teams.
+            Corrected, here&rsquo;s every turnover and whether it reaches EPA:
           </p>
           <div className="article-table-wrap">
             <table className="article-table">
-              <thead><tr><th>Team</th><th>Published Off. EPA/play</th><th>+ the one genuine turnover</th><th>+ the non-turnover fumble too</th></tr></thead>
+              <thead><tr><th>Team</th><th>Turnover</th><th>EPA-visible?</th><th>CFBD play value</th></tr></thead>
               <tbody>
-                <tr><td>Alabama</td><td>0.353</td><td>0.347</td><td>0.330</td></tr>
-                <tr><td>Kentucky</td><td>0.001</td><td className="hi">&mdash;</td><td>0.016</td></tr>
+                <tr><td>Alabama</td><td>Interception (Kentucky ball)</td><td className="hi">Yes</td><td>+0.02</td></tr>
+                <tr><td>Alabama</td><td>Interception, returned for TD</td><td>No &mdash; logged as a return</td><td>-6.61</td></tr>
+                <tr><td>Alabama</td><td>Fumble on a sack, lost</td><td>No &mdash; logged as a recovery</td><td>-0.96</td></tr>
+                <tr><td>Kentucky</td><td>Fumble on a sack, lost</td><td>No &mdash; logged as a recovery</td><td>-0.51</td></tr>
+                <tr><td>Kentucky</td><td>Fumble on a rush, lost</td><td>No &mdash; logged as a recovery</td><td>-1.66</td></tr>
+                <tr><td>Kentucky</td><td>Interception, returned for TD</td><td>No &mdash; logged as a return</td><td>-7.23</td></tr>
               </tbody>
             </table>
           </div>
           <p>
-            Even fully corrected, Alabama&rsquo;s real advantage barely moves (0.353 &rarr; 0.330) &mdash; the one
-            genuine turnover was nearly free, and the fumble that gets added back only nudges the number down a
-            little further. Kentucky&rsquo;s day looks a hair less bleak once you stop excluding a first-down play
-            just because the ball came loose afterward (0.001 &rarr; 0.016), but this was a 45-17 game and the
-            per-play numbers say exactly what the scoreboard already told you: Alabama was simply the better team on
-            most snaps, turnovers or not.
+            Five of six real turnovers in this game &mdash; including both pick-six returns, worth a combined
+            -13.8 points by CFBD&rsquo;s own model &mdash; never touch either offense&rsquo;s published EPA/play.
+            Only Alabama&rsquo;s late interception is countable, and it barely moves anything:
+          </p>
+          <div className="article-table-wrap">
+            <table className="article-table">
+              <thead><tr><th>Team</th><th>Box score turnovers</th><th>Published Off. EPA/play</th><th>+ the one EPA-visible turnover</th></tr></thead>
+              <tbody>
+                <tr><td>Alabama</td><td>3</td><td>0.353</td><td>0.347</td></tr>
+                <tr><td>Kentucky</td><td>3</td><td>0.001</td><td className="hi">0.001 &mdash; unchanged</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            This was a 45-17 game, and the numbers say why in a way turnovers barely touch: Alabama was simply
+            better on most snaps. Its 3 turnovers and Kentucky&rsquo;s 3 turnovers very nearly cancel out on paper
+            &mdash; both had 2 interceptions and 1 fumble, give or take &mdash; so removing (or adding) turnovers
+            from this specific comparison changes almost nothing about the gap between the two offenses.
           </p>
         </section>
 
@@ -140,67 +143,62 @@ export default function RkAnalysisArticle() {
             <h2>Texas 24, Ohio State 23</h2>
           </div>
           <p>
-            A one-point game, decided late, and turnovers get more interesting the closer the final score. Five
-            plays were flagged. Only <strong>one</strong> is countable: Ohio State&rsquo;s interception on the final
-            snap of the game (+0.145 EPA) &mdash; real, but happening after the outcome was essentially decided, so
-            it barely moves anything.
-          </p>
-          <p>
-            The other four are invisible, and one of them actually matters a lot for how this specific game is
-            remembered: a first-half Texas interception that set up an Ohio State scoring chance, in a game Texas
-            won by a single point. That play doesn&rsquo;t exist in either team&rsquo;s EPA/play number at all
-            &mdash; not because it wasn&rsquo;t costly, but because it was logged as a return, the same structural
-            gap as every other missing play in this piece.
+            Box score: <strong>Texas 2 turnovers (1 interception, 1 fumble), Ohio State 1 (interception).</strong>{" "}
+            A one-point game, and this is the one where the invisible plays actually matter for how the game is
+            remembered. Texas fumbled a short pass away on its opening drive (recovered by Ohio State) and threw a
+            first-half interception that set up an Ohio State scoring chance &mdash; both logged as return/recovery
+            plays, both invisible to EPA. Ohio State&rsquo;s only turnover was a desperation interception on the
+            final, game-ending snap, which <em>is</em> EPA-visible (+0.14) but happened after the outcome was
+            essentially decided.
           </p>
           <div className="article-table-wrap">
             <table className="article-table">
-              <thead><tr><th>Team</th><th>Offense EPA/play</th><th>Defense EPA/play allowed</th></tr></thead>
+              <thead><tr><th>Team</th><th>Box score turnovers</th><th>Offense EPA/play</th><th>Defense EPA/play allowed</th></tr></thead>
               <tbody>
-                <tr><td>Texas</td><td>0.193</td><td>0.148</td></tr>
-                <tr><td>Ohio State</td><td>0.148</td><td>0.193</td></tr>
+                <tr><td>Texas</td><td>2</td><td>0.193</td><td>0.148</td></tr>
+                <tr><td>Ohio State</td><td>1</td><td>0.148</td><td>0.193</td></tr>
               </tbody>
             </table>
           </div>
           <p>
-            In a game this close, the one turnover we <em>can</em> measure explains almost none of why it was close.
-            The one we can&rsquo;t measure &mdash; Texas&rsquo;s own first-half pick &mdash; is a much better
-            candidate, and it&rsquo;s simply not part of the accounting.
+            In a game decided by a single point, the one turnover we <em>can</em> measure explains almost none of
+            why it was close. The two we can&rsquo;t &mdash; both of them Texas&rsquo;s &mdash; are much better
+            candidates, and neither is part of the accounting.
           </p>
         </section>
 
         <section className="article-section">
           <div className="article-section__heading">
             <span className="eyebrow">What This Actually Means</span>
-            <h2>The comparison you&rsquo;d expect isn&rsquo;t really possible yet</h2>
+            <h2>11 real turnovers. 2 show up in EPA.</h2>
           </div>
           <div className="article-stat-grid">
-            <Stat value="19" label="Total turnover-flagged plays across all 3 games" />
-            <Stat value="2" label="That were genuine, possession-changing, AND EPA-measurable" />
-            <Stat value="13" label="Invisible to EPA entirely (logged as return/recovery plays)" />
-            <Stat value="3" label="False positives -- flagged as turnovers with no possession change" />
+            <Stat value="11" label="Real turnovers across all 3 games, verified against CFBD's box score" />
+            <Stat value="2" label="That are EPA-visible on the offense that committed them" />
+            <Stat value="9" label="Real turnovers with zero EPA footprint -- including both pick-sixes" />
+            <Stat value="-22.9" label="Combined CFBD play value on turnovers that never reach a published number" />
           </div>
           <p>
-            Going in, we expected to find turnovers quietly inflating or deflating some team&rsquo;s process grade
-            &mdash; the standard &ldquo;this team&rsquo;s EPA looks better/worse than they actually played&rdquo;
-            story. That&rsquo;s not really what we found. What we found is that <strong>the published number is
-            already an &ldquo;EPA without turnovers&rdquo; number, for essentially every game</strong> &mdash; not
-            because anyone chose to strip them out, but because the way play-by-play data logs a turnover&rsquo;s
-            return leaves no EPA-eligible row for most of them to attach to. Pick-sixes, fumble-return touchdowns,
-            and the returns that set up short fields all happened, and all show up in the score and the box score
-            &mdash; just not in the per-play average.
+            The finding isn&rsquo;t &ldquo;turnovers barely mattered in these 3 games&rdquo; &mdash; two of them were
+            pick-six touchdowns and a third set up a scoring chance in a one-point game. The finding is that{" "}
+            <strong>the published EPA/play number is already much closer to &ldquo;EPA without turnovers&rdquo; than
+            most readers would assume</strong>, for a structural reason that has nothing to do with how good or bad
+            a team&rsquo;s process actually was.
           </p>
           <p>
-            The smaller, second finding is worth remembering too: not every play flagged as a turnover was actually
-            one. A fumble a team recovers itself isn&rsquo;t a turnover in any meaningful football sense, but it
-            still carries the same flag as one that ends a drive &mdash; and that flag is what our (and most
-            everyone&rsquo;s) EPA eligibility rule keys off. Two of the three &ldquo;turnovers&rdquo; in the
-            Alabama-Kentucky game fell into that trap.
+            We also want to be direct about our own process here: the first version of this analysis undercounted
+            real turnovers in the Alabama-Kentucky game by trusting CFBD&rsquo;s structured{" "}
+            <code>playType</code> label (&ldquo;Fumble Recovery (Own)&rdquo; vs. &ldquo;(Opponent)&rdquo;) instead of
+            reading the actual play text, which on at least two plays directly contradicted that label. Cross-checking
+            every number against the official box score &mdash; not just the play-by-play feed &mdash; is what
+            caught it, and it&rsquo;s why every count on this page is now sourced to that box score directly rather
+            than to our own play-level classification alone.
           </p>
           <p>
             None of this changes LEILA&rsquo;s published Adj. Off/Adj. Def numbers &mdash; those are built from a
-            season&rsquo;s worth of possessions, not one game&rsquo;s handful of turnovers, and that volume already
-            drowns out the effect of a single missing play. But it&rsquo;s a real, concrete example of why we&rsquo;d
-            rather show our work than hand you a number that looks more complete than it is.
+            full season of possessions, not one game&rsquo;s handful of turnovers &mdash; but it&rsquo;s a concrete,
+            now-verified example of why we&rsquo;d rather show our work than hand you a number that looks more
+            complete than it is.
           </p>
         </section>
 
@@ -220,12 +218,13 @@ export default function RkAnalysisArticle() {
         </section>
 
         <p className="article-footnote">
-          All figures are LEILA Ratings&rsquo; own analysis of CFBD&rsquo;s canonical Week 2, 2026 play-by-play for
-          these three games (gameIds 401856679, 401856674, 401856682), using the same offensive-EPA eligibility rule
-          published site-wide (a real scrimmage snap, an offensive play, a non-null CFBD PPA value, no penalty/no-play
-          modifier). &ldquo;Genuine turnover&rdquo; classification was done by hand, checking whether the offense of
-          the following play/drive actually changed teams, since CFBD&rsquo;s own <code>isTurnover</code> flag marks
-          some fumbles a team recovered itself the same way it marks a real change of possession.
+          Turnover counts are CFBD&rsquo;s official box score (<code>/games/teams</code>, <code>turnovers</code>{" "}
+          category) for gameIds 401856679, 401856674, and 401856682 (Week 2, 2026). EPA figures use the offensive-EPA
+          eligibility rule published site-wide (a real scrimmage snap, an offensive play, a non-null CFBD PPA value,
+          no penalty/no-play modifier). Each turnover was matched to its play-by-play row by hand, cross-referencing
+          the play text (not CFBD&rsquo;s structured recovery label, which was found to be unreliable on at least two
+          plays) against the box score total for that team, so every game&rsquo;s turnover count above reconciles
+          exactly with CFBD&rsquo;s own official stat.
         </p>
       </main>
 
