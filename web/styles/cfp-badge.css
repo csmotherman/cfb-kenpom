@@ -1,104 +1,290 @@
 /* ========================================================================== */
-/* CFP field/champion/runner-up markers -- shared across Ratings, Advanced,  */
-/* and Exploratory team-name cells (web/components/CfpTeamCell.tsx).         */
+/* CFP field/champion/runner-up cards -- shared by Ratings/Advanced/Explore. */
+/* The highlight is an inset rounded card so it does not change table widths. */
 /* ========================================================================== */
 
-.cfp-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  width: fit-content;
-  max-width: 100%;
-  margin-top: 2px;
-  padding: 1px 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  font: 800 7.5px/1.5 var(--font-body);
-  letter-spacing: 0.04em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.cfp-badge--participant {
-  background: rgba(23, 36, 56, 0.08);
-  border: 1px solid rgba(23, 36, 56, 0.28);
-  color: var(--color-navy);
-}
-
-.cfp-badge--champion {
-  background: rgba(197, 154, 67, 0.2);
-  border: 1px solid var(--color-gold);
-  color: var(--color-gold-dark);
-}
-
-.cfp-badge--runner-up {
-  background: rgba(154, 164, 178, 0.22);
-  border: 1px solid #9aa4b2;
-  color: #4d5561;
-}
-
-/* Static box for a plain field participant -- no animation, since a 12-team
-   bracket means up to a dozen of these on screen at once. */
-td.team-cell--cfp-participant {
-  box-shadow: inset 0 0 0 2px var(--color-navy);
-}
-
-/* Champion and runner-up are rare (one row each per season), so they get the
-   full animated glow treatment. Keyframes pulse the glow's spread/opacity,
-   not color, so it stays legible against both light and dark surroundings. */
-@keyframes cfp-glow-gold {
-  0%,
-  100% {
-    box-shadow: inset 0 0 0 2px var(--color-gold), 0 0 0 0 rgba(197, 154, 67, 0.5);
-  }
-  50% {
-    box-shadow: inset 0 0 0 3px var(--color-gold), 0 0 9px 2px rgba(197, 154, 67, 0.55);
-  }
-}
-@keyframes cfp-glow-silver {
-  0%,
-  100% {
-    box-shadow: inset 0 0 0 2px #9aa4b2, 0 0 0 0 rgba(154, 164, 178, 0.45);
-  }
-  50% {
-    box-shadow: inset 0 0 0 3px #9aa4b2, 0 0 9px 2px rgba(154, 164, 178, 0.5);
-  }
+td.team-cell--cfp {
+  --cfp-ring: #9fa7b1;
+  --cfp-ring-soft: rgba(143, 151, 161, 0.34);
+  --cfp-glow: rgba(143, 151, 161, 0.24);
+  --cfp-wash: rgba(154, 164, 178, 0.055);
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
 }
 
 td.team-cell--cfp-champion {
-  background: rgba(197, 154, 67, 0.1);
-  animation: cfp-glow-gold 2.2s ease-in-out infinite;
+  --cfp-ring: #c99a27;
+  --cfp-ring-soft: rgba(230, 187, 72, 0.52);
+  --cfp-glow: rgba(214, 164, 38, 0.48);
+  --cfp-wash: rgba(214, 164, 38, 0.09);
 }
+
 td.team-cell--cfp-runner-up {
-  background: rgba(154, 164, 178, 0.12);
-  animation: cfp-glow-silver 2.4s ease-in-out infinite;
+  --cfp-ring: #a8b0bb;
+  --cfp-ring-soft: rgba(207, 215, 224, 0.62);
+  --cfp-glow: rgba(164, 175, 188, 0.42);
+  --cfp-wash: rgba(175, 185, 197, 0.085);
 }
+
+/* Rounded inset frame, matching the mockup rather than boxing the entire td. */
+td.team-cell--cfp::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 3px 4px;
+  border: 2px solid var(--cfp-ring);
+  border-radius: 7px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), var(--cfp-wash));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.62),
+    0 1px 3px rgba(21, 31, 44, 0.12),
+    0 0 5px 0 var(--cfp-glow);
+  pointer-events: none;
+}
+
+/* Small glints around the frame give the highlight life without moving text. */
+td.team-cell--cfp::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 2px 4px;
+  border-radius: 7px;
+  background:
+    radial-gradient(circle at 14% 3%, rgba(255,255,255,.96) 0 1px, transparent 2.2px),
+    radial-gradient(circle at 64% 2%, rgba(255,255,255,.9) 0 1px, transparent 2px),
+    radial-gradient(circle at 86% 97%, rgba(255,255,255,.88) 0 1px, transparent 2px),
+    radial-gradient(circle at 36% 98%, rgba(255,255,255,.74) 0 1px, transparent 2px);
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.team-cell-stack--cfp {
+  position: relative;
+  z-index: 1;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  justify-content: stretch !important;
+  gap: 8px !important;
+  width: 100%;
+  min-height: 39px;
+  box-sizing: border-box;
+  padding: 0 8px 0 6px;
+}
+
+.cfp-team-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cfp-team-copy .team-link {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cfp-team-copy .team-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cfp-team-copy .team-conf-label {
+  white-space: nowrap;
+}
+
+.cfp-badge {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  min-width: 78px;
+  height: 23px;
+  margin: 0;
+  padding: 0 9px;
+  border: 1px solid;
+  border-radius: 7px;
+  box-sizing: border-box;
+  font: 900 7.5px/1 var(--font-body);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72), 0 1px 3px rgba(21,31,44,.13);
+}
+
+.cfp-badge__icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+}
+
+.cfp-badge--participant {
+  border-color: #b2b8bf;
+  background: linear-gradient(180deg, #f2f2ef 0%, #dedfdf 100%);
+  color: #48515e;
+}
+
+.cfp-badge--runner-up {
+  min-width: 91px;
+  border-color: #a7afb9;
+  background: linear-gradient(180deg, #f8f9fb 0%, #cfd5dc 100%);
+  color: #4b5562;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 0 7px rgba(173,183,194,.38);
+}
+
+.cfp-badge--champion {
+  min-width: 89px;
+  border-color: #d4aa43;
+  background: linear-gradient(180deg, #d8ad41 0%, #a97912 100%);
+  color: #fffaf0;
+  text-shadow: 0 1px 1px rgba(80,53,0,.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.48),
+    0 0 8px rgba(210,160,38,.42);
+}
+
+@keyframes cfp-card-gold {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.62),
+      0 1px 3px rgba(21,31,44,.12),
+      0 0 4px 0 rgba(214,164,38,.28);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.82),
+      0 1px 4px rgba(21,31,44,.14),
+      0 0 12px 2px rgba(214,164,38,.58);
+  }
+}
+
+@keyframes cfp-card-silver {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.62),
+      0 1px 3px rgba(21,31,44,.12),
+      0 0 4px 0 rgba(164,175,188,.24);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.85),
+      0 1px 4px rgba(21,31,44,.14),
+      0 0 11px 2px rgba(164,175,188,.52);
+  }
+}
+
+@keyframes cfp-card-field {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.58),
+      0 1px 3px rgba(21,31,44,.10),
+      0 0 3px 0 rgba(143,151,161,.14);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.72),
+      0 1px 3px rgba(21,31,44,.12),
+      0 0 7px 1px rgba(143,151,161,.28);
+  }
+}
+
+@keyframes cfp-sparkle {
+  0%, 100% { opacity: .18; }
+  45% { opacity: .72; }
+  65% { opacity: .34; }
+}
+
+td.team-cell--cfp-champion::before {
+  animation: cfp-card-gold 2.35s ease-in-out infinite;
+}
+
+td.team-cell--cfp-runner-up::before {
+  animation: cfp-card-silver 2.7s ease-in-out infinite;
+}
+
+td.team-cell--cfp-participant::before {
+  animation: cfp-card-field 4.4s ease-in-out infinite;
+}
+
+td.team-cell--cfp-champion::after,
+td.team-cell--cfp-runner-up::after,
+td.team-cell--cfp-participant::after {
+  animation: cfp-sparkle 3.1s ease-in-out infinite;
+}
+
+td.team-cell--cfp-champion::after { animation-duration: 2.35s; }
+td.team-cell--cfp-runner-up::after { animation-duration: 2.7s; }
 
 @media (prefers-reduced-motion: reduce) {
-  td.team-cell--cfp-champion,
-  td.team-cell--cfp-runner-up {
-    animation: none;
+  td.team-cell--cfp::before,
+  td.team-cell--cfp::after {
+    animation: none !important;
   }
 }
 
-/* Below 640px, mobile-fit.css strips team-cell's box-shadow/background with
-   !important to keep the compacted phone layout uncluttered. Champion and
-   runner-up are rare and celebratory enough to earn overriding that (same
-   :is(...) selector prefix + !important so it wins on both specificity and
-   source order); the plain participant box stays dropped on phones, where
-   the "CFP" text badge alone is enough. */
+/* On phones the team column is intentionally narrow. Keep the frame, but
+   shorten the visible label so the team identity still gets priority. */
 @media (max-width: 640px) {
-  :is(#ratingsTable, .adv-table) td.team-cell--cfp-champion {
-    box-shadow: inset 0 0 0 2px var(--color-gold) !important;
-    background: rgba(197, 154, 67, 0.1) !important;
+  :is(#ratingsTable, .adv-table) td.team-cell--cfp {
+    background: inherit !important;
+    box-shadow: inherit !important;
+    padding: 3px !important;
   }
-  :is(#ratingsTable, .adv-table) td.team-cell--cfp-runner-up {
-    box-shadow: inset 0 0 0 2px #9aa4b2 !important;
-    background: rgba(154, 164, 178, 0.12) !important;
+
+  td.team-cell--cfp::before {
+    inset: 2px;
+    border-width: 1.5px;
+    border-radius: 5px;
   }
+
+  td.team-cell--cfp::after {
+    inset: 1px 2px;
+  }
+
+  .team-cell-stack--cfp {
+    min-height: 42px;
+    display: block !important;
+    padding: 2px 3px;
+  }
+
+  .cfp-team-copy {
+    padding-right: 0;
+  }
+
   .cfp-badge {
-    font-size: 6.5px;
-    padding: 1px 4px;
+    position: absolute;
+    right: 3px;
+    bottom: 2px;
+    min-width: 0;
+    height: 14px;
+    padding: 0 4px;
+    gap: 2px;
+    border-radius: 4px;
+    font-size: 0;
   }
+
+  .cfp-badge__icon {
+    width: 8px;
+    height: 8px;
+    flex-basis: 8px;
+  }
+
+  .cfp-badge__text::after {
+    font: 900 5.5px/1 var(--font-body);
+    letter-spacing: .035em;
+  }
+
+  .cfp-badge--champion .cfp-badge__text::after { content: "CHAMP"; }
+  .cfp-badge--runner-up .cfp-badge__text::after { content: "RU"; }
+  .cfp-badge--participant .cfp-badge__text::after { content: "CFP"; }
 }
