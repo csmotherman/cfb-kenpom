@@ -12,6 +12,11 @@ export type ExpColumn = {
   fmt?: "pct1" | "plain2" | "plain3" | "signed3";
   lowerBetter?: boolean;
   noHeatmap?: boolean;
+  /** Display num/den as a positive magnitude (multiply by -1) when the raw
+   * stored sum is naturally negative-signed, e.g. turnover EPA -- matches
+   * Failure Burden/Pressure's existing positive-magnitude convention rather
+   * than showing a negative "Lost"/"Created" value. */
+  negate?: boolean;
 };
 
 type ExpSection = { title: string; columns: ExpColumn[] };
@@ -179,6 +184,99 @@ const STYLE_RISK: ExpColumn[] = [
   },
 ];
 
+const TURNOVERS_OFFENSE: ExpColumn[] = [
+  {
+    key: "turnoverRate", label: "Turnover Rate",
+    num: "turnovers", den: "offensiveDrives",
+    tooltip: "Interceptions plus lost fumbles (possession actually lost to the defense) divided by offensive drives. Self-recovered fumbles never count.",
+    profileNote: "Percentage of offensive drives that end in a turnover.",
+    profileFormula: "Turnovers ÷ offensive drives",
+    denLabel: "Drives",
+    lowerBetter: true,
+  },
+  {
+    key: "intRate", label: "INT Rate",
+    num: "interceptions", den: "passAttempts",
+    tooltip: "Interceptions thrown divided by pass attempts (every dropback that wasn't a sack, including intercepted throws).",
+    profileNote: "Percentage of pass attempts intercepted.",
+    profileFormula: "Interceptions thrown ÷ pass attempts",
+    denLabel: "Attempts",
+    lowerBetter: true,
+  },
+  {
+    key: "lostFumbleRate", label: "Lost Fumble Rate",
+    num: "lostFumbles", den: "offensiveDrives",
+    tooltip: "Fumbles recovered by the defense divided by offensive drives. A fumble the offense recovers itself is not counted.",
+    profileNote: "Percentage of offensive drives that end in a fumble lost to the defense.",
+    profileFormula: "Lost fumbles ÷ offensive drives",
+    denLabel: "Drives",
+    lowerBetter: true,
+  },
+  {
+    key: "turnoverEpaLostPerGame", label: "Turnover EPA Lost/Game",
+    num: "turnoverEpaSum", den: "games", negate: true,
+    tooltip: "Total EPA (expected points added) given away on interceptions and lost fumbles, per game. Uses CFBD's canonical play-level EPA model.",
+    profileNote: "EPA given away to interceptions and lost fumbles, per game.",
+    profileFormula: "Turnover EPA lost ÷ games",
+    denLabel: "Games",
+    fmt: "plain3", lowerBetter: true,
+  },
+  {
+    key: "turnoverEpaLostPerDrive", label: "Turnover EPA Lost/Drive",
+    num: "turnoverEpaSum", den: "offensiveDrives", negate: true,
+    tooltip: "Total EPA given away on interceptions and lost fumbles, spread across every offensive drive.",
+    profileNote: "EPA given away to interceptions and lost fumbles, per offensive drive.",
+    profileFormula: "Turnover EPA lost ÷ offensive drives",
+    denLabel: "Drives",
+    fmt: "plain3", lowerBetter: true,
+  },
+];
+
+const TURNOVERS_DEFENSE: ExpColumn[] = [
+  {
+    key: "takeawayRate", label: "Takeaway Rate",
+    num: "takeaways", den: "opponentDrives",
+    tooltip: "Interceptions plus fumbles recovered by this defense, divided by opponent offensive drives.",
+    profileNote: "Percentage of opponent drives that end in a takeaway.",
+    profileFormula: "Takeaways ÷ opponent drives",
+    denLabel: "Opp. drives",
+  },
+  {
+    key: "intRateForced", label: "INT Rate Forced",
+    num: "interceptionsForced", den: "opponentPassAttempts",
+    tooltip: "Interceptions by this defense divided by opponent pass attempts.",
+    profileNote: "Percentage of opponent pass attempts intercepted.",
+    profileFormula: "Interceptions forced ÷ opponent pass attempts",
+    denLabel: "Opp. attempts",
+  },
+  {
+    key: "fumbleRecoveryRate", label: "Fumble Recovery Rate",
+    num: "fumbleRecoveries", den: "opponentDrives",
+    tooltip: "Opponent fumbles recovered by this defense, divided by opponent offensive drives.",
+    profileNote: "Percentage of opponent drives that end in a fumble this defense recovers.",
+    profileFormula: "Fumble recoveries ÷ opponent drives",
+    denLabel: "Opp. drives",
+  },
+  {
+    key: "turnoverEpaCreatedPerGame", label: "Turnover EPA Created/Game",
+    num: "opponentTurnoverEpaSum", den: "games", negate: true,
+    tooltip: "Total EPA taken away from opponents via interceptions and fumbles this defense forced, per game.",
+    profileNote: "EPA taken from opponents via forced turnovers, per game.",
+    profileFormula: "Opponent turnover EPA lost ÷ games",
+    denLabel: "Games",
+    fmt: "plain3",
+  },
+  {
+    key: "turnoverEpaCreatedPerDrive", label: "Turnover EPA Created/Drive",
+    num: "opponentTurnoverEpaSum", den: "opponentDrives", negate: true,
+    tooltip: "Total EPA taken away from opponents via forced turnovers, spread across every opponent offensive drive.",
+    profileNote: "EPA taken from opponents via forced turnovers, per opponent drive.",
+    profileFormula: "Opponent turnover EPA lost ÷ opponent drives",
+    denLabel: "Opp. drives",
+    fmt: "plain3",
+  },
+];
+
 // Points per Scoring Opportunity (and its opponent mirror) is deliberately
 // NOT a column here -- a row-level check found it byte-for-byte identical to
 // the existing Finishing Drives points-per-opportunity stat (0 mismatches
@@ -193,6 +291,8 @@ export const SECTIONS: ExpSection[] = [
   { title: "Possessions · Offense", columns: POSSESSIONS_OFFENSE },
   { title: "Possessions · Defense", columns: POSSESSIONS_DEFENSE },
   { title: "Style / Risk", columns: STYLE_RISK },
+  { title: "Turnovers · Offense", columns: TURNOVERS_OFFENSE },
+  { title: "Turnovers · Defense", columns: TURNOVERS_DEFENSE },
 ];
 
 export const ALL_COLUMNS: ExpColumn[] = SECTIONS.flatMap((s) => s.columns);
@@ -249,7 +349,7 @@ export function aggregateExploratory(byWeek: Record<string, ExploratoryRow[]>, w
     const out: Aggregated = { ...acc };
     for (const col of ALL_COLUMNS) {
       const n = acc.wk[col.den] ?? 0;
-      out[col.key] = n > 0 ? (acc.wk[col.num] ?? 0) / n : null;
+      out[col.key] = n > 0 ? ((acc.wk[col.num] ?? 0) / n) * (col.negate ? -1 : 1) : null;
       out[`${col.key}_n`] = n;
     }
     return out;

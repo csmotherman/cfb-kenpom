@@ -143,6 +143,11 @@ export type ExploratoryWeekCounts = {
   scoringOpportunityTouchdowns: number; scoringOpportunityFieldGoals: number;
   scoringOpportunityEmptyDrives: number;
   opponentScoringOpportunities: number; opponentScoringOpportunityPoints: number;
+  // Turnovers (2025 research build)
+  offensiveDrives: number; turnovers: number; interceptions: number; lostFumbles: number;
+  selfRecoveredFumbles: number; passAttempts: number; turnoverEpaSum: number; games: number;
+  opponentDrives: number; takeaways: number; interceptionsForced: number; fumbleRecoveries: number;
+  opponentSelfRecoveredFumbles: number; opponentPassAttempts: number; opponentTurnoverEpaSum: number;
 };
 
 export type ExploratoryRow = {
