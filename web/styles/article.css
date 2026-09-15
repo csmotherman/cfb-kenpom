@@ -107,6 +107,8 @@
   border-collapse: collapse;
   font-size: 12.5px;
 }
+.article-table--wide { max-width: 100%; }
+.article-table--wide td:nth-child(3) { white-space: normal; min-width: 260px; }
 .article-table th,
 .article-table td {
   padding: 7px var(--space-3);

@@ -67,12 +67,20 @@ export default function RkAnalysisArticle() {
             <h2>Michigan 17, Oklahoma 10</h2>
           </div>
           <p>
-            Box score: <strong>Oklahoma 2 turnovers, Michigan 0.</strong> Oklahoma&rsquo;s two are a first-quarter
-            interception and a second-quarter fumble lost on a completed pass. Both are logged as return/recovery
-            plays rather than offensive snaps, so <strong>neither has a usable EPA value</strong> &mdash; the
-            published EPA/play for both teams is identical whether you count turnovers or not, because there&rsquo;s
-            nothing to add.
+            Box score: <strong>Oklahoma 2 turnovers, Michigan 0.</strong> Both of Oklahoma&rsquo;s are logged as
+            return/recovery plays rather than offensive snaps, so <strong>neither has a usable EPA value</strong>{" "}
+            &mdash; the published EPA/play for both teams is identical whether you count turnovers or not, because
+            there&rsquo;s nothing to add.
           </p>
+          <div className="article-table-wrap">
+            <table className="article-table article-table--wide">
+              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>CFBD play value</th><th>EPA-visible?</th></tr></thead>
+              <tbody>
+                <tr><td>Q2, 13:32</td><td>Oklahoma</td><td>Mateer completes to Livingstone for 8 yards, fumbles, recovered by Michigan (Bowles)</td><td>-3.34</td><td>No</td></tr>
+                <tr><td>Q4, 8:49</td><td>Oklahoma</td><td>Mateer intercepted by J.Hill, returned 24 yards</td><td>+0.23</td><td>No</td></tr>
+              </tbody>
+            </table>
+          </div>
           <div className="article-table-wrap">
             <table className="article-table">
               <thead><tr><th>Team</th><th>Box score turnovers</th><th>Offense EPA/play</th><th>Defense EPA/play allowed</th></tr></thead>
@@ -103,15 +111,15 @@ export default function RkAnalysisArticle() {
             Corrected, here&rsquo;s every turnover and whether it reaches EPA:
           </p>
           <div className="article-table-wrap">
-            <table className="article-table">
-              <thead><tr><th>Team</th><th>Turnover</th><th>EPA-visible?</th><th>CFBD play value</th></tr></thead>
+            <table className="article-table article-table--wide">
+              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>CFBD play value</th><th>EPA-visible?</th></tr></thead>
               <tbody>
-                <tr><td>Alabama</td><td>Interception (Kentucky ball)</td><td className="hi">Yes</td><td>+0.02</td></tr>
-                <tr><td>Alabama</td><td>Interception, returned for TD</td><td>No &mdash; logged as a return</td><td>-6.61</td></tr>
-                <tr><td>Alabama</td><td>Fumble on a sack, lost</td><td>No &mdash; logged as a recovery</td><td>-0.96</td></tr>
-                <tr><td>Kentucky</td><td>Fumble on a sack, lost</td><td>No &mdash; logged as a recovery</td><td>-0.51</td></tr>
-                <tr><td>Kentucky</td><td>Fumble on a rush, lost</td><td>No &mdash; logged as a recovery</td><td>-1.66</td></tr>
-                <tr><td>Kentucky</td><td>Interception, returned for TD</td><td>No &mdash; logged as a return</td><td>-7.23</td></tr>
+                <tr><td>Q1, 10:15</td><td>Alabama</td><td>Russell intercepted by Humphrey-Grace, returned 2 yards for a TOUCHDOWN</td><td>-6.61</td><td>No</td></tr>
+                <tr><td>Q1, 7:17</td><td>Alabama</td><td>Russell sacked, fumbles, recovered by Kentucky (C.Works)</td><td>-0.96</td><td>No</td></tr>
+                <tr><td>Q1, 6:44</td><td>Kentucky</td><td>Minchey intercepted by L.Metz, returned 34 yards for a TOUCHDOWN</td><td>-7.23</td><td>No</td></tr>
+                <tr><td>Q2, 0:55</td><td>Alabama</td><td>Russell intercepted by J.Castell</td><td>+0.02</td><td className="hi">Yes</td></tr>
+                <tr><td>Q3, 5:47</td><td>Kentucky</td><td>Minchey sacked, fumbles, recovered by Alabama (I.Faga)</td><td>-0.51</td><td>No</td></tr>
+                <tr><td>Q4, 2:42</td><td>Kentucky</td><td>Patterson rushes for 3 yards, fumbles, recovered by Alabama (I.Taylor)</td><td>-1.66</td><td>No</td></tr>
               </tbody>
             </table>
           </div>
@@ -151,6 +159,16 @@ export default function RkAnalysisArticle() {
             final, game-ending snap, which <em>is</em> EPA-visible (+0.14) but happened after the outcome was
             essentially decided.
           </p>
+          <div className="article-table-wrap">
+            <table className="article-table article-table--wide">
+              <thead><tr><th>Qtr / Clock</th><th>Team</th><th>What happened</th><th>CFBD play value</th><th>EPA-visible?</th></tr></thead>
+              <tbody>
+                <tr><td>Q1, 14:49</td><td>Texas</td><td>Manning completes to R.Brown, fumbles, recovered by Ohio State (J.Timmons)</td><td>-0.73</td><td>No</td></tr>
+                <tr><td>Q1, 10:15</td><td>Texas</td><td>Manning intercepted by J.McClain, returned 7 yards</td><td>-2.05</td><td>No</td></tr>
+                <tr><td>Q4, 0:17</td><td>Ohio State</td><td>Sayin intercepted by G.Littleton, final play of the game</td><td>+0.14</td><td className="hi">Yes</td></tr>
+              </tbody>
+            </table>
+          </div>
           <div className="article-table-wrap">
             <table className="article-table">
               <thead><tr><th>Team</th><th>Box score turnovers</th><th>Offense EPA/play</th><th>Defense EPA/play allowed</th></tr></thead>
