@@ -355,12 +355,15 @@ export default function AdvancedPage() {
   const [gameLogTarget, setGameLogTarget] = useState<{ team: Aggregated; column: AdvColumn } | null>(null);
   const [showAllColumns, setShowAllColumns] = useState(false);
   const [showDrillDownTip, setShowDrillDownTip] = useState(false);
-
+  /* eslint-disable react-hooks/set-state-in-effect -- one-time client-only
+     localStorage read on mount (matches the query-string-read pattern in
+     app/page.tsx and the SSR-safe mount flag in GameLogModal). */
   useEffect(() => {
     try {
       if (localStorage.getItem("leila:advancedDrillDownTipDismissed") !== "1") setShowDrillDownTip(true);
     } catch {}
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   function dismissDrillDownTip() {
     setShowDrillDownTip(false);
