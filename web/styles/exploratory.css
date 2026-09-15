@@ -37,19 +37,31 @@
   color: var(--color-ink-secondary);
 }
 
-/* Keep identity columns readable before the browser allocates space to the
-   metric columns. */
+/* Team + conference share one identity column, matching the Ratings table. */
 #exploratoryTable .adv-table {
   width: 100%;
   min-width: 1260px;
   table-layout: fixed;
 }
 
+#exploratoryTable .adv-table tbody td {
+  height: 50px;
+}
+
 #exploratoryTable .adv-table .team-cell {
-  width: 220px;
-  min-width: 220px;
-  max-width: 220px;
+  width: 300px;
+  min-width: 300px;
+  max-width: 300px;
   overflow: hidden;
+}
+
+#exploratoryTable .adv-table .team-cell-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  gap: 1px;
 }
 
 #exploratoryTable .adv-table .team-link {
@@ -58,7 +70,7 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 #exploratoryTable .adv-table .team-link .team-logo { flex: 0 0 auto; }
@@ -67,24 +79,20 @@
   display: block;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  line-height: 1.08;
 }
 
-#exploratoryTable .adv-table .record-cell {
-  width: 100px;
-  min-width: 100px;
-  max-width: 100px;
-  padding-left: 7px;
-  padding-right: 7px;
+#exploratoryTable .adv-table .team-conf-label {
+  display: block;
+  margin-left: 31px;
+  margin-top: 2px;
+  color: var(--color-ink-tertiary);
+  font: 700 9px/1.05 var(--font-body);
+  letter-spacing: 0.02em;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.1;
-  font-size: 10.5px;
-  text-align: center;
-  vertical-align: middle;
 }
 
 #exploratoryTable .adv-table .profile-cell {
@@ -380,16 +388,9 @@
   #exploratoryTable .adv-table { min-width: 1180px; }
 
   #exploratoryTable .adv-table .team-cell {
-    width: 190px;
-    min-width: 190px;
-    max-width: 190px;
-  }
-
-  #exploratoryTable .adv-table .record-cell {
-    width: 90px;
-    min-width: 90px;
-    max-width: 90px;
-    font-size: 9.5px;
+    width: 240px;
+    min-width: 240px;
+    max-width: 240px;
   }
 
   #exploratoryTable .adv-table .profile-cell {
