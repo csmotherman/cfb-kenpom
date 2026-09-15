@@ -124,6 +124,25 @@ export type ExploratoryWeekCounts = {
   closeoutOpportunities: number; closeouts: number;
   eligibleSeries: number; longDownSeries: number; longDownAvoidanceSeries: number;
   longDownCreationOpportunities: number; longDownsCreated: number;
+  // Wave 2: Possessions (Clean Drive / Drive Killer)
+  eligibleDrives: number; cleanDrives: number;
+  eligibleDrivesFaced: number; cleanDrivesAllowed: number;
+  drivesWithKillerEvent: number; drivesKilled: number; killerEvents: number;
+  drivesWithKillerEventForced: number; drivesKilledForced: number;
+  driveInterceptions: number; driveLostFumbles: number; driveSelfRecoveredFumbles: number;
+  driveSacks: number; driveTFLs: number; driveOffensivePenalties: number; driveFailedFourthDowns: number;
+  // Wave 2: Style/Risk (Explosive Dependency, Failure Burden/Pressure)
+  positiveEpa: number; explosivePositiveEpa: number;
+  explosivePlayCount: number; epaEligiblePlayCount: number;
+  nonExplosiveEpa: number; nonExplosivePlays: number;
+  positiveYards: number; explosivePositiveYards: number;
+  negativeEpaPlays: number; epaEligiblePlays: number; negativeEpaMagnitudeSum: number;
+  opponentNegativeEpaMagnitudeSum: number; opponentEpaEligiblePlays: number;
+  // Wave 2: Finishing (Scoring Opportunity Value)
+  scoringOpportunities: number; scoringOpportunityPoints: number;
+  scoringOpportunityTouchdowns: number; scoringOpportunityFieldGoals: number;
+  scoringOpportunityEmptyDrives: number;
+  opponentScoringOpportunities: number; opponentScoringOpportunityPoints: number;
 };
 
 export type ExploratoryRow = {

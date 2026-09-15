@@ -25,9 +25,30 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 from build_real_data import build_site_week_map  # noqa: E402
 
-from cfb_analytics.analytics.exploratory.series_metrics import COUNT_FIELDS  # noqa: E402
-
 SEASONS = (2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025, 2026)
+
+# Every computed rate on a materialized row -- these must be RECOMPUTED
+# client-side from summed raw counts across the selected week range, never
+# summed or averaged themselves. Identity/version fields are excluded
+# separately below. Everything else numeric on a row is a raw, summable
+# count (series/drives/risk/scoring-opportunity ingredients).
+_RATE_FIELDS = {
+    "seriesConversionRate", "seriesStopRate", "recoveryRate", "closeoutRate",
+    "longDownRate", "longDownAvoidanceRate", "longDownCreationRate",
+    "cleanDriveRate", "driveKillerRate", "killerRecoveryRate",
+    "cleanDriveRateAllowed", "driveKillerRateForced",
+    "explosiveDependency", "nonExplosiveEpaPerPlay", "explosiveYardDependency",
+    "failureRate", "averageFailureDamage", "failureBurden", "failurePressure",
+    "pointsPerScoringOpportunity", "opponentPointsPerScoringOpportunity",
+}
+_IDENTITY_FIELDS = {
+    "season", "seasonType", "week", "gameId", "team", "opponent",
+    "seriesDefinitionVersion", "seriesMetricsVersion", "exploratoryDrivesRiskVersion",
+}
+
+
+def _num(value) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
 def _atomic_write(path: Path, text: str) -> None:
@@ -82,8 +103,11 @@ def build_season_payload(season: int) -> dict:
                 "wk": defaultdict(int),
             }
         wk = bucket[team]["wk"]
-        for field in COUNT_FIELDS:
-            wk[field] += r.get(field, 0)
+        for field, value in r.items():
+            if field in _IDENTITY_FIELDS or field in _RATE_FIELDS:
+                continue
+            if _num(value):
+                wk[field] = wk.get(field, 0) + value
 
     weeks = sorted(by_week)
     return {
