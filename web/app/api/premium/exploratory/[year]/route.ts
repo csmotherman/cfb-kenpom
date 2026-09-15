@@ -1,0 +1,77 @@
+import { NextResponse } from "next/server";
+import { getCurrentEntitlements } from "@/lib/auth/entitlements";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { ExploratorySeason } from "@/lib/types";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const PRIVATE_HEADERS = {
+  "Cache-Control": "private, no-store, max-age=0",
+  Vary: "Cookie",
+};
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ year: string }> }
+) {
+  const { year } = await params;
+
+  if (!/^\d{4}$/.test(year)) {
+    return NextResponse.json(
+      { code: "INVALID_SEASON", message: "Invalid season." },
+      { status: 400, headers: PRIVATE_HEADERS }
+    );
+  }
+
+  const entitlements = await getCurrentEntitlements();
+
+  if (!entitlements.userId) {
+    return NextResponse.json(
+      { code: "SIGN_IN_REQUIRED", message: "Sign in to access LEILA Exploratory." },
+      { status: 401, headers: PRIVATE_HEADERS }
+    );
+  }
+
+  // Exploratory rides on the same entitlement as Advanced -- it's a
+  // research-stage sub-surface of Advanced, not a separate paid tier.
+  if (!entitlements.advanced) {
+    return NextResponse.json(
+      {
+        code: "UPGRADE_REQUIRED",
+        message: "LEILA Advanced or Advanced + Predictions is required for Exploratory.",
+      },
+      { status: 403, headers: PRIVATE_HEADERS }
+    );
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("premium_datasets")
+      .select("payload")
+      .eq("dataset_type", "exploratory")
+      .eq("season", Number(year))
+      .eq("week", 0)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return NextResponse.json(
+        { code: "NOT_FOUND", message: "Exploratory data is not published for this season." },
+        { status: 404, headers: PRIVATE_HEADERS }
+      );
+    }
+
+    return NextResponse.json(data.payload as ExploratorySeason, {
+      status: 200,
+      headers: PRIVATE_HEADERS,
+    });
+  } catch (error) {
+    console.error("Failed to read private exploratory data", error);
+    return NextResponse.json(
+      { code: "DATA_UNAVAILABLE", message: "Exploratory data is temporarily unavailable." },
+      { status: 500, headers: PRIVATE_HEADERS }
+    );
+  }
+}

@@ -113,6 +113,33 @@ export type AdvancedSeason = {
   byWeek: Record<string, AdvancedRow[]>;
 };
 
+// Research-stage Exploratory Tier 1 (series-level) statistics -- see
+// /advanced/exploratory. Raw counts only; every rate is num/den, summed
+// across the selected week range client-side, same convention as
+// AdvancedRow.wk. Never fed into Adj. Net/Off/Def, ASM, or any prediction.
+export type ExploratoryWeekCounts = {
+  seriesOpportunities: number; seriesConversions: number;
+  seriesStopOpportunities: number; seriesStops: number;
+  recoveryOpportunities: number; recoveredSeries: number;
+  closeoutOpportunities: number; closeouts: number;
+  eligibleSeries: number; longDownSeries: number; longDownAvoidanceSeries: number;
+  longDownCreationOpportunities: number; longDownsCreated: number;
+};
+
+export type ExploratoryRow = {
+  team: string;
+  slug: string;
+  teamId: number;
+  conf: string;
+  wk: ExploratoryWeekCounts;
+};
+
+export type ExploratorySeason = {
+  weeks: number[];
+  weekLabels: WeekLabels;
+  byWeek: Record<string, ExploratoryRow[]>;
+};
+
 export type TeamStatsRow = {
   team: string;
   slug: string;

@@ -630,6 +630,11 @@ export default function AdvancedPage() {
           </div>
         </section>
 
+        <nav className="exploratory-subnav container" aria-label="Advanced sections">
+          <Link href="/advanced" className="active" aria-current="page">Advanced Analytics</Link>
+          <Link href="/advanced/exploratory">Exploratory</Link>
+        </nav>
+
         <div className="control-bar">
           <div className="control-bar__inner">
             <span className="control-label">Season</span>

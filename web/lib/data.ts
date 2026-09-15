@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { AdvancedSeason, GameLogSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
+import type { AdvancedSeason, ExploratorySeason, GameLogSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
@@ -74,6 +74,8 @@ const rankingsInflight = new Map<string, Promise<RankingsSeason>>();
 
 const advancedData = new Map<string, AdvancedSeason>();
 const advancedInflight = new Map<string, Promise<AdvancedSeason>>();
+const exploratoryData = new Map<string, ExploratorySeason>();
+const exploratoryInflight = new Map<string, Promise<ExploratorySeason>>();
 
 const scheduleData = new Map<string, ScheduleSeason | null>();
 const scheduleInflight = new Map<string, Promise<ScheduleSeason | null>>();
@@ -355,6 +357,49 @@ export function useAdvancedSeason(year: string | null): AdvancedSeason | undefin
       const error = year ? dataErrors.get(`advanced:${year}`) : undefined;
       if (error) throw error;
       return year ? advancedData.get(year) : undefined;
+    },
+    () => undefined
+  );
+}
+
+// Research-stage Exploratory. Deliberately simpler than getAdvancedSeason:
+// no rankings merge (Exploratory has no headline-rating columns) and no
+// extend-to-current-week carry-forward -- this shows exactly what's been
+// published, nothing synthesized between publishes.
+export function getExploratorySeason(year: number | string): Promise<ExploratorySeason> {
+  const key = String(year);
+  const cached = exploratoryData.get(key);
+  if (cached) return Promise.resolve(cached);
+  let entry = exploratoryInflight.get(key);
+  if (!entry) {
+    entry = fetchPremiumJson<ExploratorySeason>(`/api/premium/exploratory/${key}`).then((season) => {
+      dataErrors.delete(`exploratory:${key}`);
+      exploratoryData.set(key, season);
+      exploratoryInflight.delete(key);
+      notify();
+      return season;
+    });
+    entry = entry.catch((error: Error) => {
+      exploratoryInflight.delete(key);
+      dataErrors.set(`exploratory:${key}`, error);
+      notify();
+      throw error;
+    });
+    exploratoryInflight.set(key, entry);
+  }
+  return entry;
+}
+
+export function useExploratorySeason(year: string | null): ExploratorySeason | undefined {
+  useEffect(() => {
+    if (year) getExploratorySeason(year).catch(() => {});
+  }, [year]);
+  return useSyncExternalStore(
+    subscribe,
+    () => {
+      const error = year ? dataErrors.get(`exploratory:${year}`) : undefined;
+      if (error) throw error;
+      return year ? exploratoryData.get(year) : undefined;
     },
     () => undefined
   );
