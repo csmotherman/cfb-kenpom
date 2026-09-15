@@ -1,8 +1,6 @@
 /* ========================================================================== */
-/* Advanced -> Exploratory: sub-nav, research-stage disclaimer, and the      */
-/* small-sample-size cell treatment used on /advanced/exploratory.           */
-/* Reuses ratings.css/advanced.css/dense-ratings.css table, control-bar,     */
-/* and TipTrigger conventions -- this file only adds what those didn't have. */
+/* Advanced -> Exploratory: sub-nav, research-stage disclaimer, table, and   */
+/* team profile modal. Reuses the site's established analytical visual system.*/
 /* ========================================================================== */
 
 .exploratory-subnav {
@@ -40,28 +38,35 @@
 }
 
 /* Keep the research table dense without letting identity columns bleed into
-   the metrics. The page currently reuses record-cell for conference, so scope
-   these overrides to Exploratory only. */
+   the metrics. */
 #exploratoryTable .adv-table {
   width: 100%;
-  min-width: 900px;
+  min-width: 1040px;
   table-layout: fixed;
 }
 
 #exploratoryTable .adv-table .team-cell {
-  width: 190px;
+  width: 185px;
 }
 
 #exploratoryTable .adv-table .record-cell {
-  width: 92px;
-  min-width: 92px;
-  max-width: 92px;
+  width: 88px;
+  min-width: 88px;
+  max-width: 88px;
   padding-left: 7px;
   padding-right: 7px;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: normal;
   line-height: 1.15;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#exploratoryTable .adv-table .profile-cell {
+  width: 112px;
+  min-width: 112px;
+  max-width: 112px;
   text-align: center;
   vertical-align: middle;
 }
@@ -77,6 +82,23 @@
   text-align: center;
 }
 
+.exploratory-profile-button {
+  appearance: none;
+  border: 1px solid var(--color-hairline-strong, var(--color-hairline));
+  background: var(--color-paper);
+  color: var(--color-navy);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  font: 800 10.5px/1.1 var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.exploratory-profile-button:hover,
+.exploratory-profile-button:focus-visible {
+  border-color: var(--color-navy);
+  background: var(--color-paper-soft);
+}
+
 /* Below MIN_RELIABLE_N: no heatmap color, muted value, "N=x" instead of a
    rank badge -- reuses rank-sub's visual weight rather than new styling. */
 .stat-cell.small-sample .metric-value { color: var(--color-ink-tertiary); }
@@ -85,20 +107,204 @@
   color: var(--color-ink-tertiary);
 }
 
+/* Team exploratory profile. Deliberately table/report-like rather than a
+   dashboard of oversized cards. */
+.exploratory-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(10 22 40 / 58%);
+}
+
+.exploratory-profile-modal {
+  width: min(860px, 100%);
+  max-height: min(86vh, 820px);
+  overflow: auto;
+  background: var(--color-paper);
+  border: 1px solid var(--color-hairline);
+  box-shadow: 0 20px 60px rgb(10 22 40 / 26%);
+}
+
+.exploratory-profile-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--color-hairline);
+}
+.exploratory-profile-header h2 {
+  margin: 4px 0 2px;
+  color: var(--color-navy);
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1.05;
+}
+.exploratory-profile-header p {
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: 12px;
+}
+
+.exploratory-modal-close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink-secondary);
+  font: 400 30px/1 var(--font-body);
+  cursor: pointer;
+  padding: 0 2px;
+}
+.exploratory-modal-close:hover,
+.exploratory-modal-close:focus-visible { color: var(--color-navy); }
+
+.exploratory-profile-note {
+  padding: 11px 24px;
+  background: var(--color-paper-soft);
+  border-bottom: 1px solid var(--color-hairline);
+  color: var(--color-ink-secondary);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.exploratory-profile-section {
+  padding: 18px 24px 4px;
+}
+.exploratory-profile-section + .exploratory-profile-section {
+  border-top: 1px solid var(--color-hairline);
+}
+.exploratory-profile-section h3 {
+  margin: 0 0 8px;
+  color: var(--color-navy);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.exploratory-profile-metrics {
+  border-top: 1px solid var(--color-hairline);
+}
+
+.exploratory-profile-metric {
+  display: grid;
+  grid-template-columns: minmax(175px, 0.8fr) minmax(0, 1.6fr);
+  column-gap: 20px;
+  row-gap: 3px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.exploratory-profile-metric__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  grid-column: 1;
+  grid-row: 1;
+}
+.exploratory-profile-metric__heading strong {
+  color: var(--color-ink);
+  font-size: 12px;
+}
+.exploratory-profile-metric__value {
+  color: var(--color-navy);
+  font: 800 16px/1 var(--font-mono);
+}
+
+.exploratory-profile-metric__meta {
+  display: flex;
+  gap: 12px;
+  grid-column: 1;
+  grid-row: 2;
+  color: var(--color-ink-tertiary);
+  font: 700 10.5px/1.3 var(--font-mono);
+}
+
+.exploratory-profile-metric p {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.exploratory-profile-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 16px 24px 20px;
+}
+.exploratory-profile-done {
+  appearance: none;
+  border: 1px solid var(--color-navy);
+  background: var(--color-navy);
+  color: white;
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font: 800 11px/1 var(--font-body);
+  cursor: pointer;
+}
+
 @media (max-width: 640px) {
   .exploratory-subnav { padding-left: var(--space-4); padding-right: var(--space-4); }
 
   #exploratoryTable .adv-table {
-    min-width: 860px;
+    min-width: 990px;
   }
 
   #exploratoryTable .adv-table .team-cell {
-    width: 170px;
+    width: 160px;
   }
 
   #exploratoryTable .adv-table .record-cell {
-    width: 84px;
-    min-width: 84px;
-    max-width: 84px;
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+  }
+
+  #exploratoryTable .adv-table .profile-cell {
+    width: 104px;
+    min-width: 104px;
+    max-width: 104px;
+  }
+
+  .exploratory-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .exploratory-profile-modal {
+    width: 100%;
+    max-height: 90vh;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .exploratory-profile-header,
+  .exploratory-profile-note,
+  .exploratory-profile-section,
+  .exploratory-profile-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .exploratory-profile-metric {
+    display: block;
+    padding: 13px 0;
+  }
+
+  .exploratory-profile-metric__meta {
+    margin-top: 5px;
+  }
+
+  .exploratory-profile-metric p {
+    margin-top: 7px;
   }
 }
