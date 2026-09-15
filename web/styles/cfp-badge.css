@@ -1,0 +1,104 @@
+/* ========================================================================== */
+/* CFP field/champion/runner-up markers -- shared across Ratings, Advanced,  */
+/* and Exploratory team-name cells (web/components/CfpTeamCell.tsx).         */
+/* ========================================================================== */
+
+.cfp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 2px;
+  padding: 1px 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  font: 800 7.5px/1.5 var(--font-body);
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cfp-badge--participant {
+  background: rgba(23, 36, 56, 0.08);
+  border: 1px solid rgba(23, 36, 56, 0.28);
+  color: var(--color-navy);
+}
+
+.cfp-badge--champion {
+  background: rgba(197, 154, 67, 0.2);
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold-dark);
+}
+
+.cfp-badge--runner-up {
+  background: rgba(154, 164, 178, 0.22);
+  border: 1px solid #9aa4b2;
+  color: #4d5561;
+}
+
+/* Static box for a plain field participant -- no animation, since a 12-team
+   bracket means up to a dozen of these on screen at once. */
+td.team-cell--cfp-participant {
+  box-shadow: inset 0 0 0 2px var(--color-navy);
+}
+
+/* Champion and runner-up are rare (one row each per season), so they get the
+   full animated glow treatment. Keyframes pulse the glow's spread/opacity,
+   not color, so it stays legible against both light and dark surroundings. */
+@keyframes cfp-glow-gold {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 2px var(--color-gold), 0 0 0 0 rgba(197, 154, 67, 0.5);
+  }
+  50% {
+    box-shadow: inset 0 0 0 3px var(--color-gold), 0 0 9px 2px rgba(197, 154, 67, 0.55);
+  }
+}
+@keyframes cfp-glow-silver {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 2px #9aa4b2, 0 0 0 0 rgba(154, 164, 178, 0.45);
+  }
+  50% {
+    box-shadow: inset 0 0 0 3px #9aa4b2, 0 0 9px 2px rgba(154, 164, 178, 0.5);
+  }
+}
+
+td.team-cell--cfp-champion {
+  background: rgba(197, 154, 67, 0.1);
+  animation: cfp-glow-gold 2.2s ease-in-out infinite;
+}
+td.team-cell--cfp-runner-up {
+  background: rgba(154, 164, 178, 0.12);
+  animation: cfp-glow-silver 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  td.team-cell--cfp-champion,
+  td.team-cell--cfp-runner-up {
+    animation: none;
+  }
+}
+
+/* Below 640px, mobile-fit.css strips team-cell's box-shadow/background with
+   !important to keep the compacted phone layout uncluttered. Champion and
+   runner-up are rare and celebratory enough to earn overriding that (same
+   :is(...) selector prefix + !important so it wins on both specificity and
+   source order); the plain participant box stays dropped on phones, where
+   the "CFP" text badge alone is enough. */
+@media (max-width: 640px) {
+  :is(#ratingsTable, .adv-table) td.team-cell--cfp-champion {
+    box-shadow: inset 0 0 0 2px var(--color-gold) !important;
+    background: rgba(197, 154, 67, 0.1) !important;
+  }
+  :is(#ratingsTable, .adv-table) td.team-cell--cfp-runner-up {
+    box-shadow: inset 0 0 0 2px #9aa4b2 !important;
+    background: rgba(154, 164, 178, 0.12) !important;
+  }
+  .cfp-badge {
+    font-size: 6.5px;
+    padding: 1px 4px;
+  }
+}

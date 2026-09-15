@@ -5,10 +5,11 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import TeamLink from "@/components/TeamLink";
+import CfpTeamCell from "@/components/CfpTeamCell";
 import { TipTrigger } from "@/components/Tooltip";
 import GameLogModal from "@/components/GameLogModal";
-import { getMeta, useAdvancedSeason } from "@/lib/data";
+import { getMeta, useAdvancedSeason, useCfpResultsSeason } from "@/lib/data";
+import { buildCfpStatusMap } from "@/lib/cfp";
 import { columnRange, heatBackground } from "@/lib/heatmap";
 import type { AdvancedRow } from "@/lib/types";
 
@@ -420,6 +421,9 @@ export default function AdvancedPage() {
   const weeks = season?.weeks ?? EMPTY_WEEKS;
   const seasonByWeek = season?.byWeek ?? EMPTY_BY_WEEK;
 
+  const cfpResults = useCfpResultsSeason(year || null);
+  const cfpStatusByTeamId = useMemo(() => buildCfpStatusMap(cfpResults), [cfpResults]);
+
   function weekLabel(w: number): string {
     return season?.weekLabels?.[String(w)] || `Week ${w}`;
   }
@@ -819,12 +823,14 @@ export default function AdvancedPage() {
                     visibleTeams.map((team) => (
                       <tr key={team.slug}>
                         <td className="num rank-cell">{team._rank ? String(team._rank) : "—"}</td>
-                        <td className="team-cell">
-                          <div className="team-cell-stack">
-                            <TeamLink team={team.team} teamId={team.teamId} slug={team.slug} />
-                            <span className="team-conf-label">{team.conf}</span>
-                          </div>
-                        </td>
+                        <CfpTeamCell
+                          team={team.team}
+                          teamId={team.teamId}
+                          slug={team.slug}
+                          conf={team.conf}
+                          status={cfpStatusByTeamId.get(team.teamId)}
+                          year={year}
+                        />
                         <td className="num record-cell">{team.record}</td>
                         {visibleColumns.map((col) => {
                           const value = team[col.key] as number | null;

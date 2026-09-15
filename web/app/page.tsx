@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import TeamLink from "@/components/TeamLink";
+import CfpTeamCell from "@/components/CfpTeamCell";
 import { TipTrigger } from "@/components/Tooltip";
 import { getMeta, useCfpResultsSeason, useRankingsSeason } from "@/lib/data";
+import { buildCfpStatusMap } from "@/lib/cfp";
 import { columnRange, heatBackground } from "@/lib/heatmap";
 import Link from "next/link";
 
@@ -37,22 +38,6 @@ function na(v: unknown): v is null | undefined {
 function statText(value: number | null, useSign: boolean, decimals: number) {
   if (na(value)) return "—";
   return useSign ? (value >= 0 ? "+" : "") + value.toFixed(decimals) : value.toFixed(decimals);
-}
-
-type CfpStatus = "champion" | "runnerUp" | "participant" | undefined;
-
-function cfpCellClass(status: CfpStatus): string {
-  if (status === "champion") return "team-cell team-cell--cfp-champion";
-  if (status === "runnerUp") return "team-cell team-cell--cfp-runner-up";
-  if (status === "participant") return "team-cell team-cell--cfp";
-  return "team-cell";
-}
-
-function cfpCellTitle(status: CfpStatus, year: string): string | undefined {
-  if (status === "champion") return `${year} National Champion`;
-  if (status === "runnerUp") return `${year} National Championship runner-up`;
-  if (status === "participant") return `${year} College Football Playoff field`;
-  return undefined;
 }
 
 function RankChangeBadge({ change }: { change: number | null | undefined }) {
@@ -126,14 +111,7 @@ export default function RatingsPage() {
   // (not yet fetched, or that season's CFP hasn't been decided) just means
   // no boxes render, never an error.
   const cfpResults = useCfpResultsSeason(year || null);
-  const cfpStatusByTeamId = useMemo(() => {
-    const byTeamId = new Map<number, "champion" | "runnerUp" | "participant">();
-    if (!cfpResults) return byTeamId;
-    for (const team of cfpResults.participants) byTeamId.set(team.teamId, "participant");
-    if (cfpResults.runnerUp) byTeamId.set(cfpResults.runnerUp.teamId, "runnerUp");
-    if (cfpResults.champion) byTeamId.set(cfpResults.champion.teamId, "champion");
-    return byTeamId;
-  }, [cfpResults]);
+  const cfpStatusByTeamId = useMemo(() => buildCfpStatusMap(cfpResults), [cfpResults]);
 
   // Postseason site-weeks are named by CFBD's own playoff round (e.g. "CFP
   // Semifinal") instead of just numbered -- see lib/types.ts's WeekLabels.
@@ -375,15 +353,14 @@ export default function RatingsPage() {
                         {t.rank !== null ? <RankChangeBadge change={t.rankChange} /> : null}
                       </span>
                     </td>
-                    <td
-                      className={cfpCellClass(cfpStatusByTeamId.get(t.teamId))}
-                      title={cfpCellTitle(cfpStatusByTeamId.get(t.teamId), year)}
-                    >
-                      <div className="team-cell-stack">
-                        <TeamLink team={t.team} teamId={t.teamId} slug={t.slug} />
-                        <span className="team-conf-label">{t.conf}</span>
-                      </div>
-                    </td>
+                    <CfpTeamCell
+                      team={t.team}
+                      teamId={t.teamId}
+                      slug={t.slug}
+                      conf={t.conf}
+                      status={cfpStatusByTeamId.get(t.teamId)}
+                      year={year}
+                    />
                     <td className="num record-cell">{t.record}</td>
                     <StatCell value={t.adjEM} rank={t.rank} primary useSign decimals={1} metricKey="adjEM" bg={heatBackground(t.adjEM, ranges.adjEM)} />
                     <StatCell value={t.adjO} rank={t.adjORank} useSign decimals={2} metricKey="adjO" bg={heatBackground(t.adjO, ranges.adjO)} />
