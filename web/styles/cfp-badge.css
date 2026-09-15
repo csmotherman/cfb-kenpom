@@ -29,6 +29,24 @@ td.team-cell--cfp-runner-up {
   --cfp-wash: rgba(175, 185, 197, 0.085);
 }
 
+/* A CFP badge and a full team identity cannot both fit inside the normal
+   compact team column. If the table contains CFP cards, widen the entire team
+   column so participant and non-participant rows stay aligned and team names
+   remain readable. */
+@media (min-width: 641px) {
+  #ratingsTable:has(td.team-cell--cfp) .team-cell {
+    width: 300px !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
+  }
+
+  .adv-table:has(td.team-cell--cfp) .team-cell {
+    width: 270px !important;
+    min-width: 270px !important;
+    max-width: 270px !important;
+  }
+}
+
 /* Rounded inset frame, matching the mockup rather than boxing the entire td. */
 td.team-cell--cfp::before {
   content: "";
@@ -68,7 +86,7 @@ td.team-cell--cfp::after {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   justify-content: stretch !important;
-  gap: 8px !important;
+  gap: 10px !important;
   width: 100%;
   min-height: 39px;
   box-sizing: border-box;
@@ -83,6 +101,7 @@ td.team-cell--cfp::after {
 }
 
 .cfp-team-copy .team-link {
+  width: 100%;
   min-width: 0;
   max-width: 100%;
 }
