@@ -126,6 +126,12 @@ body:has(#advancedTable) .show-all-columns-toggle:hover {
   color: var(--color-paper-soft);
 }
 
+/* EPA and Success Rate are full research tables on desktop. Their collapse
+   control is only exposed on mobile, where horizontal space is constrained. */
+body:has(#advancedTable) .show-all-columns-toggle--mobile-only {
+  display: none;
+}
+
 body:has(#advancedTable) #advancedTable .table-scroll {
   position: relative;
   width: 100%;
@@ -375,6 +381,10 @@ body:has(#advancedTable) #advancedTable .adv-table .sort-indicator {
 }
 
 @media (max-width: 640px) {
+  body:has(#advancedTable) .show-all-columns-toggle--mobile-only {
+    display: inline-flex;
+  }
+
   body:has(#advancedTable) .advanced-range-row {
     display: grid !important;
     grid-template-columns: auto minmax(0, 1fr);
