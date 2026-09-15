@@ -39,6 +39,44 @@
   color: var(--color-ink-secondary);
 }
 
+/* Keep the research table dense without letting identity columns bleed into
+   the metrics. The page currently reuses record-cell for conference, so scope
+   these overrides to Exploratory only. */
+#exploratoryTable .adv-table {
+  width: 100%;
+  min-width: 900px;
+  table-layout: fixed;
+}
+
+#exploratoryTable .adv-table .team-cell {
+  width: 190px;
+}
+
+#exploratoryTable .adv-table .record-cell {
+  width: 92px;
+  min-width: 92px;
+  max-width: 92px;
+  padding-left: 7px;
+  padding-right: 7px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-height: 1.15;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#exploratoryTable .adv-table .metric-cell {
+  min-width: 0;
+  vertical-align: middle;
+}
+
+#exploratoryTable .adv-column-row .metric-cell .column-sort {
+  white-space: normal;
+  line-height: 1.12;
+  text-align: center;
+}
+
 /* Below MIN_RELIABLE_N: no heatmap color, muted value, "N=x" instead of a
    rank badge -- reuses rank-sub's visual weight rather than new styling. */
 .stat-cell.small-sample .metric-value { color: var(--color-ink-tertiary); }
@@ -49,4 +87,18 @@
 
 @media (max-width: 640px) {
   .exploratory-subnav { padding-left: var(--space-4); padding-right: var(--space-4); }
+
+  #exploratoryTable .adv-table {
+    min-width: 860px;
+  }
+
+  #exploratoryTable .adv-table .team-cell {
+    width: 170px;
+  }
+
+  #exploratoryTable .adv-table .record-cell {
+    width: 84px;
+    min-width: 84px;
+    max-width: 84px;
+  }
 }
