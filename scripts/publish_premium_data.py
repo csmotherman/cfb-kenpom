@@ -215,6 +215,35 @@ def publish_exploratory(base_url: str, secret: str, season: int | None) -> int:
     return count
 
 
+def publish_exploratory_matchups(base_url: str, secret: str, season: int | None) -> int:
+    # Source is the private processed tree (not web/public/data): this
+    # dataset also carries the fitted model artifacts used to compute each
+    # edge, which never belong in a public static file even transiently.
+    directory = REPO / "data" / "processed" / "private" / "exploratory-matchups"
+    if not directory.exists():
+        return 0
+    paths = [directory / f"{season}.json"] if season else sorted(directory.glob("*.json"))
+    count = 0
+    for path in paths:
+        if not path.exists():
+            raise FileNotFoundError(f"Missing generated premium dataset: {path}")
+        payload = json.loads(path.read_text())
+        year = int(path.stem)
+        upsert(
+            base_url,
+            secret,
+            {
+                "dataset_type": "exploratory_matchups",
+                "season": year,
+                "week": 0,
+                "payload": payload,
+                "source_sha": payload_hash(payload),
+            },
+        )
+        count += 1
+    return count
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--season", type=int, help="Publish only one season's generated premium files")
@@ -224,9 +253,11 @@ def main() -> None:
     advanced = publish_advanced(base_url, secret, args.season)
     predictions = publish_predictions(base_url, secret, args.season)
     exploratory = publish_exploratory(base_url, secret, args.season)
+    exploratory_matchups = publish_exploratory_matchups(base_url, secret, args.season)
     print(
         f"Published and read-after-write verified {advanced} Advanced Analytics season(s), "
-        f"{predictions} prediction week(s), and {exploratory} Exploratory season(s) in private Supabase storage."
+        f"{predictions} prediction week(s), {exploratory} Exploratory season(s), and "
+        f"{exploratory_matchups} Exploratory Matchups season(s) in private Supabase storage."
     )
 
 

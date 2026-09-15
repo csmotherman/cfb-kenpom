@@ -6,6 +6,7 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import MatchupEdgesSection from "@/components/MatchupEdgesSection";
 import {
   getRankingsSeason,
   getScheduleSeason,
@@ -331,6 +332,8 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
             rows={homeSideRows}
           />
         </div>
+
+        <MatchupEdgesSection season={season} gameId={gameId} />
       </main>
 
       <SiteFooter note="Matchup pages use the most recent LEILA rating snapshot strictly before the selected game week. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Adj. Def." />

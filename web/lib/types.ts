@@ -375,3 +375,49 @@ export type PredictionsTrackRecord = {
   weeks: PredictionWeekRecord[];
   overall: PredictionRecordStats;
 };
+
+// One offense-vs-defense pairing effect, produced by
+// exploratory_matchup_product.py from pregame-only, walk-forward-fitted
+// additive models. `unit` is "epa" for the failure pairing and "rate"
+// (a 0-1 share) for every other pairing; failureRate/EPA values are not
+// bounded to [0, 1] the way the others are. `advantageTeam` is null for a
+// style pairing (Explosive Dependency) even when `meaningful` is true --
+// dependency is descriptive, not good or bad, so no side is favored.
+export type MatchupEdge = {
+  pairing: string;
+  title: string;
+  definition: string;
+  offenseTeam: string;
+  defenseTeam: string;
+  offenseLabel: string;
+  defenseLabel: string;
+  offenseRate: number;
+  defenseRate: number;
+  offenseRank: number | null;
+  defenseRank: number | null;
+  offenseN: number;
+  defenseN: number;
+  offenseMinN: number;
+  defenseMinN: number;
+  expected: number;
+  offenseOnly: number;
+  opponentEffect: number;
+  advantageTeam: string | null;
+  style: boolean;
+  unit: "epa" | "rate";
+  threshold: number | null;
+  effectPercentile: number | null;
+  meaningful: boolean;
+  modelId: string;
+  throughWeek: number;
+};
+
+export type MatchupEdgesGame = {
+  season: number;
+  gameId: string;
+  week: number;
+  status: "ready" | "even" | "limited";
+  availablePairings: number;
+  possiblePairings: number;
+  edges: MatchupEdge[];
+};
