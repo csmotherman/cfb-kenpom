@@ -37,6 +37,7 @@ type ExpColumn = {
   num: keyof ExploratoryWeekCounts;
   den: keyof ExploratoryWeekCounts;
   tooltip: string;
+  profileNote: string;
   fmt?: keyof typeof FORMATTERS;
   lowerBetter?: boolean;
   noHeatmap?: boolean;
@@ -46,37 +47,55 @@ type ExpSection = { title: string; columns: ExpColumn[] };
 
 const SERIES_OFFENSE: ExpColumn[] = [
   {
-    key: "seriesConversionRate", label: "Series Conv.",
-    num: "seriesConversions", den: "seriesOpportunities",
-    tooltip: "Percentage of fresh sets of downs that produce another first down or touchdown before the possession ends -- on any down, not just 3rd.",
+    key: "seriesConversionRate",
+    label: "Series Conversion %",
+    num: "seriesConversions",
+    den: "seriesOpportunities",
+    tooltip: "How often a fresh set of downs ends with another first down or a touchdown. It counts conversions on any down, not just 3rd down.",
+    profileNote: "Keeps the chains moving on any down",
   },
   {
-    key: "recoveryRate", label: "Recovery",
-    num: "recoveredSeries", den: "recoveryOpportunities",
-    tooltip: "Percentage of series that still earn another first down or touchdown after the offense has an unsuccessful 1st- or 2nd-down play.",
+    key: "recoveryRate",
+    label: "Recovery %",
+    num: "recoveredSeries",
+    den: "recoveryOpportunities",
+    tooltip: "After an unsuccessful 1st- or 2nd-down play, how often the offense still earns another first down or touchdown in that same series.",
+    profileNote: "Bounces back after a bad early down",
   },
   {
-    key: "longDownAvoidanceRate", label: "Long-Down Avoid.",
-    num: "longDownAvoidanceSeries", den: "eligibleSeries",
-    tooltip: "Percentage of series that never reach 3rd-and-7 or longer. Converting on 1st or 2nd down counts in its favor, not against it.",
+    key: "longDownAvoidanceRate",
+    label: "Avoid 3rd & Long %",
+    num: "longDownAvoidanceSeries",
+    den: "eligibleSeries",
+    tooltip: "How often the offense gets through a series without facing 3rd-and-7 or longer. Higher means it stays on schedule more often.",
+    profileNote: "Stays out of obvious passing situations",
   },
 ];
 
 const SERIES_DEFENSE: ExpColumn[] = [
   {
-    key: "seriesStopRate", label: "Series Stop",
-    num: "seriesStops", den: "seriesStopOpportunities",
-    tooltip: "Percentage of opponent series the defense keeps from earning another first down or touchdown.",
+    key: "seriesStopRate",
+    label: "Series Stop %",
+    num: "seriesStops",
+    den: "seriesStopOpportunities",
+    tooltip: "How often the defense ends an opponent's fresh set of downs before the offense gains another first down or scores a touchdown.",
+    profileNote: "Ends an opponent's fresh set of downs",
   },
   {
-    key: "closeoutRate", label: "Closeout",
-    num: "closeouts", den: "closeoutOpportunities",
-    tooltip: "Percentage of opponent series that fail to earn another first down after the defense creates an unsuccessful 1st- or 2nd-down play.",
+    key: "closeoutRate",
+    label: "Closeout %",
+    num: "closeouts",
+    den: "closeoutOpportunities",
+    tooltip: "After the defense wins an early down, how often it finishes the series without allowing another first down or touchdown.",
+    profileNote: "Finishes the job after winning an early down",
   },
   {
-    key: "longDownCreationRate", label: "Long-Down Create",
-    num: "longDownsCreated", den: "longDownCreationOpportunities",
-    tooltip: "Percentage of opponent series the defense forces into 3rd-and-7 or longer.",
+    key: "longDownCreationRate",
+    label: "Force 3rd & Long %",
+    num: "longDownsCreated",
+    den: "longDownCreationOpportunities",
+    tooltip: "How often the defense forces an opponent into 3rd-and-7 or longer. Higher means more obvious passing situations created.",
+    profileNote: "Creates obvious passing situations",
   },
 ];
 
@@ -85,11 +104,13 @@ const POSSESSIONS_OFFENSE: ExpColumn[] = [
     key: "cleanDriveRate", label: "Clean Drive %",
     num: "cleanDrives", den: "eligibleDrives",
     tooltip: "How often the offense gets through an entire possession without a turnover, sack, TFL, costly accepted penalty, or failed 4th down.",
+    profileNote: "Avoids the self-inflicted mistakes that stall a drive",
   },
   {
     key: "driveKillerRate", label: "Drive Killer %",
     num: "drivesKilled", den: "drivesWithKillerEvent",
     tooltip: "How often a major mistake (turnover, sack, TFL, costly penalty, failed 4th down) actually puts the drive away for good, of the drives that had one.",
+    profileNote: "How often one mistake ends the whole possession",
     lowerBetter: true,
   },
 ];
@@ -99,12 +120,14 @@ const POSSESSIONS_DEFENSE: ExpColumn[] = [
     key: "cleanDriveRateAllowed", label: "Clean Drive % Allowed",
     num: "cleanDrivesAllowed", den: "eligibleDrivesFaced",
     tooltip: "How often the opponent's offense gets through an entire possession against this defense without a mistake. Lower is better defense.",
+    profileNote: "Lets opponents drive mistake-free too often, or not",
     lowerBetter: true,
   },
   {
     key: "driveKillerRateForced", label: "Drive Killer % Forced",
     num: "drivesKilledForced", den: "drivesWithKillerEventForced",
     tooltip: "Of opponent drives that had a major mistake against this defense, how often the defense actually finished the drive off.",
+    profileNote: "Turns an opponent's mistake into a dead drive",
   },
 ];
 
@@ -113,36 +136,42 @@ const STYLE_RISK: ExpColumn[] = [
     key: "explosiveDependency", label: "Explosive Dependency",
     num: "explosivePositiveEpa", den: "positiveEpa",
     tooltip: "Share of an offense's positive EPA generated by explosive plays (rush 10+ yards, pass 20+ yards). Descriptive, not a quality signal -- high dependency can mean dangerous, or volatile.",
+    profileNote: "How much of the offense rides on its biggest plays",
     noHeatmap: true,
   },
   {
     key: "nonExplosiveEpaPerPlay", label: "Non-Explosive EPA/play",
     num: "nonExplosiveEpa", den: "nonExplosivePlays",
     tooltip: "How efficient the offense is when explosive plays are removed from the picture.",
+    profileNote: "How the offense performs once the big plays are set aside",
     fmt: "signed3",
   },
   {
     key: "failureRate", label: "Failure Rate",
     num: "negativeEpaPlays", den: "epaEligiblePlays",
     tooltip: "How often the offense produces a negative-EPA play.",
+    profileNote: "How often a play actively hurts the offense",
     lowerBetter: true,
   },
   {
     key: "averageFailureDamage", label: "Avg Failure Damage",
     num: "negativeEpaMagnitudeSum", den: "negativeEpaPlays",
     tooltip: "How costly the offense's bad plays are when they happen.",
+    profileNote: "How bad the bad plays really are",
     fmt: "plain3", lowerBetter: true,
   },
   {
     key: "failureBurden", label: "Failure Burden",
     num: "negativeEpaMagnitudeSum", den: "epaEligiblePlays",
     tooltip: "How much negative EPA the offense gives away per play through mistakes and failed plays. Failure Rate times Average Failure Damage.",
+    profileNote: "The full cost of an offense's mistakes, per play",
     fmt: "plain3", lowerBetter: true,
   },
   {
     key: "failurePressure", label: "Failure Pressure",
     num: "opponentNegativeEpaMagnitudeSum", den: "opponentEpaEligiblePlays",
     tooltip: "How much negative EPA the defense forces opponents to absorb per play.",
+    profileNote: "How much damage the defense inflicts through opponent mistakes",
     fmt: "plain3",
   },
 ];
@@ -179,6 +208,20 @@ type Aggregated = {
   [key: string]: unknown;
 };
 
+type FanTier = { label: string; className: string };
+
+function fanTier(rank: number | null, total: number, smallSample: boolean): FanTier {
+  if (smallSample) return { label: "Small Sample", className: "profile-tier--sample" };
+  if (!rank || total <= 0) return { label: "No Rank", className: "profile-tier--sample" };
+  const percentile = rank / total;
+  if (percentile <= 0.10) return { label: "Elite", className: "profile-tier--elite" };
+  if (percentile <= 0.25) return { label: "Strong", className: "profile-tier--strong" };
+  if (percentile <= 0.40) return { label: "Good", className: "profile-tier--good" };
+  if (percentile <= 0.60) return { label: "Average", className: "profile-tier--average" };
+  if (percentile <= 0.80) return { label: "Below Avg", className: "profile-tier--below" };
+  return { label: "Needs Work", className: "profile-tier--poor" };
+}
+
 const EMPTY_WEEKS: number[] = [];
 const EMPTY_BY_WEEK: Record<string, ExploratoryRow[]> = {};
 
@@ -192,6 +235,7 @@ export default function ExploratoryPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [filter, setFilter] = useState("");
   const [conference, setConference] = useState("");
+  const [profileTeam, setProfileTeam] = useState<Aggregated | null>(null);
 
   useEffect(() => {
     getMeta().then((meta) => {
@@ -199,6 +243,20 @@ export default function ExploratoryPage() {
       setYear(String(meta.advancedYears[meta.advancedYears.length - 1]));
     }).catch(setLoadError);
   }, []);
+
+  useEffect(() => {
+    if (!profileTeam) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setProfileTeam(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [profileTeam]);
 
   const season: ExploratorySeason | undefined = useExploratorySeason(year || null);
   const loading = !season;
@@ -208,6 +266,7 @@ export default function ExploratoryPage() {
   function weekLabel(w: number): string {
     return season?.weekLabels?.[String(w)] || `Week ${w}`;
   }
+
   function weekRangeLabel(start: number, end: number): string {
     return start === end ? weekLabel(start) : `${weekLabel(start)}–${weekLabel(end)}`;
   }
@@ -291,17 +350,32 @@ export default function ExploratoryPage() {
     const ranges: Record<string, { min: number; max: number }> = {};
     ALL_COLUMNS.forEach((col) => {
       ranges[col.key] = columnRange(
-        teams.filter((t) => (t[`${col.key}_n`] as number) >= MIN_RELIABLE_N).map((t) => t[col.key] as number | null)
+        teams
+          .filter((team) => (team[`${col.key}_n`] as number) >= MIN_RELIABLE_N)
+          .map((team) => team[col.key] as number | null)
       );
     });
     return ranges;
   }, [teams]);
 
-  const conferences = useMemo(() => [...new Set(teams.map((team) => team.conf))].filter(Boolean).sort(), [teams]);
+  const eligibleCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    ALL_COLUMNS.forEach((col) => {
+      counts[col.key] = teams.filter(
+        (team) => !na(team[col.key] as number | null) && (team[`${col.key}_n`] as number) >= MIN_RELIABLE_N
+      ).length;
+    });
+    return counts;
+  }, [teams]);
+
+  const conferences = useMemo(
+    () => [...new Set(teams.map((team) => team.conf))].filter(Boolean).sort(),
+    [teams]
+  );
 
   function onHeaderClick(key: string) {
     if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDir((direction) => (direction === "asc" ? "desc" : "asc"));
     } else {
       const column = ALL_COLUMNS.find((c) => c.key === key);
       setSortKey(key);
@@ -310,6 +384,10 @@ export default function ExploratoryPage() {
   }
 
   if (loadError) throw loadError;
+
+  const activeRangeLabel = startWeek !== null && endWeek !== null
+    ? weekRangeLabel(startWeek, endWeek)
+    : "Selected weeks";
 
   return (
     <>
@@ -322,13 +400,14 @@ export default function ExploratoryPage() {
           <span className="eyebrow">Advanced · Exploratory</span>
           <h1 id="exploratoryTitle">{year} Series &amp; Drive-Level Statistics</h1>
           <p className="ratings-hero__description">
-            Series Conversion, Clean Drives, Explosive Dependency, and Failure Burden -- research-stage numbers
-            built from LEILA&rsquo;s canonical play-by-play, not just box-score snapshots.
+            Research-stage stats that explain how teams sustain drives, recover after bad downs, stay clean on
+            possessions, and rely on (or avoid) explosive plays and costly mistakes -- built from LEILA&rsquo;s
+            canonical play-by-play, not just box-score snapshots.
           </p>
         </div>
         <div className="ratings-hero__meta">
           <span className="ratings-status">
-            {loading ? "Loading season…" : `${year} • ${startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : ""} • ${teams.length} teams`}
+            {loading ? "Loading season…" : `${year} • ${activeRangeLabel} • ${teams.length} teams`}
           </span>
           <Link className="utility-link" href="/methodology">Methodology ↗</Link>
         </div>
@@ -355,7 +434,7 @@ export default function ExploratoryPage() {
                 type="button"
                 className={String(seasonYear) === year ? "active" : undefined}
                 aria-pressed={String(seasonYear) === year}
-                onClick={() => { setYear(String(seasonYear)); setConference(""); }}
+                onClick={() => { setYear(String(seasonYear)); setConference(""); setProfileTeam(null); }}
               >
                 {seasonYear}
               </button>
@@ -363,11 +442,22 @@ export default function ExploratoryPage() {
           </nav>
           <div className="filter-box">
             <label className="sr-only" htmlFor="exploratoryFilterInput">Search exploratory analytics</label>
-            <input id="exploratoryFilterInput" type="search" placeholder="Search team…" autoComplete="off" value={filter} onChange={(e) => setFilter(e.target.value)} />
+            <input
+              id="exploratoryFilterInput"
+              type="search"
+              placeholder="Search team…"
+              autoComplete="off"
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+            />
           </div>
           <div className="conference-filter">
             <label className="sr-only" htmlFor="exploratoryConferenceSelect">Conference</label>
-            <select id="exploratoryConferenceSelect" value={conference} onChange={(e) => setConference(e.target.value)}>
+            <select
+              id="exploratoryConferenceSelect"
+              value={conference}
+              onChange={(event) => setConference(event.target.value)}
+            >
               <option value="">All conferences</option>
               {conferences.map((conf) => <option key={conf} value={conf}>{conf}</option>)}
             </select>
@@ -384,9 +474,10 @@ export default function ExploratoryPage() {
             <select
               aria-label="Start week"
               value={startWeek ?? ""}
-              onChange={(e) => {
-                const value = Number(e.target.value);
+              onChange={(event) => {
+                const value = Number(event.target.value);
                 setStartWeek(value);
+                setProfileTeam(null);
                 if (endWeek !== null && value > endWeek) setEndWeek(value);
               }}
             >
@@ -397,9 +488,10 @@ export default function ExploratoryPage() {
             <select
               aria-label="End week"
               value={endWeek ?? ""}
-              onChange={(e) => {
-                const value = Number(e.target.value);
+              onChange={(event) => {
+                const value = Number(event.target.value);
                 setEndWeek(value);
+                setProfileTeam(null);
                 if (startWeek !== null && value < startWeek) setStartWeek(value);
               }}
             >
@@ -407,7 +499,11 @@ export default function ExploratoryPage() {
             </select>
           </div>
         </div>
-        <p className="container adv-note">Every rate sums the raw counts across the selected week range, then divides -- never an average of weekly percentages. Grayed-out cells fell below {MIN_RELIABLE_N} in their sample and are shown without a rank. Explosive Dependency is descriptive -- it is not color-coded good or bad.</p>
+        <p className="container adv-note">
+          Every rate sums the raw counts across the selected week range, then divides -- never an average of
+          weekly percentages. Grayed-out cells fell below {MIN_RELIABLE_N} in their sample and are shown without a
+          national rank. Explosive Dependency is descriptive -- it is not color-coded good or bad.
+        </p>
       </div>
 
       <main id="exploratoryTable" className="table-main container">
@@ -425,11 +521,15 @@ export default function ExploratoryPage() {
                   ))}
                 </tr>
                 <tr className="adv-column-row">
-                  <th scope="col" className="team-cell sortable" aria-sort={sortKey === "team" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                  <th
+                    scope="col"
+                    className="team-cell sortable"
+                    aria-sort={sortKey === "team" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+                  >
                     <button type="button" className="column-sort" onClick={() => onHeaderClick("team")}>Team</button>
                     <span className="sort-indicator">{sortKey === "team" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
                   </th>
-                  <th scope="col" className="num record-cell">Conf</th>
+                  <th scope="col" className="profile-cell">Profile</th>
                   {ALL_COLUMNS.map((col) => (
                     <th
                       key={col.key}
@@ -449,7 +549,9 @@ export default function ExploratoryPage() {
                   Array.from({ length: 14 }).map((_, rowIndex) => (
                     <tr key={rowIndex} className="skeleton-row">
                       {Array.from({ length: 2 + ALL_COLUMNS.length }).map((__, cellIndex) => (
-                        <td key={cellIndex}><span className="skeleton-bar" style={{ width: (cellIndex === 0 ? 75 : 45 + ((cellIndex * 11) % 30)) + "%" }} /></td>
+                        <td key={cellIndex}>
+                          <span className="skeleton-bar" style={{ width: (cellIndex === 0 ? 75 : 45 + ((cellIndex * 11) % 30)) + "%" }} />
+                        </td>
                       ))}
                     </tr>
                   ))
@@ -461,9 +563,16 @@ export default function ExploratoryPage() {
                   visibleTeams.map((team) => (
                     <tr key={team.slug}>
                       <td className="team-cell">
-                        <TeamLink team={team.team} teamId={team.teamId} slug={team.slug} />
+                        <div className="team-cell-stack">
+                          <TeamLink team={team.team} teamId={team.teamId} slug={team.slug} />
+                          <span className="team-conf-label">{team.conf}</span>
+                        </div>
                       </td>
-                      <td className="num record-cell">{team.conf}</td>
+                      <td className="profile-cell">
+                        <button type="button" className="exploratory-profile-button" onClick={() => setProfileTeam(team)}>
+                          View Profile
+                        </button>
+                      </td>
                       {ALL_COLUMNS.map((col) => {
                         const value = team[col.key] as number | null;
                         const n = team[`${col.key}_n`] as number;
@@ -490,6 +599,108 @@ export default function ExploratoryPage() {
           </div>
         </div>
       </main>
+
+      {profileTeam && (
+        <div
+          className="exploratory-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setProfileTeam(null);
+          }}
+        >
+          <section
+            className="exploratory-profile-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exploratoryProfileTitle"
+          >
+            <header className="exploratory-profile-header">
+              <div>
+                <span className="eyebrow">Exploratory Profile · {year} · {activeRangeLabel}</span>
+                <h2 id="exploratoryProfileTitle">{profileTeam.team}</h2>
+                <p>{profileTeam.conf} · How this team wins and loses series</p>
+              </div>
+              <button
+                type="button"
+                className="exploratory-modal-close"
+                aria-label="Close exploratory profile"
+                onClick={() => setProfileTeam(null)}
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="exploratory-profile-note">
+              <strong>Quick read:</strong> green is a strength, red is an area to watch. The label in the last column translates national rank into plain football language.
+            </div>
+
+            {SECTIONS.map((group) => (
+              <section className="exploratory-profile-section" key={group.title}>
+                <h3>{group.title}</h3>
+                <table className="exploratory-profile-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">What it measures</th>
+                      <th scope="col">Rate</th>
+                      <th scope="col">National</th>
+                      <th scope="col">Read</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.columns.map((col) => {
+                      const value = profileTeam[col.key] as number | null;
+                      const n = profileTeam[`${col.key}_n`] as number;
+                      const rank = profileTeam[`_rank_${col.key}`] as number | null;
+                      const smallSample = n < MIN_RELIABLE_N;
+                      const eligibleCount = eligibleCounts[col.key] ?? 0;
+                      const format = FORMATTERS[col.fmt ?? "pct1"];
+                      const tier = col.noHeatmap
+                        ? { label: "Descriptive", className: "profile-tier--sample" }
+                        : fanTier(rank, eligibleCount, smallSample);
+                      return (
+                        <tr key={col.key}>
+                          <td className="profile-metric-name">
+                            <strong>{col.label}</strong>
+                            <span>{col.profileNote}</span>
+                          </td>
+                          <td
+                            className={`profile-rate${smallSample ? " profile-rate--sample" : ""}`}
+                            style={!smallSample && !col.noHeatmap ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined}
+                          >
+                            <strong>{format(value)}</strong>
+                            <small>N={n}</small>
+                          </td>
+                          <td className="profile-rank">
+                            {rank ? (
+                              <>
+                                <strong>#{rank}</strong>
+                                <small>of {eligibleCount}</small>
+                              </>
+                            ) : (
+                              <>
+                                <strong>—</strong>
+                                <small>small sample</small>
+                              </>
+                            )}
+                          </td>
+                          <td className="profile-read">
+                            <span className={`profile-tier ${tier.className}`}>{tier.label}</span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </section>
+            ))}
+
+            <footer className="exploratory-profile-footer">
+              <TeamLink team={profileTeam.team} teamId={profileTeam.teamId} slug={profileTeam.slug} />
+              <button type="button" className="exploratory-profile-done" onClick={() => setProfileTeam(null)}>Close</button>
+            </footer>
+          </section>
+        </div>
+      )}
 
       <div id="methodology" tabIndex={-1}>
         <SiteFooter note="Exploratory statistics include completed FBS-vs-FBS games only and are built from LEILA's canonical play-by-play. They are research-stage and do not feed Adj. Net, Adj. Off, Adj. Def, ASM, or any prediction model." />
