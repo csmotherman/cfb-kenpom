@@ -62,6 +62,7 @@
   width: 100%;
   min-width: 0;
   gap: 1px;
+  overflow: hidden;
 }
 
 #exploratoryTable .adv-table .team-link {
@@ -70,7 +71,7 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  overflow: visible;
+  overflow: hidden;
 }
 
 #exploratoryTable .adv-table .team-link .team-logo { flex: 0 0 auto; }
@@ -79,16 +80,19 @@
   display: block;
   min-width: 0;
   max-width: 100%;
-  overflow: visible;
-  text-overflow: clip;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   line-height: 1.08;
 }
 
 #exploratoryTable .adv-table .team-conf-label {
   display: block;
+  max-width: calc(100% - 31px);
   margin-left: 31px;
   margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--color-ink-tertiary);
   font: 700 9px/1.05 var(--font-body);
   letter-spacing: 0.02em;
@@ -388,9 +392,9 @@
   #exploratoryTable .adv-table { min-width: 1180px; }
 
   #exploratoryTable .adv-table .team-cell {
-    width: 240px;
-    min-width: 240px;
-    max-width: 240px;
+    width: 260px;
+    min-width: 260px;
+    max-width: 260px;
   }
 
   #exploratoryTable .adv-table .profile-cell {
