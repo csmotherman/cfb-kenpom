@@ -148,6 +148,11 @@ export type ExploratoryWeekCounts = {
   selfRecoveredFumbles: number; passAttempts: number; turnoverEpaSum: number; games: number;
   opponentDrives: number; takeaways: number; interceptionsForced: number; fumbleRecoveries: number;
   opponentSelfRecoveredFumbles: number; opponentPassAttempts: number; opponentTurnoverEpaSum: number;
+  // Penalties (2025 research build)
+  offensivePenalties: number; offensivePenaltyYards: number;
+  penaltiesForced: number; penaltyYardsForced: number;
+  defensivePenalties: number; defensivePenaltyYards: number;
+  penaltiesDrawn: number; penaltyYardsDrawn: number;
 };
 
 export type ExploratoryRow = {

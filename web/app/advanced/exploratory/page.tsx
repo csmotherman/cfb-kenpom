@@ -28,13 +28,14 @@ const FORMATTERS: Record<string, (v: number | null) => string> = {
 const EMPTY_WEEKS: number[] = [];
 const EMPTY_BY_WEEK: Record<string, ExploratoryRow[]> = {};
 
-type TableView = "series" | "possessions" | "style" | "turnovers";
+type TableView = "series" | "possessions" | "style" | "turnovers" | "penalties";
 
 const TABLE_VIEWS = [
   { key: "series" as const, label: "Series", sections: SECTIONS.slice(0, 2) },
   { key: "possessions" as const, label: "Possessions", sections: SECTIONS.slice(2, 4) },
   { key: "style" as const, label: "Style & Risk", sections: SECTIONS.slice(4, 5) },
   { key: "turnovers" as const, label: "Turnovers", sections: SECTIONS.slice(5, 7) },
+  { key: "penalties" as const, label: "Penalties", sections: SECTIONS.slice(7, 9) },
 ];
 
 export default function ExploratoryPage() {

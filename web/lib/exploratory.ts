@@ -277,6 +277,84 @@ const TURNOVERS_DEFENSE: ExpColumn[] = [
   },
 ];
 
+const PENALTIES_OFFENSE: ExpColumn[] = [
+  {
+    key: "penaltyRate", label: "Penalty Rate",
+    num: "offensivePenalties", den: "offensiveDrives",
+    tooltip: "Accepted penalties against this team's own offense (e.g. holding, false start, illegal formation) divided by offensive drives. Detected structurally from down/distance/field-position changes, not penalty text.",
+    profileNote: "Percentage of offensive drives with an accepted penalty against this team.",
+    profileFormula: "Offensive penalties ÷ offensive drives",
+    denLabel: "Drives",
+    lowerBetter: true,
+  },
+  {
+    key: "penaltyYardsPerDrive", label: "Penalty Yards/Drive",
+    num: "offensivePenaltyYards", den: "offensiveDrives",
+    tooltip: "Yards lost to accepted penalties against this team's own offense, spread across every offensive drive.",
+    profileNote: "Yards lost to penalties against this team's offense, per drive.",
+    profileFormula: "Offensive penalty yards ÷ offensive drives",
+    denLabel: "Drives",
+    fmt: "plain2",
+    lowerBetter: true,
+  },
+  {
+    key: "penaltiesDrawnRate", label: "Penalties Drawn Rate",
+    num: "penaltiesDrawn", den: "offensiveDrives",
+    tooltip: "Accepted penalties against the opposing defense (e.g. pass interference, roughing the passer) that benefited this team's offense, divided by offensive drives.",
+    profileNote: "Percentage of offensive drives with a penalty drawn on the opposing defense.",
+    profileFormula: "Penalties drawn ÷ offensive drives",
+    denLabel: "Drives",
+  },
+  {
+    key: "penaltyYardsDrawnPerDrive", label: "Penalty Yards Drawn/Drive",
+    num: "penaltyYardsDrawn", den: "offensiveDrives",
+    tooltip: "Yards gained from penalties drawn on the opposing defense, spread across every offensive drive.",
+    profileNote: "Yards gained from penalties this team's offense draws, per drive.",
+    profileFormula: "Penalty yards drawn ÷ offensive drives",
+    denLabel: "Drives",
+    fmt: "plain2",
+  },
+];
+
+const PENALTIES_DEFENSE: ExpColumn[] = [
+  {
+    key: "penaltiesForcedRate", label: "Penalties Forced Rate",
+    num: "penaltiesForced", den: "opponentDrives",
+    tooltip: "Accepted penalties against the opponent's offense that this defense forced, divided by opponent offensive drives. The direct mirror of Penalty Rate.",
+    profileNote: "Percentage of opponent drives with a penalty this defense forced.",
+    profileFormula: "Penalties forced ÷ opponent drives",
+    denLabel: "Opp. drives",
+  },
+  {
+    key: "penaltyYardsForcedPerDrive", label: "Penalty Yards Forced/Drive",
+    num: "penaltyYardsForced", den: "opponentDrives",
+    tooltip: "Yards taken from the opponent via penalties this defense forced, spread across every opponent drive.",
+    profileNote: "Yards taken from opponents via forced penalties, per opponent drive.",
+    profileFormula: "Penalty yards forced ÷ opponent drives",
+    denLabel: "Opp. drives",
+    fmt: "plain2",
+  },
+  {
+    key: "defensivePenaltyRate", label: "Defensive Penalty Rate",
+    num: "defensivePenalties", den: "opponentDrives",
+    tooltip: "Accepted penalties against this team's own defense (e.g. pass interference, roughing the passer), divided by opponent offensive drives. A defensive-discipline stat.",
+    profileNote: "Percentage of opponent drives with an accepted penalty against this team's defense.",
+    profileFormula: "Defensive penalties ÷ opponent drives",
+    denLabel: "Opp. drives",
+    lowerBetter: true,
+  },
+  {
+    key: "defensivePenaltyYardsPerDrive", label: "Def. Penalty Yards/Drive",
+    num: "defensivePenaltyYards", den: "opponentDrives",
+    tooltip: "Yards given up to accepted penalties against this team's own defense, spread across every opponent drive.",
+    profileNote: "Yards given up to penalties against this team's defense, per opponent drive.",
+    profileFormula: "Defensive penalty yards ÷ opponent drives",
+    denLabel: "Opp. drives",
+    fmt: "plain2",
+    lowerBetter: true,
+  },
+];
+
 // Points per Scoring Opportunity (and its opponent mirror) is deliberately
 // NOT a column here -- a row-level check found it byte-for-byte identical to
 // the existing Finishing Drives points-per-opportunity stat (0 mismatches
@@ -293,6 +371,8 @@ export const SECTIONS: ExpSection[] = [
   { title: "Style / Risk", columns: STYLE_RISK },
   { title: "Turnovers · Offense", columns: TURNOVERS_OFFENSE },
   { title: "Turnovers · Defense", columns: TURNOVERS_DEFENSE },
+  { title: "Penalties · Offense", columns: PENALTIES_OFFENSE },
+  { title: "Penalties · Defense", columns: PENALTIES_DEFENSE },
 ];
 
 export const ALL_COLUMNS: ExpColumn[] = SECTIONS.flatMap((s) => s.columns);
