@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { TooltipProvider } from "@/components/Tooltip";
 import BrandTitleGuard from "@/components/BrandTitleGuard";
 import MatchupPredictionPortal from "@/components/MatchupPredictionPortal";
+import MobileTableFreeze from "@/components/MobileTableFreeze";
 import TableFreshnessStamp from "@/components/TableFreshnessStamp";
 import "@/styles/theme.css";
 import "@/styles/ratings.css";
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <BrandTitleGuard />
+        <MobileTableFreeze />
         <TableFreshnessStamp />
         <TooltipProvider>{children}</TooltipProvider>
         <MatchupPredictionPortal />
