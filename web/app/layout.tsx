@@ -7,7 +7,6 @@ import "@/styles/theme.css";
 import "@/styles/ratings.css";
 import "@/styles/advanced.css";
 import "@/styles/team.css";
-import "@/styles/mobile-tables.css";
 import "./additions.css";
 import "@/styles/mobile-fit.css";
 import "@/styles/dense-ratings.css";
@@ -35,6 +34,9 @@ import "@/styles/ratings-table-polish.css";
 import "@/styles/exploratory.css";
 import "@/styles/exploratory-modal-wide.css";
 import "@/styles/cfp-badge.css";
+/* Canonical mobile table rules intentionally load last so page-specific
+   responsive CSS cannot un-stick the shared frozen identity columns. */
+import "@/styles/mobile-tables.css";
 
 export const metadata: Metadata = {
   title: "LEILA Ratings | College Football Analytics",
