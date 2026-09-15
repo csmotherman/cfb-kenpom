@@ -321,7 +321,6 @@
 
 /* Bottom action bar closes the visual frame without reintroducing duplicate team content. */
 .exploratory-profile-footer {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -332,11 +331,12 @@
   background: rgba(20, 39, 66, 0.035);
 }
 
-/* Reuse the old footer TeamLink only as the header logo. */
+/* Reuse the old footer TeamLink only as the header logo. Because the footer is
+   not positioned, this absolute link stays anchored to the positioned modal. */
 .exploratory-profile-footer .team-link {
   position: absolute;
   z-index: 5;
-  top: -365px;
+  top: 39px;
   left: 18px;
   width: 32px;
   height: 32px;
@@ -468,8 +468,7 @@
   }
 
   .exploratory-profile-footer .team-link {
-    top: auto;
-    bottom: calc(100% + 300px);
+    top: 38px;
     left: 16px;
   }
 }
