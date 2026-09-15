@@ -1,21 +1,23 @@
 /* ========================================================================== */
 /* LEILA Ratings — authoritative mobile data-table behavior                  */
 /*                                                                            */
-/* Mobile tables keep the row identity frozen at the left edge and scroll    */
-/* only the statistics to the right. This file is imported last on purpose.  */
+/* Mobile tables keep a compact identity rail frozen at the left edge while  */
+/* every result/stat column scrolls horizontally. Imported last on purpose.   */
 /* ========================================================================== */
 
 .team-code { display: none; }
 
 @media (max-width: 768px) {
   :root {
-    --mobile-rank-width: 36px;
-    --mobile-ratings-team-width: 132px;
-    --mobile-analytics-team-width: 118px;
-    --mobile-week-width: 48px;
-    --mobile-kickoff-width: 66px;
-    --mobile-matchup-width: 168px;
-    --mobile-freeze-shadow: 1px 0 0 var(--color-hairline-strong), 10px 0 14px -13px rgba(23, 36, 56, 0.78);
+    --mobile-rank-width: 34px;
+    --mobile-ratings-team-width: 120px;
+    --mobile-analytics-team-width: 112px;
+    --mobile-record-width: 52px;
+    --mobile-stat-width: 72px;
+    --mobile-week-width: 46px;
+    --mobile-kickoff-width: 64px;
+    --mobile-matchup-width: 164px;
+    --mobile-freeze-shadow: 1px 0 0 var(--color-hairline-strong), 8px 0 12px -12px rgba(23, 36, 56, 0.72);
   }
 
   .mobile-table-tools,
@@ -28,8 +30,7 @@
     padding-right: 0;
   }
 
-  /* The wrapper owns horizontal scrolling. Keeping the semantic table intact
-     makes sticky table cells substantially more reliable on mobile browsers. */
+  /* Only the wrapper scrolls. Keep the actual <table> semantic. */
   .table-scroll,
   .team-history .table-scroll,
   .history-table-scroll,
@@ -53,25 +54,22 @@
     max-height: none !important;
   }
 
-  /* border-collapse: separate avoids the long-standing sticky-cell glitches
-     seen with collapsed table borders in mobile WebKit/Blink. */
+  /* Separate borders are materially more reliable with sticky table cells on
+     iOS/WebKit than collapsed borders. */
   :is(#ratingsTable, .adv-table, #historyTable, .predictions-table, .network-detail__table, .team-v2-schedule, .game-log-modal__table) {
-    width: max-content !important;
-    min-width: 100% !important;
-    table-layout: auto !important;
     border-collapse: separate !important;
     border-spacing: 0 !important;
   }
 
   :is(#ratingsTable, .adv-table, #historyTable) th,
   :is(#ratingsTable, .adv-table, #historyTable) td {
-    height: 40px;
-    padding: 5px 7px !important;
     box-sizing: border-box;
+    height: 40px;
+    padding: 5px 6px !important;
     white-space: nowrap;
   }
 
-  /* Undo the old mobile-fit rules that squeezed/hid columns. */
+  /* Retire old phone rules that hid or percentage-sized analytics columns. */
   #ratingsTable .delta-cell,
   #ratingsTable .conf-cell,
   #ratingsTable .record-cell,
@@ -85,13 +83,18 @@
   #historyTable .history-metric-cell,
   #historyTable .mobile-selected-history-metric {
     display: table-cell !important;
-    width: auto !important;
     max-width: none !important;
   }
 
   /* ====================================================================== */
-  /* RATINGS — freeze RK + TEAM                                              */
+  /* RATINGS — exact deterministic mobile grid, RK + TEAM frozen            */
   /* ====================================================================== */
+
+  #ratingsTable {
+    width: max(100%, 566px) !important;
+    min-width: 566px !important;
+    table-layout: fixed !important;
+  }
 
   #ratingsTable .rank-cell {
     position: sticky !important;
@@ -99,12 +102,11 @@
     width: var(--mobile-rank-width) !important;
     min-width: var(--mobile-rank-width) !important;
     max-width: var(--mobile-rank-width) !important;
-    padding-left: 3px !important;
-    padding-right: 3px !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
     text-align: center !important;
-    z-index: 20;
+    z-index: 30;
     background-clip: padding-box !important;
-    will-change: transform;
   }
 
   #ratingsTable .team-cell {
@@ -113,19 +115,36 @@
     width: var(--mobile-ratings-team-width) !important;
     min-width: var(--mobile-ratings-team-width) !important;
     max-width: var(--mobile-ratings-team-width) !important;
-    padding-left: 6px !important;
-    padding-right: 6px !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
     overflow: hidden !important;
     text-align: left !important;
-    z-index: 20;
+    z-index: 29;
     box-shadow: var(--mobile-freeze-shadow) !important;
     background-clip: padding-box !important;
-    will-change: transform;
+  }
+
+  #ratingsTable .record-cell {
+    width: var(--mobile-record-width) !important;
+    min-width: var(--mobile-record-width) !important;
+    max-width: var(--mobile-record-width) !important;
+  }
+
+  #ratingsTable .metric-cell {
+    width: var(--mobile-stat-width) !important;
+    min-width: var(--mobile-stat-width) !important;
+    max-width: var(--mobile-stat-width) !important;
   }
 
   /* ====================================================================== */
-  /* ADVANCED — same frozen identity, but deliberately tighter              */
+  /* ADVANCED — RK + TEAM frozen, everything after TEAM scrolls             */
   /* ====================================================================== */
+
+  #advancedTable .adv-table {
+    width: max-content !important;
+    min-width: 100% !important;
+    table-layout: auto !important;
+  }
 
   #advancedTable .adv-table:not(.exploratory-table) .rank-cell {
     position: sticky !important;
@@ -133,12 +152,11 @@
     width: var(--mobile-rank-width) !important;
     min-width: var(--mobile-rank-width) !important;
     max-width: var(--mobile-rank-width) !important;
-    padding-left: 3px !important;
-    padding-right: 3px !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
     text-align: center !important;
-    z-index: 20;
+    z-index: 30;
     background-clip: padding-box !important;
-    will-change: transform;
   }
 
   #advancedTable .adv-table:not(.exploratory-table) .team-cell {
@@ -147,26 +165,41 @@
     width: var(--mobile-analytics-team-width) !important;
     min-width: var(--mobile-analytics-team-width) !important;
     max-width: var(--mobile-analytics-team-width) !important;
-    padding-left: 5px !important;
-    padding-right: 5px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
     overflow: hidden !important;
     text-align: left !important;
-    z-index: 20;
+    z-index: 29;
     box-shadow: var(--mobile-freeze-shadow) !important;
     background-clip: padding-box !important;
-    will-change: transform;
+  }
+
+  #advancedTable .adv-table .record-cell {
+    width: var(--mobile-record-width) !important;
+    min-width: var(--mobile-record-width) !important;
+    max-width: var(--mobile-record-width) !important;
+  }
+
+  /* This grouped header used to force the first three columns back out to
+     280px even after RK/TEAM were made smaller. Match the real widths. */
+  #advancedTable .adv-table .adv-section-spacer {
+    width: 198px !important;
+    min-width: 198px !important;
+    max-width: 198px !important;
+  }
+
+  #advancedTable .adv-table .metric-cell {
+    min-width: 74px !important;
   }
 
   /* ====================================================================== */
-  /* EXPLORATORY — freeze a compact RK rail + TEAM                           */
-  /*                                                                            */
-  /* Exploratory does not have a desktop RK field because each tab can be    */
-  /* sorted by a different research metric. On mobile, the small RK rail     */
-  /* represents the current displayed order, which keeps row identity clear  */
-  /* while swiping through the metrics.                                      */
+  /* EXPLORATORY — compact visible-order RK rail + TEAM frozen               */
   /* ====================================================================== */
 
   #exploratoryTable .exploratory-table {
+    width: max-content !important;
+    min-width: 100% !important;
+    table-layout: auto !important;
     counter-reset: exploratory-rank;
   }
 
@@ -182,9 +215,8 @@
     box-sizing: border-box;
     text-align: center;
     vertical-align: middle;
-    z-index: 20;
+    z-index: 30;
     background-clip: padding-box;
-    will-change: transform;
   }
 
   #exploratoryTable .exploratory-table .adv-section-row::before {
@@ -198,12 +230,12 @@
     content: "RK";
     top: 27px;
     height: 40px;
-    padding: 5px 2px;
+    padding: 5px 1px;
     background: var(--color-navy) !important;
     border-bottom: 1px solid var(--color-navy-light);
     color: #fff !important;
     font: 800 9px/1 var(--font-body);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
   }
 
@@ -214,7 +246,7 @@
   #exploratoryTable .exploratory-table tbody tr:not(.empty-row):not(.skeleton-row)::before {
     content: counter(exploratory-rank);
     height: 40px;
-    padding: 5px 2px;
+    padding: 5px 1px;
     background: var(--color-paper) !important;
     color: var(--color-ink-tertiary);
     border-bottom: 1px solid var(--color-hairline);
@@ -239,18 +271,34 @@
     width: var(--mobile-analytics-team-width) !important;
     min-width: var(--mobile-analytics-team-width) !important;
     max-width: var(--mobile-analytics-team-width) !important;
-    padding-left: 5px !important;
-    padding-right: 5px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
     overflow: hidden !important;
     text-align: left !important;
-    z-index: 20;
+    z-index: 29;
     box-shadow: var(--mobile-freeze-shadow) !important;
     background-clip: padding-box !important;
-    will-change: transform;
+  }
+
+  /* Team + Profile are the two real cells under this grouped heading. */
+  #exploratoryTable .exploratory-table .adv-section-spacer {
+    width: 188px !important;
+    min-width: 188px !important;
+    max-width: 188px !important;
+  }
+
+  #exploratoryTable .exploratory-table .profile-cell {
+    width: 76px !important;
+    min-width: 76px !important;
+    max-width: 76px !important;
+  }
+
+  #exploratoryTable .exploratory-table .metric-cell {
+    min-width: 74px !important;
   }
 
   /* ====================================================================== */
-  /* Frozen-cell surfaces and header text                                    */
+  /* Frozen surfaces + header color                                          */
   /* ====================================================================== */
 
   #ratingsTable thead .rank-cell,
@@ -260,11 +308,9 @@
   #exploratoryTable .exploratory-table thead .team-cell {
     background: var(--color-navy) !important;
     color: #fff !important;
-    z-index: 32 !important;
+    z-index: 42 !important;
   }
 
-  /* Buttons/team text in the frozen blue header had explicit dark colors in
-     older responsive CSS, so force all visible header copy back to white. */
   :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) thead :is(.rank-cell, .team-cell),
   :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) thead :is(.rank-cell, .team-cell) .column-sort,
   :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) thead :is(.rank-cell, .team-cell) .team-link,
@@ -296,72 +342,102 @@
     background: #e8e2d4 !important;
   }
 
-  /* Keep team identity compact. Long names ellipsize instead of widening the
-     frozen pane, and conference text remains secondary. */
+  /* ====================================================================== */
+  /* CRITICAL RESET: older phone CSS absolutely positioned logos and padded  */
+  /* the team stack. That is what produced the broken/clipped rows in the    */
+  /* screenshot. The canonical mobile layout owns these internals now.       */
+  /* ====================================================================== */
+
+  :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) .team-cell-stack {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    gap: 1px !important;
+    overflow: hidden !important;
+  }
+
   :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) .team-link {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
+    position: static !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    line-height: 1.05 !important;
   }
 
   :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) .team-logo {
-    width: 20px !important;
-    height: 20px !important;
-    flex: 0 0 20px !important;
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    width: 19px !important;
+    height: 19px !important;
+    flex: 0 0 19px !important;
+    transform: none !important;
+    object-fit: contain;
   }
 
   :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) .team-name {
     display: block !important;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 10px !important;
-    font-weight: 700;
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    color: var(--color-ink);
+    font-size: 9.5px !important;
+    font-weight: 750;
+    line-height: 1.05 !important;
+    letter-spacing: -0.01em;
   }
 
   :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) .team-code {
     display: none !important;
   }
 
-  #advancedTable .adv-table .team-conf-label,
-  #exploratoryTable .exploratory-table .team-conf-label {
+  :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) .team-conf-label {
     display: block !important;
-    max-width: calc(100% - 24px) !important;
-    margin: 1px 0 0 24px !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--color-ink-tertiary);
+    max-width: calc(100% - 23px) !important;
+    margin: 2px 0 0 23px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    color: var(--color-ink-tertiary) !important;
     font-size: 7.5px !important;
     line-height: 1 !important;
   }
 
-  :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) .team-cell-stack,
   :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) .cfp-team-copy {
     min-width: 0 !important;
     max-width: 100% !important;
     overflow: hidden !important;
   }
 
-  /* CFP status decorations must stay inside the same compact mobile footprint. */
-  :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) tbody td.team-cell--cfp {
-    padding: 2px !important;
+  /* Keep the CFP frame on mobile without allowing its desktop grid/badge to
+     affect the identity-column width. */
+  :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) .team-cell-stack--cfp {
+    display: block !important;
+    width: 100% !important;
+    min-height: 34px !important;
+    padding: 2px 3px !important;
+    overflow: hidden !important;
   }
 
-  /* Smaller scrollable stats make more data visible without sacrificing the
-     frozen identity. */
-  #ratingsTable .record-cell,
-  #advancedTable .adv-table .record-cell { min-width: 54px !important; }
-  #ratingsTable .metric-cell { min-width: 72px !important; }
-  #advancedTable .adv-table .metric-cell,
-  #exploratoryTable .exploratory-table .metric-cell { min-width: 74px !important; }
-  #exploratoryTable .exploratory-table .profile-cell { min-width: 76px !important; width: 76px !important; max-width: 76px !important; }
+  :is(#ratingsTable, #advancedTable .adv-table, #exploratoryTable .exploratory-table) tbody td.team-cell--cfp {
+    padding: 2px !important;
+    overflow: hidden !important;
+  }
 
   .rank-sub {
     display: block;
@@ -375,6 +451,12 @@
   /* Other shared data tables                                                */
   /* ====================================================================== */
 
+  .predictions-table {
+    width: max-content !important;
+    min-width: 100% !important;
+    table-layout: auto !important;
+  }
+
   .predictions-table th:nth-child(1),
   .predictions-table td:nth-child(1) {
     position: sticky !important;
@@ -382,7 +464,7 @@
     width: var(--mobile-kickoff-width) !important;
     min-width: var(--mobile-kickoff-width) !important;
     max-width: var(--mobile-kickoff-width) !important;
-    z-index: 20;
+    z-index: 30;
   }
 
   .predictions-table th:nth-child(2),
@@ -393,18 +475,24 @@
     min-width: var(--mobile-matchup-width) !important;
     max-width: var(--mobile-matchup-width) !important;
     overflow: hidden;
-    z-index: 20;
+    z-index: 29;
     box-shadow: var(--mobile-freeze-shadow);
   }
 
   .predictions-table thead th:nth-child(-n + 2) {
-    z-index: 32;
+    z-index: 42;
     background: var(--color-navy) !important;
     color: #fff !important;
   }
 
   .predictions-table tbody td:nth-child(-n + 2) { background: var(--color-paper) !important; }
   .predictions-table tbody tr:nth-child(even) td:nth-child(-n + 2) { background: var(--color-paper-soft) !important; }
+
+  .network-detail__table {
+    width: max-content !important;
+    min-width: 100% !important;
+    table-layout: auto !important;
+  }
 
   .network-detail__table th:nth-child(1),
   .network-detail__table td:nth-child(1) {
@@ -413,7 +501,7 @@
     width: var(--mobile-rank-width) !important;
     min-width: var(--mobile-rank-width) !important;
     max-width: var(--mobile-rank-width) !important;
-    z-index: 20;
+    z-index: 30;
   }
 
   .network-detail__table th:nth-child(2),
@@ -424,8 +512,15 @@
     min-width: var(--mobile-analytics-team-width) !important;
     max-width: var(--mobile-analytics-team-width) !important;
     overflow: hidden;
-    z-index: 20;
+    z-index: 29;
     box-shadow: var(--mobile-freeze-shadow);
+  }
+
+  .team-v2-schedule,
+  .game-log-modal__table {
+    width: max-content !important;
+    min-width: 100% !important;
+    table-layout: auto !important;
   }
 
   .team-v2-schedule th:nth-child(1),
@@ -437,7 +532,7 @@
     width: var(--mobile-week-width) !important;
     min-width: var(--mobile-week-width) !important;
     max-width: var(--mobile-week-width) !important;
-    z-index: 20;
+    z-index: 30;
   }
 
   .team-v2-schedule th:nth-child(2),
@@ -450,22 +545,28 @@
     min-width: var(--mobile-analytics-team-width) !important;
     max-width: var(--mobile-analytics-team-width) !important;
     overflow: hidden;
-    z-index: 20;
+    z-index: 29;
     box-shadow: var(--mobile-freeze-shadow);
+  }
+
+  #historyTable {
+    width: max-content !important;
+    min-width: 100% !important;
+    table-layout: auto !important;
   }
 
   #historyTable .year-cell {
     position: sticky !important;
     left: 0 !important;
-    width: 54px !important;
-    min-width: 54px !important;
-    max-width: 54px !important;
-    z-index: 20;
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    z-index: 30;
     box-shadow: var(--mobile-freeze-shadow);
   }
 
   #historyTable thead .year-cell {
-    z-index: 32;
+    z-index: 42;
     background: var(--color-navy) !important;
     color: #fff !important;
   }
