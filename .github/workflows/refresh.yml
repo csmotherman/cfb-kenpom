@@ -206,6 +206,10 @@ jobs:
         run: python -m cfb_analytics.derived.basic_yardage_propagation_cli materialize --season "$SEASON"
       - name: Propagate havoc metrics
         run: python -m cfb_analytics.derived.havoc_propagation_cli materialize --season "$SEASON"
+      - name: Propagate LEILA Exploratory series metrics
+        run: python -m cfb_analytics.derived.exploratory_series_propagation_cli materialize --season "$SEASON"
+      - name: Propagate LEILA Exploratory drives/risk metrics
+        run: python -m cfb_analytics.derived.exploratory_drives_risk_propagation_cli materialize --season "$SEASON"
       - name: Rebuild canonical 2026 team games
         run: python -m cfb_analytics.pipelines.build_canonical --season "$SEASON"
       - name: Recompute 2026 ratings
@@ -225,6 +229,14 @@ jobs:
         run: python scripts/export_web_data.py
       - name: Normalize schedule calendar week
         run: python scripts/normalize_schedule_calendar.py --season "$SEASON"
+
+      - name: Export LEILA Exploratory data
+        run: python scripts/export_exploratory_data.py --season "$SEASON"
+      - name: Export LEILA Exploratory matchup edges
+        # Uses the calibration already committed at data/models/exploratory-matchups
+        # -- never re-derives thresholds/models on every refresh. That only
+        # happens in a deliberate research pass via --calibrate.
+        run: python -m cfb_analytics.analytics.exploratory_matchup_product --season "$SEASON"
 
       - name: Test publication gates
         run: python -m unittest discover -s tests
@@ -257,7 +269,7 @@ jobs:
       - name: Remove private build artifacts
         run: |
           rm -f site/advanced-data.js
-          rm -rf web/public/data/advanced web/public/data/predictions
+          rm -rf web/public/data/advanced web/public/data/predictions web/public/data/exploratory
 
       - name: Commit validated 2026 changes
         id: publish
