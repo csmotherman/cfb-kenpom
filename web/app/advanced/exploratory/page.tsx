@@ -19,13 +19,6 @@ function pct1(v: number | null): string {
   return na(v) ? "—" : (v * 100).toFixed(1) + "%";
 }
 
-// A single week's sample sizes for these metrics cluster well above this on
-// a normal team-week (median ~29 series opportunities, ~18 recovery
-// opportunities per team per week across the 2025 corpus audit) but the low
-// end (single-digit-to-teens) carries real binomial noise -- e.g. a 70% true
-// rate at N=15 has a standard error north of 10 points. One shared threshold
-// across all six metrics rather than per-metric tuning, since their
-// single-week denominators sit in a similar range.
 const MIN_RELIABLE_N = 20;
 
 type ExpColumn = {
@@ -34,41 +27,60 @@ type ExpColumn = {
   num: keyof ExploratoryWeekCounts;
   den: keyof ExploratoryWeekCounts;
   tooltip: string;
+  profileNote: string;
 };
 
 const OFFENSE_COLUMNS: ExpColumn[] = [
   {
-    key: "seriesConversionRate", label: "Series Conversion %",
-    num: "seriesConversions", den: "seriesOpportunities",
+    key: "seriesConversionRate",
+    label: "Series Conversion %",
+    num: "seriesConversions",
+    den: "seriesOpportunities",
     tooltip: "How often a fresh set of downs ends with another first down or a touchdown. It counts conversions on any down, not just 3rd down.",
+    profileNote: "Keeps the chains moving on any down",
   },
   {
-    key: "recoveryRate", label: "Recovery %",
-    num: "recoveredSeries", den: "recoveryOpportunities",
+    key: "recoveryRate",
+    label: "Recovery %",
+    num: "recoveredSeries",
+    den: "recoveryOpportunities",
     tooltip: "After an unsuccessful 1st- or 2nd-down play, how often the offense still earns another first down or touchdown in that same series.",
+    profileNote: "Bounces back after a bad early down",
   },
   {
-    key: "longDownAvoidanceRate", label: "Avoid 3rd & Long %",
-    num: "longDownAvoidanceSeries", den: "eligibleSeries",
+    key: "longDownAvoidanceRate",
+    label: "Avoid 3rd & Long %",
+    num: "longDownAvoidanceSeries",
+    den: "eligibleSeries",
     tooltip: "How often the offense gets through a series without facing 3rd-and-7 or longer. Higher means it stays on schedule more often.",
+    profileNote: "Stays out of obvious passing situations",
   },
 ];
 
 const DEFENSE_COLUMNS: ExpColumn[] = [
   {
-    key: "seriesStopRate", label: "Series Stop %",
-    num: "seriesStops", den: "seriesStopOpportunities",
+    key: "seriesStopRate",
+    label: "Series Stop %",
+    num: "seriesStops",
+    den: "seriesStopOpportunities",
     tooltip: "How often the defense ends an opponent's fresh set of downs before the offense gains another first down or scores a touchdown.",
+    profileNote: "Ends an opponent's fresh set of downs",
   },
   {
-    key: "closeoutRate", label: "Closeout %",
-    num: "closeouts", den: "closeoutOpportunities",
+    key: "closeoutRate",
+    label: "Closeout %",
+    num: "closeouts",
+    den: "closeoutOpportunities",
     tooltip: "After the defense wins an early down, how often it finishes the series without allowing another first down or touchdown.",
+    profileNote: "Finishes the job after winning an early down",
   },
   {
-    key: "longDownCreationRate", label: "Force 3rd & Long %",
-    num: "longDownsCreated", den: "longDownCreationOpportunities",
+    key: "longDownCreationRate",
+    label: "Force 3rd & Long %",
+    num: "longDownsCreated",
+    den: "longDownCreationOpportunities",
     tooltip: "How often the defense forces an opponent into 3rd-and-7 or longer. Higher means more obvious passing situations created.",
+    profileNote: "Creates obvious passing situations",
   },
 ];
 
@@ -86,6 +98,20 @@ type Aggregated = {
   wk: Partial<ExploratoryWeekCounts>;
   [key: string]: unknown;
 };
+
+type FanTier = { label: string; className: string };
+
+function fanTier(rank: number | null, total: number, smallSample: boolean): FanTier {
+  if (smallSample) return { label: "Small Sample", className: "profile-tier--sample" };
+  if (!rank || total <= 0) return { label: "No Rank", className: "profile-tier--sample" };
+  const percentile = rank / total;
+  if (percentile <= 0.10) return { label: "Elite", className: "profile-tier--elite" };
+  if (percentile <= 0.25) return { label: "Strong", className: "profile-tier--strong" };
+  if (percentile <= 0.40) return { label: "Good", className: "profile-tier--good" };
+  if (percentile <= 0.60) return { label: "Average", className: "profile-tier--average" };
+  if (percentile <= 0.80) return { label: "Below Avg", className: "profile-tier--below" };
+  return { label: "Needs Work", className: "profile-tier--poor" };
+}
 
 const EMPTY_WEEKS: number[] = [];
 const EMPTY_BY_WEEK: Record<string, ExploratoryRow[]> = {};
@@ -131,6 +157,7 @@ export default function ExploratoryPage() {
   function weekLabel(w: number): string {
     return season?.weekLabels?.[String(w)] || `Week ${w}`;
   }
+
   function weekRangeLabel(start: number, end: number): string {
     return start === end ? weekLabel(start) : `${weekLabel(start)}–${weekLabel(end)}`;
   }
@@ -210,17 +237,32 @@ export default function ExploratoryPage() {
     const ranges: Record<string, { min: number; max: number }> = {};
     ALL_COLUMNS.forEach((col) => {
       ranges[col.key] = columnRange(
-        teams.filter((t) => (t[`${col.key}_n`] as number) >= MIN_RELIABLE_N).map((t) => t[col.key] as number | null)
+        teams
+          .filter((team) => (team[`${col.key}_n`] as number) >= MIN_RELIABLE_N)
+          .map((team) => team[col.key] as number | null)
       );
     });
     return ranges;
   }, [teams]);
 
-  const conferences = useMemo(() => [...new Set(teams.map((team) => team.conf))].filter(Boolean).sort(), [teams]);
+  const eligibleCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    ALL_COLUMNS.forEach((col) => {
+      counts[col.key] = teams.filter(
+        (team) => !na(team[col.key] as number | null) && (team[`${col.key}_n`] as number) >= MIN_RELIABLE_N
+      ).length;
+    });
+    return counts;
+  }, [teams]);
+
+  const conferences = useMemo(
+    () => [...new Set(teams.map((team) => team.conf))].filter(Boolean).sort(),
+    [teams]
+  );
 
   function onHeaderClick(key: string) {
     if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDir((direction) => (direction === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
       setSortDir(key === "team" ? "asc" : "desc");
@@ -229,7 +271,9 @@ export default function ExploratoryPage() {
 
   if (loadError) throw loadError;
 
-  const activeRangeLabel = startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : "Selected weeks";
+  const activeRangeLabel = startWeek !== null && endWeek !== null
+    ? weekRangeLabel(startWeek, endWeek)
+    : "Selected weeks";
 
   return (
     <>
@@ -282,11 +326,22 @@ export default function ExploratoryPage() {
           </nav>
           <div className="filter-box">
             <label className="sr-only" htmlFor="exploratoryFilterInput">Search exploratory analytics</label>
-            <input id="exploratoryFilterInput" type="search" placeholder="Search team…" autoComplete="off" value={filter} onChange={(e) => setFilter(e.target.value)} />
+            <input
+              id="exploratoryFilterInput"
+              type="search"
+              placeholder="Search team…"
+              autoComplete="off"
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+            />
           </div>
           <div className="conference-filter">
             <label className="sr-only" htmlFor="exploratoryConferenceSelect">Conference</label>
-            <select id="exploratoryConferenceSelect" value={conference} onChange={(e) => setConference(e.target.value)}>
+            <select
+              id="exploratoryConferenceSelect"
+              value={conference}
+              onChange={(event) => setConference(event.target.value)}
+            >
               <option value="">All conferences</option>
               {conferences.map((conf) => <option key={conf} value={conf}>{conf}</option>)}
             </select>
@@ -303,8 +358,8 @@ export default function ExploratoryPage() {
             <select
               aria-label="Start week"
               value={startWeek ?? ""}
-              onChange={(e) => {
-                const value = Number(e.target.value);
+              onChange={(event) => {
+                const value = Number(event.target.value);
                 setStartWeek(value);
                 setProfileTeam(null);
                 if (endWeek !== null && value > endWeek) setEndWeek(value);
@@ -317,8 +372,8 @@ export default function ExploratoryPage() {
             <select
               aria-label="End week"
               value={endWeek ?? ""}
-              onChange={(e) => {
-                const value = Number(e.target.value);
+              onChange={(event) => {
+                const value = Number(event.target.value);
                 setEndWeek(value);
                 setProfileTeam(null);
                 if (startWeek !== null && value < startWeek) setStartWeek(value);
@@ -328,7 +383,9 @@ export default function ExploratoryPage() {
             </select>
           </div>
         </div>
-        <p className="container adv-note">Every rate sums the raw counts across the selected week range, then divides. Grayed-out cells fell below {MIN_RELIABLE_N} qualifying series and are shown without a national rank.</p>
+        <p className="container adv-note">
+          Every rate sums the raw counts across the selected week range, then divides. Grayed-out cells fell below {MIN_RELIABLE_N} qualifying series and are shown without a national rank.
+        </p>
       </div>
 
       <main id="exploratoryTable" className="table-main container">
@@ -343,17 +400,21 @@ export default function ExploratoryPage() {
                   <th scope="colgroup" colSpan={DEFENSE_COLUMNS.length} className="adv-section-heading">Defense</th>
                 </tr>
                 <tr className="adv-column-row">
-                  <th scope="col" className="team-cell sortable" aria-sort={sortKey === "team" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                  <th
+                    scope="col"
+                    className="team-cell sortable"
+                    aria-sort={sortKey === "team" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+                  >
                     <button type="button" className="column-sort" onClick={() => onHeaderClick("team")}>Team</button>
                     <span className="sort-indicator">{sortKey === "team" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
                   </th>
                   <th scope="col" className="num record-cell">Conf</th>
                   <th scope="col" className="profile-cell">Profile</th>
-                  {ALL_COLUMNS.map((col, i) => (
+                  {ALL_COLUMNS.map((col, index) => (
                     <th
                       key={col.key}
                       scope="col"
-                      className={`num metric-cell sortable${i === OFFENSE_COLUMNS.length ? " section-start" : ""}`}
+                      className={`num metric-cell sortable${index === OFFENSE_COLUMNS.length ? " section-start" : ""}`}
                       aria-sort={sortKey === col.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
                     >
                       <button type="button" className="column-sort" onClick={() => onHeaderClick(col.key)}>{col.label}</button>
@@ -368,7 +429,9 @@ export default function ExploratoryPage() {
                   Array.from({ length: 14 }).map((_, rowIndex) => (
                     <tr key={rowIndex} className="skeleton-row">
                       {Array.from({ length: 3 + ALL_COLUMNS.length }).map((__, cellIndex) => (
-                        <td key={cellIndex}><span className="skeleton-bar" style={{ width: (cellIndex === 0 ? 75 : 45 + ((cellIndex * 11) % 30)) + "%" }} /></td>
+                        <td key={cellIndex}>
+                          <span className="skeleton-bar" style={{ width: (cellIndex === 0 ? 75 : 45 + ((cellIndex * 11) % 30)) + "%" }} />
+                        </td>
                       ))}
                     </tr>
                   ))
@@ -388,7 +451,7 @@ export default function ExploratoryPage() {
                           View Profile
                         </button>
                       </td>
-                      {ALL_COLUMNS.map((col, i) => {
+                      {ALL_COLUMNS.map((col, index) => {
                         const value = team[col.key] as number | null;
                         const n = team[`${col.key}_n`] as number;
                         const rank = team[`_rank_${col.key}`] as number | null;
@@ -396,12 +459,14 @@ export default function ExploratoryPage() {
                         return (
                           <td
                             key={col.key}
-                            className={`num stat-cell metric-cell${i === OFFENSE_COLUMNS.length ? " section-start" : ""}${smallSample ? " small-sample" : ""}`}
+                            className={`num stat-cell metric-cell${index === OFFENSE_COLUMNS.length ? " section-start" : ""}${smallSample ? " small-sample" : ""}`}
                             style={!smallSample ? { backgroundColor: heatBackground(value, columnRanges[col.key], false) } : undefined}
                             title={`N=${n}`}
                           >
                             <span className="metric-value">{pct1(value)}</span>
-                            {rank ? <span className="rank-sub">#{rank}</span> : <span className="rank-sub rank-sub--n">N={n}</span>}
+                            {rank
+                              ? <span className="rank-sub">#{rank}</span>
+                              : <span className="rank-sub rank-sub--n">N={n}</span>}
                           </td>
                         );
                       })}
@@ -432,13 +497,20 @@ export default function ExploratoryPage() {
               <div>
                 <span className="eyebrow">Exploratory Profile · {year} · {activeRangeLabel}</span>
                 <h2 id="exploratoryProfileTitle">{profileTeam.team}</h2>
-                <p>{profileTeam.conf} · Research-stage series analytics</p>
+                <p>{profileTeam.conf} · How this team wins and loses series</p>
               </div>
-              <button type="button" className="exploratory-modal-close" aria-label="Close exploratory profile" onClick={() => setProfileTeam(null)}>×</button>
+              <button
+                type="button"
+                className="exploratory-modal-close"
+                aria-label="Close exploratory profile"
+                onClick={() => setProfileTeam(null)}
+              >
+                ×
+              </button>
             </header>
 
             <div className="exploratory-profile-note">
-              These metrics describe how {profileTeam.team} sustains and ends series. They do not affect LEILA Ratings or predictions.
+              <strong>Quick read:</strong> green is a strength, red is an area to watch. The label in the last column translates national rank into plain football language.
             </div>
 
             {[
@@ -447,27 +519,57 @@ export default function ExploratoryPage() {
             ].map((group) => (
               <section className="exploratory-profile-section" key={group.title}>
                 <h3>{group.title}</h3>
-                <div className="exploratory-profile-metrics">
-                  {group.columns.map((col) => {
-                    const value = profileTeam[col.key] as number | null;
-                    const n = profileTeam[`${col.key}_n`] as number;
-                    const rank = profileTeam[`_rank_${col.key}`] as number | null;
-                    const smallSample = n < MIN_RELIABLE_N;
-                    return (
-                      <div className="exploratory-profile-metric" key={col.key}>
-                        <div className="exploratory-profile-metric__heading">
-                          <strong>{col.label}</strong>
-                          <span className="exploratory-profile-metric__value">{pct1(value)}</span>
-                        </div>
-                        <div className="exploratory-profile-metric__meta">
-                          <span>{rank ? `#${rank} nationally` : smallSample ? "Small sample · no rank" : "Not ranked"}</span>
-                          <span>N={n}</span>
-                        </div>
-                        <p>{col.tooltip}</p>
-                      </div>
-                    );
-                  })}
-                </div>
+                <table className="exploratory-profile-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">What it measures</th>
+                      <th scope="col">Rate</th>
+                      <th scope="col">National</th>
+                      <th scope="col">Read</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.columns.map((col) => {
+                      const value = profileTeam[col.key] as number | null;
+                      const n = profileTeam[`${col.key}_n`] as number;
+                      const rank = profileTeam[`_rank_${col.key}`] as number | null;
+                      const smallSample = n < MIN_RELIABLE_N;
+                      const eligibleCount = eligibleCounts[col.key] ?? 0;
+                      const tier = fanTier(rank, eligibleCount, smallSample);
+                      return (
+                        <tr key={col.key}>
+                          <td className="profile-metric-name">
+                            <strong>{col.label}</strong>
+                            <span>{col.profileNote}</span>
+                          </td>
+                          <td
+                            className={`profile-rate${smallSample ? " profile-rate--sample" : ""}`}
+                            style={!smallSample ? { backgroundColor: heatBackground(value, columnRanges[col.key], false) } : undefined}
+                          >
+                            <strong>{pct1(value)}</strong>
+                            <small>N={n}</small>
+                          </td>
+                          <td className="profile-rank">
+                            {rank ? (
+                              <>
+                                <strong>#{rank}</strong>
+                                <small>of {eligibleCount}</small>
+                              </>
+                            ) : (
+                              <>
+                                <strong>—</strong>
+                                <small>small sample</small>
+                              </>
+                            )}
+                          </td>
+                          <td className="profile-read">
+                            <span className={`profile-tier ${tier.className}`}>{tier.label}</span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </section>
             ))}
 
