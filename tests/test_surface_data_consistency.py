@@ -39,6 +39,10 @@ class SurfaceDataConsistencyTests(unittest.TestCase):
                 weekly["weeks"], rankings["weeks"],
                 f"{season}: Matchup stat weeks diverged from Rankings",
             )
+            self.assertEqual(
+                weekly.get("weekLabels", {}), rankings.get("weekLabels", {}),
+                f"{season}: Matchup week labels diverged from Rankings",
+            )
 
             for week in rankings["weeks"]:
                 rating_rows = by_slug(rankings["byWeek"][str(week)])
@@ -80,6 +84,35 @@ class SurfaceDataConsistencyTests(unittest.TestCase):
                 current_rows,
                 weekly_rows,
                 f"{season}: Team profile values differ from the same-week Matchup values",
+            )
+
+    def test_public_profile_and_matchup_stats_rebuild_from_private_advanced(self):
+        """During a full production refresh the ignored private Advanced
+        payload is present. Rebuild both public surfaces from it and require
+        byte-equivalent JSON structures before anything can publish."""
+        private_paths = sorted((PUBLIC / "advanced").glob("*.json"))
+        if not private_paths:
+            self.skipTest("private Advanced payloads are not present in normal PR checkout")
+
+        from scripts.export_web_data import build_team_stats_payload, build_team_stats_weekly_payload
+
+        for advanced_path in private_paths:
+            season = advanced_path.stem
+            current_path = PUBLIC / "team-stats" / f"{season}.json"
+            weekly_path = PUBLIC / "team-stats-weekly" / f"{season}.json"
+            if not current_path.exists() or not weekly_path.exists():
+                continue
+
+            advanced = load(advanced_path)
+            self.assertEqual(
+                load(current_path),
+                build_team_stats_payload(advanced),
+                f"{season}: Team profile stats no longer match the main Advanced source",
+            )
+            self.assertEqual(
+                load(weekly_path),
+                build_team_stats_weekly_payload(advanced),
+                f"{season}: Matchup stats no longer match the main Advanced source",
             )
 
 
