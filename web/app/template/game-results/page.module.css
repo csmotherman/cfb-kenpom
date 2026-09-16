@@ -1,7 +1,7 @@
 .page {
-  width: min(calc(100% - 32px), 1540px);
-  max-width: 1540px;
-  padding: 12px 0 28px;
+  width: min(calc(100% - 24px), 1580px);
+  max-width: 1580px;
+  padding: 10px 0 28px;
 }
 
 .templateFlag {
@@ -31,32 +31,32 @@
 
 .scoreboard {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 190px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 184px minmax(0, 1fr);
   align-items: center;
-  min-height: 88px;
+  min-height: 84px;
   border-bottom: 1px solid var(--color-hairline-strong);
 }
 
 .teamScore {
   display: grid;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
   min-width: 0;
-  padding: 10px 14px;
+  padding: 9px 14px;
 }
 
 .teamScoreLeft {
-  grid-template-columns: 46px minmax(0, 1fr) auto;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
 }
 
 .teamScoreRight {
-  grid-template-columns: auto minmax(0, 1fr) 46px;
+  grid-template-columns: auto minmax(0, 1fr) 44px;
   text-align: right;
 }
 
 .teamScore img {
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
 }
 
@@ -68,7 +68,7 @@
   display: block;
   overflow: hidden;
   font-family: var(--font-display);
-  font-size: clamp(25px, 2vw, 32px);
+  font-size: clamp(24px, 1.9vw, 31px);
   font-weight: 800;
   line-height: .95;
   text-overflow: ellipsis;
@@ -86,9 +86,9 @@
 }
 
 .score {
-  min-width: 50px;
+  min-width: 49px;
   font-family: var(--font-display);
-  font-size: clamp(48px, 4vw, 62px);
+  font-size: clamp(47px, 3.8vw, 60px);
   font-weight: 800;
   line-height: .8;
   font-variant-numeric: tabular-nums;
@@ -101,8 +101,8 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-height: 58px;
-  padding: 0 14px;
+  min-height: 56px;
+  padding: 0 12px;
   border-left: 1px solid var(--color-hairline);
   border-right: 1px solid var(--color-hairline);
   text-align: center;
@@ -123,7 +123,7 @@
 }
 
 .gameMeta small {
-  max-width: 170px;
+  max-width: 164px;
   font-family: var(--font-mono);
   font-size: 6.5px;
   line-height: 1.3;
@@ -135,7 +135,7 @@
   align-items: end;
   justify-content: space-between;
   gap: 24px;
-  padding: 12px 2px 7px;
+  padding: 11px 2px 6px;
 }
 
 .breakdownHeading > div > span {
@@ -158,10 +158,10 @@
 }
 
 .breakdownHeading p {
-  max-width: 600px;
+  max-width: 650px;
   padding-bottom: 1px;
   font-size: 8px;
-  line-height: 1.4;
+  line-height: 1.42;
   text-align: right;
   color: var(--color-ink-tertiary);
 }
@@ -170,7 +170,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
-  gap: 24px;
+  gap: 22px;
 }
 
 .breakdownColumn {
@@ -180,7 +180,7 @@
 .columnHeader,
 .statRow {
   display: grid;
-  grid-template-columns: minmax(150px, 1.55fr) minmax(72px, .72fr) minmax(72px, .72fr);
+  grid-template-columns: minmax(168px, 1.62fr) minmax(76px, .69fr) minmax(76px, .69fr);
   align-items: center;
 }
 
@@ -211,8 +211,8 @@
 }
 
 .teamColumnHead img {
-  width: 21px;
-  height: 21px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
 }
 
@@ -226,30 +226,30 @@
 }
 
 .statSection + .statSection {
-  margin-top: 9px;
+  margin-top: 7px;
 }
 
 .sectionTitle {
   min-height: 23px;
   padding: 7px 2px 3px;
   border-bottom: 1px solid var(--color-hairline-strong);
-  font-size: 8px;
+  font-size: 8.2px;
   font-weight: 800;
   line-height: 1;
   color: var(--color-navy);
 }
 
 .statRow {
-  min-height: 29px;
+  min-height: 27px;
   border-bottom: 1px solid var(--color-hairline);
 }
 
 .metricLabel {
   display: flex;
-  align-items: baseline;
-  gap: 5px;
+  align-items: center;
   min-width: 0;
-  padding: 4px 8px 4px 2px;
+  min-height: 26px;
+  padding: 3px 9px 3px 2px;
 }
 
 .metricLabel strong {
@@ -257,19 +257,18 @@
   min-width: 0;
   font-size: 7.8px;
   font-weight: 650;
-  line-height: 1.1;
+  line-height: 1.12;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--color-ink-secondary);
 }
 
-.metricLabel small {
-  flex: 0 0 auto;
-  font-family: var(--font-mono);
-  font-size: 5.3px;
-  font-weight: 700;
-  line-height: 1;
-  text-transform: uppercase;
+.metricLabelIndented {
+  padding-left: 15px;
+}
+
+.metricLabelIndented strong {
+  font-weight: 560;
   color: var(--color-ink-tertiary);
 }
 
@@ -279,7 +278,7 @@
   justify-content: flex-end;
   gap: 4px;
   min-width: 0;
-  min-height: 28px;
+  min-height: 26px;
   padding: 0 5px;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
@@ -288,7 +287,7 @@
 .resultValue strong {
   overflow: hidden;
   min-width: 0;
-  font-size: 8.2px;
+  font-size: 8.15px;
   font-weight: 700;
   line-height: 1;
   text-overflow: ellipsis;
@@ -298,33 +297,30 @@
 
 .resultValue small {
   flex: 0 0 auto;
-  min-width: 26px;
-  padding: 2px 3px;
-  border-radius: 2px;
-  font-size: 5.5px;
+  min-width: 23px;
+  font-size: 5.6px;
   font-weight: 800;
   line-height: 1;
-  text-align: center;
+  text-align: right;
+  color: var(--color-ink-tertiary);
 }
 
 .tone_elite {
-  background: rgba(63, 110, 78, .085);
+  background: rgba(43, 133, 77, .105);
 }
 
 .tone_elite small,
 .legendDot.tone_elite {
-  background: rgba(63, 110, 78, .22);
-  color: #31553b;
+  color: #2f6942;
 }
 
 .tone_good {
-  background: rgba(63, 110, 78, .035);
+  background: rgba(43, 133, 77, .045);
 }
 
 .tone_good small,
 .legendDot.tone_good {
-  background: rgba(63, 110, 78, .11);
-  color: #486b52;
+  color: #52725b;
 }
 
 .tone_average {
@@ -333,28 +329,25 @@
 
 .tone_average small,
 .legendDot.tone_average {
-  background: rgba(23, 36, 56, .055);
-  color: var(--color-ink-secondary);
+  color: var(--color-ink-tertiary);
 }
 
 .tone_poor {
-  background: rgba(139, 58, 58, .035);
+  background: rgba(139, 58, 58, .045);
 }
 
 .tone_poor small,
 .legendDot.tone_poor {
-  background: rgba(139, 58, 58, .10);
-  color: #744b4b;
+  color: #845555;
 }
 
 .tone_bad {
-  background: rgba(139, 58, 58, .075);
+  background: rgba(139, 58, 58, .095);
 }
 
 .tone_bad small,
 .legendDot.tone_bad {
-  background: rgba(139, 58, 58, .19);
-  color: #6f3636;
+  color: #773d3d;
 }
 
 .tone_neutral {
@@ -381,21 +374,23 @@
 }
 
 .legend small {
-  margin-right: 3px;
+  margin-right: 4px;
   font-size: 5.8px;
   font-weight: 700;
 }
 
 .legendDot {
   display: inline-block;
-  width: 11px;
+  width: 10px;
   height: 7px;
   border-radius: 1px;
+  background: currentColor;
+  opacity: .42;
 }
 
-@media (max-width: 1220px) {
+@media (max-width: 1260px) {
   .page {
-    width: min(calc(100% - 28px), 1180px);
+    width: min(calc(100% - 28px), 1200px);
   }
 
   .breakdownGrid {
@@ -522,7 +517,7 @@
 
   .columnHeader,
   .statRow {
-    grid-template-columns: minmax(130px, 1.55fr) minmax(64px, .72fr) minmax(64px, .72fr);
+    grid-template-columns: minmax(132px, 1.55fr) minmax(64px, .72fr) minmax(64px, .72fr);
   }
 
   .columnHeader > strong {
@@ -539,11 +534,11 @@
   }
 
   .metricLabel strong {
-    font-size: 7.2px;
+    font-size: 7.15px;
   }
 
-  .metricLabel small {
-    display: none;
+  .metricLabelIndented {
+    padding-left: 12px;
   }
 
   .resultValue {
@@ -552,13 +547,12 @@
   }
 
   .resultValue strong {
-    font-size: 7.5px;
+    font-size: 7.4px;
   }
 
   .resultValue small {
-    min-width: 23px;
-    padding-inline: 2px;
-    font-size: 5px;
+    min-width: 20px;
+    font-size: 4.9px;
   }
 
   .legend {
