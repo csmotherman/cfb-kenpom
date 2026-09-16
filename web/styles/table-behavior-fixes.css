@@ -20,53 +20,54 @@ table th[data-column="rank"] .tip-trigger {
 }
 
 @media (max-width: 640px) {
-  /* The section-label row's semantic spacer spans RK + Team + W-L, but only
-     RK + Team should behave like the frozen identity rail. Leave the W-L slice
-     transparent so it can scroll underneath that rail horizontally. */
+  /* The semantic Team section cell spans RK + Team + W-L. Let that real cell
+     remain vertically sticky but move horizontally with the table. Keeping it
+     fully opaque guarantees body records can never bleed into the 27px section
+     band while the user scrolls down. */
   #advancedTable .adv-table .adv-section-row .adv-section-spacer {
     position: sticky !important;
-    left: 0 !important;
-    z-index: 66 !important;
+    top: 0 !important;
+    left: auto !important;
+    z-index: 40 !important;
     padding-left: 0 !important;
-    padding-right: var(--mobile-record-width) !important;
-    background: linear-gradient(
-      to right,
-      var(--color-navy-light) 0,
-      var(--color-navy-light) calc(100% - var(--mobile-record-width)),
-      transparent calc(100% - var(--mobile-record-width)),
-      transparent 100%
-    ) !important;
+    padding-right: 0 !important;
+    background: var(--color-navy-light) !important;
     background-clip: padding-box !important;
     box-shadow: none !important;
+    color: transparent !important;
   }
 
-  #advancedTable .adv-table .adv-section-row .adv-section-spacer::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: var(--mobile-record-width);
-    bottom: 0;
-    width: 1px;
-    background: var(--color-hairline-strong);
-    box-shadow: 8px 0 12px -11px rgba(23, 36, 56, 0.82);
-    pointer-events: none;
+  /* RK + Team are the only horizontally frozen identity rail. Re-create the
+     Team section label from the already-pinned RK header so the label itself
+     stays fixed while the real W-L section band continues to move underneath
+     it. This avoids the transparent-hole/pseudo-mask race that iOS Safari was
+     exposing during vertical momentum scrolling. */
+  #advancedTable .adv-table .adv-column-row .rank-cell {
+    overflow: visible !important;
   }
 
-  /* The moving W-L column header supplies the opaque 27px section-band mask
-     above itself. Because this pseudo-element belongs to the non-horizontally-
-     pinned record header, it travels with W-L and disappears behind Team while
-     still preventing body records from bleeding into the sticky header during
-     vertical scrolling. */
-  #advancedTable .adv-table .adv-column-row .record-cell::before {
-    content: "";
+  #advancedTable .adv-table .adv-column-row .rank-cell::before {
+    content: "TEAM";
     position: absolute;
     top: -27px;
     left: 0;
-    width: 100%;
+    width: calc(var(--mobile-rank-width) + var(--mobile-team-width));
     height: 27px;
     box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    padding-left: 7px;
+    border-right: 1px solid var(--color-hairline-strong);
     border-bottom: 1px solid #1c2a3c;
     background: var(--color-navy-light);
+    box-shadow: 8px 0 12px -11px rgba(23, 36, 56, 0.82);
+    color: #f2efe7;
+    font-size: 8.5px;
+    font-weight: 900;
+    letter-spacing: .09em;
+    line-height: 1;
+    text-align: left;
+    text-transform: uppercase;
     pointer-events: none;
   }
 
