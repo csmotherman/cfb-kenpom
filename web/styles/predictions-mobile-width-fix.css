@@ -1,0 +1,44 @@
+/* Predictions mobile width stabilization.
+   Filtering/searching can leave only a handful of rows. On iOS Safari, a
+   blockified <table>/<tbody> can then shrink its internal table wrapper toward
+   min-content even when the outer scroller still spans the viewport. Keep the
+   mobile slate on ordinary block/flex sizing so every matchup card always
+   stretches to the full available width regardless of row count. */
+
+@media (max-width: 640px) {
+  .predictions-main .table-scroll {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .predictions-table {
+    display: block !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+    box-sizing: border-box;
+  }
+
+  .predictions-table tbody {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+
+  .predictions-table tbody tr,
+  .predictions-table tbody tr:nth-child(even) {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 auto;
+    align-self: stretch;
+    box-sizing: border-box;
+  }
+}
