@@ -74,10 +74,10 @@ table th[data-column="rank"] .tip-trigger {
     z-index: 40 !important;
   }
 
-  /* Exploratory generates its mobile RK rail with ::before. Keep that 40px
-     rank segment at left:0 and pin the semantic Team/Profile section cell
-     immediately beside it. The Series/Possessions/Style group labels pass
-     behind both pieces as the table scrolls. */
+  /* Exploratory generates its mobile RK rail with ::before. The semantic
+     section spacer still spans Team + Profile in the table markup, so paint
+     only the Team-width portion of that sticky cell. This keeps Profile out of
+     the frozen navy rail while preserving the existing table geometry. */
   #exploratoryTable .exploratory-table .adv-section-row::before {
     z-index: 67 !important;
   }
@@ -86,9 +86,36 @@ table th[data-column="rank"] .tip-trigger {
     position: sticky !important;
     left: var(--mobile-rank-width) !important;
     z-index: 66 !important;
-    background: var(--color-navy-light) !important;
+    padding: 0 !important;
+    background: transparent !important;
     background-clip: padding-box !important;
-    box-shadow: var(--mobile-freeze-divider) !important;
+    box-shadow: none !important;
+    color: transparent !important;
+    pointer-events: none;
+  }
+
+  /* Repaint the actual frozen Team band at exactly the Team-column width.
+     The label is explicitly white, and the freeze divider now lands at the
+     Team/Profile boundary instead of after Profile. */
+  #exploratoryTable .exploratory-table .adv-section-row .adv-section-spacer::before {
+    content: "Team";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--mobile-team-width);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    background: var(--color-navy-light);
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+    letter-spacing: inherit;
+    text-transform: uppercase;
+    box-shadow: var(--mobile-freeze-divider);
+    pointer-events: none;
   }
 
   #exploratoryTable .exploratory-table .adv-section-row .adv-section-heading {
