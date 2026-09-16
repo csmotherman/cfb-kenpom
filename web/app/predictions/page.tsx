@@ -28,20 +28,18 @@ type GamesFilter = "all" | "top25" | "best";
 type SortKey = "kickoff" | "matchup" | "pick" | "confidence";
 type Access = "unknown" | "locked" | "unlocked";
 
-// The early-season model only scores games until a team's own schedule is
-// long enough for Adj. Net to take over (see the copy below) -- a null
-// result for an unlocked week means "not published for this week," not an
-// error, and the table falls back to a plain Adj. Net comparison instead of
-// going blank, so this page stays useful as the season's single "this
-// week's games" destination all year, not just weeks 1-5.
+// The early-season model only scores games when it has enough information to
+// publish a graded prediction. The schedule should still show every FBS-vs-FBS
+// game, but games without a complete model output are explicitly labeled as
+// "Not enough data" instead of presenting an Adj. Net comparison as a pick.
 type Row = {
   game: ScheduleGame;
   homeRating: RankingsRow | undefined;
   awayRating: RankingsRow | undefined;
   prediction: PredictionGame | undefined;
   // Signed to the home team (positive = home favored) so every row sorts on
-  // the same axis regardless of who the model likes -- real predicted margin
-  // when published, else the raw Adj. Net differential as context only.
+  // the same axis regardless of who the model likes. Adj. Net can still be
+  // computed internally for context, but only real graded picks sort as picks.
   edgeValue: number | null;
   edgeIsRealPick: boolean;
 };
@@ -165,8 +163,8 @@ export default function PredictionsPage() {
           setAccess("locked");
           return;
         }
-        // Non-access errors (network blip, 500) just leave this week showing
-        // the Adj. Net fallback rather than taking down the whole page.
+        // Non-access errors (network blip, 500) leave the game visible and
+        // clearly mark the model output as unavailable instead of inventing a pick.
         setPredictionsByWeek((prev) => new Map(prev).set(selectedWeek, []));
       });
     return () => { cancelled = true; };
@@ -240,9 +238,11 @@ export default function PredictionsPage() {
         case "matchup":
           return a.game.homeTeam.localeCompare(b.game.homeTeam) * dir;
         case "pick": {
-          if (a.edgeValue === null) return b.edgeValue === null ? 0 : 1;
-          if (b.edgeValue === null) return -1;
-          return (Math.abs(a.edgeValue) - Math.abs(b.edgeValue)) * dir;
+          const av = a.edgeIsRealPick ? a.edgeValue : null;
+          const bv = b.edgeIsRealPick ? b.edgeValue : null;
+          if (av === null) return bv === null ? 0 : 1;
+          if (bv === null) return -1;
+          return (Math.abs(av) - Math.abs(bv)) * dir;
         }
         case "confidence": {
           const av = a.prediction?.confidence ?? null;
@@ -286,9 +286,9 @@ export default function PredictionsPage() {
           <span className="eyebrow">LEILA Predictions</span>
           <h1 id="predictionsTitle">{season ? `${season} Predictions` : "Predictions"}</h1>
           <p className="ratings-hero__description">
-            Every FBS-vs-FBS game, sortable and searchable. Weeks 1-5ish blend a preseason power rating with real
-            results as they come in; once a team&rsquo;s schedule is long enough for LEILA&rsquo;s own Adj. Net to
-            take over, the Pick column falls back to an Adj. Net comparison instead of a graded pick.
+            Every FBS-vs-FBS game, sortable and searchable. Early-season LEILA projections blend preseason power
+            with real results as they come in. If the model does not have enough information for a graded pick,
+            the game stays on the slate and is clearly labeled as not having enough data.
           </p>
         </div>
       </section>
@@ -381,59 +381,60 @@ export default function PredictionsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sorted.map(({ game, prediction, edgeValue, edgeIsRealPick }) => (
-                      <tr
-                        key={game.gameId}
-                        className="predictions-table__row"
-                        tabIndex={0}
-                        role="link"
-                        aria-label={`View matchup preview: ${game.awayTeam} at ${game.homeTeam}`}
-                        onClick={() => goToMatchup(game.gameId)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            goToMatchup(game.gameId);
-                          }
-                        }}
-                      >
-                        <td className="predictions-table__time">
-                          {game.completed && game.awayPoints !== null && game.homePoints !== null ? (
-                            <span className="mono">{game.awayPoints}–{game.homePoints} Final</span>
-                          ) : (
-                            gameTimeLabel(game)
-                          )}
-                        </td>
-                        <td>
-                          <div className="predictions-table__matchup">
-                            <TeamCell team={game.awayTeam} teamId={game.awayTeamId} rank={topRanked.get(game.awayTeamId) ?? null} />
-                            <span className="predictions-table__at">{game.neutralSite ? "vs" : "@"}</span>
-                            <TeamCell team={game.homeTeam} teamId={game.homeTeamId} rank={topRanked.get(game.homeTeamId) ?? null} />
-                          </div>
-                        </td>
-                        <td className="num">
-                          {access === "locked" ? (
-                            <span className="predictions-table__locked">🔒 Locked</span>
-                          ) : edgeValue === null ? (
-                            <span className="predictions-table__dash">—</span>
-                          ) : edgeIsRealPick ? (
-                            <span className="predictions-table__pick">
-                              {pickText(prediction!.predictedWinner, prediction!.predictedMargin)}
-                            </span>
-                          ) : (
-                            <span className="predictions-table__context" title="No graded pick this week -- Adj. Net comparison shown for context only.">
-                              Adj. Net: {pickText(edgeValue >= 0 ? game.homeTeam : game.awayTeam, edgeValue)}
-                            </span>
-                          )}
-                        </td>
-                        <td className="num">
-                          {access === "locked" ? (
-                            <span className="predictions-table__dash">—</span>
-                          ) : (
-                            <span className="mono">{pct(prediction?.confidence ?? null)}</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {sorted.map(({ game, prediction, edgeIsRealPick }) => {
+                      const hasPrediction = edgeIsRealPick && prediction?.confidence !== null && prediction?.confidence !== undefined;
+                      return (
+                        <tr
+                          key={game.gameId}
+                          className="predictions-table__row"
+                          tabIndex={0}
+                          role="link"
+                          aria-label={`View matchup preview: ${game.awayTeam} at ${game.homeTeam}`}
+                          onClick={() => goToMatchup(game.gameId)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              goToMatchup(game.gameId);
+                            }
+                          }}
+                        >
+                          <td className="predictions-table__time">
+                            {game.completed && game.awayPoints !== null && game.homePoints !== null ? (
+                              <span className="mono">{game.awayPoints}–{game.homePoints} Final</span>
+                            ) : (
+                              gameTimeLabel(game)
+                            )}
+                          </td>
+                          <td>
+                            <div className="predictions-table__matchup">
+                              <TeamCell team={game.awayTeam} teamId={game.awayTeamId} rank={topRanked.get(game.awayTeamId) ?? null} />
+                              <span className="predictions-table__at">{game.neutralSite ? "vs" : "@"}</span>
+                              <TeamCell team={game.homeTeam} teamId={game.homeTeamId} rank={topRanked.get(game.homeTeamId) ?? null} />
+                            </div>
+                          </td>
+                          <td className="num">
+                            {access === "locked" ? (
+                              <span className="predictions-table__locked">🔒 Locked</span>
+                            ) : hasPrediction ? (
+                              <span className="predictions-table__pick">
+                                {pickText(prediction!.predictedWinner, prediction!.predictedMargin)}
+                              </span>
+                            ) : (
+                              <span className="predictions-table__context">Not enough data</span>
+                            )}
+                          </td>
+                          <td className="num">
+                            {access === "locked" ? (
+                              <span className="predictions-table__dash">—</span>
+                            ) : hasPrediction ? (
+                              <span className="mono">{pct(prediction!.confidence)}</span>
+                            ) : (
+                              <span className="predictions-table__dash">N/A</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -444,7 +445,7 @@ export default function PredictionsPage() {
         {power ? <PreseasonPowerTable power={power} /> : null}
       </main>
 
-      <SiteFooter note="Weekly Predictions are model-generated projections, not betting advice. Once the early-season model retires for a game, the Pick column shows a plain Adj. Net comparison instead of a graded pick -- that context is not itself a validated prediction." />
+      <SiteFooter note="Weekly Predictions are model-generated projections, not betting advice. Games without a complete graded model output are labeled Not enough data rather than being shown as substitute predictions." />
     </>
   );
 }
