@@ -1,0 +1,59 @@
+/* ========================================================================== */
+/* LEILA table behavior — final UX overrides                                  */
+/* ========================================================================== */
+
+/* Rank is self-explanatory and should never carry a metric-help question mark.
+   Keep this global so every current/future table using the shared rank classes
+   gets the same treatment on desktop and mobile. */
+table th.rank-cell .tip-trigger,
+table th.rk-cell .tip-trigger,
+table th[data-metric-key="rank"] .tip-trigger,
+table th[data-column="rank"] .tip-trigger {
+  display: none !important;
+}
+
+/* Advanced analytics now always renders the full section set. The legacy
+   expand/collapse control remains in the page component only as an internal
+   state hook for AdvancedAllColumnsPolicy and is not part of the UI. */
+#advancedTable .show-all-columns-toggle {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  /* The section-label rail must freeze with the identity columns just like the
+     RK/Team row beneath it. Metric groups then scroll underneath this opaque
+     surface instead of crossing over the Team section label. */
+  #advancedTable .adv-table .adv-section-row .adv-section-spacer {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 66 !important;
+    background: var(--color-navy-light) !important;
+    background-clip: padding-box !important;
+    box-shadow: var(--mobile-freeze-divider) !important;
+  }
+
+  #advancedTable .adv-table .adv-section-row .adv-section-heading {
+    z-index: 40 !important;
+  }
+
+  /* Exploratory generates its mobile RK rail with ::before. Keep that 40px
+     rank segment at left:0 and pin the semantic Team/Profile section cell
+     immediately beside it. The Series/Possessions/Style group labels pass
+     behind both pieces as the table scrolls. */
+  #exploratoryTable .exploratory-table .adv-section-row::before {
+    z-index: 67 !important;
+  }
+
+  #exploratoryTable .exploratory-table .adv-section-row .adv-section-spacer {
+    position: sticky !important;
+    left: var(--mobile-rank-width) !important;
+    z-index: 66 !important;
+    background: var(--color-navy-light) !important;
+    background-clip: padding-box !important;
+    box-shadow: var(--mobile-freeze-divider) !important;
+  }
+
+  #exploratoryTable .exploratory-table .adv-section-row .adv-section-heading {
+    z-index: 40 !important;
+  }
+}
