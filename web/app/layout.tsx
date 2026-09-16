@@ -48,6 +48,8 @@ import "@/styles/predictions-mobile-reset.css";
 /* Final iOS width stabilization: filtered prediction slates must keep every
    matchup card stretched to the viewport instead of shrink-wrapping rows. */
 import "@/styles/predictions-mobile-width-fix.css";
+/* Exact model-method explainer for the Predictions route. */
+import "@/styles/predictions-model.css";
 
 export const metadata: Metadata = {
   title: "LEILA Ratings | College Football Analytics",
