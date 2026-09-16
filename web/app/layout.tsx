@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/Tooltip";
 import BrandTitleGuard from "@/components/BrandTitleGuard";
 import MatchupPredictionPortal from "@/components/MatchupPredictionPortal";
 import MobileTableFreeze from "@/components/MobileTableFreeze";
+import ExploratoryStickyTableHeader from "@/components/ExploratoryStickyTableHeader";
 import TableFreshnessStamp from "@/components/TableFreshnessStamp";
 import "@/styles/theme.css";
 import "@/styles/ratings.css";
@@ -32,6 +33,7 @@ import "@/styles/table-identity-polish.css";
 import "@/styles/table-freshness.css";
 import "@/styles/ratings-table-polish.css";
 import "@/styles/exploratory.css";
+import "@/styles/exploratory-desktop-table.css";
 import "@/styles/exploratory-modal-wide.css";
 import "@/styles/cfp-badge.css";
 /* Canonical mobile table rules intentionally load last so page-specific
@@ -63,6 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <BrandTitleGuard />
         <MobileTableFreeze />
+        <ExploratoryStickyTableHeader />
         <TableFreshnessStamp />
         <TooltipProvider>{children}</TooltipProvider>
         <MatchupPredictionPortal />
