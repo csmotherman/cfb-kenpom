@@ -210,6 +210,10 @@ jobs:
         run: python -m cfb_analytics.derived.exploratory_series_propagation_cli materialize --season "$SEASON"
       - name: Propagate LEILA Exploratory drives/risk metrics
         run: python -m cfb_analytics.derived.exploratory_drives_risk_propagation_cli materialize --season "$SEASON"
+      - name: Propagate LEILA Exploratory turnovers metrics
+        run: python -m cfb_analytics.derived.exploratory_turnovers_propagation_cli materialize --season "$SEASON"
+      - name: Propagate LEILA Exploratory penalties metrics
+        run: python -m cfb_analytics.derived.exploratory_penalties_propagation_cli materialize --season "$SEASON"
       - name: Rebuild canonical 2026 team games
         run: python -m cfb_analytics.pipelines.build_canonical --season "$SEASON"
       - name: Recompute 2026 ratings
