@@ -20,17 +20,22 @@ table th[data-column="rank"] .tip-trigger {
 }
 
 @media (max-width: 640px) {
-  /* The top section-label band spans RK + Team + W-L. W-L itself remains part
-     of the horizontally scrolling table below, but this sticky band must stay
-     fully opaque so body record values can never show through it during a
-     vertical scroll. The divider still marks the RK + Team freeze boundary. */
+  /* The section-label row's semantic spacer spans RK + Team + W-L, but only
+     RK + Team should behave like the frozen identity rail. Leave the W-L slice
+     transparent so it can scroll underneath that rail horizontally. */
   #advancedTable .adv-table .adv-section-row .adv-section-spacer {
     position: sticky !important;
     left: 0 !important;
     z-index: 66 !important;
     padding-left: 0 !important;
     padding-right: var(--mobile-record-width) !important;
-    background: var(--color-navy-light) !important;
+    background: linear-gradient(
+      to right,
+      var(--color-navy-light) 0,
+      var(--color-navy-light) calc(100% - var(--mobile-record-width)),
+      transparent calc(100% - var(--mobile-record-width)),
+      transparent 100%
+    ) !important;
     background-clip: padding-box !important;
     box-shadow: none !important;
   }
@@ -44,6 +49,24 @@ table th[data-column="rank"] .tip-trigger {
     width: 1px;
     background: var(--color-hairline-strong);
     box-shadow: 8px 0 12px -11px rgba(23, 36, 56, 0.82);
+    pointer-events: none;
+  }
+
+  /* The moving W-L column header supplies the opaque 27px section-band mask
+     above itself. Because this pseudo-element belongs to the non-horizontally-
+     pinned record header, it travels with W-L and disappears behind Team while
+     still preventing body records from bleeding into the sticky header during
+     vertical scrolling. */
+  #advancedTable .adv-table .adv-column-row .record-cell::before {
+    content: "";
+    position: absolute;
+    top: -27px;
+    left: 0;
+    width: 100%;
+    height: 27px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #1c2a3c;
+    background: var(--color-navy-light);
     pointer-events: none;
   }
 
