@@ -57,8 +57,8 @@ export function canonicalizeAdvancedSeason(
     });
   }
 
-  const weeks = [...advanced.weeks];
-  const weekLabels = { ...advanced.weekLabels };
+  const weeks = [...rankings.weeks];
+  const weekLabels = { ...rankings.weekLabels };
 
   if (schedule && weeks.length > 0) {
     const lastPublishedWeek = weeks[weeks.length - 1];
