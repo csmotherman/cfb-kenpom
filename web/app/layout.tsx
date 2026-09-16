@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { TooltipProvider } from "@/components/Tooltip";
 import BrandTitleGuard from "@/components/BrandTitleGuard";
 import MatchupPredictionPortal from "@/components/MatchupPredictionPortal";
-import MobileTableFreeze from "@/components/MobileTableFreeze";
 import ExploratoryStickyTableHeader from "@/components/ExploratoryStickyTableHeader";
 import TableFreshnessStamp from "@/components/TableFreshnessStamp";
 import "@/styles/theme.css";
@@ -37,8 +36,8 @@ import "@/styles/exploratory-desktop-table.css";
 import "@/styles/exploratory-modal-wide.css";
 import "@/styles/cfp-badge.css";
 /* Canonical mobile table rules intentionally load last so page-specific
-   responsive CSS cannot un-stick the shared frozen identity columns. */
-import "@/styles/mobile-tables.css";
+   responsive CSS cannot override the native sticky identity rails. */
+import "@/styles/mobile-table-native-sticky.css";
 
 export const metadata: Metadata = {
   title: "LEILA Ratings | College Football Analytics",
@@ -64,7 +63,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <BrandTitleGuard />
-        <MobileTableFreeze />
         <ExploratoryStickyTableHeader />
         <TableFreshnessStamp />
         <TooltipProvider>{children}</TooltipProvider>
