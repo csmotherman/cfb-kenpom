@@ -622,40 +622,18 @@
   .control-help,
   .methodology-note { font-size: 9.5px; }
 
-  .mobile-table-tools {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 5px var(--space-2);
-    padding: 8px var(--space-4);
-    border-bottom: 1px solid var(--color-hairline-strong);
-    background: var(--color-paper);
-  }
-  .mobile-table-tools__label {
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-ink-tertiary);
-  }
-  .mobile-table-tools__select {
-    width: 100%;
-    min-height: 44px;
-    border: 1px solid var(--color-hairline-strong);
-    border-radius: var(--radius-sm);
-    background: var(--color-paper-raised);
-    padding: 0 34px 0 10px;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--color-navy);
-  }
-  .mobile-table-tools__hint {
-    grid-column: 1 / -1;
-    font-size: 9.5px;
-    line-height: 1.35;
-    color: var(--color-ink-tertiary);
-  }
-
+  /* An older "pick one metric via a dropdown, hide the rest, no horizontal
+     scroll" mobile design used to live here (.mobile-table-tools,
+     .mobile-selected-metric) -- confirmed dead: neither class is referenced
+     by any component anymore, so its JS-driven picker UI could never have
+     been rendered, but its CSS (position:static + width:44px on .rank-cell/
+     .team-cell, hiding every .metric-cell) was still silently winning
+     specificity fights against mobile-tables.css's canonical horizontal-
+     scroll/frozen-rail system on real devices. Removed outright, not
+     relocated -- mobile-tables.css is the one live mobile table system now.
+     #historyTable keeps its own, still-live version of this same
+     one-metric-at-a-time pattern in team.css; that is unrelated and
+     unchanged. */
   .table-main.container { padding-left: 0; padding-right: 0; }
   .table-scroll {
     max-height: none;
@@ -663,67 +641,6 @@
     border-left: 0;
     border-right: 0;
   }
-  #ratingsTable,
-  .adv-table {
-    min-width: 0;
-    width: 100%;
-    table-layout: fixed;
-  }
-  #ratingsTable .delta-cell,
-  #ratingsTable .conf-cell,
-  #ratingsTable .record-cell,
-  #ratingsTable .metric-cell:not(.mobile-selected-metric),
-  .adv-table .conf-cell,
-  .adv-table .record-cell,
-  .adv-table .metric-cell:not(.mobile-selected-metric) { display: none; }
-
-  #ratingsTable .rank-cell,
-  .adv-table .rank-cell {
-    position: static;
-    width: 44px;
-    min-width: 44px;
-    max-width: 44px;
-    padding-left: 6px;
-    padding-right: 4px;
-    text-align: center;
-  }
-  #ratingsTable .team-cell,
-  .adv-table .team-cell {
-    position: static;
-    width: auto;
-    min-width: 0;
-    padding-left: 7px;
-    padding-right: 7px;
-    box-shadow: none;
-  }
-  #ratingsTable .metric-cell.mobile-selected-metric,
-  .adv-table .metric-cell.mobile-selected-metric {
-    display: table-cell;
-    width: 105px;
-    min-width: 105px;
-    max-width: 105px;
-    padding-left: 4px;
-    padding-right: 8px;
-  }
-  #ratingsTable .team-link span,
-  .adv-table .team-link span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  #ratingsTable .rank-sub,
-  .adv-table .rank-sub {
-    display: block;
-    min-width: 0;
-    margin: 1px 0 0;
-    font-size: 8.5px;
-    line-height: 1;
-  }
-  #ratingsTable th.metric-cell.mobile-selected-metric .tip-trigger,
-  .adv-table th.metric-cell.mobile-selected-metric .tip-trigger,
-  #ratingsTable th.rank-cell .tip-trigger,
-  .adv-table th.rank-cell .tip-trigger { display: none; }
   .data-table th,
   .data-table td { padding-top: 10px; padding-bottom: 10px; }
   .data-table thead th { position: static; font-size: 9.5px; }

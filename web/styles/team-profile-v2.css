@@ -641,10 +641,9 @@
     white-space: normal;
   }
 
-  .team-v2-schedule th:nth-child(1),
-  .team-v2-schedule td:nth-child(1) { width: 14%; }
-  .team-v2-schedule th:nth-child(2),
-  .team-v2-schedule td:nth-child(2) { width: 43%; }
+  /* Column widths for nth-child(1)/(2) (the frozen identity rail) come from
+     mobile-tables.css's canonical --mobile-week-width/--mobile-team-width
+     now, not fixed percentages here. */
   .team-v2-schedule th:nth-child(3),
   .team-v2-schedule td:nth-child(3) { width: 21%; }
   .team-v2-schedule th:nth-child(4),

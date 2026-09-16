@@ -9,7 +9,6 @@ import "@/styles/ratings.css";
 import "@/styles/advanced.css";
 import "@/styles/team.css";
 import "./additions.css";
-import "@/styles/mobile-fit.css";
 import "@/styles/dense-ratings.css";
 import "@/styles/ara-polish.css";
 import "@/styles/advanced-table-polish.css";

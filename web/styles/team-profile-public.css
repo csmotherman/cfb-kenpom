@@ -209,28 +209,22 @@
   .team-detail { padding-inline: var(--space-4); }
 }
 
-/* ---------- Fit metric/schedule tables on mobile without horizontal scroll ----------
-   .data-table's base min-width:900px assumes the #ratingsTable/.adv-table
-   mobile treatment elsewhere in the cascade, which these two tables don't
-   have -- without their own override they'd silently require a horizontal
-   swipe with zero visual hint that Raw/Opponent Adjusted are off-screen. */
+/* ---------- Fit the metric table on mobile without horizontal scroll ----------
+   .schedule-table (also .team-v2-schedule -- both classes are on the same
+   element) now uses mobile-tables.css's canonical frozen-rail treatment
+   instead of its own competing fixed-percentage/no-scroll grid. */
 @media (max-width: 640px) {
-  .metric-table, .schedule-table {
+  .metric-table {
     min-width: 0;
     width: 100%;
     table-layout: fixed;
   }
-  .metric-table th, .metric-table td,
-  .schedule-table th, .schedule-table td {
+  .metric-table th, .metric-table td {
     padding: 7px 6px;
     white-space: normal;
   }
   .metric-table th:first-child, .metric-table td:first-child { width: 42%; }
   .metric-table th:not(:first-child), .metric-table td:not(:first-child) { width: 29%; }
   .metric-table td:first-child { flex-wrap: wrap; }
-  .schedule-table th:nth-child(1), .schedule-table td:nth-child(1) { width: 14%; }
-  .schedule-table th:nth-child(2), .schedule-table td:nth-child(2) { width: 40%; }
-  .schedule-table th:nth-child(3), .schedule-table td:nth-child(3) { width: 24%; }
-  .schedule-table th:nth-child(4), .schedule-table td:nth-child(4) { width: 22%; }
   .schedule-opp span { overflow: hidden; text-overflow: ellipsis; }
 }

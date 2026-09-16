@@ -33,126 +33,52 @@
   }
 }
 
-/* Mobile: Rank + Team are the persistent identity rail. Columns between or
-   after them may scroll underneath it, but the user never loses which team a
-   row belongs to while exploring metrics to the right. */
-@media (max-width: 640px) {
-  #ratingsTable .rank-col,
-  .adv-table .rank-col {
+/* Mobile RK/Team freeze, sizing, and content layout live in
+   mobile-tables.css now -- the single canonical mobile table system. This
+   file previously carried its own competing max-width:640px native
+   position:sticky identity rail here, at different widths than the
+   canonical system. Removed, not relocated. */
+
+/* ========================================================================== */
+/* Advanced table behavior only -- DESKTOP/TABLET ONLY (min-width: 641px)     */
+/* Mobile uses mobile-tables.css's transform-based freeze exclusively; native */
+/* position:sticky on <td> is desktop-safe but unreliable on mobile WebKit,   */
+/* which is exactly why that canonical system exists. These body:has()       */
+/* selectors carry enough specificity to beat it even with !important+later  */
+/* source order, so they must stay scoped away from the mobile breakpoint    */
+/* rather than compete with it.                                              */
+/* ========================================================================== */
+@media (min-width: 641px) {
+  /* Rank + Team stay visible while the existing table scrolls horizontally. */
+  body:has(#advancedTable) #advancedTable .adv-table .rank-cell {
     position: sticky !important;
     left: 0 !important;
-    z-index: 8 !important;
-    width: 42px !important;
-    min-width: 42px !important;
-    max-width: 42px !important;
-    background: var(--color-paper-raised) !important;
+    z-index: 31 !important;
   }
 
-  #ratingsTable .team-cell,
-  .adv-table .team-cell {
+  body:has(#advancedTable) #advancedTable .adv-table .team-cell {
     position: sticky !important;
-    left: 42px !important;
-    z-index: 7 !important;
-    width: 98px !important;
-    min-width: 98px !important;
-    max-width: 98px !important;
-    background: var(--color-paper-raised) !important;
-    box-shadow: 1px 0 0 var(--color-hairline-strong);
-  }
-
-  #ratingsTable thead .rank-col,
-  #ratingsTable thead .team-cell,
-  .adv-table thead .rank-col,
-  .adv-table thead .team-cell {
-    z-index: 12 !important;
-    background: var(--color-paper-soft) !important;
-  }
-
-  #ratingsTable tbody tr:hover .rank-col,
-  #ratingsTable tbody tr:hover .team-cell,
-  .adv-table tbody tr:hover .rank-col,
-  .adv-table tbody tr:hover .team-cell {
-    background: var(--color-paper-soft) !important;
-  }
-
-  #ratingsTable .team-name,
-  .adv-table .team-name {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  /* The Advanced table is Rank → Team → W-L, so keep the identity block
-     compact and make the grouped header line up with those exact widths. */
-  .adv-table .record-cell {
-    width: 52px !important;
-    min-width: 52px !important;
-    max-width: 52px !important;
-  }
-
-  .adv-table .adv-section-spacer {
-    width: 192px !important;
-    min-width: 192px !important;
-    max-width: 192px !important;
-  }
-}
-
-/* ========================================================================== */
-/* Advanced table behavior only                                               */
-/* Preserve the current table presentation; change only what remains pinned.  */
-/* ========================================================================== */
-
-/* Rank + Team stay visible while the existing table scrolls horizontally. */
-body:has(#advancedTable) #advancedTable .adv-table .rank-cell {
-  position: sticky !important;
-  left: 0 !important;
-  z-index: 31 !important;
-}
-
-body:has(#advancedTable) #advancedTable .adv-table .team-cell {
-  position: sticky !important;
-  z-index: 30 !important;
-  overflow: hidden;
-  isolation: isolate;
-}
-
-@media (min-width: 641px) {
-  body:has(#advancedTable) #advancedTable .adv-table .team-cell {
     left: 44px !important;
-  }
-}
-
-@media (max-width: 640px) {
-  body:has(#advancedTable) #advancedTable .adv-table .team-cell {
-    left: 42px !important;
+    z-index: 30 !important;
+    overflow: hidden;
+    isolation: isolate;
   }
 
-  /* Match the rank cell's existing effective row colors so making it sticky
-     does not visually change the table or let scrolled metrics show through. */
-  body:has(#advancedTable) #advancedTable .adv-table tbody .rank-cell {
-    background: #faf8f2 !important;
+  /* Scrolling cells stay beneath the frozen identity rail. This is stacking
+     only; it does not change their dimensions, colors, typography, or spacing. */
+  body:has(#advancedTable) #advancedTable .adv-table tbody td:not(.rank-cell):not(.team-cell) {
+    position: relative;
+    z-index: 1;
   }
 
-  body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) .rank-cell {
-    background: #f5f2ea !important;
+  /* At the header/identity intersections, keep the header layer above the body. */
+  body:has(#advancedTable) #advancedTable .adv-column-row .rank-cell {
+    z-index: 42 !important;
   }
-}
 
-/* Scrolling cells stay beneath the frozen identity rail. This is stacking only;
-   it does not change their dimensions, colors, typography, or spacing. */
-body:has(#advancedTable) #advancedTable .adv-table tbody td:not(.rank-cell):not(.team-cell) {
-  position: relative;
-  z-index: 1;
-}
-
-/* At the header/identity intersections, keep the header layer above the body. */
-body:has(#advancedTable) #advancedTable .adv-column-row .rank-cell {
-  z-index: 42 !important;
-}
-
-body:has(#advancedTable) #advancedTable .adv-column-row .team-cell {
-  z-index: 41 !important;
+  body:has(#advancedTable) #advancedTable .adv-column-row .team-cell {
+    z-index: 41 !important;
+  }
 }
 
 /* The real table remains the horizontal scroller. A viewport-fixed mirror of
@@ -208,7 +134,7 @@ body:has(#advancedTable) #advancedTable .advanced-floating-head__table .rank-cel
 
 @media (max-width: 640px) {
   body:has(#advancedTable) #advancedTable .advanced-floating-head__table .team-cell {
-    left: 42px !important;
+    left: 34px !important;
   }
 }
 
@@ -227,148 +153,45 @@ body:has(#advancedTable) #advancedTable .advanced-floating-head .tip-trigger {
 /* Sticky cells must paint an opaque surface. The rest of the row may inherit
    its fill from the <tr>, but a sticky cell cannot: scrolled metrics would be
    visible underneath it. These colors are the Advanced table's existing row
-   and header fills, so this fixes occlusion without changing the visual design. */
-body:has(#advancedTable) #advancedTable .adv-table tbody .rank-cell,
-body:has(#advancedTable) #advancedTable .adv-table tbody .team-cell {
-  background-color: #faf8f2 !important;
-  background-image: none !important;
-  background-clip: padding-box;
-}
-
-body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) .rank-cell,
-body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) .team-cell {
-  background-color: #f5f2ea !important;
-  background-image: none !important;
-}
-
-body:has(#advancedTable) #advancedTable .adv-table tbody tr:hover .rank-cell,
-body:has(#advancedTable) #advancedTable .adv-table tbody tr:hover .team-cell {
-  background-color: #faf8f2 !important;
-}
-
-body:has(#advancedTable) #advancedTable .adv-column-row .rank-cell,
-body:has(#advancedTable) #advancedTable .adv-column-row .team-cell,
-body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .rank-cell,
-body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .team-cell {
-  background-color: #e7e2d7 !important;
-  background-image: none !important;
-}
-
-/* A tiny opaque edge/shadow makes the frozen identity rail read as a boundary
-   when metrics slide behind it, without changing the column's dimensions. */
-body:has(#advancedTable) #advancedTable .adv-table .team-cell,
-body:has(#advancedTable) #advancedTable .advanced-floating-head__table .team-cell {
-  box-shadow: 1px 0 0 #d2ccbd, 6px 0 10px rgba(31, 42, 55, .035);
-}
-
-/* ========================================================================== */
-/* Ratings table mobile identity rail                                         */
-/* Treat RK + weekly movement as one compact visual unit, then spend the       */
-/* recovered space on the team name. The DOM still keeps movement in its own   */
-/* cell, but the sticky positioning and shared paint make it read as part of RK. */
-/* ========================================================================== */
-@media (max-width: 640px) {
-  #ratingsTable .rank-cell {
-    position: sticky !important;
-    left: 0 !important;
-    z-index: 10 !important;
-    width: 42px !important;
-    min-width: 42px !important;
-    max-width: 42px !important;
-    padding-left: 5px !important;
-    padding-right: 2px !important;
-    border-right: 0 !important;
-    background: var(--color-paper-raised) !important;
+   and header fills, so this fixes occlusion without changing the visual design.
+   DESKTOP/TABLET ONLY (min-width: 641px) -- same body:has() specificity
+   problem as the position:sticky block above: these would otherwise beat
+   mobile-tables.css's navy-header/opaque-paper colors on mobile too. */
+@media (min-width: 641px) {
+  body:has(#advancedTable) #advancedTable .adv-table tbody .rank-cell,
+  body:has(#advancedTable) #advancedTable .adv-table tbody .team-cell {
+    background-color: #faf8f2 !important;
+    background-image: none !important;
+    background-clip: padding-box;
   }
 
-  #ratingsTable .delta-cell {
-    position: sticky !important;
-    left: 42px !important;
-    z-index: 10 !important;
-    width: 30px !important;
-    min-width: 30px !important;
-    max-width: 30px !important;
-    padding-left: 0 !important;
-    padding-right: 4px !important;
-    border-left: 0 !important;
-    border-right: 0 !important;
-    font-size: 9px !important;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    text-align: left !important;
-    background: var(--color-paper-raised) !important;
+  body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) .rank-cell,
+  body:has(#advancedTable) #advancedTable .adv-table tbody tr:nth-child(even) .team-cell {
+    background-color: #f5f2ea !important;
+    background-image: none !important;
   }
 
-  #ratingsTable thead .rank-cell,
-  #ratingsTable thead .delta-cell,
-  #ratingsTable thead .team-cell {
-    background: var(--color-paper-soft) !important;
+  body:has(#advancedTable) #advancedTable .adv-table tbody tr:hover .rank-cell,
+  body:has(#advancedTable) #advancedTable .adv-table tbody tr:hover .team-cell {
+    background-color: #faf8f2 !important;
   }
 
-  #ratingsTable thead .delta-cell {
-    font-size: 0 !important;
+  body:has(#advancedTable) #advancedTable .adv-column-row .rank-cell,
+  body:has(#advancedTable) #advancedTable .adv-column-row .team-cell,
+  body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .rank-cell,
+  body:has(#advancedTable) #advancedTable .advanced-floating-head__table .adv-column-row .team-cell {
+    background-color: #e7e2d7 !important;
+    background-image: none !important;
   }
 
-  #ratingsTable thead .delta-cell::after {
-    content: "" !important;
-  }
-
-  #ratingsTable .team-cell {
-    position: sticky !important;
-    left: 72px !important;
-    z-index: 9 !important;
-    width: 126px !important;
-    min-width: 126px !important;
-    max-width: 126px !important;
-    padding-left: 6px !important;
-    padding-right: 7px !important;
-    overflow: hidden;
-    background: var(--color-paper-raised) !important;
-    box-shadow: 1px 0 0 var(--color-hairline-strong), 7px 0 10px rgba(23, 36, 56, 0.04);
-  }
-
-  #ratingsTable .team-cell-stack,
-  #ratingsTable .team-link {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  #ratingsTable .team-link {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    overflow: hidden;
-  }
-
-  #ratingsTable .team-name {
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  #ratingsTable .team-logo {
-    flex: 0 0 22px;
-  }
-
-  #ratingsTable .team-conf-label {
-    margin-left: 28px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  #ratingsTable tbody tr:nth-child(even) .rank-cell,
-  #ratingsTable tbody tr:nth-child(even) .delta-cell,
-  #ratingsTable tbody tr:nth-child(even) .team-cell {
-    background: var(--color-paper-soft) !important;
-  }
-
-  #ratingsTable tbody tr:hover .rank-cell,
-  #ratingsTable tbody tr:hover .delta-cell,
-  #ratingsTable tbody tr:hover .team-cell {
-    background: #e8e2d4 !important;
+  /* A tiny opaque edge/shadow makes the frozen identity rail read as a
+     boundary when metrics slide behind it, without changing dimensions. */
+  body:has(#advancedTable) #advancedTable .adv-table .team-cell,
+  body:has(#advancedTable) #advancedTable .advanced-floating-head__table .team-cell {
+    box-shadow: 1px 0 0 #d2ccbd, 6px 0 10px rgba(31, 42, 55, .035);
   }
 }
+
+/* A second, later competing mobile identity-rail block used to live here
+   (native position:sticky, different widths again). Removed for the same
+   reason as above -- mobile-tables.css is the one canonical system now. */

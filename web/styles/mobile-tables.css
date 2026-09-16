@@ -5,11 +5,41 @@
 /* semantic table cells. MobileTableFreeze publishes each scroll container's  */
 /* scrollLeft as --table-scroll-x; the identity cells translate by that exact */
 /* amount. The result is deterministic: RK + Team stay fixed, stats scroll.   */
+/*                                                                            */
+/* This is the ONLY stylesheet allowed to set position/width/left/transform   */
+/* on a frozen identity cell (.rank-cell, .team-cell, or another table's      */
+/* equivalent first column(s)). Every other stylesheet that used to carry a   */
+/* competing mobile identity-rail implementation (native position:sticky,     */
+/* fixed-percentage no-scroll grids, etc.) has had that stripped out -- see   */
+/* the removal notes left in ratings-table-polish.css, table-identity-       */
+/* polish.css, dense-ratings.css, ara-polish.css, advanced-table-polish.css, */
+/* team-profile-v2.css, and team-profile-public.css. mobile-fit.css (an      */
+/* older, fully-superseded squeeze-to-fit implementation) was deleted        */
+/* outright. #historyTable is deliberately NOT covered here -- its own       */
+/* mobile design (team.css) shows only Year + Record + one selected metric   */
+/* at a time, so it never needs horizontal scroll or a frozen rail.          */
+/*                                                                            */
+/* Breakpoint is 640px, matching every other page's desktop/mobile split     */
+/* (ratings-table-polish.css, table-identity-polish.css, dense-ratings.css   */
+/* all switch at the same 640/641px line) so there is no width range where   */
+/* a desktop rule and this mobile rule are both simultaneously active.       */
+/*                                                                            */
+/* Every transform: translate3d(...) below reads var(--table-scroll-x, 0px)  */
+/* DIRECTLY, not through an intermediate custom property. A prior version    */
+/* defined --mobile-freeze-x: var(--table-scroll-x, 0px) once on :root and   */
+/* used --mobile-freeze-x everywhere -- CSS custom properties resolve        */
+/* var() references at their declaration site, not lazily at each point of  */
+/* use, so that :root declaration permanently resolved to the 0px fallback  */
+/* (--table-scroll-x doesn't exist at :root, only on the .table-scroll div  */
+/* deep in the tree) and every descendant inherited that already-resolved   */
+/* 0px forever, regardless of the real scroll position. This is why the     */
+/* freeze silently never moved on any table. Reference --table-scroll-x     */
+/* directly; never reintroduce that indirection.                            */
 /* ========================================================================== */
 
 .team-code { display: none; }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   :root {
     --mobile-rank-width: 34px;
     --mobile-team-width: 120px;
@@ -18,7 +48,6 @@
     --mobile-week-width: 46px;
     --mobile-kickoff-width: 64px;
     --mobile-matchup-width: 164px;
-    --mobile-freeze-x: var(--table-scroll-x, 0px);
     --mobile-freeze-shadow: 1px 0 0 var(--color-hairline-strong), 9px 0 12px -12px rgba(23, 36, 56, 0.78);
   }
 
@@ -62,13 +91,13 @@
     max-height: none !important;
   }
 
-  :is(#ratingsTable, .adv-table, #historyTable, .predictions-table, .network-detail__table, .team-v2-schedule, .game-log-modal__table) {
+  :is(#ratingsTable, .adv-table, .predictions-table, .network-detail__table, .team-v2-schedule, .game-log-modal__table) {
     border-collapse: separate !important;
     border-spacing: 0 !important;
   }
 
-  :is(#ratingsTable, .adv-table, #historyTable) th,
-  :is(#ratingsTable, .adv-table, #historyTable) td {
+  :is(#ratingsTable, .adv-table) th,
+  :is(#ratingsTable, .adv-table) td {
     box-sizing: border-box;
     height: 40px;
     padding: 5px 6px !important;
@@ -80,12 +109,7 @@
   #ratingsTable .metric-cell,
   .adv-table .conf-cell,
   .adv-table .record-cell,
-  .adv-table .metric-cell,
-  #historyTable .conf-cell,
-  #historyTable .record-cell,
-  #historyTable .history-rank-cell,
-  #historyTable .history-metric-cell,
-  #historyTable .mobile-selected-history-metric {
+  .adv-table .metric-cell {
     display: table-cell !important;
   }
 
@@ -132,7 +156,14 @@
     max-width: var(--mobile-record-width) !important;
   }
 
-  #ratingsTable .metric-cell {
+  /* The shared header-cell renderer tags EVERY column header, including
+     Rank and Team, with .metric-cell (for its sortable-button styling) --
+     so a plain `.metric-cell` width rule silently reaches the identity
+     columns' <th> too and can end up setting the whole column's rendered
+     width under table-layout:fixed/auto column-width sharing. Excluding
+     .rank-cell/.team-cell here is what actually keeps that from happening,
+     not source order. */
+  #ratingsTable .metric-cell:not(.rank-cell):not(.team-cell) {
     width: var(--mobile-stat-width) !important;
     min-width: var(--mobile-stat-width) !important;
     max-width: var(--mobile-stat-width) !important;
@@ -142,7 +173,7 @@
   #ratingsTable tbody .team-cell {
     position: relative !important;
     left: auto !important;
-    transform: translate3d(var(--mobile-freeze-x), 0, 0) !important;
+    transform: translate3d(var(--table-scroll-x, 0px), 0, 0) !important;
     z-index: 30 !important;
     background-clip: padding-box !important;
   }
@@ -152,7 +183,7 @@
     position: sticky !important;
     top: 0 !important;
     left: auto !important;
-    transform: translate3d(var(--mobile-freeze-x), 0, 0) !important;
+    transform: translate3d(var(--table-scroll-x, 0px), 0, 0) !important;
     z-index: 50 !important;
     background: var(--color-navy) !important;
     color: #fff !important;
@@ -189,7 +220,7 @@
   #advancedTable .adv-table:not(.exploratory-table) tbody .team-cell {
     position: relative !important;
     left: auto !important;
-    transform: translate3d(var(--mobile-freeze-x), 0, 0) !important;
+    transform: translate3d(var(--table-scroll-x, 0px), 0, 0) !important;
     z-index: 30 !important;
     background-clip: padding-box !important;
   }
@@ -199,7 +230,7 @@
     position: sticky !important;
     top: 27px !important;
     left: auto !important;
-    transform: translate3d(var(--mobile-freeze-x), 0, 0) !important;
+    transform: translate3d(var(--table-scroll-x, 0px), 0, 0) !important;
     z-index: 50 !important;
     background: var(--color-navy) !important;
     color: #fff !important;
@@ -248,7 +279,7 @@
     min-width: var(--mobile-rank-width) !important;
     max-width: var(--mobile-rank-width) !important;
     box-sizing: border-box;
-    transform: translate3d(var(--mobile-freeze-x), 0, 0) !important;
+    transform: translate3d(var(--table-scroll-x, 0px), 0, 0) !important;
     text-align: center;
     vertical-align: middle;
     z-index: 31;
@@ -308,7 +339,7 @@
   #exploratoryTable .exploratory-table tbody .team-cell {
     position: relative !important;
     left: auto !important;
-    transform: translate3d(var(--mobile-freeze-x), 0, 0) !important;
+    transform: translate3d(var(--table-scroll-x, 0px), 0, 0) !important;
     z-index: 30 !important;
   }
 
@@ -316,7 +347,7 @@
     position: sticky !important;
     top: 27px !important;
     left: auto !important;
-    transform: translate3d(var(--mobile-freeze-x), 0, 0) !important;
+    transform: translate3d(var(--table-scroll-x, 0px), 0, 0) !important;
     z-index: 50 !important;
     background: var(--color-navy) !important;
     color: #fff !important;
@@ -476,8 +507,7 @@
   .network-detail__table,
   .team-v2-schedule,
   .game-log-modal__table,
-  .predictions-table,
-  #historyTable {
+  .predictions-table {
     width: max-content !important;
     min-width: 100% !important;
     table-layout: auto !important;
@@ -486,11 +516,10 @@
   .network-detail__table tbody :is(td:nth-child(1), td:nth-child(2)),
   .team-v2-schedule tbody :is(td:nth-child(1), td:nth-child(2)),
   .game-log-modal__table tbody :is(td:nth-child(1), td:nth-child(2)),
-  .predictions-table tbody :is(td:nth-child(1), td:nth-child(2)),
-  #historyTable tbody .year-cell {
+  .predictions-table tbody :is(td:nth-child(1), td:nth-child(2)) {
     position: relative !important;
     left: auto !important;
-    transform: translate3d(var(--mobile-freeze-x), 0, 0) !important;
+    transform: translate3d(var(--table-scroll-x, 0px), 0, 0) !important;
     z-index: 30 !important;
     background: var(--color-paper) !important;
   }
@@ -498,10 +527,9 @@
   .network-detail__table thead :is(th:nth-child(1), th:nth-child(2)),
   .team-v2-schedule thead :is(th:nth-child(1), th:nth-child(2)),
   .game-log-modal__table thead :is(th:nth-child(1), th:nth-child(2)),
-  .predictions-table thead :is(th:nth-child(1), th:nth-child(2)),
-  #historyTable thead .year-cell {
+  .predictions-table thead :is(th:nth-child(1), th:nth-child(2)) {
     left: auto !important;
-    transform: translate3d(var(--mobile-freeze-x), 0, 0) !important;
+    transform: translate3d(var(--table-scroll-x, 0px), 0, 0) !important;
     z-index: 50 !important;
     background: var(--color-navy) !important;
     color: #fff !important;
@@ -541,13 +569,6 @@
     width: var(--mobile-matchup-width) !important;
     min-width: var(--mobile-matchup-width) !important;
     max-width: var(--mobile-matchup-width) !important;
-    box-shadow: var(--mobile-freeze-shadow) !important;
-  }
-
-  #historyTable .year-cell {
-    width: 52px !important;
-    min-width: 52px !important;
-    max-width: 52px !important;
     box-shadow: var(--mobile-freeze-shadow) !important;
   }
 }

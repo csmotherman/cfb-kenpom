@@ -464,70 +464,9 @@ body:has(#advancedTable) #advancedTable .adv-table .sort-indicator {
     white-space: nowrap;
   }
 
-  body:has(#advancedTable) #advancedTable .adv-table {
-    width: max-content !important;
-    min-width: 760px !important;
-    table-layout: auto !important;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-section-row th {
-    height: 25px;
-    padding: 4px 7px;
-    font-size: 8px;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-section-row .adv-section-spacer {
-    min-width: 188px;
-    padding-left: 7px;
-    font-size: 7.5px;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-column-row th {
-    top: 25px;
-    height: 40px;
-    font-size: 9px;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-table .rank-cell {
-    width: 42px !important;
-    min-width: 42px !important;
-    max-width: 42px !important;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-table .team-cell {
-    width: 94px !important;
-    min-width: 94px !important;
-    max-width: 94px !important;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-column-row .team-cell,
-  body:has(#advancedTable) #advancedTable .adv-table tbody .team-cell {
-    left: 42px !important;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-table .record-cell {
-    min-width: 52px !important;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-table .metric-cell {
-    min-width: 82px !important;
-    padding-inline: 7px;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-table tbody td {
-    height: 43px;
-    padding-block: 5px;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-table .metric-value {
-    font-size: 11px;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-table .rank-sub {
-    font-size: 7.5px;
-  }
-
-  body:has(#advancedTable) #advancedTable .adv-table .team-conf-label {
-    display: none;
-  }
+  /* Table sizing/identity-cell width+left rules used to live here, competing
+     with mobile-tables.css's canonical sizing (which also owns
+     .adv-section-row/.adv-column-row header heights and .metric-value/
+     .rank-sub sizing for consistency across every mobile table). Removed,
+     not relocated. */
 }

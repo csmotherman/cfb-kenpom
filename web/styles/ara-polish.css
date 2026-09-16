@@ -734,25 +734,10 @@ body:has(#teamContent) .adv-preview__overlay .subscribe-btn::after {
     font-size: 8px;
   }
 
-  /* Preserve the existing all-core-metrics-in-view behavior. */
-  body:has(#ratingsTable) .table-scroll {
-    width: 100%;
-    max-width: 100vw;
-    overflow-x: auto !important;
-  }
-
-  #ratingsTable {
-    width: 100% !important;
-    min-width: 380px !important;
-    table-layout: fixed !important;
-  }
-
-  #ratingsTable thead th { height: 30px; font-size: 8px !important; }
-  #ratingsTable td { height: 37px; font-size: 9.5px; }
-  #ratingsTable .team-logo { width: 20px !important; height: 20px !important; flex-basis: 20px; }
-  #ratingsTable .team-conf-label { margin-left: 23px; font-size: 7px; }
-  #ratingsTable .team-link .team-code { font-size: 9px; }
-  #ratingsTable .rank-sub { font-size: 7px; }
+  /* #ratingsTable sizing/scroll/identity-cell rules used to live here
+     (width:100%, no horizontal scroll intended) -- directly conflicting
+     with mobile-tables.css's canonical scroll-based freeze layout. Removed,
+     not relocated. */
 
   .breadcrumbs { padding-top: 8px; padding-bottom: 8px; }
 
