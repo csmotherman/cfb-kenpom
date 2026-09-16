@@ -45,6 +45,9 @@ import "@/styles/table-behavior-fixes.css";
    the generic horizontally-scrolling table treatment on this route only. */
 import "@/styles/predictions-v2.css";
 import "@/styles/predictions-mobile-reset.css";
+/* Final iOS width stabilization: filtered prediction slates must keep every
+   matchup card stretched to the viewport instead of shrink-wrapping rows. */
+import "@/styles/predictions-mobile-width-fix.css";
 
 export const metadata: Metadata = {
   title: "LEILA Ratings | College Football Analytics",
