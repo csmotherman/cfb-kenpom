@@ -38,8 +38,8 @@ def propagate(raw_root,processed_root,seasons):
   path=derived_season_dir(processed_root,s)/"team_seasons.json";ss=json.loads(path.read_text());by=defaultdict(list)
   for r in gp:by[r["team"]].append(r)
   for r in ss:
-   rows=by[r["team"]];db=_sum(rows,"dropbacks");sa=_sum(rows,"sacksAllowed");ddb=_sum(rows,"defensiveDropbacks");sk=_sum(rows,"sacks")
-   r.update({"dropbacks":db,"sacksAllowed":sa,"sackRate":_rate(sa,db),"defensiveDropbacks":ddb,"sacks":sk,"defensiveSackRate":_rate(sk,ddb),"dropbacksDefinitionVersion":DROPBACKS_VERSION})
+   rows=by[r["team"]];db=_sum(rows,"dropbacks");sa=_sum(rows,"sacksAllowed");ddb=_sum(rows,"defensiveDropbacks");sk=_sum(rows,"sacks");dy=_sum(rows,"dropbackYards");ddy=_sum(rows,"defensiveDropbackYards")
+   r.update({"dropbacks":db,"sacksAllowed":sa,"sackRate":_rate(sa,db),"dropbackYards":dy,"yardsPerDropback":_rate(dy,db),"defensiveDropbacks":ddb,"sacks":sk,"defensiveSackRate":_rate(sk,ddb),"defensiveDropbackYards":ddy,"yardsPerDropbackAllowed":_rate(ddy,ddb),"dropbacksDefinitionVersion":DROPBACKS_VERSION})
   _write(path,ss);season_rows+=len(ss)
  return game_rows,season_rows
 

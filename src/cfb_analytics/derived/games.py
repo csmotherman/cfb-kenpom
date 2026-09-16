@@ -14,7 +14,7 @@ from cfb_analytics.analytics.finishing_drives import team_finishing_metrics,FINI
 from cfb_analytics.analytics.field_position import team_field_position_metrics,FIELD_POSITION_VERSION
 from cfb_analytics.analytics.turnovers import team_turnover_metrics,TURNOVERS_VERSION
 from cfb_analytics.analytics.tfl import team_tfl_metrics,TFL_VERSION
-GAME_SCHEMA_VERSION="team-game-v8-epa-downs"
+GAME_SCHEMA_VERSION="team-game-v9-rush-yards-per-attempt"
 def derived_game_partition_dir(root:Path,season:int,season_type:str,week:int)->Path:return root/"derived"/"games"/f"season={season}"/f"season_type={season_type}"/f"week={week:02d}"
 def _atomic(path:Path,data:bytes):path.parent.mkdir(parents=True,exist_ok=True);tmp=path.with_suffix(path.suffix+".tmp");tmp.write_bytes(data);os.replace(tmp,path)
 def _sha(b:bytes)->str:return hashlib.sha256(b).hexdigest()
@@ -67,6 +67,12 @@ def _metric_counts(plays,exclude_garbage_time=False):
    c["successEligible"]+=1;c["successful"]+=int(success)
    if fam:
     c[f"{fam}SuccessEligible"]+=1;c[f"{fam}Successful"]+=int(success)
+    # Total yards across every graded attempt in this family (not just
+    # successful ones) -- additive only, same {fam}SuccessEligible
+    # population already used as the "attempts" denominator everywhere
+    # else in this file. Feeds Yards/Rush on the game-results template;
+    # never touches any existing counter or the rating pipeline's inputs.
+    if _num(p.get("analyticsYardsGained")):c[f"{fam}AttemptYards"]+=p["analyticsYardsGained"]
     if d in (1,2,3):c[f"{fam}Down{d}SuccessEligible"]+=1;c[f"{fam}Down{d}Successful"]+=int(success)
    if d in (1,2,3,4):c[f"down{d}SuccessEligible"]+=1;c[f"down{d}Successful"]+=int(success)
    if success and _num(p.get("analyticsYardsGained")):
@@ -95,7 +101,7 @@ def _metric_fields(off,deff,exclude_garbage_time=False):
   ee=c["explosiveEligible"];ex=c["explosive"];out[f"explosiveEligiblePlays{suffix}"]=ee;out[f"explosivePlays{suffix}"]=ex;out[f"explosivePlayRate{suffix}"]=_rate(ex,ee)
   ep=c["epaPlays"];es=c["epaSum"];out[f"epaPlays{suffix}"]=ep;out[f"epaSum{suffix}"]=es;out[f"epaPerPlay{suffix}"]=_rate(es,ep)
   for fam in ("rush","pass"):
-   e=c[f"{fam}SuccessEligible"];s=c[f"{fam}Successful"];out[f"{fam}SuccessEligiblePlays{suffix}"]=e;out[f"{fam}SuccessfulPlays{suffix}"]=s;out[f"{fam}SuccessRate{suffix}"]=_rate(s,e);out[f"{fam}SuccessfulPlayYards{suffix}"]=c[f"{fam}SuccessfulYards"];out[f"{fam}YardsPerSuccessfulPlay{suffix}"]=_rate(c[f"{fam}SuccessfulYards"],s);ee=c[f"{fam}ExplosiveEligible"];ex=c[f"{fam}Explosive"];out[f"{fam}ExplosiveEligiblePlays{suffix}"]=ee;out[f"{fam}ExplosivePlays{suffix}"]=ex;out[f"{fam}ExplosivePlayRate{suffix}"]=_rate(ex,ee)
+   e=c[f"{fam}SuccessEligible"];s=c[f"{fam}Successful"];out[f"{fam}SuccessEligiblePlays{suffix}"]=e;out[f"{fam}SuccessfulPlays{suffix}"]=s;out[f"{fam}SuccessRate{suffix}"]=_rate(s,e);out[f"{fam}SuccessfulPlayYards{suffix}"]=c[f"{fam}SuccessfulYards"];out[f"{fam}YardsPerSuccessfulPlay{suffix}"]=_rate(c[f"{fam}SuccessfulYards"],s);out[f"{fam}AttemptYards{suffix}"]=c[f"{fam}AttemptYards"];out[f"{fam}YardsPerAttempt{suffix}"]=_rate(c[f"{fam}AttemptYards"],e);ee=c[f"{fam}ExplosiveEligible"];ex=c[f"{fam}Explosive"];out[f"{fam}ExplosiveEligiblePlays{suffix}"]=ee;out[f"{fam}ExplosivePlays{suffix}"]=ex;out[f"{fam}ExplosivePlayRate{suffix}"]=_rate(ex,ee)
    fep=c[f"{fam}EpaPlays"];fes=c[f"{fam}EpaSum"];out[f"{fam}EpaPlays{suffix}"]=fep;out[f"{fam}EpaSum{suffix}"]=fes;out[f"{fam}EpaPerPlay{suffix}"]=_rate(fes,fep)
    for d in (1,2,3):
     de=c[f"{fam}Down{d}SuccessEligible"];ds=c[f"{fam}Down{d}Successful"];out[f"{fam}Down{d}SuccessEligiblePlays{suffix}"]=de;out[f"{fam}Down{d}SuccessfulPlays{suffix}"]=ds;out[f"{fam}Down{d}SuccessRate{suffix}"]=_rate(ds,de)
