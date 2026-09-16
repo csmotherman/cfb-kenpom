@@ -50,6 +50,14 @@ const FILTERS: { key: GamesFilter; label: string }[] = [
   { key: "best", label: "Best Matchups" },
 ];
 
+const EARLY_BLEND = [
+  { games: "0", prior: 100, live: 0 },
+  { games: "1", prior: 75, live: 25 },
+  { games: "2", prior: 50, live: 50 },
+  { games: "3", prior: 25, live: 75 },
+  { games: "4+", prior: 0, live: 100 },
+];
+
 function na(v: unknown): v is null | undefined {
   return v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
 }
@@ -286,9 +294,9 @@ export default function PredictionsPage() {
           <span className="eyebrow">LEILA Predictions</span>
           <h1 id="predictionsTitle">{season ? `${season} Predictions` : "Predictions"}</h1>
           <p className="ratings-hero__description">
-            Every FBS-vs-FBS game, sortable and searchable. Early-season LEILA projections blend preseason power
-            with real results as they come in. If the model does not have enough information for a graded pick,
-            the game stays on the slate and is clearly labeled as not having enough data.
+            Every scheduled game involving an FBS team, sortable and searchable. Early-season LEILA projections
+            blend a frozen preseason prior with results already played. A graded pick requires complete model inputs
+            for both teams; otherwise the game stays on the slate and is labeled Not enough data.
           </p>
         </div>
       </section>
@@ -355,7 +363,7 @@ export default function PredictionsPage() {
 
             {sorted.length === 0 ? (
               <p className="network-loading">
-                {search.trim() ? `No games match "${search}".` : "No FBS-vs-FBS games are listed for this week."}
+                {search.trim() ? `No games match "${search}".` : "No games involving an FBS team are listed for this week."}
               </p>
             ) : (
               <div className="table-scroll" role="region" aria-label="Weekly predictions table" tabIndex={0}>
@@ -464,34 +472,131 @@ function TeamCell({ team, teamId, rank }: { team: string; teamId: number; rank: 
 function PreseasonPowerTable({ power }: { power: PreseasonPower }) {
   const top = power.teams.slice(0, 25);
   return (
-    <section className="predictions-power">
-      <div className="weekly-section-heading">
-        <div>
+    <section className="predictions-power predictions-model" aria-labelledby="predictionModelTitle">
+      <div className="predictions-model__header">
+        <div className="predictions-model__header-copy">
           <span className="eyebrow">The Model Behind The Picks</span>
-          <h2>Preseason Power</h2>
+          <h2 id="predictionModelTitle">How LEILA Builds a Pick</h2>
+          <p className="predictions-model__lede">
+            The active early-season engine starts with a frozen preseason estimate, then hands more weight to results
+            from this season as each matchup gains evidence. It never uses AP or Coaches Poll votes, SP+, FPI, or betting lines.
+          </p>
         </div>
-        <span>Top 25 · {power.season}</span>
+        <span className="predictions-model__version">{power.freezeVersion}</span>
       </div>
-      <p className="predictions-power__intro">
-        Fit from prior-season results, recruiting and QB continuity only &mdash; never AP/Coaches Poll, SP+, FPI or
-        betting lines. Held fixed for the season once frozen; this is what feeds the early-season blend above.
+
+      <div className="predictions-model__proof" aria-label="Historical model validation">
+        <div className="predictions-model__proof-item">
+          <span className="predictions-model__proof-value">{power.backtest.winnerPct.toFixed(1)}%</span>
+          <span className="predictions-model__proof-label">Straight-up winners</span>
+        </div>
+        <div className="predictions-model__proof-item">
+          <span className="predictions-model__proof-value">{power.backtest.mae.toFixed(1)}</span>
+          <span className="predictions-model__proof-label">Points margin MAE</span>
+        </div>
+        <div className="predictions-model__proof-item">
+          <span className="predictions-model__proof-value">{power.backtest.n.toLocaleString()}</span>
+          <span className="predictions-model__proof-label">Walk-forward games</span>
+        </div>
+      </div>
+
+      <div className="predictions-model__pipeline">
+        <article className="predictions-model__stage">
+          <span className="predictions-model__stage-number">01 / PRIOR</span>
+          <h3>Build preseason power</h3>
+          <p>
+            Ridge regression combines each program&rsquo;s previous three seasons, three-year recruiting average,
+            and whether its primary quarterback returns.
+          </p>
+        </article>
+        <article className="predictions-model__stage">
+          <span className="predictions-model__stage-number">02 / LIVE</span>
+          <h3>Add this season&rsquo;s evidence</h3>
+          <p>
+            LEILA measures each team&rsquo;s average scoring margin from games already played. It is intentionally raw
+            here because the early schedule graph is still too thin for stable opponent adjustment.
+          </p>
+        </article>
+        <article className="predictions-model__stage">
+          <span className="predictions-model__stage-number">03 / MATCHUP</span>
+          <h3>Blend + home field</h3>
+          <p>
+            The prior fades as real games accumulate. The current frozen fit adds 2.7 points for home field and
+            adds nothing on a neutral site.
+          </p>
+        </article>
+        <article className="predictions-model__stage">
+          <span className="predictions-model__stage-number">04 / CONFIDENCE</span>
+          <h3>Calibrate the win chance</h3>
+          <p>
+            The final predicted margin is mapped to Win % with logistic calibration fitted on historical model
+            predictions and actual winners rather than an arbitrary margin-to-probability rule.
+          </p>
+        </article>
+      </div>
+
+      <div className="predictions-model__blend">
+        <div className="predictions-model__blend-copy">
+          <h3>How preseason information fades out</h3>
+          <p>
+            The blend uses the team with fewer games played, so a lightly tested team cannot be treated as mature
+            just because its opponent has played more often.
+          </p>
+          <span className="predictions-model__blend-note">
+            Navy = preseason prior · Gold = current-season scoring margin
+          </span>
+        </div>
+        <div className="predictions-model__blend-rows" aria-label="Preseason and in-season blend weights">
+          {EARLY_BLEND.map((step) => (
+            <div className="predictions-model__blend-row" key={step.games}>
+              <span className="predictions-model__blend-games">{step.games} GP</span>
+              <span className="predictions-model__blend-track" aria-hidden="true">
+                <span className="predictions-model__blend-prior" style={{ width: `${step.prior}%` }} />
+                <span className="predictions-model__blend-live" style={{ width: `${step.live}%` }} />
+              </span>
+              <span className="predictions-model__blend-label">{step.prior}/{step.live}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="predictions-model__limits">
+        <strong>Why some games say Not enough data:</strong> a graded early-season pick requires a complete preseason
+        prior for both teams. That prior needs three seasons of program results plus the recruiting and quarterback
+        inputs above, so games involving teams outside that model universe can stay on the slate without receiving a fabricated pick.
       </p>
-      <ol className="predictions-power__list">
-        {top.map((t) => (
-          <li key={t.team}>
-            <span className="predictions-power__rank">{t.rank}</span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoUrl(t.teamId ?? 0)} alt="" loading="lazy" decoding="async" />
-            <span className="predictions-power__team">{t.team}</span>
-            <span className="predictions-power__conf">{t.conf}</span>
-            <span className="mono predictions-power__score">{signed(t.powerScore)}</span>
-          </li>
-        ))}
-      </ol>
-      <p className="predictions-power__backtest">
-        Walk-forward accuracy on {power.backtest.n.toLocaleString()} historical early-season games: {power.backtest.winnerPct.toFixed(1)}%
-        straight-up, {power.backtest.mae.toFixed(1)}-point average error. {power.backtest.description}
-      </p>
+
+      <details className="predictions-model__prior">
+        <summary>
+          <span className="predictions-model__prior-title">
+            2026 Preseason Prior
+            <small>the starting point, not the final weekly pick</small>
+          </span>
+          <span className="predictions-model__prior-action">View</span>
+        </summary>
+        <div className="predictions-model__prior-body">
+          <p className="predictions-model__prior-intro">
+            These are the frozen preseason power scores that feed step one. They do not update after kickoff;
+            the weekly prediction changes because real 2026 results progressively replace this prior in the blend.
+          </p>
+          <ol className="predictions-power__list">
+            {top.map((t) => (
+              <li key={t.team}>
+                <span className="predictions-power__rank">{t.rank}</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logoUrl(t.teamId ?? 0)} alt="" loading="lazy" decoding="async" />
+                <span className="predictions-power__team">{t.team}</span>
+                <span className="predictions-power__conf">{t.conf}</span>
+                <span className="mono predictions-power__score">{signed(t.powerScore)}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="predictions-model__validation">
+            Validation shown above is the model&rsquo;s leakage-safe Week 2 walk-forward test: each historical season was
+            predicted using coefficients fit only on seasons that came before it. It is not an in-sample fit score.
+          </p>
+        </div>
+      </details>
     </section>
   );
 }
