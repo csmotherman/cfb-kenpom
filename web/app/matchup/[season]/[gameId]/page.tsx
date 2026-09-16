@@ -7,11 +7,13 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import MatchupEdgesSection from "@/components/MatchupEdgesSection";
+import GameResultsSheet from "@/components/GameResultsSheet";
 import {
   getRankingsSeason,
   getScheduleSeason,
   getTeamStatsWeeklySeason,
 } from "@/lib/data";
+import { buildGameResultsColumns } from "@/lib/team-game-advanced";
 import { logoUrl } from "@/lib/teamCode";
 import type {
   AdvancedRow,
@@ -20,6 +22,7 @@ import type {
   RankingsSeason,
   ScheduleGame,
   ScheduleSeason,
+  TeamGameAdvancedSeason,
   TeamStatsRow,
   TeamStatsWeeklySeason,
 } from "@/lib/types";
@@ -94,6 +97,20 @@ async function getMatchupAdvancedSeason(year: number): Promise<AdvancedSeason | 
   return response.json() as Promise<AdvancedSeason>;
 }
 
+// Only fetched/used for completed games (see MatchupPage below) -- the
+// single-game Game Results breakdown. Same soft-degrade contract as
+// getMatchupAdvancedSeason: 404 means "not published for this season" and
+// degrades to null rather than erroring the whole pregame/postgame page.
+async function getMatchupTeamGameAdvancedSeason(year: number): Promise<TeamGameAdvancedSeason | null> {
+  const response = await fetch(`/api/matchup-team-game-advanced/${year}`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(20000),
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Failed to load completed-game analytics: ${response.status}`);
+  return response.json() as Promise<TeamGameAdvancedSeason>;
+}
+
 function advancedNumber(row: AdvancedRow | undefined, key: keyof AdvancedRow): number | null {
   if (!row) return null;
   const value = row[key];
@@ -142,6 +159,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
   const [rankings, setRankings] = useState<RankingsSeason | null>(null);
   const [teamStatsWeekly, setTeamStatsWeekly] = useState<TeamStatsWeeklySeason | null>(null);
   const [advanced, setAdvanced] = useState<AdvancedSeason | null>(null);
+  const [teamGameAdvanced, setTeamGameAdvanced] = useState<TeamGameAdvancedSeason | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -159,13 +177,15 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
       getRankingsSeason(season),
       getTeamStatsWeeklySeason(season),
       getMatchupAdvancedSeason(season),
+      getMatchupTeamGameAdvancedSeason(season),
     ])
-      .then(([scheduleData, rankingData, teamStatsData, advancedData]) => {
+      .then(([scheduleData, rankingData, teamStatsData, advancedData, teamGameAdvancedData]) => {
         if (cancelled) return;
         setSchedule(scheduleData);
         setRankings(rankingData);
         setTeamStatsWeekly(teamStatsData);
         setAdvanced(advancedData);
+        setTeamGameAdvanced(teamGameAdvancedData);
       })
       .catch((error: Error) => {
         if (!cancelled) setLoadError(error);
@@ -212,6 +232,15 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
       home: advancedRows.find((row) => row.slug === game.homeSlug),
     };
   }, [advancedRows, game]);
+
+  const gameResultRows = useMemo(() => {
+    if (!teamGameAdvanced || !game) return { away: undefined, home: undefined };
+    const rows = teamGameAdvanced.rows.filter((row) => row.game_id === gameId);
+    return {
+      away: rows.find((row) => row.team === game.awayTeam),
+      home: rows.find((row) => row.team === game.homeTeam),
+    };
+  }, [teamGameAdvanced, game, gameId]);
 
   useEffect(() => {
     if (game) document.title = `${game.awayTeam} vs ${game.homeTeam} | LEILA Ratings`;
@@ -276,6 +305,44 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
     totalRated,
     totalStatted,
   });
+
+  // Completed games switch entirely into the postgame results view -- same
+  // URL, same page component, pregame logic below is untouched and never
+  // runs for a finished game. An in-progress/未-completed game (or one
+  // whose completed-game analytics haven't published yet) still falls
+  // through to the pregame preview, which degrades gracefully on its own.
+  if (game.completed && gameResultRows.away && gameResultRows.home && teamGameAdvanced) {
+    const awayRow = gameResultRows.away;
+    const homeRow = gameResultRows.home;
+    const columns = buildGameResultsColumns(awayRow, homeRow, teamGameAdvanced.rows);
+    return (
+      <>
+        <a className="skip-link" href="#matchupContent">Skip to game results</a>
+        <SiteHeader tagline="College Football Matchup Analysis" />
+        <SiteNav />
+
+        <main id="matchupContent" className="container matchup-v2-main">
+          <GameResultsSheet
+            leftTeam={{
+              name: game.awayTeam, short: game.awayTeam, teamId: game.awayTeamId,
+              score: awayRow.points ?? 0, record: ratings.away?.record || "—",
+            }}
+            rightTeam={{
+              name: game.homeTeam, short: game.homeTeam, teamId: game.homeTeamId,
+              score: homeRow.points ?? 0, record: ratings.home?.record || "—",
+            }}
+            gameLabel={`${season} · ${weekName}`}
+            gameSubLabel={game.venue || undefined}
+            columns={columns}
+          />
+
+          <MatchupEdgesSection season={season} gameId={gameId} />
+        </main>
+
+        <SiteFooter note="Final game breakdown uses LEILA's advanced and exploratory single-game metrics. Percentiles compare each team's single-game performance against every other FBS-vs-FBS team-game in the same season." />
+      </>
+    );
+  }
 
   return (
     <>

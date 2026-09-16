@@ -301,6 +301,45 @@ export type GameLogSeason = {
   byTeam: Record<string, GameLogEntry[]>;
 };
 
+// team_game_advanced: one row per (season, game_id, team), two rows per
+// completed game -- powers the completed-game Game Results view on the
+// matchup page. Raw single-game values only, no percentile baked in (see
+// web/lib/team-game-advanced.ts, which computes percentile at read time
+// against this same season file's own FBS-vs-FBS population). A field this
+// row can't compute is `undefined` here with a short reason code under
+// fieldAvailability, keyed by the same field name -- never silently
+// substituted, never zero. See scripts/export_team_game_advanced.py.
+export type TeamGameAdvancedRow = {
+  season: number;
+  week: number;
+  season_type: string;
+  game_id: string;
+  team_id: number;
+  team: string;
+  team_slug: string;
+  conference: string | null;
+  classification: string | null;
+  opponent_id: number;
+  opponent: string;
+  opponent_slug: string;
+  opponent_classification: string | null;
+  home_away: string;
+  neutral_site: boolean;
+  points: number | null;
+  opponent_points: number | null;
+  win: boolean | number | null;
+  [metricKey: string]: unknown;
+  field_availability?: Record<string, string>;
+};
+
+export type TeamGameAdvancedSeason = {
+  version: string;
+  season: number;
+  sourceVersions: Record<string, string | null>;
+  fieldAvailabilityReasons: Record<string, string>;
+  rows: TeamGameAdvancedRow[];
+};
+
 export type SearchIndexEntry = {
   team: string;
   slug: string;

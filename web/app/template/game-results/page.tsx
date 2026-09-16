@@ -1,30 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
-
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { logoUrl } from "@/lib/teamCode";
+import GameResultsSheet, { type StatSection } from "@/components/GameResultsSheet";
 import styles from "./page.module.css";
-
-type PercentileTone = "elite" | "good" | "average" | "poor" | "bad" | "neutral";
-
-type StatValue = {
-  value: string;
-  percentile?: number;
-  neutral?: boolean;
-};
-
-type StatRow = {
-  label: string;
-  left: StatValue;
-  right: StatValue;
-  indent?: 0 | 1;
-};
-
-type StatSection = {
-  title: string;
-  rows: StatRow[];
-};
 
 const LEFT_TEAM = {
   name: "Michigan",
@@ -180,74 +158,6 @@ const explanationSections: StatSection[] = [
   },
 ];
 
-function percentileTone(percentile: number | undefined, neutral = false): PercentileTone {
-  if (neutral || percentile === undefined) return "neutral";
-  if (percentile >= 90) return "elite";
-  if (percentile >= 70) return "good";
-  if (percentile >= 30) return "average";
-  if (percentile >= 10) return "poor";
-  return "bad";
-}
-
-function ordinal(value: number): string {
-  const mod100 = value % 100;
-  const mod10 = value % 10;
-  if (mod100 >= 11 && mod100 <= 13) return `${value}th`;
-  if (mod10 === 1) return `${value}st`;
-  if (mod10 === 2) return `${value}nd`;
-  if (mod10 === 3) return `${value}rd`;
-  return `${value}th`;
-}
-
-function ResultValue({ datum }: { datum: StatValue }) {
-  const tone = percentileTone(datum.percentile, datum.neutral);
-  return (
-    <span className={`${styles.resultValue} ${styles[`tone_${tone}`]}`}>
-      <strong>{datum.value}</strong>
-      {datum.percentile !== undefined && !datum.neutral ? <small>{ordinal(datum.percentile)}</small> : null}
-    </span>
-  );
-}
-
-function StatSectionBlock({ section }: { section: StatSection }) {
-  return (
-    <section className={styles.statSection}>
-      <div className={styles.sectionTitle}>{section.title}</div>
-      {section.rows.map((row, index) => (
-        <div className={styles.statRow} key={`${row.label}-${index}`}>
-          <span className={`${styles.metricLabel} ${row.indent ? styles.metricLabelIndented : ""}`}>
-            <strong>{row.label}</strong>
-          </span>
-          <ResultValue datum={row.left} />
-          <ResultValue datum={row.right} />
-        </div>
-      ))}
-    </section>
-  );
-}
-
-function TeamColumnHead({ team }: { team: typeof LEFT_TEAM }) {
-  return (
-    <span className={styles.teamColumnHead}>
-      <img src={logoUrl(team.teamId, 64)} alt="" />
-      <strong>{team.short}</strong>
-    </span>
-  );
-}
-
-function BreakdownColumn({ title, sections }: { title: string; sections: StatSection[] }) {
-  return (
-    <div className={styles.breakdownColumn}>
-      <div className={styles.columnHeader}>
-        <strong>{title}</strong>
-        <TeamColumnHead team={LEFT_TEAM} />
-        <TeamColumnHead team={RIGHT_TEAM} />
-      </div>
-      {sections.map((section) => <StatSectionBlock section={section} key={section.title} />)}
-    </div>
-  );
-}
-
 export default function GameResultsTemplatePage() {
   return (
     <>
@@ -261,54 +171,17 @@ export default function GameResultsTemplatePage() {
           <small>Sample data</small>
         </div>
 
-        <section className={styles.scoreboard} aria-label="Example final score">
-          <div className={`${styles.teamScore} ${styles.teamScoreLeft}`}>
-            <img src={logoUrl(LEFT_TEAM.teamId, 128)} alt="" />
-            <div className={styles.teamIdentity}>
-              <strong>{LEFT_TEAM.name}</strong>
-              <small>{LEFT_TEAM.record}</small>
-            </div>
-            <div className={styles.score}>{LEFT_TEAM.score}</div>
-          </div>
-
-          <div className={styles.gameMeta}>
-            <span>FINAL</span>
-            <strong>Week 2</strong>
-            <small>Michigan Stadium · Ann Arbor, MI</small>
-          </div>
-
-          <div className={`${styles.teamScore} ${styles.teamScoreRight}`}>
-            <div className={styles.score}>{RIGHT_TEAM.score}</div>
-            <div className={styles.teamIdentity}>
-              <strong>{RIGHT_TEAM.name}</strong>
-              <small>{RIGHT_TEAM.record}</small>
-            </div>
-            <img src={logoUrl(RIGHT_TEAM.teamId, 128)} alt="" />
-          </div>
-        </section>
-
-        <section className={styles.breakdownHeading}>
-          <div>
-            <span>Final Game Analytics</span>
-            <h1>Game Breakdown</h1>
-          </div>
-          <p>One dense game sheet using LEILA&rsquo;s advanced and exploratory metrics. Percentiles compare each team&rsquo;s single-game performance with FBS team-games.</p>
-        </section>
-
-        <div className={styles.breakdownGrid}>
-          <BreakdownColumn title="Efficiency" sections={efficiencySections} />
-          <BreakdownColumn title="Control & Situations" sections={controlSections} />
-          <BreakdownColumn title="Game Shape" sections={explanationSections} />
-        </div>
-
-        <div className={styles.legend} aria-label="Percentile legend">
-          <span>Single-game FBS percentile</span>
-          <i className={`${styles.legendDot} ${styles.tone_elite}`} /><small>90+</small>
-          <i className={`${styles.legendDot} ${styles.tone_good}`} /><small>70–89</small>
-          <i className={`${styles.legendDot} ${styles.tone_average}`} /><small>30–69</small>
-          <i className={`${styles.legendDot} ${styles.tone_poor}`} /><small>10–29</small>
-          <i className={`${styles.legendDot} ${styles.tone_bad}`} /><small>0–9</small>
-        </div>
+        <GameResultsSheet
+          leftTeam={LEFT_TEAM}
+          rightTeam={RIGHT_TEAM}
+          gameLabel="Week 2"
+          gameSubLabel="Michigan Stadium · Ann Arbor, MI"
+          columns={[
+            { title: "Efficiency", sections: efficiencySections },
+            { title: "Control & Situations", sections: controlSections },
+            { title: "Game Shape", sections: explanationSections },
+          ]}
+        />
       </main>
 
       <SiteFooter note="Game Results template preview. Sample values are illustrative and are not tied to a real game dataset." />
