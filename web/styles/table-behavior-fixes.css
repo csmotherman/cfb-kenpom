@@ -20,22 +20,17 @@ table th[data-column="rank"] .tip-trigger {
 }
 
 @media (max-width: 640px) {
-  /* The section-label rail freezes with RK + Team only. W-L stays part of the
-     horizontally scrolling table, so grouped headings can pass through that
-     56px record slot while still disappearing behind the identity rail. */
+  /* The top section-label band spans RK + Team + W-L. W-L itself remains part
+     of the horizontally scrolling table below, but this sticky band must stay
+     fully opaque so body record values can never show through it during a
+     vertical scroll. The divider still marks the RK + Team freeze boundary. */
   #advancedTable .adv-table .adv-section-row .adv-section-spacer {
     position: sticky !important;
     left: 0 !important;
     z-index: 66 !important;
     padding-left: 0 !important;
     padding-right: var(--mobile-record-width) !important;
-    background: linear-gradient(
-      to right,
-      var(--color-navy-light) 0,
-      var(--color-navy-light) calc(100% - var(--mobile-record-width)),
-      transparent calc(100% - var(--mobile-record-width)),
-      transparent 100%
-    ) !important;
+    background: var(--color-navy-light) !important;
     background-clip: padding-box !important;
     box-shadow: none !important;
   }
