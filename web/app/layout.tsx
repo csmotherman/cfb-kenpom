@@ -41,6 +41,10 @@ import "@/styles/cfp-badge.css";
 import "@/styles/mobile-table-native-sticky.css";
 /* Final table-policy overrides load after the canonical sticky system. */
 import "@/styles/table-behavior-fixes.css";
+/* Predictions intentionally loads last because its mobile card layout replaces
+   the generic horizontally-scrolling table treatment on this route only. */
+import "@/styles/predictions-v2.css";
+import "@/styles/predictions-mobile-reset.css";
 
 export const metadata: Metadata = {
   title: "LEILA Ratings | College Football Analytics",

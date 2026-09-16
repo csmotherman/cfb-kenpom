@@ -1,0 +1,39 @@
+/* Predictions uses stacked mobile game cards instead of the site's shared
+   horizontal sticky-table rail. This file loads after both systems and removes
+   the generic Kickoff/Matchup pinning only for the predictions table. */
+@media (max-width: 640px) {
+  .predictions-table :is(
+    th:nth-child(1),
+    th:nth-child(2),
+    td:nth-child(1),
+    td:nth-child(2)
+  ) {
+    position: static !important;
+    left: auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+    background-clip: border-box !important;
+  }
+
+  .predictions-table tbody :is(td:nth-child(1), td:nth-child(2)),
+  .predictions-table tbody tr:nth-child(even) :is(td:nth-child(1), td:nth-child(2)) {
+    background: transparent !important;
+  }
+
+  .predictions-table tbody td:nth-child(1) {
+    position: static !important;
+    width: auto !important;
+    max-width: none !important;
+    background: rgba(20, 39, 66, 0.025) !important;
+  }
+
+  .predictions-table tbody td:nth-child(2) {
+    position: static !important;
+    width: auto !important;
+    max-width: none !important;
+    background: transparent !important;
+  }
+}
