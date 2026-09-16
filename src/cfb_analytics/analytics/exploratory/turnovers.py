@@ -12,6 +12,37 @@ self-recovered fumble (`FUMBLE_RECOVERY_OWN`) is tracked for validation only
 and never counted as a turnover, per the explicit fumble rule: possession
 must actually change to the defense.
 
+CFBD fumble-recovery mislabel override (added after a live spot-check on
+UConn 2025): CFBD's own `eventSubtype`/`playType` field occasionally says
+"Fumble Recovery (Own)" while CFBD's own `playText` for the SAME play names
+a different team's player as the one who recovered it -- confirmed by
+reading the raw CFBD payload directly, not a bug introduced anywhere in
+this pipeline. A corpus-wide check found 83 such plays in the 2025
+FBS-vs-FBS turnover-eligible population (out of 341 FUMBLE_RECOVERY_OWN
+plays with a parseable "recovered by" clause) where the text unambiguously
+names (a) a recovering team matching the DEFENSE, not the offense, and (b)
+a recovering player different from the player who fumbled -- e.g. "Conner
+Harrell fumbled, recovered by APP Jaelin Willis" while `offense` is
+Charlotte. `_confirmed_opponent_recovery_from_text` below detects exactly
+that pattern and nothing looser: same-player-name "recoveries" (13 cases in
+the same corpus, e.g. "Trevon Tate fumbled, recovered by LT Trevon Tate")
+are left alone as genuine self-recoveries even when the recovering team
+token nominally matches the defense -- that pattern reads as CFBD's text
+template duplicating the fumbling player's own name, not a real distinct
+recovery (finding the true fumbler requires checking the name immediately
+before the word "fumbled" -- which, on pass plays, is the receiver, not the
+passer named at the start of the text -- via
+`_FUMBLED_IMMEDIATELY_BEFORE_RE`, falling back to `_FUMBLED_AT_START_RE`
+only for the minority of plays where no name repeats before "fumbled").
+Team tokens are matched against the canonical team name via
+`_team_token_matches` (prefix match, e.g. TOL/PUR/BALL, falling back to
+`_TEAM_CODES` for acronym-style tokens like FIU that aren't a literal
+prefix). The remaining 245 cases are genuinely ambiguous/garbled text
+(field position markers doubling as a false team match, a recovering team
+token that matches the offense not the defense, multi-fumble sequences,
+etc.) and are left unclassified by the regex, falling through to trusting
+the original eventSubtype, same as before this override existed.
+
 Pass attempts = clean offensive scrimmage snaps tagged PASS_COMPLETION /
 PASS_INCOMPLETE / PASS_TD, plus every interception (a merged
 throw+interception-return row is excluded from the clean-snap population by
@@ -29,6 +60,7 @@ future task, not something silently corrected here.
 """
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from typing import Any
 
@@ -40,9 +72,111 @@ from cfb_analytics.analytics.exploratory.drives import (
 )
 from cfb_analytics.analytics.exploratory.series import _clean_snaps
 
-TURNOVERS_VERSION = "turnovers-v1"
+TURNOVERS_VERSION = "turnovers-v2-fumble-recovery-text-override"
 
 _PASS_ATTEMPT_SUBTYPES = {"PASS_COMPLETION", "PASS_INCOMPLETE", "PASS_TD"}
+
+# CFBD's fumble grammar isn't fully consistent, so this uses two patterns,
+# tried in order (both deliberately case-SENSITIVE, not re.I -- that's what
+# an earlier version got wrong: re.I let a lowercase verb like "run" get
+# swallowed into the captured name).
+#
+# 1. The player who actually fumbled almost always has their name repeated
+#    immediately before the literal word "fumbled" -- true for both run
+#    plays ("...Ahmad Hardy fumbled...") and, critically, pass plays, where
+#    it correctly captures the RECEIVER rather than the passer named at the
+#    start of the text ("Demond Williams Jr. pass complete to Omari Evans
+#    for 13 yds Omari Evans fumbled..." -> "Omari Evans", not "Demond
+#    Williams Jr.").
+# 2. Falls back to the name at the very START of the text only when #1
+#    doesn't match -- covers the shorter "<Name> run fumbled" phrasing with
+#    no repeated name, where a lowercase verb sits directly before "fumbled"
+#    so pattern #1 can't match, but the subject at the start is still the
+#    fumbler.
+_FUMBLED_IMMEDIATELY_BEFORE_RE = re.compile(r"([A-Z][A-Za-z.'\-]+(?:\s+[A-Z][A-Za-z.'\-]+){0,2})\s+fumbled")
+_FUMBLED_AT_START_RE = re.compile(r"^([A-Z][A-Za-z.'\-]+(?:\s+[A-Z][A-Za-z.'\-]+){0,2})")
+# "recovered by <TEAM> <player name...>", stopping at the next comma, " for",
+# " return", or end of string -- matches CFBD's consistent recovery grammar.
+_RECOVERED_BY_RE = re.compile(r"recovered by\s+([A-Za-z0-9.'-]+)\s+([A-Za-z .'\-]+?)(?:\s*,|\s+for|\s+return|\s*$)", re.I)
+
+# Team name -> short display code, ported verbatim from web/lib/teamCode.ts
+# (itself ported from site/site.js CFF.teamCode) so play-text team tokens
+# like "FIU" resolve against the same codes the rest of the site already
+# uses -- needed because acronym-style abbreviations (FIU for "Florida
+# International") aren't a literal prefix of the canonical team name, so
+# prefix matching alone (which correctly handles PUR/TOL/BALL-style codes)
+# misses them.
+_TEAM_CODES: dict[str, str] = {
+    "Air Force": "AFA", "Akron": "AKR", "Alabama": "ALA", "App State": "APP",
+    "Appalachian State": "APP", "Arizona": "ARIZ", "Arizona State": "ASU",
+    "Arkansas": "ARK", "Arkansas State": "ARST", "Army": "ARMY", "Auburn": "AUB",
+    "BYU": "BYU", "Ball State": "BALL", "Baylor": "BAY", "Boise State": "BOIS",
+    "Boston College": "BC", "Bowling Green": "BGSU", "Buffalo": "BUF",
+    "California": "CAL", "Central Michigan": "CMU", "Charlotte": "CLT",
+    "Cincinnati": "CIN", "Clemson": "CLEM", "Coastal Carolina": "CCU",
+    "Colorado": "COLO", "Colorado State": "CSU", "Delaware": "DEL", "Duke": "DUKE",
+    "East Carolina": "ECU", "Eastern Michigan": "EMU", "Florida": "FLA",
+    "Florida Atlantic": "FAU", "Florida International": "FIU", "Florida State": "FSU",
+    "Fresno State": "FRES", "Georgia": "UGA", "Georgia Southern": "GASO",
+    "Georgia State": "GAST", "Georgia Tech": "GT", "Hawai'i": "HAW", "Hawaii": "HAW",
+    "Houston": "HOU", "Illinois": "ILL", "Indiana": "IND", "Iowa": "IOWA",
+    "Iowa State": "ISU", "Jacksonville State": "JVST", "James Madison": "JMU",
+    "Kansas": "KU", "Kansas State": "KSU", "Kennesaw State": "KENN", "Kent State": "KENT",
+    "Kentucky": "UK", "LSU": "LSU", "Liberty": "LIB", "Louisiana": "UL",
+    "Louisiana Tech": "LT", "Louisville": "LOU", "Marshall": "MRSH", "Maryland": "MD",
+    "Massachusetts": "MASS", "Memphis": "MEM", "Miami": "MIA", "Miami (OH)": "M-OH",
+    "Michigan": "MICH", "Michigan State": "MSU", "Middle Tennessee": "MTSU",
+    "Minnesota": "MINN", "Mississippi State": "MSST", "Missouri": "MIZ",
+    "Missouri State": "MOST", "NC State": "NCST", "Navy": "NAVY", "Nebraska": "NEB",
+    "Nevada": "NEV", "New Mexico": "UNM", "New Mexico State": "NMSU",
+    "North Carolina": "UNC", "North Dakota State": "NDSU", "North Texas": "UNT",
+    "Northern Illinois": "NIU", "Northwestern": "NU", "Notre Dame": "ND", "Ohio": "OHIO",
+    "Ohio State": "OSU", "Oklahoma": "OU", "Oklahoma State": "OKST", "Old Dominion": "ODU",
+    "Ole Miss": "MISS", "Oregon": "ORE", "Oregon State": "ORST", "Penn State": "PSU",
+    "Pittsburgh": "PITT", "Purdue": "PUR", "Rice": "RICE", "Rutgers": "RUTG",
+    "SMU": "SMU", "Sacramento State": "SAC", "Sam Houston": "SHSU",
+    "San Diego State": "SDSU", "San José State": "SJSU", "San Jose State": "SJSU",
+    "South Alabama": "USA", "South Carolina": "SC", "South Florida": "USF",
+    "Southern Miss": "USM", "Stanford": "STAN", "Syracuse": "SYR", "TCU": "TCU",
+    "Temple": "TEM", "Tennessee": "TENN", "Texas": "TEX", "Texas A&M": "TAMU",
+    "Texas State": "TXST", "Texas Tech": "TTU", "Toledo": "TOL", "Troy": "TROY",
+    "Tulane": "TULN", "Tulsa": "TLSA", "UAB": "UAB", "UCF": "UCF", "UCLA": "UCLA",
+    "UConn": "CONN", "UL Monroe": "ULM", "UNLV": "UNLV", "USC": "USC", "UTEP": "UTEP",
+    "UTSA": "UTSA", "Utah": "UTAH", "Utah State": "USU", "Vanderbilt": "VAN",
+    "Virginia": "UVA", "Virginia Tech": "VT", "Wake Forest": "WAKE", "Washington": "WASH",
+    "Washington State": "WSU", "West Virginia": "WVU", "Western Kentucky": "WKU",
+    "Western Michigan": "WMU", "Wisconsin": "WIS", "Wyoming": "WYO",
+}
+
+
+def _team_token_matches(token: str, team: str | None) -> bool:
+    if not team:
+        return False
+    token_u, team_u = token.upper(), team.upper()
+    if token_u == team_u or team_u.startswith(token_u):
+        return True
+    return _TEAM_CODES.get(team, "").upper() == token_u
+
+
+def _confirmed_opponent_recovery_from_text(play: dict[str, Any]) -> bool:
+    """True only when playText unambiguously contradicts a
+    FUMBLE_RECOVERY_OWN subtype: a recovering team token matching the
+    DEFENSE (not the offense) attached to a player name distinct from
+    whoever fumbled. See the module docstring for how this threshold was
+    chosen against the real 2025 corpus."""
+    text = play.get("playText") or ""
+    recovered = _RECOVERED_BY_RE.search(text)
+    if not recovered:
+        return False
+    recover_team, recover_player = recovered.group(1).strip().rstrip(".,"), recovered.group(2).strip()
+    offense, defense = play.get("offense"), play.get("defense")
+    if _team_token_matches(recover_team, offense) or not _team_token_matches(recover_team, defense):
+        return False
+    fumbled = _FUMBLED_IMMEDIATELY_BEFORE_RE.search(text) or _FUMBLED_AT_START_RE.match(text.strip())
+    fumble_player = fumbled.group(1).strip() if fumbled else None
+    if fumble_player and fumble_player.lower() == recover_player.lower():
+        return False
+    return True
 
 
 def classify_turnover_play(play: dict[str, Any]) -> str | None:
@@ -54,6 +188,8 @@ def classify_turnover_play(play: dict[str, Any]) -> str | None:
     if subtype in _LOST_FUMBLE_SUBTYPES:
         return "lost_fumble"
     if subtype in _SELF_RECOVERED_FUMBLE_SUBTYPES:
+        if _confirmed_opponent_recovery_from_text(play):
+            return "lost_fumble"
         return "self_recovered_fumble"
     return None
 

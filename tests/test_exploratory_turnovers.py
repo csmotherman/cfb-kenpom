@@ -157,3 +157,107 @@ def test_fbs_filter_excludes_drives_with_a_non_fbs_side():
 
     counts_included = team_turnover_counts([record], fbs_teams={"A", "B"})
     assert ("g1", "A") in counts_included
+
+
+def test_confirmed_cfbd_mislabel_reclassified_as_lost_fumble():
+    # Real 2025 example: UConn @ FIU. CFBD's own eventSubtype says
+    # FUMBLE_RECOVERY_OWN, but its own playText names FIU's own player as
+    # the recoverer -- confirmed against the raw CFBD payload directly.
+    play = {
+        "eventCategory": "TURNOVER", "eventSubtype": "FUMBLE_RECOVERY_OWN",
+        "offense": "UConn", "defense": "Florida International",
+        "playText": "Joe Fagnano sacked by Keegan Davis for a loss of 7 yards to the "
+                    "FIU 45 Joe Fagnano fumbled, recovered by FIU Carsten Casady , return for 0 yards",
+    }
+    assert classify_turnover_play(play) == "lost_fumble"
+
+
+def test_genuine_self_recovery_team_matches_offense_stays_self_recovered():
+    play = {
+        "eventCategory": "TURNOVER", "eventSubtype": "FUMBLE_RECOVERY_OWN",
+        "offense": "Tennessee", "defense": "Cincinnati",
+        "playText": "Dylan Raiola run for 4 yds fumbled, recovered by TENN Dylan Raiola",
+    }
+    assert classify_turnover_play(play) == "self_recovered_fumble"
+
+
+def test_same_player_name_glitch_stays_self_recovered_even_if_team_token_says_defense():
+    # Conservative: a "recovered by <defense> <same player who fumbled>" text
+    # reads as a template glitch (impossible for one player to be on both
+    # rosters), not confirmed evidence -- default to trusting eventSubtype.
+    play = {
+        "eventCategory": "TURNOVER", "eventSubtype": "FUMBLE_RECOVERY_OWN",
+        "offense": "Auburn", "defense": "Ball State",
+        "playText": "Deuce Knight run fumbled, recovered by BALL Deuce Knight",
+    }
+    assert classify_turnover_play(play) == "self_recovered_fumble"
+
+
+def test_no_recovered_by_text_stays_self_recovered():
+    play = {
+        "eventCategory": "TURNOVER", "eventSubtype": "FUMBLE_RECOVERY_OWN",
+        "offense": "Duke", "defense": "Syracuse",
+        "playText": "Riley Leonard run for 4 yds, fumble, recovered",
+    }
+    assert classify_turnover_play(play) == "self_recovered_fumble"
+
+
+def test_receiver_who_fumbled_is_identified_not_the_passer_at_sentence_start():
+    # The fumbling player's name sits right before "fumbled" here (the
+    # receiver, Omari Evans), not at the very start of the text (the passer,
+    # Demond Williams Jr.). The recovering player is also named "Omari
+    # Evans" -- a same-player template glitch -- even though the recovering
+    # team token (RUTG) matches the DEFENSE, not the offense. A fumbler
+    # extractor that only looked at the start of the text would wrongly
+    # compare "Demond Williams Jr." against "Omari Evans", miss the
+    # same-player match, and misclassify this as a real turnover.
+    play = {
+        "eventCategory": "TURNOVER", "eventSubtype": "FUMBLE_RECOVERY_OWN",
+        "offense": "Washington", "defense": "Rutgers",
+        "playText": "Demond Williams Jr. pass complete to Omari Evans for 13 yds "
+                    "Omari Evans fumbled, recovered by RUTG Omari Evans for a 1ST down",
+    }
+    assert classify_turnover_play(play) == "self_recovered_fumble"
+
+
+def test_acronym_style_team_token_resolves_via_team_code_table():
+    # "FIU" is not a literal prefix of "Florida International" -- only the
+    # team-code table catches this, not prefix matching.
+    play = {
+        "eventCategory": "TURNOVER", "eventSubtype": "FUMBLE_RECOVERY_OWN",
+        "offense": "UConn", "defense": "Florida International",
+        "playText": "Joe Fagnano sacked by Keegan Davis for a loss of 7 yards to the "
+                    "FIU 45 Joe Fagnano fumbled, recovered by FIU Carsten Casady , return for 0 yards",
+    }
+    assert classify_turnover_play(play) == "lost_fumble"
+
+
+def test_interception_and_lost_fumble_subtypes_unaffected_by_text_check():
+    interception = {
+        "eventCategory": "TURNOVER", "eventSubtype": "INTERCEPTION_RETURN",
+        "offense": "A", "defense": "B", "playText": "irrelevant text",
+    }
+    lost_fumble = {
+        "eventCategory": "TURNOVER", "eventSubtype": "FUMBLE_RECOVERY_OPPONENT",
+        "offense": "A", "defense": "B", "playText": "irrelevant text",
+    }
+    assert classify_turnover_play(interception) == "interception"
+    assert classify_turnover_play(lost_fumble) == "lost_fumble"
+
+
+def test_confirmed_mislabel_flows_through_to_team_counts_as_a_real_turnover():
+    d = drive("g1", "UConn", "Florida International")
+    play = {
+        "offense": "UConn", "defense": "Florida International",
+        "eventCategory": "TURNOVER", "eventSubtype": "FUMBLE_RECOVERY_OWN",
+        "playText": "Joe Fagnano sacked, fumbled, recovered by FIU Carsten Casady",
+        "analyticsYardsGained": -7, "ppa": -2.41,
+    }
+    record = build_drive_turnover_record(d, [play])
+    assert record["lostFumbles"] == 1
+    assert record["selfRecoveredFumbles"] == 0
+    counts = team_turnover_counts([record])
+    off_row = finish_turnover_counts(counts[("g1", "UConn")])
+    def_row = finish_turnover_counts(counts[("g1", "Florida International")])
+    assert off_row["turnovers"] == 1
+    assert def_row["fumbleRecoveries"] == 1
