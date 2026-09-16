@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentEntitlements } from "@/lib/auth/entitlements";
+import { canonicalizeAdvancedSeason } from "@/lib/advanced-contract";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { AdvancedSeason } from "@/lib/types";
+import type { AdvancedSeason, RankingsSeason, ScheduleSeason } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +17,27 @@ const EMPTY_ADVANCED_SEASON: AdvancedSeason = {
   weekLabels: {},
   byWeek: {},
 };
+
+async function loadCanonicalContext(request: Request, year: string) {
+  const rankingsUrl = new URL(`/data/rankings/${year}.json`, request.url);
+  const scheduleUrl = new URL(`/data/schedule/${year}.json`, request.url);
+  const [rankingsResponse, scheduleResponse] = await Promise.all([
+    fetch(rankingsUrl, { cache: "no-store" }),
+    fetch(scheduleUrl, { cache: "no-store" }),
+  ]);
+
+  if (!rankingsResponse.ok) {
+    throw new Error(`Failed to load canonical rankings for ${year}: ${rankingsResponse.status}`);
+  }
+  if (!scheduleResponse.ok && scheduleResponse.status !== 404) {
+    throw new Error(`Failed to load canonical schedule for ${year}: ${scheduleResponse.status}`);
+  }
+
+  return {
+    rankings: (await rankingsResponse.json()) as RankingsSeason,
+    schedule: scheduleResponse.ok ? ((await scheduleResponse.json()) as ScheduleSeason) : null,
+  };
+}
 
 export async function GET(
   _request: Request,
@@ -63,7 +85,11 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(data.payload as AdvancedSeason, {
+    const advanced = data.payload as AdvancedSeason;
+    const { rankings, schedule } = await loadCanonicalContext(_request, year);
+    const canonical = canonicalizeAdvancedSeason(advanced, rankings, schedule, year);
+
+    return NextResponse.json(canonical, {
       status: 200,
       headers: {
         ...PRIVATE_HEADERS,
