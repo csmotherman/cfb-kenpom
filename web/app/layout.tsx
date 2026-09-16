@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/Tooltip";
 import BrandTitleGuard from "@/components/BrandTitleGuard";
 import MatchupPredictionPortal from "@/components/MatchupPredictionPortal";
 import ExploratoryStickyTableHeader from "@/components/ExploratoryStickyTableHeader";
+import AdvancedAllColumnsPolicy from "@/components/AdvancedAllColumnsPolicy";
 import TableFreshnessStamp from "@/components/TableFreshnessStamp";
 import "@/styles/theme.css";
 import "@/styles/ratings.css";
@@ -38,6 +39,8 @@ import "@/styles/cfp-badge.css";
 /* Canonical mobile table rules intentionally load last so page-specific
    responsive CSS cannot override the native sticky identity rails. */
 import "@/styles/mobile-table-native-sticky.css";
+/* Final table-policy overrides load after the canonical sticky system. */
+import "@/styles/table-behavior-fixes.css";
 
 export const metadata: Metadata = {
   title: "LEILA Ratings | College Football Analytics",
@@ -64,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <BrandTitleGuard />
         <ExploratoryStickyTableHeader />
+        <AdvancedAllColumnsPolicy />
         <TableFreshnessStamp />
         <TooltipProvider>{children}</TooltipProvider>
         <MatchupPredictionPortal />
