@@ -23,7 +23,6 @@ type StatRow = {
 
 type StatSection = {
   title: string;
-  eyebrow?: string;
   rows: StatRow[];
 };
 
@@ -45,8 +44,7 @@ const RIGHT_TEAM = {
 
 const efficiencySections: StatSection[] = [
   {
-    title: "Overall Efficiency",
-    eyebrow: "What happened",
+    title: "Overall",
     rows: [
       { label: "EPA / Play", left: { value: "+0.286", percentile: 91 }, right: { value: "+0.041", percentile: 56 } },
       { label: "Success Rate", left: { value: "49.2%", percentile: 86 }, right: { value: "40.3%", percentile: 43 } },
@@ -58,7 +56,7 @@ const efficiencySections: StatSection[] = [
     title: "Passing",
     rows: [
       { label: "EPA / Dropback", left: { value: "+0.34", percentile: 89 }, right: { value: "+0.07", percentile: 57 } },
-      { label: "Pass Success", left: { value: "51.7%", percentile: 84 }, right: { value: "42.4%", percentile: 49 } },
+      { label: "Pass Success Rate", left: { value: "51.7%", percentile: 84 }, right: { value: "42.4%", percentile: 49 } },
       { label: "Yards / Dropback", left: { value: "8.2", percentile: 87 }, right: { value: "6.1", percentile: 52 } },
     ],
   },
@@ -66,7 +64,7 @@ const efficiencySections: StatSection[] = [
     title: "Rushing",
     rows: [
       { label: "EPA / Rush", left: { value: "+0.22", percentile: 85 }, right: { value: "+0.01", percentile: 51 } },
-      { label: "Rush Success", left: { value: "47.1%", percentile: 82 }, right: { value: "37.8%", percentile: 38 } },
+      { label: "Rush Success Rate", left: { value: "47.1%", percentile: 82 }, right: { value: "37.8%", percentile: 38 } },
       { label: "Yards / Rush", left: { value: "5.7", percentile: 81 }, right: { value: "4.2", percentile: 44 } },
     ],
   },
@@ -83,14 +81,13 @@ const efficiencySections: StatSection[] = [
 const controlSections: StatSection[] = [
   {
     title: "Drive Production",
-    eyebrow: "How it developed",
     rows: [
       { label: "Drives", left: { value: "11", neutral: true }, right: { value: "12", neutral: true } },
       { label: "Points / Drive", left: { value: "2.45", percentile: 79 }, right: { value: "1.67", percentile: 47 } },
       { label: "Yards / Drive", left: { value: "43.7", percentile: 85 }, right: { value: "31.8", percentile: 48 } },
       { label: "Plays / Drive", left: { value: "6.5", percentile: 75 }, right: { value: "5.7", percentile: 48 } },
-      { label: "Avg Start", left: { value: "Own 31", neutral: true }, right: { value: "Own 27", neutral: true } },
-      { label: "Pts / Scoring Opp", left: { value: "4.8", percentile: 83 }, right: { value: "3.5", percentile: 49 } },
+      { label: "Avg Starting Field Position", left: { value: "Own 31", neutral: true }, right: { value: "Own 27", neutral: true } },
+      { label: "Points / Scoring Opportunity", left: { value: "4.8", percentile: 83 }, right: { value: "3.5", percentile: 49 } },
     ],
   },
   {
@@ -98,7 +95,7 @@ const controlSections: StatSection[] = [
     rows: [
       { label: "Series Conversion", left: { value: "67.4%", percentile: 92 }, right: { value: "44.8%", percentile: 38 } },
       { label: "Recovery After Failure", left: { value: "58.3%", percentile: 88 }, right: { value: "31.3%", percentile: 29 } },
-      { label: "3rd & Long Exposure", left: { value: "19.4%", percentile: 86 }, right: { value: "37.0%", percentile: 31 }, note: "Lower is better" },
+      { label: "3rd & Long Exposure", left: { value: "19.4%", percentile: 86 }, right: { value: "37.0%", percentile: 31 }, note: "lower better" },
     ],
   },
   {
@@ -115,32 +112,31 @@ const controlSections: StatSection[] = [
 const explanationSections: StatSection[] = [
   {
     title: "Explosiveness",
-    eyebrow: "Why it happened",
     rows: [
       { label: "Explosive Play Rate", left: { value: "13.8%", percentile: 89 }, right: { value: "8.5%", percentile: 55 } },
       { label: "Explosive Plays", left: { value: "9", neutral: true }, right: { value: "5", neutral: true } },
       { label: "Non-Explosive EPA / Play", left: { value: "+0.17", percentile: 90 }, right: { value: "-0.02", percentile: 42 } },
-      { label: "Explosive Dependency", left: { value: "43%", neutral: true }, right: { value: "61%", neutral: true }, note: "Style, not quality" },
+      { label: "Explosive Dependency", left: { value: "43%", neutral: true }, right: { value: "61%", neutral: true }, note: "style only" },
     ],
   },
   {
     title: "Possession Quality",
     rows: [
       { label: "Clean Drive Rate", left: { value: "63.6%", percentile: 87 }, right: { value: "41.7%", percentile: 36 } },
-      { label: "Drive Killer Rate", left: { value: "25.0%", percentile: 84 }, right: { value: "50.0%", percentile: 31 }, note: "Lower is better" },
-      { label: "Failure Rate", left: { value: "35.4%", percentile: 79 }, right: { value: "44.1%", percentile: 39 }, note: "Lower is better" },
-      { label: "Avg Failure Damage", left: { value: "0.73", percentile: 76 }, right: { value: "1.02", percentile: 33 }, note: "Lower is better" },
-      { label: "Failure Burden", left: { value: "0.258", percentile: 82 }, right: { value: "0.450", percentile: 27 }, note: "Lower is better" },
+      { label: "Drive Killer Rate", left: { value: "25.0%", percentile: 84 }, right: { value: "50.0%", percentile: 31 }, note: "lower better" },
+      { label: "Failure Rate", left: { value: "35.4%", percentile: 79 }, right: { value: "44.1%", percentile: 39 }, note: "lower better" },
+      { label: "Avg Failure Damage", left: { value: "0.73", percentile: 76 }, right: { value: "1.02", percentile: 33 }, note: "lower better" },
+      { label: "Failure Burden", left: { value: "0.258", percentile: 82 }, right: { value: "0.450", percentile: 27 }, note: "lower better" },
     ],
   },
   {
     title: "Mistakes & Discipline",
     rows: [
-      { label: "Havoc Allowed", left: { value: "8.9%", percentile: 88 }, right: { value: "16.9%", percentile: 35 }, note: "Lower is better" },
+      { label: "Havoc Allowed", left: { value: "8.9%", percentile: 88 }, right: { value: "16.9%", percentile: 35 }, note: "lower better" },
       { label: "Sacks Taken", left: { value: "1", neutral: true }, right: { value: "4", neutral: true } },
       { label: "TFLs Taken", left: { value: "3", neutral: true }, right: { value: "7", neutral: true } },
       { label: "Turnovers Lost", left: { value: "0", neutral: true }, right: { value: "2", neutral: true } },
-      { label: "Turnover EPA Lost", left: { value: "0.0", percentile: 94 }, right: { value: "6.8", percentile: 22 }, note: "Lower is better" },
+      { label: "Turnover EPA Lost", left: { value: "0.0", percentile: 94 }, right: { value: "6.8", percentile: 22 }, note: "lower better" },
       { label: "Penalties", left: { value: "4", neutral: true }, right: { value: "7", neutral: true } },
       { label: "Penalty Yards", left: { value: "35", neutral: true }, right: { value: "61", neutral: true } },
     ],
@@ -171,9 +167,7 @@ function ResultValue({ datum }: { datum: StatValue }) {
   return (
     <span className={`${styles.resultValue} ${styles[`tone_${tone}`]}`}>
       <strong>{datum.value}</strong>
-      {datum.percentile !== undefined && !datum.neutral ? (
-        <small>{ordinal(datum.percentile)}</small>
-      ) : null}
+      {datum.percentile !== undefined && !datum.neutral ? <small>{ordinal(datum.percentile)}</small> : null}
     </span>
   );
 }
@@ -181,17 +175,14 @@ function ResultValue({ datum }: { datum: StatValue }) {
 function StatSectionBlock({ section }: { section: StatSection }) {
   return (
     <section className={styles.statSection}>
-      <div className={styles.sectionTitle}>
-        <span>{section.title}</span>
-        {section.eyebrow ? <small>{section.eyebrow}</small> : null}
-      </div>
+      <div className={styles.sectionTitle}>{section.title}</div>
       {section.rows.map((row) => (
         <div className={styles.statRow} key={row.label}>
-          <ResultValue datum={row.left} />
           <span className={styles.metricLabel}>
             <strong>{row.label}</strong>
             {row.note ? <small>{row.note}</small> : null}
           </span>
+          <ResultValue datum={row.left} />
           <ResultValue datum={row.right} />
         </div>
       ))}
@@ -199,25 +190,22 @@ function StatSectionBlock({ section }: { section: StatSection }) {
   );
 }
 
-function BreakdownColumn({
-  title,
-  number,
-  sections,
-}: {
-  title: string;
-  number: string;
-  sections: StatSection[];
-}) {
+function TeamColumnHead({ team }: { team: typeof LEFT_TEAM }) {
+  return (
+    <span className={styles.teamColumnHead}>
+      <img src={logoUrl(team.teamId, 64)} alt="" />
+      <strong>{team.short}</strong>
+    </span>
+  );
+}
+
+function BreakdownColumn({ title, sections }: { title: string; sections: StatSection[] }) {
   return (
     <div className={styles.breakdownColumn}>
       <div className={styles.columnHeader}>
-        <span className={styles.columnNumber}>{number}</span>
         <strong>{title}</strong>
-      </div>
-      <div className={styles.teamGuide} aria-hidden="true">
-        <span>{LEFT_TEAM.short}</span>
-        <span>Metric</span>
-        <span>{RIGHT_TEAM.short}</span>
+        <TeamColumnHead team={LEFT_TEAM} />
+        <TeamColumnHead team={RIGHT_TEAM} />
       </div>
       {sections.map((section) => <StatSectionBlock section={section} key={section.title} />)}
     </div>
@@ -233,15 +221,14 @@ export default function GameResultsTemplatePage() {
 
       <main id="gameResultsTemplate" className={`container ${styles.page}`}>
         <div className={styles.templateFlag}>
-          <span>Template Preview</span>
-          <small>Sample data only</small>
+          <span>Game Results Template</span>
+          <small>Sample data</small>
         </div>
 
         <section className={styles.scoreboard} aria-label="Example final score">
           <div className={`${styles.teamScore} ${styles.teamScoreLeft}`}>
             <img src={logoUrl(LEFT_TEAM.teamId, 128)} alt="" />
             <div className={styles.teamIdentity}>
-              <span>{LEFT_TEAM.short}</span>
               <strong>{LEFT_TEAM.name}</strong>
               <small>{LEFT_TEAM.record}</small>
             </div>
@@ -257,7 +244,6 @@ export default function GameResultsTemplatePage() {
           <div className={`${styles.teamScore} ${styles.teamScoreRight}`}>
             <div className={styles.score}>{RIGHT_TEAM.score}</div>
             <div className={styles.teamIdentity}>
-              <span>{RIGHT_TEAM.short}</span>
               <strong>{RIGHT_TEAM.name}</strong>
               <small>{RIGHT_TEAM.record}</small>
             </div>
@@ -265,31 +251,27 @@ export default function GameResultsTemplatePage() {
           </div>
         </section>
 
-        <section className={styles.intro}>
+        <section className={styles.breakdownHeading}>
           <div>
-            <span className="eyebrow">Final Game Analytics</span>
+            <span>Final Game Analytics</span>
             <h1>Game Breakdown</h1>
           </div>
-          <p>
-            One view of the game, without mirroring the same snaps as separate offense and defense stats.
-            Percentiles compare each performance with single-game FBS results; descriptive metrics stay neutral.
-          </p>
+          <p>Percentiles compare each team&rsquo;s single-game performance with FBS team-games. Neutral rows are descriptive counts or style metrics.</p>
         </section>
 
         <div className={styles.breakdownGrid}>
-          <BreakdownColumn title="Efficiency" number="01" sections={efficiencySections} />
-          <BreakdownColumn title="Drives & Control" number="02" sections={controlSections} />
-          <BreakdownColumn title="Play Quality & Mistakes" number="03" sections={explanationSections} />
+          <BreakdownColumn title="Efficiency" sections={efficiencySections} />
+          <BreakdownColumn title="Drives & Control" sections={controlSections} />
+          <BreakdownColumn title="Play Quality & Mistakes" sections={explanationSections} />
         </div>
 
         <div className={styles.legend} aria-label="Percentile legend">
           <span>Single-game FBS percentile</span>
-          <i className={`${styles.legendDot} ${styles.tone_elite}`} /> <small>90+</small>
-          <i className={`${styles.legendDot} ${styles.tone_good}`} /> <small>70–89</small>
-          <i className={`${styles.legendDot} ${styles.tone_average}`} /> <small>30–69</small>
-          <i className={`${styles.legendDot} ${styles.tone_poor}`} /> <small>10–29</small>
-          <i className={`${styles.legendDot} ${styles.tone_bad}`} /> <small>0–9</small>
-          <span className={styles.legendNeutral}>Neutral = descriptive / raw count</span>
+          <i className={`${styles.legendDot} ${styles.tone_elite}`} /><small>90+</small>
+          <i className={`${styles.legendDot} ${styles.tone_good}`} /><small>70–89</small>
+          <i className={`${styles.legendDot} ${styles.tone_average}`} /><small>30–69</small>
+          <i className={`${styles.legendDot} ${styles.tone_poor}`} /><small>10–29</small>
+          <i className={`${styles.legendDot} ${styles.tone_bad}`} /><small>0–9</small>
         </div>
       </main>
 
