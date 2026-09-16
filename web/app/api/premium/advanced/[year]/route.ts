@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentEntitlements } from "@/lib/auth/entitlements";
+import { canonicalizeAdvancedSeason } from "@/lib/advanced-contract";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { AdvancedSeason, RankingsSeason } from "@/lib/types";
+import type { AdvancedSeason, RankingsSeason, ScheduleSeason } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,6 +11,27 @@ const PRIVATE_HEADERS = {
   "Cache-Control": "private, no-store, max-age=0",
   Vary: "Cookie",
 };
+
+async function loadCanonicalContext(request: Request, year: string) {
+  const rankingsUrl = new URL(`/data/rankings/${year}.json`, request.url);
+  const scheduleUrl = new URL(`/data/schedule/${year}.json`, request.url);
+  const [rankingsResponse, scheduleResponse] = await Promise.all([
+    fetch(rankingsUrl, { cache: "no-store" }),
+    fetch(scheduleUrl, { cache: "no-store" }),
+  ]);
+
+  if (!rankingsResponse.ok) {
+    throw new Error(`Failed to load canonical rankings for ${year}: ${rankingsResponse.status}`);
+  }
+  if (!scheduleResponse.ok && scheduleResponse.status !== 404) {
+    throw new Error(`Failed to load canonical schedule for ${year}: ${scheduleResponse.status}`);
+  }
+
+  return {
+    rankings: (await rankingsResponse.json()) as RankingsSeason,
+    schedule: scheduleResponse.ok ? ((await scheduleResponse.json()) as ScheduleSeason) : null,
+  };
+}
 
 export async function GET(
   _request: Request,
@@ -62,57 +84,10 @@ export async function GET(
     }
 
     const advanced = data.payload as AdvancedSeason;
+    const { rankings, schedule } = await loadCanonicalContext(_request, year);
+    const canonical = canonicalizeAdvancedSeason(advanced, rankings, schedule, year);
 
-    // Ratings are the single source of truth for the three headline ratings.
-    // Merge those public snapshots into the premium Advanced payload so every
-    // page shows the exact same values and national ranks.
-    const rankingsUrl = new URL(`/data/rankings/${year}.json`, _request.url);
-    const rankingsResponse = await fetch(rankingsUrl, { cache: "no-store" });
-    if (!rankingsResponse.ok) {
-      throw new Error(`Failed to load canonical rankings for ${year}: ${rankingsResponse.status}`);
-    }
-    const rankings = (await rankingsResponse.json()) as RankingsSeason;
-
-    if (
-      advanced.weeks.length !== rankings.weeks.length ||
-      advanced.weeks.some((week, index) => week !== rankings.weeks[index])
-    ) {
-      throw new Error(`Advanced/rankings week mismatch for ${year}`);
-    }
-
-    const byWeek = Object.fromEntries(
-      advanced.weeks.map((week) => {
-        const key = String(week);
-        const ratingRows = rankings.byWeek[key] ?? [];
-        const ratingsBySlug = new Map(ratingRows.map((row) => [row.slug, row]));
-        const advancedRows = advanced.byWeek[key] ?? [];
-
-        if (
-          advancedRows.length !== ratingRows.length ||
-          advancedRows.some((row) => !ratingsBySlug.has(row.slug))
-        ) {
-          throw new Error(`Advanced/rankings team coverage mismatch for ${year} week ${week}`);
-        }
-
-        return [
-          key,
-          advancedRows.map((row) => {
-            const rating = ratingsBySlug.get(row.slug)!;
-            return {
-              ...row,
-              adjEM: rating.adjEM,
-              adjO: rating.adjO,
-              adjD: rating.adjD,
-              rank: rating.rank,
-              adjORank: rating.adjORank,
-              adjDRank: rating.adjDRank,
-            };
-          }),
-        ];
-      })
-    );
-
-    return NextResponse.json({ ...advanced, byWeek } as AdvancedSeason, {
+    return NextResponse.json(canonical, {
       status: 200,
       headers: PRIVATE_HEADERS,
     });
