@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 /**
  * Advanced analytics is intentionally an all-columns table now. The page still
@@ -9,30 +9,32 @@ import { useEffect } from "react";
  * at the source, keep it pinned to the expanded state immediately after mount
  * and after any tab change. The visual toggle is hidden by table-behavior-fixes.css.
  *
- * MutationObserver callbacks run before the next paint; requestAnimationFrame
- * batches React's DOM changes so users do not see the collapsed intermediate
- * state when switching tabs.
+ * The first enforcement runs in a layout effect so the collapsed table is not
+ * painted on initial load. MutationObserver + requestAnimationFrame then batches
+ * subsequent tab changes before the next visual frame.
  */
 export default function AdvancedAllColumnsPolicy() {
-  useEffect(() => {
+  useLayoutEffect(() => {
     let frame = 0;
 
-    const enforceExpandedColumns = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const toggle = document.querySelector<HTMLButtonElement>(
-          "#advancedTable .show-all-columns-toggle"
-        );
-        if (!toggle) return;
+    const expandIfNeeded = () => {
+      const toggle = document.querySelector<HTMLButtonElement>(
+        "#advancedTable .show-all-columns-toggle"
+      );
+      if (!toggle) return;
 
-        const label = (toggle.textContent ?? "").trim().toLowerCase();
-        if (label.startsWith("show all columns")) toggle.click();
-      });
+      const label = (toggle.textContent ?? "").trim().toLowerCase();
+      if (label.startsWith("show all columns")) toggle.click();
     };
 
-    enforceExpandedColumns();
+    const scheduleEnforcement = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(expandIfNeeded);
+    };
 
-    const observer = new MutationObserver(enforceExpandedColumns);
+    expandIfNeeded();
+
+    const observer = new MutationObserver(scheduleEnforcement);
     observer.observe(document.body, {
       childList: true,
       subtree: true,
