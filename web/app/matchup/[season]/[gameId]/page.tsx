@@ -336,7 +336,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
         <MatchupEdgesSection season={season} gameId={gameId} />
       </main>
 
-      <SiteFooter note="Matchup pages use the most recent LEILA rating snapshot strictly before the selected game week. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Adj. Def." />
+      <SiteFooter note="Matchup pages use the most recent LEILA rating snapshot strictly before the selected game week. Adj. Net, Adj. Off, Adj. Def, SOS and SOR are read directly from that same Rankings snapshot used by the main table; SOR is wins above an average FBS team on the same schedule. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Adj. Def." />
     </>
   );
 }
@@ -550,6 +550,16 @@ function headlineComparisonRows({
       label: "Defense Rating",
       left: { value: signed(awayRating?.adjD, 2), rank: awayRating?.adjDRank, totalTeams: totalRated },
       right: { value: signed(homeRating?.adjD, 2), rank: homeRating?.adjDRank, totalTeams: totalRated },
+    },
+    {
+      label: "Schedule Strength (SOS)",
+      left: { value: signed(awayRating?.sos, 1), rank: awayRating?.sosRank, totalTeams: totalRated },
+      right: { value: signed(homeRating?.sos, 1), rank: homeRating?.sosRank, totalTeams: totalRated },
+    },
+    {
+      label: "Strength of Record (SOR)",
+      left: { value: signed(awayRating?.sor, 1), rank: awayRating?.sorRank, totalTeams: totalRated },
+      right: { value: signed(homeRating?.sor, 1), rank: homeRating?.sorRank, totalTeams: totalRated },
     },
     { label: "EPA / Play · Offense", left: awayEpaOff, right: homeEpaOff },
     { label: "EPA / Play · Defense", left: awayEpaDef, right: homeEpaDef },
