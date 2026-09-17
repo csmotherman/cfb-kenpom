@@ -12,6 +12,14 @@ function num(row: TeamGameAdvancedRow | undefined, key: string): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
+function firstNum(row: TeamGameAdvancedRow | undefined, keys: string[]): number | null {
+  for (const key of keys) {
+    const value = num(row, key);
+    if (value !== null) return value;
+  }
+  return null;
+}
+
 /**
  * Return a representative percentile inside the historical color band for a
  * single-game metric. We intentionally ship only p10/p30/p70/p90 cut points,
@@ -67,13 +75,14 @@ type Fmt = (v: number | null) => string;
 type Spec = {
   label: string;
   key: string;
+  fallbackKeys?: string[];
   fmt: Fmt;
   neutral?: boolean;
   indent?: 0 | 1;
 };
 
 function datum(row: TeamGameAdvancedRow | undefined, spec: Spec): StatValue {
-  const v = num(row, spec.key);
+  const v = firstNum(row, [spec.key, ...(spec.fallbackKeys || [])]);
   if (spec.neutral) return { value: spec.fmt(v), neutral: true };
   return { value: spec.fmt(v), percentile: historicalGamePercentileBand(spec.key, v) };
 }
@@ -96,12 +105,15 @@ function buildSection(
 }
 
 // Completed-game results deliberately separate official facts (score/record in
-// the game header) from LEILA's PBP/drive-derived analytics below.  Labels here
+// the game header) from LEILA's PBP/drive-derived analytics below. Labels here
 // must describe the exact population exported by export_team_game_advanced.py;
 // never substitute a different metric because the intended one is unavailable.
+// fallbackKeys only bridge the previous artifact's NAMES when the underlying
+// value has the exact same definition; there is intentionally no 3rd-down ->
+// series-conversion fallback.
 const EFFICIENCY: [string, Spec[]][] = [
   ["Overall", [
-    { label: "Analytics Plays", key: "analytics_plays", fmt: count, neutral: true },
+    { label: "Analytics Plays", key: "analytics_plays", fallbackKeys: ["offensive_plays"], fmt: count, neutral: true },
     { label: "EPA / Play", key: "epa_per_play", fmt: (v) => signed(v, 3) },
     { label: "Success Rate", key: "success_rate", fmt: pct },
     { label: "Yards / Analytics Play", key: "yards_per_play", fmt: (v) => plain(v, 1) },
@@ -115,7 +127,7 @@ const EFFICIENCY: [string, Spec[]][] = [
     { label: "Yards / Dropback", key: "yards_per_dropback", fmt: (v) => plain(v, 1), indent: 1 },
   ]],
   ["Rushing", [
-    { label: "Graded Rush Plays", key: "graded_rush_plays", fmt: count, neutral: true },
+    { label: "Graded Rush Plays", key: "graded_rush_plays", fallbackKeys: ["rush_attempts"], fmt: count, neutral: true },
     { label: "Rushing EPA", key: "rushing_epa", fmt: (v) => signed(v, 1), indent: 1 },
     { label: "EPA / Rush", key: "epa_per_rush", fmt: (v) => signed(v, 2), indent: 1 },
     { label: "Success Rate", key: "rush_success_rate", fmt: pct, indent: 1 },
@@ -142,7 +154,7 @@ const CONTROL: [string, Spec[]][] = [
     { label: "Avg Starting Field Position", key: "avg_start_yards_to_goal", fmt: fieldPosition, neutral: true },
     { label: "Scoring Opportunities", key: "scoring_opportunities", fmt: count, neutral: true },
     { label: "Points / Opportunity", key: "points_per_opportunity", fmt: (v) => plain(v, 2), indent: 1 },
-    { label: "Drive Share", key: "drive_share", fmt: pct, neutral: true },
+    { label: "Drive Share", key: "drive_share", fallbackKeys: ["possession_share"], fmt: pct, neutral: true },
   ]],
   ["Series Control", [
     { label: "Series Conversion", key: "series_conversion_rate", fmt: pct },
@@ -151,7 +163,7 @@ const CONTROL: [string, Spec[]][] = [
   ]],
   ["Situational", [
     { label: "3rd Down Success", key: "third_down_success_rate", fmt: pct },
-    { label: "4th Down Success", key: "fourth_down_success_rate", fmt: pct },
+    { label: "4th Down Success", key: "fourth_down_success_rate", fallbackKeys: ["fourth_down_rate"], fmt: pct },
     { label: "Scoring Opp. TD Rate", key: "scoring_opportunity_touchdown_rate", fmt: pct },
   ]],
 ];
@@ -181,13 +193,13 @@ const SHAPE: [string, Spec[]][] = [
     { label: "Turnovers Lost", key: "turnovers_lost", fmt: count, neutral: true },
     { label: "Interceptions", key: "interceptions_thrown", fmt: count, neutral: true, indent: 1 },
     { label: "Fumbles Lost", key: "fumbles_lost", fmt: count, neutral: true, indent: 1 },
-    { label: "Turnovers / Drive", key: "turnovers_per_drive", fmt: (v) => plain(v, 2), indent: 1 },
+    { label: "Turnovers / Drive", key: "turnovers_per_drive", fallbackKeys: ["turnover_rate"], fmt: (v) => plain(v, 2), indent: 1 },
     { label: "Turnover EPA Lost", key: "turnover_epa_lost", fmt: (v) => plain(v, 1), indent: 1 },
   ]],
   ["Penalties", [
-    { label: "Offensive Penalties", key: "offensive_penalties", fmt: count, neutral: true },
-    { label: "Offensive Penalty Yards", key: "offensive_penalty_yards", fmt: count, neutral: true, indent: 1 },
-    { label: "Penalties / Drive", key: "penalties_per_drive", fmt: (v) => plain(v, 2), indent: 1 },
+    { label: "Offensive Penalties", key: "offensive_penalties", fallbackKeys: ["penalties"], fmt: count, neutral: true },
+    { label: "Offensive Penalty Yards", key: "offensive_penalty_yards", fallbackKeys: ["penalty_yards"], fmt: count, neutral: true, indent: 1 },
+    { label: "Penalties / Drive", key: "penalties_per_drive", fallbackKeys: ["penalty_rate"], fmt: (v) => plain(v, 2), indent: 1 },
     { label: "Penalty Yards / Drive", key: "penalty_yards_per_drive", fmt: (v) => plain(v, 1), indent: 1 },
   ]],
 ];
