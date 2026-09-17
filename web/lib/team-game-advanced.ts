@@ -175,7 +175,7 @@ const SHAPE: [string, Spec[]][] = [
     { label: "Interceptions", key: "interceptions_thrown", fmt: count, neutral: true, indent: 1 },
     { label: "Fumbles Lost", key: "fumbles_lost", fmt: count, neutral: true, indent: 1 },
     { label: "Turnover Rate", key: "turnover_rate", fmt: pct, lowerBetter: true, indent: 1 },
-    { label: "Turnover EPA Lost", key: "turnover_epa_lost", fmt: (v) => plain(v, 1), lowerBetter: true, indent: 1 },
+    { label: "Turnover EPA Lost", key: "turnover_epa_lost", fmt: (v) => plain(v, 1), indent: 1 },
   ]],
   ["Penalties", [
     { label: "Penalties", key: "penalties", fmt: count, neutral: true },
