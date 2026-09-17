@@ -272,84 +272,68 @@
 }
 
 /*
- * The percentile state must never depend on red-vs-green hue alone.
- * These cells use a high-separation green/red palette plus directional
- * markers. That makes the state readable for deuteranopia while keeping
- * the familiar spreadsheet-style green = strong, red = weak language.
+ * Percentile meaning lives in the CELL, not the text. Keep every value and
+ * marker in the normal navy ink so the number is always easy to read. Strong
+ * green/red fills provide the spreadsheet-style signal, while ▲/▼ keeps the
+ * meaning available when hue is difficult to distinguish.
  */
 .toneMarker {
   flex: 0 0 auto;
   font-size: 8.5px;
   font-weight: 900;
   line-height: 1;
+  color: var(--color-navy);
 }
 
 .tone_elite {
-  background: #d9f7e5;
-  box-shadow: inset 3px 0 0 #008a3b;
-}
-
-.tone_elite strong,
-.tone_elite .toneMarker {
-  color: #00662f;
-}
-
-.legendDot.tone_elite {
-  color: #008a3b;
-  box-shadow: none;
+  background: #a9e6bb;
 }
 
 .tone_good {
-  background: #edf9f1;
-  box-shadow: inset 3px 0 0 #16a34a;
-}
-
-.tone_good strong,
-.tone_good .toneMarker {
-  color: #08712f;
-}
-
-.legendDot.tone_good {
-  color: #16a34a;
-  box-shadow: none;
+  background: #d6f1de;
 }
 
 .tone_average {
   background: transparent;
 }
 
+.tone_poor {
+  background: #ffd2cf;
+}
+
+.tone_bad {
+  background: #ffaaa5;
+}
+
+.tone_elite strong,
+.tone_good strong,
+.tone_poor strong,
+.tone_bad strong,
+.tone_elite .toneMarker,
+.tone_good .toneMarker,
+.tone_poor .toneMarker,
+.tone_bad .toneMarker {
+  color: var(--color-navy);
+}
+
+.legendDot.tone_elite {
+  color: #27a857;
+}
+
+.legendDot.tone_good {
+  color: #74c98d;
+}
+
 .legendDot.tone_average {
   color: var(--color-ink-tertiary);
 }
 
-.tone_poor {
-  background: #fff0ef;
-  box-shadow: inset 3px 0 0 #e53935;
-}
-
-.tone_poor strong,
-.tone_poor .toneMarker {
-  color: #b42318;
-}
-
 .legendDot.tone_poor {
-  color: #e53935;
-  box-shadow: none;
-}
-
-.tone_bad {
-  background: #ffdcd9;
-  box-shadow: inset 3px 0 0 #d40000;
-}
-
-.tone_bad strong,
-.tone_bad .toneMarker {
-  color: #9f0000;
+  color: #ef7770;
 }
 
 .legendDot.tone_bad {
-  color: #d40000;
-  box-shadow: none;
+  color: #e2362d;
 }
 
 .tone_neutral {
@@ -389,7 +373,7 @@
   height: 8px;
   border-radius: 1px;
   background: currentColor;
-  opacity: .82;
+  opacity: .9;
 }
 
 @media (max-width: 1260px) {
