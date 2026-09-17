@@ -271,20 +271,32 @@
   color: var(--color-navy);
 }
 
+/* Conditional formatting is now the ONLY good/bad signal on a value (the
+   percentile badge that used to reinforce it was removed) -- text color
+   carries the signal, background tint reinforces it, both pushed strong
+   enough to read clearly at a glance, not just a faint wash. */
 .tone_elite {
-  background: rgba(43, 133, 77, .16);
+  background: rgba(27, 138, 71, .22);
+}
+
+.tone_elite strong {
+  color: #146334;
 }
 
 .legendDot.tone_elite {
-  color: #2e7044;
+  color: #1b8a47;
 }
 
 .tone_good {
-  background: rgba(43, 133, 77, .075);
+  background: rgba(27, 138, 71, .1);
+}
+
+.tone_good strong {
+  color: #2d7a4d;
 }
 
 .legendDot.tone_good {
-  color: #52725b;
+  color: #2d7a4d;
 }
 
 .tone_average {
@@ -296,19 +308,27 @@
 }
 
 .tone_poor {
-  background: rgba(139, 58, 58, .07);
+  background: rgba(196, 55, 40, .1);
+}
+
+.tone_poor strong {
+  color: #a8402e;
 }
 
 .legendDot.tone_poor {
-  color: #845555;
+  color: #a8402e;
 }
 
 .tone_bad {
-  background: rgba(139, 58, 58, .145);
+  background: rgba(196, 55, 40, .22);
+}
+
+.tone_bad strong {
+  color: #8a2c1c;
 }
 
 .legendDot.tone_bad {
-  color: #773d3d;
+  color: #8a2c1c;
 }
 
 .tone_neutral {
