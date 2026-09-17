@@ -1,34 +1,18 @@
-"""Export team_game_advanced: one row per (season, game_id, team), two rows
-per completed game -- the canonical dataset behind the completed-game
-Game Results template (web/app/template/game-results/page.tsx).
+"""Export one LEILA advanced row per completed team-game.
 
-Joins two already-materialized sources per team-game, no new computation
-beyond simple rate math already established elsewhere in this repo:
-  - data/canonical/season=Y/team_games.json -- core Advanced metrics
-    (EPA, Success Rate, Explosiveness, by-down splits, Havoc, Dropbacks,
-    Finishing/Scoring Opportunity, Field Position).
-  - data/processed/derived/exploratory/season=Y/.../team_games.json --
-    LEILA Exploratory (Series, Clean Drive/Drive Killer, Style/Risk,
-    Turnovers, Penalties).
+This artifact is intentionally an analytics/PBP contract, not an official box
+score.  Names in this file must describe the population actually used by the
+underlying metric.  In particular, success-eligible rushes are not official
+rush attempts, validated offensive plays are not an official NCAA play count,
+and drive share is not time of possession.
 
-Raw metric values only. Percentile context is deliberately NOT stored here
--- it is a function of (season, metric, value) against that season's own
-FBS-vs-FBS population, computed at read time from this same season file
-(see the audit's Sizing section: ~1.5K rows/season is cheap to scan
-client-side, and baking percentile in would mean recomputing all of
-history every time one game's data changes).
+Canonical source:
+  data/canonical/season=Y/team_games.json
+Exploratory source:
+  data/processed/derived/exploratory/season=Y/.../team_games.json
 
-Field availability varies by season, on purpose, not by oversight: Havoc,
-dropback-derived rates (EPA/Dropback, Yards/Dropback), Yards/Rush, and
-Sacks Taken are wired for the current seasons only (2025, 2026) as of this
-export -- see CURRENT_SEASON_ONLY_FIELDS below. Every other field here
-(core Advanced, Turnovers, Penalties, Series, Drives/Risk) is backfilled
-for the full 2014-2025 range (2020 excluded -- see the 2020 investigation
-note in this project's history; the data is fetchable but was never run
-through this pipeline, a deliberate methodology choice, not a technical
-gap). A field that cannot be computed for a given row is `null` with an
-explicit reason in `field_availability`, never silently substituted or
-omitted.
+Unavailable values remain null.  Do not substitute a different metric merely
+because it looks similar in the UI.
 """
 from __future__ import annotations
 
@@ -39,17 +23,10 @@ from pathlib import Path
 from cfb_analytics.raw.audit import discover_partitions
 
 REPO = Path(__file__).resolve().parent.parent
-TEAM_GAME_ADVANCED_VERSION = "team-game-advanced-v1"
+TEAM_GAME_ADVANCED_VERSION = "team-game-advanced-v2-results-contract"
 
-# Seasons where Havoc, Dropback-derived rates, Yards/Rush, and Sacks Taken
-# have actually been propagated into canonical/team_games.json (see this
-# project's step 2). Every other in-scope season has these fields null,
-# with an explicit reason -- not yet backfilled, not computed differently.
 CURRENT_SEASON_FIELDS_WIRED = {2025, 2026}
 
-# Short codes only on each row (field_availability is per-row, so the full
-# sentence would otherwise repeat on every one of ~1,700 rows/season); the
-# sentence itself lives once per season file under field_availability_reasons.
 FIELD_AVAILABILITY_REASONS = {
     "not_backfilled": (
         "Not yet backfilled historically -- Havoc/Dropback propagation is wired "
@@ -99,17 +76,30 @@ def build_row(season: int, canon: dict, exp: dict | None) -> dict:
     field_availability: dict[str, str] = {}
 
     def current_only(value):
-        if wired:
-            return value
-        return None
+        return value if wired else None
 
     if not wired:
         for key in (
-            "epa_per_dropback", "yards_per_dropback", "yards_per_dropback_allowed",
-            "yards_per_rush", "yards_per_rush_allowed", "havoc_allowed", "havoc_forced",
+            "epa_per_dropback",
+            "yards_per_dropback",
+            "yards_per_dropback_allowed",
+            "yards_per_rush",
+            "yards_per_rush_allowed",
+            "havoc_allowed",
+            "havoc_forced",
             "sacks_taken",
         ):
             field_availability[key] = "not_backfilled"
+
+    analytics_plays = canon.get("offensivePlays")
+    graded_rush_plays = canon.get("rushSuccessEligiblePlays")
+    offensive_drives = exp.get("offensiveDrives")
+    opponent_drives = exp.get("opponentDrives")
+    drive_denominator = (
+        offensive_drives + opponent_drives
+        if _num(offensive_drives) is not None and _num(opponent_drives) is not None
+        else None
+    )
 
     row = {
         "season": season,
@@ -131,34 +121,33 @@ def build_row(season: int, canon: dict, exp: dict | None) -> dict:
         "opponent_points": canon.get("points_against"),
         "win": canon.get("win"),
 
-        # Efficiency
-        "offensive_plays": canon.get("offensivePlays"),
+        # Analytics play population.  These are deliberately NOT exported as
+        # generic `plays`, `rush_attempts`, or `pass_attempts` box-score names.
+        "analytics_plays": analytics_plays,
         "epa_per_play": canon.get("epaPerPlay"),
         "success_rate": canon.get("successRate"),
-        "yards_per_play": _rate(canon.get("offensiveYards"), canon.get("offensivePlays")),
+        "yards_per_play": _rate(canon.get("offensiveYards"), analytics_plays),
         "total_epa": canon.get("epaSum"),
 
-        # Passing
+        # Passing / rushing analytics populations.
         "dropbacks": canon.get("dropbacks"),
-        "pass_rate": _rate(canon.get("dropbacks"), canon.get("offensivePlays")),
         "passing_epa": canon.get("passEpaSum"),
         "epa_per_dropback": current_only(_rate(canon.get("passEpaSum"), canon.get("dropbacks"))),
         "pass_success_rate": canon.get("passSuccessRate"),
         "yards_per_dropback": current_only(canon.get("yardsPerDropback")),
-
-        # Rushing
-        "rush_attempts": canon.get("rushSuccessEligiblePlays"),
-        "rush_rate": _rate(canon.get("rushSuccessEligiblePlays"), canon.get("offensivePlays")),
+        "graded_rush_plays": graded_rush_plays,
         "rushing_epa": canon.get("rushEpaSum"),
         "epa_per_rush": canon.get("rushEpaPerPlay"),
         "rush_success_rate": canon.get("rushSuccessRate"),
         "yards_per_rush": current_only(canon.get("rushYardsPerAttempt")),
 
-        # By down (offense only -- see module docstring: defense side is
-        # the opponent row, not a mirrored column here)
-        "down1_epa_pass": canon.get("passDown1EpaPerPlay"), "down1_epa_rush": canon.get("rushDown1EpaPerPlay"),
-        "down2_epa_pass": canon.get("passDown2EpaPerPlay"), "down2_epa_rush": canon.get("rushDown2EpaPerPlay"),
-        "down3_epa_pass": canon.get("passDown3EpaPerPlay"), "down3_epa_rush": canon.get("rushDown3EpaPerPlay"),
+        # By down.
+        "down1_epa_pass": canon.get("passDown1EpaPerPlay"),
+        "down1_epa_rush": canon.get("rushDown1EpaPerPlay"),
+        "down2_epa_pass": canon.get("passDown2EpaPerPlay"),
+        "down2_epa_rush": canon.get("rushDown2EpaPerPlay"),
+        "down3_epa_pass": canon.get("passDown3EpaPerPlay"),
+        "down3_epa_rush": canon.get("rushDown3EpaPerPlay"),
         "down1_epa": _rate(
             (canon.get("passDown1EpaSum") or 0) + (canon.get("rushDown1EpaSum") or 0),
             (canon.get("passDown1EpaPlays") or 0) + (canon.get("rushDown1EpaPlays") or 0),
@@ -172,46 +161,45 @@ def build_row(season: int, canon: dict, exp: dict | None) -> dict:
             (canon.get("passDown3EpaPlays") or 0) + (canon.get("rushDown3EpaPlays") or 0),
         ),
 
-        # Drives / control. "Points/Drive" uses this team's actual final
-        # score (points_for) over offensive drives -- the same convention
-        # as this repo's existing yardsPerPossession, just for points; it
-        # is not the same population as Points/Opportunity below (which is
-        # scoped to scoring-opportunity drives only and already excludes
-        # defensive/special-teams scores per finishing_drives.py).
+        # Drive / field-position analytics.  Do not infer time of possession
+        # from drive counts and do not calculate offensive points/drive from
+        # final team score (defensive/ST points would contaminate it).
         "offensive_drives": canon.get("validatedPossessions"),
-        "points_per_drive": _rate(canon.get("points_for"), canon.get("validatedPossessions")),
         "yards_per_drive": canon.get("yardsPerPossession"),
-        "plays_per_drive": _rate(canon.get("offensivePlays"), canon.get("validatedPossessions")),
+        "plays_per_drive": _rate(analytics_plays, canon.get("validatedPossessions")),
         "avg_start_yards_to_goal": canon.get("averageStartYardsToGoal"),
         "scoring_opportunities": canon.get("scoringOpportunities"),
         "points_per_opportunity": canon.get("pointsPerOpportunity"),
-        "fourth_down_attempts": canon.get("down4SuccessEligiblePlays"),
-        "fourth_down_conversions": canon.get("down4SuccessfulPlays"),
-        "fourth_down_rate": canon.get("down4SuccessRate"),
-        # Not literally "red zone" (scoring opportunity = reached inside the
-        # opponent 40, not the 20) -- the closest already-computed field,
-        # labeled honestly on the frontend rather than mislabeled.
-        "scoring_opportunity_touchdown_rate": _rate(exp.get("scoringOpportunityTouchdowns"), exp.get("scoringOpportunities")),
-        "possession_share": _rate(
-            exp.get("offensiveDrives"),
-            (exp.get("offensiveDrives") or 0) + (exp.get("opponentDrives") or 0)
-            if _num(exp.get("offensiveDrives")) and _num(exp.get("opponentDrives"))
-            else None,
+        "drive_share": _rate(offensive_drives, drive_denominator),
+
+        # 3rd/4th-down success uses the repo's documented success population:
+        # clean offensive scrimmage plays with 100% of distance-to-gain needed
+        # on 3rd/4th down.  It is intentionally named success, not official
+        # NCAA conversion efficiency, because no-play/modified contexts are
+        # excluded by the classifier.
+        "third_down_success_attempts": canon.get("down3SuccessEligiblePlays"),
+        "third_down_successes": canon.get("down3SuccessfulPlays"),
+        "third_down_success_rate": canon.get("down3SuccessRate"),
+        "fourth_down_success_attempts": canon.get("down4SuccessEligiblePlays"),
+        "fourth_down_successes": canon.get("down4SuccessfulPlays"),
+        "fourth_down_success_rate": canon.get("down4SuccessRate"),
+        "scoring_opportunity_touchdown_rate": _rate(
+            exp.get("scoringOpportunityTouchdowns"), exp.get("scoringOpportunities")
         ),
 
-        # Series control (Exploratory Tier 1)
+        # Series control.
         "series_conversion_rate": exp.get("seriesConversionRate"),
         "recovery_rate": exp.get("recoveryRate"),
         "third_long_exposure": exp.get("longDownRate"),
 
-        # Explosiveness
+        # Explosiveness.
         "explosive_play_rate": canon.get("explosivePlayRate"),
         "explosive_pass_rate": canon.get("passExplosivePlayRate"),
         "explosive_rush_rate": canon.get("rushExplosivePlayRate"),
         "epa_without_explosives": exp.get("nonExplosiveEpaPerPlay"),
         "explosive_dependency": exp.get("explosiveDependency"),
 
-        # Possession quality (Exploratory Wave 2)
+        # Possession quality.
         "clean_drive_rate": exp.get("cleanDriveRate"),
         "drive_killer_rate": exp.get("driveKillerRate"),
         "failure_rate": exp.get("failureRate"),
@@ -219,24 +207,25 @@ def build_row(season: int, canon: dict, exp: dict | None) -> dict:
         "failure_burden": exp.get("failureBurden"),
         "failure_pressure": exp.get("failurePressure"),
 
-        # Disruption
+        # Disruption.
         "havoc_allowed": current_only(canon.get("havocRateAllowed")),
         "havoc_forced": current_only(canon.get("havocRate")),
         "sacks_taken": current_only(canon.get("sacksAllowed")),
         "tfls_taken": canon.get("tacklesForLossAllowed"),
 
-        # Turnovers (Exploratory, text-corrected -- backfilled all seasons)
+        # Turnovers (text-corrected exploratory fields).
         "turnovers_lost": exp.get("turnovers"),
         "interceptions_thrown": exp.get("interceptions"),
         "fumbles_lost": exp.get("lostFumbles"),
-        "turnover_rate": _rate(exp.get("turnovers"), exp.get("offensiveDrives")),
+        "turnovers_per_drive": _rate(exp.get("turnovers"), offensive_drives),
         "turnover_epa_lost": exp.get("turnoverEpaSum"),
 
-        # Penalties (Exploratory -- backfilled all seasons)
-        "penalties": exp.get("offensivePenalties"),
-        "penalty_yards": exp.get("offensivePenaltyYards"),
-        "penalty_rate": _rate(exp.get("offensivePenalties"), exp.get("offensiveDrives")),
-        "penalty_yards_per_drive": _rate(exp.get("offensivePenaltyYards"), exp.get("offensiveDrives")),
+        # These are OFFENSIVE penalties identified by the exploratory parser,
+        # not an official all-team penalty box score.
+        "offensive_penalties": exp.get("offensivePenalties"),
+        "offensive_penalty_yards": exp.get("offensivePenaltyYards"),
+        "penalties_per_drive": _rate(exp.get("offensivePenalties"), offensive_drives),
+        "penalty_yards_per_drive": _rate(exp.get("offensivePenaltyYards"), offensive_drives),
     }
     if field_availability:
         row["field_availability"] = field_availability
@@ -244,9 +233,6 @@ def build_row(season: int, canon: dict, exp: dict | None) -> dict:
 
 
 def season_source_versions(season: int, canon: dict, exp: dict) -> dict:
-    """Definition-version provenance is deterministic per season (every row
-    in a season's materialization run carries the same strings) -- computed
-    once here rather than repeated on every one of ~1,700 rows/season."""
     wired = season in CURRENT_SEASON_FIELDS_WIRED
     any_canon = next(iter(canon.values()), {})
     any_exp = next(iter(exp.values()), {})
@@ -283,7 +269,12 @@ def build_season(season: int) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--season", type=int, action="append", help="Season(s) to build. Repeatable. Default: every season with canonical data.")
+    parser.add_argument(
+        "--season",
+        type=int,
+        action="append",
+        help="Season(s) to build. Repeatable. Default: every season with canonical data.",
+    )
     parser.add_argument("--out-dir", default=str(REPO / "web/public/data/team-game-advanced"))
     args = parser.parse_args()
 
@@ -303,8 +294,15 @@ def main() -> None:
         rows = payload["rows"]
         out_path = out_dir / f"{season}.json"
         out_path.write_text(json.dumps(payload, separators=(",", ":")))
-        fbs_vs_fbs = sum(1 for r in rows if r["classification"] == "fbs" and r["opponent_classification"] == "fbs")
-        print(f"season {season}: {len(rows)} team-game rows ({fbs_vs_fbs} FBS-vs-FBS) -> {out_path}")
+        fbs_vs_fbs = sum(
+            1
+            for r in rows
+            if r["classification"] == "fbs" and r["opponent_classification"] == "fbs"
+        )
+        print(
+            f"season {season}: {len(rows)} team-game rows "
+            f"({fbs_vs_fbs} FBS-vs-FBS) -> {out_path}"
+        )
 
 
 if __name__ == "__main__":
