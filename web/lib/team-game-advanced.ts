@@ -194,6 +194,7 @@ const SHAPE: [string, Spec[]][] = [
 export function buildGameResultsColumns(
   leftRow: TeamGameAdvancedRow | undefined,
   rightRow: TeamGameAdvancedRow | undefined,
+  _seasonRows?: TeamGameAdvancedRow[],
 ): { title: string; sections: StatSection[] }[] {
   const column = (title: string, groups: [string, Spec[]][]) => ({
     title,
