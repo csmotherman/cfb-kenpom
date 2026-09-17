@@ -112,7 +112,7 @@ export default function GameResultsSheet({
   gameSubLabel,
   heading = "Game Breakdown",
   headingEyebrow = "Final Game Analytics",
-  description = "One dense game sheet using LEILA’s advanced and exploratory metrics. Percentiles compare each team’s single-game performance with FBS team-games.",
+  description = "One dense game sheet using LEILA’s advanced and exploratory metrics. Cell colors compare each performance against the historical FBS-vs-FBS single-game baseline.",
   columns,
 }: {
   leftTeam: GameResultsTeam;
@@ -167,8 +167,8 @@ export default function GameResultsSheet({
         ))}
       </div>
 
-      <div className={styles.legend} aria-label="Percentile legend">
-        <span>Single-game FBS percentile</span>
+      <div className={styles.legend} aria-label="Historical percentile legend">
+        <span>Historical FBS game percentile</span>
         <i className={`${styles.legendDot} ${styles.tone_elite}`} /><small>▲ 90+</small>
         <i className={`${styles.legendDot} ${styles.tone_good}`} /><small>▲ 70&ndash;89</small>
         <i className={`${styles.legendDot} ${styles.tone_average}`} /><small>30&ndash;69</small>
