@@ -27,6 +27,9 @@ export type GameResultsTeam = {
   short: string;
   teamId: number;
   score: number;
+  // The matchup page supplies the leakage-safe PRE-game record snapshot.
+  // This component is only used for a completed game, so it advances that
+  // record exactly once using the final score before displaying it.
   record: string;
 };
 
@@ -37,6 +40,19 @@ export function percentileTone(percentile: number | undefined, neutral = false):
   if (percentile >= 30) return "average";
   if (percentile >= 10) return "poor";
   return "bad";
+}
+
+export function postgameRecord(pregameRecord: string, score: number, opponentScore: number): string {
+  const match = pregameRecord.trim().match(/^(\d+)-(\d+)(?:-(\d+))?$/);
+  let wins = match ? Number.parseInt(match[1], 10) : 0;
+  let losses = match ? Number.parseInt(match[2], 10) : 0;
+  let ties = match?.[3] ? Number.parseInt(match[3], 10) : 0;
+
+  if (score > opponentScore) wins += 1;
+  else if (score < opponentScore) losses += 1;
+  else ties += 1;
+
+  return ties > 0 ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`;
 }
 
 function ResultValue({ datum }: { datum: StatValue }) {
@@ -125,6 +141,9 @@ export default function GameResultsSheet({
   description?: string;
   columns: { title: string; sections: StatSection[] }[];
 }) {
+  const leftPostgameRecord = postgameRecord(leftTeam.record, leftTeam.score, rightTeam.score);
+  const rightPostgameRecord = postgameRecord(rightTeam.record, rightTeam.score, leftTeam.score);
+
   return (
     <>
       <section className={styles.scoreboard} aria-label="Final score">
@@ -132,7 +151,7 @@ export default function GameResultsSheet({
           <img src={logoUrl(leftTeam.teamId, 128)} alt="" />
           <div className={styles.teamIdentity}>
             <strong>{leftTeam.name}</strong>
-            <small>{leftTeam.record}</small>
+            <small>{leftPostgameRecord}</small>
           </div>
           <div className={styles.score}>{leftTeam.score}</div>
         </div>
@@ -147,7 +166,7 @@ export default function GameResultsSheet({
           <div className={styles.score}>{rightTeam.score}</div>
           <div className={styles.teamIdentity}>
             <strong>{rightTeam.name}</strong>
-            <small>{rightTeam.record}</small>
+            <small>{rightPostgameRecord}</small>
           </div>
           <img src={logoUrl(rightTeam.teamId, 128)} alt="" />
         </div>
