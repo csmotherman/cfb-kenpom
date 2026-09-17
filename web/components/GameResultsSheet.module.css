@@ -271,21 +271,10 @@
   color: var(--color-navy);
 }
 
-.resultValue small {
-  flex: 0 0 auto;
-  min-width: 30px;
-  font-size: 8px;
-  font-weight: 800;
-  line-height: 1;
-  text-align: right;
-  color: var(--color-ink-tertiary);
-}
-
 .tone_elite {
   background: rgba(43, 133, 77, .16);
 }
 
-.tone_elite small,
 .legendDot.tone_elite {
   color: #2e7044;
 }
@@ -294,7 +283,6 @@
   background: rgba(43, 133, 77, .075);
 }
 
-.tone_good small,
 .legendDot.tone_good {
   color: #52725b;
 }
@@ -303,7 +291,6 @@
   background: transparent;
 }
 
-.tone_average small,
 .legendDot.tone_average {
   color: var(--color-ink-tertiary);
 }
@@ -312,7 +299,6 @@
   background: rgba(139, 58, 58, .07);
 }
 
-.tone_poor small,
 .legendDot.tone_poor {
   color: #845555;
 }
@@ -321,7 +307,6 @@
   background: rgba(139, 58, 58, .145);
 }
 
-.tone_bad small,
 .legendDot.tone_bad {
   color: #773d3d;
 }
@@ -519,11 +504,6 @@
 
   .resultValue strong {
     font-size: 10px;
-  }
-
-  .resultValue small {
-    min-width: 24px;
-    font-size: 6.6px;
   }
 
   .legend {

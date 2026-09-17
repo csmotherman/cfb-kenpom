@@ -39,22 +39,11 @@ export function percentileTone(percentile: number | undefined, neutral = false):
   return "bad";
 }
 
-export function ordinal(value: number): string {
-  const mod100 = value % 100;
-  const mod10 = value % 10;
-  if (mod100 >= 11 && mod100 <= 13) return `${value}th`;
-  if (mod10 === 1) return `${value}st`;
-  if (mod10 === 2) return `${value}nd`;
-  if (mod10 === 3) return `${value}rd`;
-  return `${value}th`;
-}
-
 function ResultValue({ datum }: { datum: StatValue }) {
   const tone = percentileTone(datum.percentile, datum.neutral);
   return (
     <span className={`${styles.resultValue} ${styles[`tone_${tone}`]}`}>
       <strong>{datum.value}</strong>
-      {datum.percentile !== undefined && !datum.neutral ? <small>{ordinal(datum.percentile)}</small> : null}
     </span>
   );
 }
