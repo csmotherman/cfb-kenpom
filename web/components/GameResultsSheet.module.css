@@ -273,30 +273,33 @@
 
 /* Conditional formatting is now the ONLY good/bad signal on a value (the
    percentile badge that used to reinforce it was removed) -- text color
-   carries the signal, background tint reinforces it, both pushed strong
-   enough to read clearly at a glance, not just a faint wash. */
+   carries the signal, background tint reinforces it. Greens and reds are
+   pushed to opposite ends of the hue wheel (true green vs true red, not a
+   muted green vs a brick/rust that reads as another shade of brown) so
+   good and bad are unmistakable at a glance, spreadsheet-conditional-
+   formatting style, not just two similarly-dark muted tones.*/
 .tone_elite {
-  background: rgba(27, 138, 71, .22);
+  background: rgba(16, 145, 65, .3);
 }
 
 .tone_elite strong {
-  color: #146334;
+  color: #0b5c2e;
 }
 
 .legendDot.tone_elite {
-  color: #1b8a47;
+  color: #0b8a3f;
 }
 
 .tone_good {
-  background: rgba(27, 138, 71, .1);
+  background: rgba(16, 145, 65, .14);
 }
 
 .tone_good strong {
-  color: #2d7a4d;
+  color: #157a3f;
 }
 
 .legendDot.tone_good {
-  color: #2d7a4d;
+  color: #157a3f;
 }
 
 .tone_average {
@@ -308,27 +311,27 @@
 }
 
 .tone_poor {
-  background: rgba(196, 55, 40, .1);
+  background: rgba(214, 40, 40, .14);
 }
 
 .tone_poor strong {
-  color: #a8402e;
+  color: #b0281f;
 }
 
 .legendDot.tone_poor {
-  color: #a8402e;
+  color: #b0281f;
 }
 
 .tone_bad {
-  background: rgba(196, 55, 40, .22);
+  background: rgba(214, 40, 40, .3);
 }
 
 .tone_bad strong {
-  color: #8a2c1c;
+  color: #7c1c14;
 }
 
 .legendDot.tone_bad {
-  color: #8a2c1c;
+  color: #b0281f;
 }
 
 .tone_neutral {
