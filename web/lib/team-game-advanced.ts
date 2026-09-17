@@ -1,7 +1,10 @@
 import type { StatSection, StatValue } from "@/components/GameResultsSheet";
+import {
+  TEAM_GAME_PERCENTILE_BASELINE,
+  type TeamGamePercentileBaselineKey,
+  type TeamGamePercentileBaselineMetric,
+} from "./team-game-percentile-baseline";
 import type { TeamGameAdvancedRow } from "./types";
-
-const MIN_SAMPLE = 8;
 
 function num(row: TeamGameAdvancedRow | undefined, key: string): number | null {
   if (!row) return null;
@@ -9,26 +12,32 @@ function num(row: TeamGameAdvancedRow | undefined, key: string): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
-/** This row's percentile (0-100) for one metric among every FBS-vs-FBS row
- * in the SAME season file -- single-game-vs-single-game, per-season, never
- * pooled across seasons (a 2014 performance is only ever compared against
- * 2014 FBS-vs-FBS team-games). Requires a minimum sample so a handful of
- * played games early in a season doesn't produce a misleadingly sharp
- * percentile. */
-export function singleGamePercentile(
-  seasonRows: TeamGameAdvancedRow[],
-  key: string,
-  value: number | null,
-  lowerBetter = false
-): number | undefined {
+/**
+ * Return a representative percentile inside the historical color band for a
+ * single-game metric. We intentionally ship only p10/p30/p70/p90 cut points,
+ * not the full historical corpus, because the UI only needs the five
+ * conditional-formatting bands.
+ */
+export function historicalGamePercentileBand(key: string, value: number | null): number | undefined {
   if (value === null) return undefined;
-  const population = seasonRows
-    .filter((r) => r.classification === "fbs" && r.opponent_classification === "fbs")
-    .map((r) => num(r, key))
-    .filter((v): v is number => v !== null);
-  if (population.length < MIN_SAMPLE) return undefined;
-  const better = population.filter((v) => (lowerBetter ? v > value : v < value)).length;
-  return Math.round((better / population.length) * 100);
+  const metric = TEAM_GAME_PERCENTILE_BASELINE.metrics[
+    key as TeamGamePercentileBaselineKey
+  ] as TeamGamePercentileBaselineMetric | undefined;
+  if (!metric) return undefined;
+
+  if (metric.lowerBetter) {
+    if (value <= metric.p10) return 95;
+    if (value <= metric.p30) return 80;
+    if (value >= metric.p90) return 5;
+    if (value >= metric.p70) return 20;
+    return 50;
+  }
+
+  if (value >= metric.p90) return 95;
+  if (value >= metric.p70) return 80;
+  if (value <= metric.p10) return 5;
+  if (value <= metric.p30) return 20;
+  return 50;
 }
 
 function pct(v: number | null): string {
@@ -59,16 +68,14 @@ type Spec = {
   label: string;
   key: string;
   fmt: Fmt;
-  lowerBetter?: boolean;
   neutral?: boolean;
   indent?: 0 | 1;
 };
 
-function datum(row: TeamGameAdvancedRow | undefined, seasonRows: TeamGameAdvancedRow[], spec: Spec): StatValue {
+function datum(row: TeamGameAdvancedRow | undefined, spec: Spec): StatValue {
   const v = num(row, spec.key);
   if (spec.neutral) return { value: spec.fmt(v), neutral: true };
-  const percentile = singleGamePercentile(seasonRows, spec.key, v, spec.lowerBetter);
-  return { value: spec.fmt(v), percentile };
+  return { value: spec.fmt(v), percentile: historicalGamePercentileBand(spec.key, v) };
 }
 
 function buildSection(
@@ -76,15 +83,14 @@ function buildSection(
   specs: Spec[],
   leftRow: TeamGameAdvancedRow | undefined,
   rightRow: TeamGameAdvancedRow | undefined,
-  seasonRows: TeamGameAdvancedRow[]
 ): StatSection {
   return {
     title,
     rows: specs.map((spec) => ({
       label: spec.label,
       indent: spec.indent,
-      left: datum(leftRow, seasonRows, spec),
-      right: datum(rightRow, seasonRows, spec),
+      left: datum(leftRow, spec),
+      right: datum(rightRow, spec),
     })),
   };
 }
@@ -140,7 +146,7 @@ const CONTROL: [string, Spec[]][] = [
   ["Series Control", [
     { label: "Series Conversion", key: "series_conversion_rate", fmt: pct },
     { label: "Recovery Rate", key: "recovery_rate", fmt: pct, indent: 1 },
-    { label: "3rd & Long Exposure", key: "third_long_exposure", fmt: pct, lowerBetter: true, indent: 1 },
+    { label: "3rd & Long Exposure", key: "third_long_exposure", fmt: pct, indent: 1 },
   ]],
   ["Situational", [
     { label: "3rd Down Conversion", key: "series_conversion_rate", fmt: pct },
@@ -159,14 +165,14 @@ const SHAPE: [string, Spec[]][] = [
   ]],
   ["Possession Quality", [
     { label: "Clean Drive Rate", key: "clean_drive_rate", fmt: pct },
-    { label: "Drive Killer Rate", key: "drive_killer_rate", fmt: pct, lowerBetter: true },
-    { label: "Failure Rate", key: "failure_rate", fmt: pct, lowerBetter: true, indent: 1 },
-    { label: "Avg Failure Damage", key: "avg_failure_damage", fmt: (v) => plain(v, 2), lowerBetter: true, indent: 1 },
-    { label: "Failure Burden", key: "failure_burden", fmt: (v) => plain(v, 3), lowerBetter: true, indent: 1 },
+    { label: "Drive Killer Rate", key: "drive_killer_rate", fmt: pct },
+    { label: "Failure Rate", key: "failure_rate", fmt: pct, indent: 1 },
+    { label: "Avg Failure Damage", key: "avg_failure_damage", fmt: (v) => plain(v, 2), indent: 1 },
+    { label: "Failure Burden", key: "failure_burden", fmt: (v) => plain(v, 3), indent: 1 },
     { label: "Failure Pressure", key: "failure_pressure", fmt: (v) => plain(v, 3), indent: 1 },
   ]],
   ["Disruption", [
-    { label: "Havoc Allowed", key: "havoc_allowed", fmt: pct, lowerBetter: true },
+    { label: "Havoc Allowed", key: "havoc_allowed", fmt: pct },
     { label: "Sacks Taken", key: "sacks_taken", fmt: count, neutral: true, indent: 1 },
     { label: "TFLs Taken", key: "tfls_taken", fmt: count, neutral: true, indent: 1 },
   ]],
@@ -174,25 +180,24 @@ const SHAPE: [string, Spec[]][] = [
     { label: "Turnovers Lost", key: "turnovers_lost", fmt: count, neutral: true },
     { label: "Interceptions", key: "interceptions_thrown", fmt: count, neutral: true, indent: 1 },
     { label: "Fumbles Lost", key: "fumbles_lost", fmt: count, neutral: true, indent: 1 },
-    { label: "Turnover Rate", key: "turnover_rate", fmt: pct, lowerBetter: true, indent: 1 },
+    { label: "Turnover Rate", key: "turnover_rate", fmt: pct, indent: 1 },
     { label: "Turnover EPA Lost", key: "turnover_epa_lost", fmt: (v) => plain(v, 1), indent: 1 },
   ]],
   ["Penalties", [
     { label: "Penalties", key: "penalties", fmt: count, neutral: true },
     { label: "Penalty Yards", key: "penalty_yards", fmt: count, neutral: true, indent: 1 },
-    { label: "Penalty Rate", key: "penalty_rate", fmt: pct, lowerBetter: true, indent: 1 },
-    { label: "Penalty Yards / Drive", key: "penalty_yards_per_drive", fmt: (v) => plain(v, 1), lowerBetter: true, indent: 1 },
+    { label: "Penalty Rate", key: "penalty_rate", fmt: pct, indent: 1 },
+    { label: "Penalty Yards / Drive", key: "penalty_yards_per_drive", fmt: (v) => plain(v, 1), indent: 1 },
   ]],
 ];
 
 export function buildGameResultsColumns(
   leftRow: TeamGameAdvancedRow | undefined,
   rightRow: TeamGameAdvancedRow | undefined,
-  seasonRows: TeamGameAdvancedRow[]
 ): { title: string; sections: StatSection[] }[] {
   const column = (title: string, groups: [string, Spec[]][]) => ({
     title,
-    sections: groups.map(([sectionTitle, specs]) => buildSection(sectionTitle, specs, leftRow, rightRow, seasonRows)),
+    sections: groups.map(([sectionTitle, specs]) => buildSection(sectionTitle, specs, leftRow, rightRow)),
   });
   return [
     column("Efficiency", EFFICIENCY),
