@@ -41,8 +41,15 @@ export function percentileTone(percentile: number | undefined, neutral = false):
 
 function ResultValue({ datum }: { datum: StatValue }) {
   const tone = percentileTone(datum.percentile, datum.neutral);
+  const marker = tone === "elite" || tone === "good"
+    ? "▲"
+    : tone === "poor" || tone === "bad"
+      ? "▼"
+      : null;
+
   return (
     <span className={`${styles.resultValue} ${styles[`tone_${tone}`]}`}>
+      {marker ? <span className={styles.toneMarker} aria-hidden="true">{marker}</span> : null}
       <strong>{datum.value}</strong>
     </span>
   );
@@ -162,11 +169,11 @@ export default function GameResultsSheet({
 
       <div className={styles.legend} aria-label="Percentile legend">
         <span>Single-game FBS percentile</span>
-        <i className={`${styles.legendDot} ${styles.tone_elite}`} /><small>90+</small>
-        <i className={`${styles.legendDot} ${styles.tone_good}`} /><small>70&ndash;89</small>
+        <i className={`${styles.legendDot} ${styles.tone_elite}`} /><small>▲ 90+</small>
+        <i className={`${styles.legendDot} ${styles.tone_good}`} /><small>▲ 70&ndash;89</small>
         <i className={`${styles.legendDot} ${styles.tone_average}`} /><small>30&ndash;69</small>
-        <i className={`${styles.legendDot} ${styles.tone_poor}`} /><small>10&ndash;29</small>
-        <i className={`${styles.legendDot} ${styles.tone_bad}`} /><small>0&ndash;9</small>
+        <i className={`${styles.legendDot} ${styles.tone_poor}`} /><small>▼ 10&ndash;29</small>
+        <i className={`${styles.legendDot} ${styles.tone_bad}`} /><small>▼ 0&ndash;9</small>
       </div>
     </>
   );
