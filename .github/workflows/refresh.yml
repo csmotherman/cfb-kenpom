@@ -243,6 +243,10 @@ jobs:
         # -- never re-derives thresholds/models on every refresh. That only
         # happens in a deliberate research pass via --calibrate.
         run: python -m cfb_analytics.analytics.exploratory_matchup_product --season "$SEASON"
+      - name: Export completed-game Team-Game Advanced data
+        run: python scripts/export_team_game_advanced.py --season "$SEASON"
+      - name: Refresh historical single-game percentile baseline
+        run: python scripts/export_team_game_percentile_baseline.py --current-season "$SEASON"
 
       - name: Test publication gates
         run: python -m unittest discover -s tests
@@ -275,7 +279,7 @@ jobs:
       - name: Remove private build artifacts
         run: |
           rm -f site/advanced-data.js
-          rm -rf web/public/data/advanced web/public/data/predictions web/public/data/exploratory
+          rm -rf web/public/data/advanced web/public/data/predictions web/public/data/exploratory web/public/data/team-game-advanced
 
       - name: Commit validated 2026 changes
         id: publish
@@ -286,7 +290,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           mkdir -p "prospective/$SEASON/predictions"
-          git add "data/canonical/season=$SEASON" site/data.js site/search-index.js web/public/data "prospective/$SEASON/predictions"
+          git add "data/canonical/season=$SEASON" site/data.js site/search-index.js web/public/data web/lib/team-game-percentile-baseline.ts "prospective/$SEASON/predictions"
           if git diff --staged --quiet; then
             echo "Refresh completed and validated, but the publishable output did not change." >> "$GITHUB_STEP_SUMMARY"
           else
