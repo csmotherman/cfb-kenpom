@@ -10,6 +10,14 @@ type LoadState =
   | { key: string; status: "locked" }
   | { key: string; status: "ready"; game: MatchupEdgesGame };
 
+// "Edge" should mean a real strength-vs-weakness collision, not merely two
+// good units with a modest ranking gap. With ~130-140 FBS teams, these bounds
+// require one side to be clearly strong and the paired opponent tendency to be
+// clearly weak before we surface the matchup as an advantage.
+const EDGE_STRONG_RANK_MAX = 40;
+const EDGE_WEAK_RANK_MIN = 95;
+const EDGE_MIN_RANK_GAP = 55;
+
 function rankText(rank: number | null): string {
   return rank === null ? "unranked" : `No. ${rank}`;
 }
@@ -18,30 +26,34 @@ function rateText(edge: MatchupEdge, value: number): string {
   return edge.unit === "epa" ? `${value >= 0 ? "+" : ""}${value.toFixed(3)} EPA/play` : `${(value * 100).toFixed(1)}%`;
 }
 
+function isTrueMismatch(edge: MatchupEdge): boolean {
+  if (edge.style || !edge.advantageTeam) return false;
+  if (edge.offenseRank === null || edge.defenseRank === null) return false;
+
+  const strongRank = Math.min(edge.offenseRank, edge.defenseRank);
+  const weakRank = Math.max(edge.offenseRank, edge.defenseRank);
+  return (
+    strongRank <= EDGE_STRONG_RANK_MAX &&
+    weakRank >= EDGE_WEAK_RANK_MIN &&
+    weakRank - strongRank >= EDGE_MIN_RANK_GAP
+  );
+}
+
 // Guarded, non-causal phrasing throughout: pregame tendencies "lean toward"
 // or "line up against" one side, they never "predict," "cause," or
 // "guarantee" an outcome -- these are situational profiles, not a pick.
 function edgeSentence(edge: MatchupEdge): string {
   const offenseBit = `${edge.offenseTeam}'s ${edge.offenseLabel} (${rankText(edge.offenseRank)}, ${rateText(edge, edge.offenseRate)})`;
   const defenseBit = `${edge.defenseTeam}'s ${edge.defenseLabel} (${rankText(edge.defenseRank)}, ${rateText(edge, edge.defenseRate)})`;
-  if (edge.style) {
-    return `${offenseBit} lines up against ${defenseBit}. A big-play matchup worth watching, not a strength or weakness by itself.`;
-  }
-  if (!edge.advantageTeam) {
-    return `${offenseBit} lines up against ${defenseBit} — pregame tendencies are close to even here.`;
-  }
-  return `${offenseBit} lines up against ${defenseBit} — pregame tendencies lean toward ${edge.advantageTeam} in this specific matchup.`;
+  return `${offenseBit} lines up against ${defenseBit} — the strong-vs-weak ranking split creates a clear matchup edge for ${edge.advantageTeam}.`;
 }
 
 function EdgeCard({ edge }: { edge: MatchupEdge }) {
   return (
-    <article className={`matchup-edge-card${edge.style ? " matchup-edge-card--style" : ""}`}>
+    <article className="matchup-edge-card">
       <div className="matchup-edge-card__head">
         <span className="matchup-edge-card__eyebrow">{edge.title}</span>
-        {edge.advantageTeam && (
-          <span className="matchup-edge-card__advantage">{edge.advantageTeam} edge</span>
-        )}
-        {edge.style && <span className="matchup-edge-card__advantage matchup-edge-card__advantage--style">Big-play matchup</span>}
+        <span className="matchup-edge-card__advantage">{edge.advantageTeam} edge</span>
       </div>
       <div className="matchup-edge-card__stats">
         <div className="matchup-edge-card__stat">
@@ -112,7 +124,7 @@ export default function MatchupEdgesSection({ season, gameId }: { season: number
           <h2>Matchup Edges</h2>
           <span className="matchup-edges__badge">Research</span>
         </div>
-        <p>See where each team&apos;s season-long tendencies line up against this specific opponent — sustaining drives, recovering from bad downs, staying on schedule, and more.</p>
+        <p>See where one team&apos;s clear statistical strength runs into a specific weakness on the other side — true strength-vs-weakness mismatches, not simply two highly ranked units.</p>
         <Link href="/upgrade?feature=exploratory" className="matchup-edges__cta">Unlock matchup edges →</Link>
       </section>
     );
@@ -132,14 +144,16 @@ export default function MatchupEdgesSection({ season, gameId }: { season: number
     );
   }
 
-  if (game.status === "even" || game.edges.length === 0) {
+  const edges = game.edges.filter(isTrueMismatch);
+
+  if (edges.length === 0) {
     return (
       <section className="matchup-edges matchup-edges--empty" aria-label="LEILA matchup edges">
         <div className="matchup-edges__head">
           <h2>Matchup Edges</h2>
           <span className="matchup-edges__badge">Research</span>
         </div>
-        <p className="matchup-edges__note">Even matchup — no situational tendency stands out enough above the usual noise for either team in this game.</p>
+        <p className="matchup-edges__note">No clear strength-vs-weakness mismatch. An edge only appears when one side ranks among the stronger units nationally and the opponent ranks clearly weak in the corresponding area.</p>
       </section>
     );
   }
@@ -150,9 +164,9 @@ export default function MatchupEdgesSection({ season, gameId }: { season: number
         <h2>Matchup Edges</h2>
         <span className="matchup-edges__badge">Research</span>
       </div>
-      <p className="matchup-edges__intro">Situational tendencies pulled from each team&apos;s season to date, evaluated only against what this specific opponent has shown. Descriptive, not a prediction.</p>
+      <p className="matchup-edges__intro">Only clear strength-vs-weakness mismatches are shown: one side must rank highly in the paired metric while the opponent ranks near the bottom nationally. Two good units are not labeled an edge.</p>
       <div className="matchup-edges__grid">
-        {game.edges.map((edge: MatchupEdge) => (
+        {edges.map((edge: MatchupEdge) => (
           <EdgeCard key={`${edge.pairing}-${edge.offenseTeam}`} edge={edge} />
         ))}
       </div>
