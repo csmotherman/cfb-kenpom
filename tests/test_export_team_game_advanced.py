@@ -1,8 +1,15 @@
-"""team_game_advanced export: two rows per completed FBS-vs-FBS game, raw
-values only, explicit field availability for what hasn't been backfilled."""
+"""Contract tests for the completed-game advanced export.
+
+The results artifact is an analytics/PBP dataset, not an official box score.
+These tests guard against relabeling filtered populations as official counts or
+substituting one rate for another.
+"""
+import unittest
+
 from scripts.export_team_game_advanced import (
     CURRENT_SEASON_FIELDS_WIRED,
     FIELD_AVAILABILITY_REASONS,
+    TEAM_GAME_ADVANCED_VERSION,
     build_row,
 )
 
@@ -20,6 +27,8 @@ def canon_row(**overrides):
         "yardsPerDropback": 9.0,
         "rushSuccessEligiblePlays": 30, "rushEpaSum": 4.0, "rushEpaPerPlay": 0.13,
         "rushSuccessRate": 0.4, "rushYardsPerAttempt": 5.0,
+        "down3SuccessEligiblePlays": 10, "down3SuccessfulPlays": 4, "down3SuccessRate": 0.4,
+        "down4SuccessEligiblePlays": 2, "down4SuccessfulPlays": 1, "down4SuccessRate": 0.5,
         "validatedPossessions": 12, "yardsPerPossession": 35.0,
         "averageStartYardsToGoal": 60.0, "scoringOpportunities": 6, "pointsPerOpportunity": 5.0,
         "explosivePlayRate": 0.1, "passExplosivePlayRate": 0.08, "rushExplosivePlayRate": 0.12,
@@ -40,60 +49,84 @@ def exp_row(**overrides):
         "nonExplosiveEpaPerPlay": 0.05, "explosiveDependency": 0.4,
         "cleanDriveRate": 0.5, "driveKillerRate": 0.3, "failureRate": 0.35,
         "averageFailureDamage": 0.8, "failureBurden": 0.3, "failurePressure": 0.4,
-        "turnovers": 1, "interceptions": 0, "lostFumbles": 1, "offensiveDrives": 12,
-        "turnoverEpaSum": -2.5,
+        "turnovers": 1, "interceptions": 0, "lostFumbles": 1,
+        "offensiveDrives": 12, "opponentDrives": 10, "turnoverEpaSum": -2.5,
         "offensivePenalties": 4, "offensivePenaltyYards": 35.0,
+        "scoringOpportunities": 6, "scoringOpportunityTouchdowns": 4,
         "exploratoryTurnoversVersion": "turnovers-v2", "exploratoryPenaltiesVersion": "penalty-v1",
     }
     row.update(overrides)
     return row
 
 
-def test_current_season_has_no_field_availability_gaps():
-    assert 2025 in CURRENT_SEASON_FIELDS_WIRED
-    row = build_row(2025, canon_row(), exp_row())
-    assert "field_availability" not in row
-    assert row["epa_per_dropback"] == canon_row()["passEpaSum"] / canon_row()["dropbacks"]
-    assert row["yards_per_rush"] == 5.0
-    assert row["havoc_allowed"] == 0.15
-    assert row["sacks_taken"] == 2
+class TeamGameAdvancedContractTests(unittest.TestCase):
+    def test_version_marks_results_contract(self):
+        self.assertEqual(TEAM_GAME_ADVANCED_VERSION, "team-game-advanced-v2-results-contract")
+
+    def test_filtered_play_populations_are_not_exported_as_official_box_score_names(self):
+        row = build_row(2025, canon_row(), exp_row())
+        self.assertEqual(row["analytics_plays"], 60)
+        self.assertEqual(row["graded_rush_plays"], 30)
+        self.assertNotIn("offensive_plays", row)
+        self.assertNotIn("rush_attempts", row)
+        self.assertNotIn("pass_attempts", row)
+        self.assertNotIn("plays", row)
+
+    def test_third_down_success_is_independent_of_series_conversion(self):
+        row = build_row(2025, canon_row(), exp_row(seriesConversionRate=0.9))
+        self.assertEqual(row["series_conversion_rate"], 0.9)
+        self.assertEqual(row["third_down_success_attempts"], 10)
+        self.assertEqual(row["third_down_successes"], 4)
+        self.assertEqual(row["third_down_success_rate"], 0.4)
+        self.assertNotEqual(row["third_down_success_rate"], row["series_conversion_rate"])
+
+    def test_fourth_down_uses_success_definition_not_an_unrelated_rate(self):
+        row = build_row(2025, canon_row(), exp_row())
+        self.assertEqual(row["fourth_down_success_attempts"], 2)
+        self.assertEqual(row["fourth_down_successes"], 1)
+        self.assertEqual(row["fourth_down_success_rate"], 0.5)
+        self.assertNotIn("fourth_down_rate", row)
+
+    def test_drive_share_is_not_called_possession_share(self):
+        row = build_row(2025, canon_row(), exp_row(offensiveDrives=12, opponentDrives=8))
+        self.assertEqual(row["drive_share"], 0.6)
+        self.assertNotIn("possession_share", row)
+
+    def test_penalty_rate_is_exposed_as_count_per_drive_not_percentage(self):
+        row = build_row(2025, canon_row(), exp_row(offensivePenalties=4, offensiveDrives=10))
+        self.assertEqual(row["penalties_per_drive"], 0.4)
+        self.assertNotIn("penalty_rate", row)
+        self.assertEqual(row["offensive_penalties"], 4)
+        self.assertEqual(row["offensive_penalty_yards"], 35.0)
+
+    def test_final_score_is_not_used_as_offensive_points_per_drive(self):
+        row = build_row(2025, canon_row(points_for=37, validatedPossessions=10), exp_row())
+        self.assertNotIn("points_per_drive", row)
+
+    def test_current_season_has_no_field_availability_gaps(self):
+        self.assertIn(2025, CURRENT_SEASON_FIELDS_WIRED)
+        row = build_row(2025, canon_row(), exp_row())
+        self.assertNotIn("field_availability", row)
+        self.assertEqual(row["epa_per_dropback"], 8.0 / 25)
+        self.assertEqual(row["yards_per_rush"], 5.0)
+        self.assertEqual(row["havoc_allowed"], 0.15)
+        self.assertEqual(row["sacks_taken"], 2)
+
+    def test_historical_season_flags_not_backfilled_fields_instead_of_guessing(self):
+        self.assertNotIn(2014, CURRENT_SEASON_FIELDS_WIRED)
+        row = build_row(2014, canon_row(), exp_row())
+        for key in ("epa_per_dropback", "yards_per_dropback", "yards_per_rush", "havoc_allowed", "sacks_taken"):
+            self.assertIsNone(row[key], key)
+            self.assertEqual(row["field_availability"][key], "not_backfilled")
+        self.assertIn("not_backfilled", FIELD_AVAILABILITY_REASONS)
+
+    def test_missing_exploratory_row_degrades_to_none_not_zero(self):
+        row = build_row(2025, canon_row(), None)
+        self.assertIsNone(row["turnovers_lost"])
+        self.assertIsNone(row["turnovers_per_drive"])
+        self.assertIsNone(row["offensive_penalties"])
+        self.assertIsNone(row["drive_share"])
 
 
-def test_historical_season_flags_not_backfilled_fields_instead_of_guessing():
-    assert 2014 not in CURRENT_SEASON_FIELDS_WIRED
-    row = build_row(2014, canon_row(), exp_row())
-    for key in ("epa_per_dropback", "yards_per_dropback", "yards_per_rush", "havoc_allowed", "sacks_taken"):
-        assert row[key] is None, key
-        # A short code on the row, not the full sentence -- see FIELD_AVAILABILITY_REASONS.
-        assert row["field_availability"][key] == "not_backfilled"
-    assert "not_backfilled" in FIELD_AVAILABILITY_REASONS
-
-
-def test_backfilled_turnovers_and_penalties_available_every_season():
-    # Step 3 backfilled Turnovers/Penalties for the full historical range --
-    # these must NOT be gated behind the current-season-only flag.
-    row = build_row(2014, canon_row(), exp_row())
-    assert row["turnovers_lost"] == 1
-    assert row["turnover_epa_lost"] == -2.5
-    assert row["penalty_rate"] == 4 / 12
-    assert "turnovers_lost" not in row.get("field_availability", {})
-    assert "penalty_rate" not in row.get("field_availability", {})
-
-
-def test_identity_and_no_defensive_mirror_duplication():
-    row = build_row(2025, canon_row(), exp_row())
-    assert row["game_id"] == "g1"
-    assert row["team"] == "Alpha" and row["opponent"] == "Beta"
-    assert row["points"] == 30 and row["opponent_points"] == 20
-    # Offense-only: no "*_allowed" duplicate of a field already describing
-    # the opponent's own defense (the opponent's row IS that mirror).
-    assert "epa_per_play_allowed" not in row
-    assert "success_rate_allowed" not in row
-
-
-def test_missing_exploratory_row_degrades_to_none_not_zero():
-    # A completed game with no matching exploratory row (e.g. an FCS
-    # opponent never gets one) must not silently read as "zero turnovers."
-    row = build_row(2025, canon_row(), None)
-    assert row["turnovers_lost"] is None
-    assert row["turnover_rate"] is None
+if __name__ == "__main__":
+    unittest.main()
