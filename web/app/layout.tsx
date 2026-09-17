@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
 import { TooltipProvider } from "@/components/Tooltip";
 import BrandTitleGuard from "@/components/BrandTitleGuard";
 import MatchupPredictionPortal from "@/components/MatchupPredictionPortal";
@@ -59,6 +58,9 @@ export const metadata: Metadata = {
     "LEILA Ratings provides opponent-adjusted college football ratings, weekly matchup analysis, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
 };
 
+const analyticsInit = `window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};`;
+const speedInsightsInit = `window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments);};`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -82,8 +84,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <TableFreshnessStamp />
         <TooltipProvider>{children}</TooltipProvider>
         <MatchupPredictionPortal />
-        <Analytics />
-        <SpeedInsights />
+        <Script id="vercel-analytics-init" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: analyticsInit }} />
+        <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
+        <Script id="vercel-speed-insights-init" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: speedInsightsInit }} />
+        <Script src="/_vercel/speed-insights/script.js" strategy="afterInteractive" />
       </body>
     </html>
   );
