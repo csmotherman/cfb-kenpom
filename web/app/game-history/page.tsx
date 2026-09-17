@@ -120,10 +120,6 @@ export default function GameHistoryPage() {
     };
   }, []);
 
-  useEffect(() => {
-    setResultLimit(INITIAL_RESULTS);
-  }, [query, year, week, teamA, teamB, conference, conferenceGamesOnly, siteMode, sortMode]);
-
   const games = useMemo<HistoryGame[]>(() => {
     if (!loaded) return [];
     return loaded.flatMap(({ year: season, schedule }) =>
@@ -180,10 +176,6 @@ export default function GameHistoryPage() {
     }
     return [...values.entries()].sort((a, b) => a[0] - b[0]);
   }, [loaded, year]);
-
-  useEffect(() => {
-    if (week !== "all" && !weekOptions.some(([number]) => String(number) === week)) setWeek("all");
-  }, [week, weekOptions]);
 
   const exactA = teamByExactName.get(normalize(teamA));
   const exactB = teamByExactName.get(normalize(teamB));
@@ -248,6 +240,10 @@ export default function GameHistoryPage() {
   const visible = filtered.slice(0, resultLimit);
   const dataRange = yearOptions.length ? `${yearOptions[yearOptions.length - 1]}–${yearOptions[0]}` : "";
 
+  function resetResults() {
+    setResultLimit(INITIAL_RESULTS);
+  }
+
   function clearFilters() {
     setQuery("");
     setYear("all");
@@ -258,6 +254,7 @@ export default function GameHistoryPage() {
     setConferenceGamesOnly(false);
     setSiteMode("all");
     setSortMode("newest");
+    resetResults();
   }
 
   if (loadError) throw loadError;
@@ -291,7 +288,10 @@ export default function GameHistoryPage() {
               id="historySearch"
               type="search"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                resetResults();
+              }}
               placeholder="Team, venue, conference, year, score…"
               autoComplete="off"
             />
@@ -304,7 +304,10 @@ export default function GameHistoryPage() {
                 id="historyTeamA"
                 list="historyTeams"
                 value={teamA}
-                onChange={(event) => setTeamA(event.target.value)}
+                onChange={(event) => {
+                  setTeamA(event.target.value);
+                  resetResults();
+                }}
                 placeholder="Any team"
                 autoComplete="off"
               />
@@ -316,7 +319,10 @@ export default function GameHistoryPage() {
                 id="historyTeamB"
                 list="historyTeams"
                 value={teamB}
-                onChange={(event) => setTeamB(event.target.value)}
+                onChange={(event) => {
+                  setTeamB(event.target.value);
+                  resetResults();
+                }}
                 placeholder="Optional opponent"
                 autoComplete="off"
               />
@@ -329,28 +335,53 @@ export default function GameHistoryPage() {
           <div className="history-filter-grid">
             <label>
               <span>Season</span>
-              <select value={year} onChange={(event) => setYear(event.target.value)}>
+              <select
+                value={year}
+                onChange={(event) => {
+                  setYear(event.target.value);
+                  setWeek("all");
+                  resetResults();
+                }}
+              >
                 <option value="all">All seasons</option>
                 {yearOptions.map((season) => <option value={season} key={season}>{season}</option>)}
               </select>
             </label>
             <label>
               <span>Week</span>
-              <select value={week} onChange={(event) => setWeek(event.target.value)}>
+              <select
+                value={week}
+                onChange={(event) => {
+                  setWeek(event.target.value);
+                  resetResults();
+                }}
+              >
                 <option value="all">All weeks</option>
                 {weekOptions.map(([number, label]) => <option value={number} key={number}>{label}</option>)}
               </select>
             </label>
             <label>
               <span>Conference</span>
-              <select value={conference} onChange={(event) => setConference(event.target.value)}>
+              <select
+                value={conference}
+                onChange={(event) => {
+                  setConference(event.target.value);
+                  resetResults();
+                }}
+              >
                 <option value="all">All conferences</option>
                 {conferences.map((name) => <option value={name} key={name}>{name}</option>)}
               </select>
             </label>
             <label>
               <span>Site</span>
-              <select value={siteMode} onChange={(event) => setSiteMode(event.target.value as SiteMode)}>
+              <select
+                value={siteMode}
+                onChange={(event) => {
+                  setSiteMode(event.target.value as SiteMode);
+                  resetResults();
+                }}
+              >
                 <option value="all">All sites</option>
                 <option value="campus">Non-neutral</option>
                 <option value="neutral">Neutral only</option>
@@ -358,7 +389,13 @@ export default function GameHistoryPage() {
             </label>
             <label>
               <span>Sort</span>
-              <select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
+              <select
+                value={sortMode}
+                onChange={(event) => {
+                  setSortMode(event.target.value as SortMode);
+                  resetResults();
+                }}
+              >
                 <option value="newest">Newest first</option>
                 <option value="oldest">Oldest first</option>
                 <option value="closest">Closest games</option>
@@ -369,7 +406,10 @@ export default function GameHistoryPage() {
               <input
                 type="checkbox"
                 checked={conferenceGamesOnly}
-                onChange={(event) => setConferenceGamesOnly(event.target.checked)}
+                onChange={(event) => {
+                  setConferenceGamesOnly(event.target.checked);
+                  resetResults();
+                }}
               />
               <span>Conference games only</span>
             </label>
