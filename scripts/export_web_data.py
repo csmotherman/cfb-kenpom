@@ -221,14 +221,18 @@ def build_predictions_week_payloads(year, schedule_payload, snapshots):
 
 
 def build_prediction_track_record_payload(year, schedule_payload, snapshots):
-    """Public, ungated accuracy record: straight-up record and average
-    absolute margin error, graded only against games LEILA Ratings can verify
-    (matched by gameId against the public schedule, with a final score).
-    A week with no gradeable games yet reports null accuracy rather than 0,
-    so an in-progress week never reads as a wrong one.
+    """Public, ungated prediction-performance record.
+
+    Grades only immutable pregame prediction snapshots against final scores
+    matched by gameId. In addition to the headline straight-up record and
+    margin MAE, this publishes non-sensitive aggregate diagnostics for the
+    public performance page: weekly/conference splits, error thresholds,
+    prediction-margin bands, and confidence calibration. No game-level picks
+    are exposed here.
     """
     if not snapshots or schedule_payload is None:
         return None
+
     by_game_id = {
         game["gameId"]: game
         for games in schedule_payload["byWeek"].values()
@@ -238,54 +242,198 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots):
     require(len(freeze_versions) == 1, "Prediction snapshots span more than one frozen model version")
     model_version = freeze_versions.pop()
 
+    def empty_stats():
+        return {"games": 0, "graded": 0, "correct": 0, "abs_errors": []}
+
+    def add_game(stats, *, graded=False, correct=False, abs_error=None):
+        stats["games"] += 1
+        if graded:
+            stats["graded"] += 1
+            stats["correct"] += int(bool(correct))
+            if abs_error is not None:
+                stats["abs_errors"].append(float(abs_error))
+
+    def median(values):
+        ordered = sorted(values)
+        count = len(ordered)
+        if not count:
+            return None
+        mid = count // 2
+        if count % 2:
+            return ordered[mid]
+        return (ordered[mid - 1] + ordered[mid]) / 2.0
+
+    def finalize(stats):
+        graded = stats["graded"]
+        errors = stats["abs_errors"]
+        return {
+            "games": stats["games"],
+            "graded": graded,
+            "correct": stats["correct"],
+            "accuracySU": round(stats["correct"] / graded, 4) if graded else None,
+            "avgAbsMarginError": round(sum(errors) / len(errors), 2) if errors else None,
+            "medianAbsMarginError": round(median(errors), 2) if errors else None,
+            "within3Pct": round(sum(error <= 3 for error in errors) / len(errors), 4) if errors else None,
+            "within7Pct": round(sum(error <= 7 for error in errors) / len(errors), 4) if errors else None,
+            "within10Pct": round(sum(error <= 10 for error in errors) / len(errors), 4) if errors else None,
+            "within14Pct": round(sum(error <= 14 for error in errors) / len(errors), 4) if errors else None,
+        }
+
+    conference_stats = {}
+    confidence_defs = [
+        ("50-59%", 0.50, 0.60),
+        ("60-69%", 0.60, 0.70),
+        ("70-79%", 0.70, 0.80),
+        ("80-89%", 0.80, 0.90),
+        ("90%+", 0.90, 1.000001),
+    ]
+    confidence_stats = {
+        label: {"label": label, "min": lower, "max": min(upper, 1.0), "games": 0, "graded": 0,
+                "correct": 0, "confidence_sum": 0.0}
+        for label, lower, upper in confidence_defs
+    }
+    margin_defs = [
+        ("0-3 pts", 0.0, 3.000001),
+        ("3-7 pts", 3.000001, 7.000001),
+        ("7-14 pts", 7.000001, 14.000001),
+        ("14+ pts", 14.000001, float("inf")),
+    ]
+    margin_stats = {
+        label: {"label": label, "min": lower, "max": None if upper == float("inf") else upper, **empty_stats()}
+        for label, lower, upper in margin_defs
+    }
+
     week_records = []
-    totals = {"games": 0, "graded": 0, "correct": 0, "abs_error_sum": 0.0}
+    overall_stats = empty_stats()
+
     for snapshot in snapshots:
         week = int(snapshot["week"])
-        stats = {"games": 0, "graded": 0, "correct": 0, "abs_error_sum": 0.0}
+        stats = empty_stats()
+
         for row in snapshot.get("predictions", []):
-            stats["games"] += 1
             resolved = by_game_id.get(str(row["gameId"]))
+            add_game(stats)
+            add_game(overall_stats)
+
+            if resolved is not None:
+                conferences = {
+                    conf for conf in (resolved.get("homeConference"), resolved.get("awayConference"))
+                    if conf
+                }
+                for conference in conferences:
+                    bucket = conference_stats.setdefault(conference, empty_stats())
+                    add_game(bucket)
+
+            predicted_home_margin = float(row["predictedMargin"])
+            predicted_margin_abs = abs(predicted_home_margin)
+            margin_bucket = None
+            for label, lower, upper in margin_defs:
+                if lower <= predicted_margin_abs < upper:
+                    margin_bucket = margin_stats[label]
+                    add_game(margin_bucket)
+                    break
+
+            confidence = row.get("confidence")
+            confidence_bucket = None
+            if isinstance(confidence, (int, float)) and not isinstance(confidence, bool):
+                confidence = float(confidence)
+                for label, lower, upper in confidence_defs:
+                    if lower <= confidence < upper:
+                        confidence_bucket = confidence_stats[label]
+                        confidence_bucket["games"] += 1
+                        confidence_bucket["confidence_sum"] += confidence
+                        break
+
             if resolved is None or not resolved.get("completed"):
                 continue
+
             home_points, away_points = resolved.get("homePoints"), resolved.get("awayPoints")
             if home_points is None or away_points is None:
                 continue
+
             actual_home_margin = home_points - away_points
             if actual_home_margin == 0:
-                continue  # a tie has no straight-up winner to grade against
-            stats["graded"] += 1
-            actual_winner = resolved["homeTeam"] if actual_home_margin > 0 else resolved["awayTeam"]
-            if row.get("predictedWinner") == actual_winner:
-                stats["correct"] += 1
-            stats["abs_error_sum"] += abs(float(row["predictedMargin"]) - actual_home_margin)
+                continue
 
-        week_records.append({
-            "week": week,
-            "games": stats["games"],
-            "graded": stats["graded"],
-            "correct": stats["correct"],
-            "accuracySU": round(stats["correct"] / stats["graded"], 4) if stats["graded"] else None,
-            "avgAbsMarginError": round(stats["abs_error_sum"] / stats["graded"], 2) if stats["graded"] else None,
-        })
-        for key in totals:
-            totals[key] += stats[key]
+            actual_winner = resolved["homeTeam"] if actual_home_margin > 0 else resolved["awayTeam"]
+            correct = row.get("predictedWinner") == actual_winner
+            abs_error = abs(predicted_home_margin - actual_home_margin)
+
+            stats["graded"] += 1
+            stats["correct"] += int(correct)
+            stats["abs_errors"].append(abs_error)
+            overall_stats["graded"] += 1
+            overall_stats["correct"] += int(correct)
+            overall_stats["abs_errors"].append(abs_error)
+
+            if resolved is not None:
+                for conference in {
+                    conf for conf in (resolved.get("homeConference"), resolved.get("awayConference"))
+                    if conf
+                }:
+                    bucket = conference_stats[conference]
+                    bucket["graded"] += 1
+                    bucket["correct"] += int(correct)
+                    bucket["abs_errors"].append(abs_error)
+
+            if margin_bucket is not None:
+                margin_bucket["graded"] += 1
+                margin_bucket["correct"] += int(correct)
+                margin_bucket["abs_errors"].append(abs_error)
+
+            if confidence_bucket is not None:
+                confidence_bucket["graded"] += 1
+                confidence_bucket["correct"] += int(correct)
+
+        week_records.append({"week": week, **finalize(stats)})
 
     week_records.sort(key=lambda record: record["week"])
+
+    conferences = [
+        {"conference": conference, **finalize(stats)}
+        for conference, stats in conference_stats.items()
+    ]
+    conferences.sort(key=lambda record: (-record["graded"], record["conference"]))
+
+    confidence_buckets = []
+    for label, _, _ in confidence_defs:
+        bucket = confidence_stats[label]
+        graded = bucket["graded"]
+        avg_confidence = bucket["confidence_sum"] / bucket["games"] if bucket["games"] else None
+        actual_win_rate = bucket["correct"] / graded if graded else None
+        confidence_buckets.append({
+            "label": label,
+            "min": bucket["min"],
+            "max": bucket["max"],
+            "games": bucket["games"],
+            "graded": graded,
+            "correct": bucket["correct"],
+            "avgConfidence": round(avg_confidence, 4) if avg_confidence is not None else None,
+            "actualWinRate": round(actual_win_rate, 4) if actual_win_rate is not None else None,
+            "calibrationGap": round(actual_win_rate - avg_confidence, 4)
+                if actual_win_rate is not None and avg_confidence is not None else None,
+        })
+
+    margin_buckets = []
+    for label, _, _ in margin_defs:
+        raw = margin_stats[label]
+        margin_buckets.append({
+            "label": label,
+            "min": raw["min"],
+            "max": raw["max"],
+            **finalize(raw),
+        })
+
     return {
         "season": year,
         "modelVersion": model_version,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "weeks": week_records,
-        "overall": {
-            "games": totals["games"],
-            "graded": totals["graded"],
-            "correct": totals["correct"],
-            "accuracySU": round(totals["correct"] / totals["graded"], 4) if totals["graded"] else None,
-            "avgAbsMarginError": round(totals["abs_error_sum"] / totals["graded"], 2) if totals["graded"] else None,
-        },
+        "conferences": conferences,
+        "confidenceBuckets": confidence_buckets,
+        "marginBuckets": margin_buckets,
+        "overall": finalize(overall_stats),
     }
-
 
 def _assign_public_rank(rows, key, out_key, *, higher_better=True):
     ranked = [row for row in rows if row.get(key) is not None]
