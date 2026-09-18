@@ -11,6 +11,7 @@ from cfb_analytics.raw.storage import partition_dir, store_response, verify_mani
 from cfb_analytics.sources.cfbd.client import CfbdClient, CfbdResponse
 
 ENTITIES = ("games", "drives", "plays")
+BOX_SCORE_ENTITY = "game_team_stats"
 
 
 def get_calendar(client: CfbdClient, season: int) -> list[dict]:
@@ -56,6 +57,14 @@ def _filter_to_games(response: CfbdResponse, game_ids: set[str]) -> CfbdResponse
     return _json_response_like(response, payload)
 
 
+def _filter_box_scores_to_games(response: CfbdResponse, game_ids: set[str]) -> CfbdResponse:
+    """The /games/teams endpoint keys each game with the top-level id field."""
+    if not isinstance(response.payload, list):
+        raise ValueError("Unexpected CFBD game-team stats payload")
+    payload = [row for row in response.payload if str(row.get("id")) in game_ids]
+    return _json_response_like(response, payload)
+
+
 def acquire_week(
     client: CfbdClient,
     root: Path,
@@ -68,10 +77,10 @@ def acquire_week(
     """Acquire one authoritative FBS-participant partition (FBS-vs-FBS and
     FBS-vs-non-FBS; a game with no FBS side at all is out of scope).
 
-    Games establish the allowed universe. Drives and plays are then restricted
-    to those exact game IDs even though the CFBD requests also ask for FBS data.
-    This prevents an ambiguous upstream classification filter from allowing a
-    genuinely out-of-scope (non-FBS-vs-non-FBS) game into the historical corpus.
+    Games establish the allowed universe. Drives, plays, and official team box
+    scores are then restricted to those exact game IDs. This prevents an
+    ambiguous upstream classification filter from allowing a genuinely
+    out-of-scope (non-FBS-vs-non-FBS) game into the historical corpus.
     """
     manifests: list[dict] = []
     directory = partition_dir(root, season, season_type, week)
@@ -106,6 +115,34 @@ def acquire_week(
             continue
         response = _filter_to_games(getattr(client, entity)(season, week, season_type), game_ids)
         manifests.append(store_response(root, season=season, season_type=season_type, week=week, entity=entity, response=response, refresh=refresh))
+
+    # Official team box scores are deliberately a separate raw source from PBP.
+    # Results pages use these values for facts such as third downs, penalties,
+    # turnovers, possession, and official rushing/passing totals.
+    if not refresh and verify_manifest(directory, BOX_SCORE_ENTITY):
+        payload = json.loads((directory / f"{BOX_SCORE_ENTITY}.json").read_text(encoding="utf-8"))
+        outside = [row for row in payload if str(row.get("id")) not in game_ids]
+        if outside:
+            raise ValueError(
+                f"Existing {season} {season_type} week {week} box scores contain records outside the FBS-participant game universe; rerun with --refresh"
+            )
+        manifests.append(json.loads((directory / f"{BOX_SCORE_ENTITY}.manifest.json").read_text(encoding="utf-8")))
+    else:
+        response = _filter_box_scores_to_games(
+            client.game_team_stats_week(season, week, season_type),
+            game_ids,
+        )
+        manifests.append(
+            store_response(
+                root,
+                season=season,
+                season_type=season_type,
+                week=week,
+                entity=BOX_SCORE_ENTITY,
+                response=response,
+                refresh=refresh,
+            )
+        )
     return manifests
 
 
