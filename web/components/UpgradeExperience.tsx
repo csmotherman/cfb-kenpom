@@ -34,7 +34,7 @@ const FEATURE_COPY: Record<UpgradeFeature, FeatureCopy> = {
     eyebrow: "Advanced Analytics",
     title: "Unlock Advanced Analytics",
     intro:
-      "Use custom week ranges and deeper offense, defense and efficiency views without changing the simple LEILA ratings experience.",
+      "Use custom week ranges and deeper offense, defense and efficiency views without changing the simple overall ratings experience.",
     reason:
       "After Early Beta, Advanced Analytics is included with either paid plan.",
   },
@@ -42,7 +42,7 @@ const FEATURE_COPY: Record<UpgradeFeature, FeatureCopy> = {
     eyebrow: "Weekly Predictions",
     title: "Unlock Weekly Predictions",
     intro:
-      "See LEILA's published pregame model outputs while the ratings and completed-game data remain public.",
+      "See PRIME's published pregame model outputs while the ratings and completed-game data remain public.",
     reason:
       "After Early Beta, weekly predictions are included only with Advanced + Predictions.",
   },
@@ -55,10 +55,10 @@ const FEATURE_COPY: Record<UpgradeFeature, FeatureCopy> = {
       "This is a deeper research layer rather than a core rating. Any unfinished matchup tools remain clearly labeled as coming soon.",
   },
   general: {
-    eyebrow: "LEILA Advanced",
+    eyebrow: "PRIME Advanced",
     title: "More data when you want it",
     intro:
-      "LEILA Ratings stays a ratings-first site. Paid access adds deeper research controls, with Predictions available as a separate upgrade.",
+      "PRIME Football stays a ratings-first site. Paid access adds deeper research controls, with Predictions available as a separate upgrade.",
     reason:
       "Adj. Net ratings, team profiles, schedules and basic matchup context remain free. Paid access is for deeper analysis and forward-looking tools.",
   },
@@ -130,7 +130,7 @@ export default function UpgradeExperience({
         <p className="upgrade-compact-head__reason">
           <strong>{earlyBetaActive ? "After beta:" : "Why this is blocked:"}</strong> {copy.reason}
         </p>
-        <div className="upgrade-trustline" aria-label="LEILA Ratings access principles">
+        <div className="upgrade-trustline" aria-label="PRIME Football access principles">
           <span>Core ratings stay free</span>
           <span>Cancel anytime</span>
           <span>{earlyBetaActive ? `Full beta access through ${earlyBetaEndLabel}` : "Monthly access"}</span>
@@ -236,7 +236,7 @@ export default function UpgradeExperience({
 
         {!billingConfigured && !earlyBetaActive && mode === "page" ? (
           <p className="upgrade-billing-note">
-            Checkout is not live yet. You can create a free LEILA Ratings account now; plan buttons will activate here after Stripe is configured.
+            Checkout is not live yet. You can create a free PRIME Football account now; plan buttons will activate here after Stripe is configured.
           </p>
         ) : null}
       </section>
