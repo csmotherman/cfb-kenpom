@@ -57,7 +57,7 @@ export type AdvancedRow = {
   adjORank?: number | null;
   adjDRank?: number | null;
   cff: number | null;
-  // ASM ("Adjusted Score Matrix") -- LEILA's own opponent-adjusted, blowout-
+  // ASM ("Adjusted Score Matrix") -- PRIME's own opponent-adjusted, blowout-
   // clipped scoring-margin rating (constrained least squares, margins capped
   // at +/-28 before fitting). A results-based counterpart to Adj. Net's
   // process-based (EPA/Success/Explosiveness) composite -- see the
@@ -437,7 +437,7 @@ export type PredictionsWeek = {
   totalGames?: number;
 };
 
-// A week's predictions are only "graded" once every game LEILA Ratings can verify
+// A week's predictions are only "graded" once every game PRIME Football can verify
 // (gameId matched against the public schedule, with a final score) has
 // finished -- so `games` and `graded` can differ for an in-progress week,
 // and accuracySU/avgAbsMarginError are null (not 0) until at least one game
