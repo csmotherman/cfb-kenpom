@@ -28,7 +28,7 @@ export async function GET(
 
   if (!entitlements.userId) {
     return NextResponse.json(
-      { code: "SIGN_IN_REQUIRED", message: "Sign in to access LEILA Exploratory." },
+      { code: "SIGN_IN_REQUIRED", message: "Sign in to access PRIME Exploratory." },
       { status: 401, headers: PRIVATE_HEADERS }
     );
   }
@@ -39,7 +39,7 @@ export async function GET(
     return NextResponse.json(
       {
         code: "UPGRADE_REQUIRED",
-        message: "LEILA Advanced or Advanced + Predictions is required for Exploratory.",
+        message: "PRIME Advanced or Advanced + Predictions is required for Exploratory.",
       },
       { status: 403, headers: PRIVATE_HEADERS }
     );
