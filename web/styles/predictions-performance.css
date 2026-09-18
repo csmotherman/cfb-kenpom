@@ -1,0 +1,468 @@
+/* PRIME Predictions — public model-performance surfaces */
+
+.prediction-performance-strip {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(420px, 1.55fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(20, 39, 66, 0.045);
+}
+
+.prediction-performance-strip__intro {
+  min-width: 0;
+}
+
+.prediction-performance-strip__intro .eyebrow {
+  font-size: 7px;
+}
+
+.prediction-performance-strip__title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.prediction-performance-strip__title-row h2 {
+  margin: 0;
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: .015em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.prediction-performance-strip__sample {
+  color: var(--color-ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.prediction-performance-strip__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(72px, 1fr));
+  border-left: 1px solid var(--color-hairline);
+  border-right: 1px solid var(--color-hairline);
+}
+
+.prediction-performance-strip__stat {
+  min-width: 0;
+  padding: 1px 13px;
+}
+
+.prediction-performance-strip__stat + .prediction-performance-strip__stat {
+  border-left: 1px solid var(--color-hairline);
+}
+
+.prediction-performance-strip__stat strong,
+.prediction-performance-kpis strong,
+.prediction-performance-errors__grid strong {
+  display: block;
+  color: var(--color-navy);
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
+.prediction-performance-strip__stat strong {
+  font-size: 17px;
+  line-height: 1.05;
+}
+
+.prediction-performance-strip__stat span,
+.prediction-performance-kpis span,
+.prediction-performance-errors__grid span {
+  display: block;
+  margin-top: 3px;
+  color: var(--color-ink-tertiary);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.prediction-performance-strip__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--color-gold-dark);
+  border-radius: 5px;
+  background: rgba(197, 154, 67, .07);
+  color: var(--color-navy);
+  font-size: 9px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.prediction-performance-strip__link:hover {
+  background: rgba(197, 154, 67, .14);
+}
+
+.prediction-performance-page {
+  padding-top: 26px;
+  padding-bottom: 48px;
+}
+
+.prediction-performance-page__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.prediction-performance-page__header h1 {
+  margin: 3px 0 8px;
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: clamp(34px, 5vw, 48px);
+  line-height: .95;
+  text-transform: uppercase;
+}
+
+.prediction-performance-page__header p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.prediction-performance-page__season,
+.prediction-performance-page__season-pill {
+  flex: 0 0 auto;
+}
+
+.prediction-performance-page__season {
+  display: grid;
+  gap: 4px;
+}
+
+.prediction-performance-page__season span,
+.prediction-performance-page__season-pill {
+  color: var(--color-ink-tertiary);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.prediction-performance-page__season select {
+  min-width: 120px;
+  height: 36px;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--color-navy);
+  padding: 0 28px 0 10px;
+  font-weight: 800;
+}
+
+.prediction-performance-page__season-pill {
+  padding: 8px 10px;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: 5px;
+  background: var(--color-paper-raised);
+}
+
+.prediction-performance-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  margin-top: 16px;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.prediction-performance-kpis > div {
+  padding: 18px 20px;
+}
+
+.prediction-performance-kpis > div + div {
+  border-left: 1px solid var(--color-hairline);
+}
+
+.prediction-performance-kpis strong {
+  font-size: 25px;
+}
+
+.prediction-performance-kpis span {
+  font-size: 8px;
+}
+
+.prediction-performance-errors,
+.prediction-performance-section {
+  margin-top: 28px;
+}
+
+.prediction-performance-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+
+.prediction-performance-section-heading h2 {
+  margin: 2px 0 0;
+  color: var(--color-navy);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.prediction-performance-model-id {
+  color: var(--color-ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 8px;
+}
+
+.prediction-performance-errors__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: 8px;
+  background: var(--color-paper-raised);
+}
+
+.prediction-performance-errors__grid > div {
+  padding: 14px 16px;
+}
+
+.prediction-performance-errors__grid > div + div {
+  border-left: 1px solid var(--color-hairline);
+}
+
+.prediction-performance-errors__grid strong {
+  font-size: 18px;
+}
+
+.prediction-performance-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.prediction-performance-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+}
+
+.prediction-performance-table thead th {
+  height: 38px;
+  padding: 0 13px;
+  background: var(--color-navy);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+
+.prediction-performance-table tbody th,
+.prediction-performance-table tbody td {
+  height: 42px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--color-hairline);
+  color: var(--color-ink-secondary);
+  font-size: 10.5px;
+}
+
+.prediction-performance-table tbody th {
+  color: var(--color-navy);
+  font-weight: 800;
+  text-align: left;
+}
+
+.prediction-performance-table tbody td {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.prediction-performance-table .num {
+  text-align: right;
+}
+
+.prediction-performance-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.prediction-performance-table tbody tr:nth-child(even) {
+  background: rgba(20, 39, 66, .018);
+}
+
+.prediction-performance-section__note,
+.prediction-performance-page__method-note {
+  color: var(--color-ink-tertiary);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.prediction-performance-section__note {
+  margin: 7px 2px 0;
+}
+
+.prediction-performance-page__method-note {
+  margin: 24px 0 0;
+  padding: 11px 13px;
+  border-left: 3px solid var(--color-gold);
+  background: rgba(197, 154, 67, .06);
+}
+
+@media (max-width: 900px) {
+  .prediction-performance-strip {
+    grid-template-columns: 1fr auto;
+  }
+
+  .prediction-performance-strip__stats {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    border: 1px solid var(--color-hairline);
+    border-radius: 5px;
+  }
+
+  .prediction-performance-strip__link {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .prediction-performance-strip {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px;
+    margin-bottom: 9px;
+    padding: 10px;
+  }
+
+  .prediction-performance-strip__title-row {
+    display: block;
+  }
+
+  .prediction-performance-strip__title-row h2 {
+    font-size: 18px;
+  }
+
+  .prediction-performance-strip__sample {
+    display: block;
+    margin-top: 3px;
+  }
+
+  .prediction-performance-strip__link {
+    min-height: 32px;
+    padding-inline: 8px;
+    font-size: 0;
+  }
+
+  .prediction-performance-strip__link span {
+    font-size: 14px;
+  }
+
+  .prediction-performance-strip__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prediction-performance-strip__stat {
+    padding: 9px 10px;
+  }
+
+  .prediction-performance-strip__stat + .prediction-performance-strip__stat {
+    border-left: 0;
+  }
+
+  .prediction-performance-strip__stat:nth-child(even) {
+    border-left: 1px solid var(--color-hairline);
+  }
+
+  .prediction-performance-strip__stat:nth-child(n+3) {
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .prediction-performance-page {
+    padding-top: 14px;
+  }
+
+  .prediction-performance-page__header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .prediction-performance-page__header h1 {
+    font-size: 34px;
+  }
+
+  .prediction-performance-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prediction-performance-kpis > div {
+    padding: 14px;
+  }
+
+  .prediction-performance-kpis > div + div {
+    border-left: 0;
+  }
+
+  .prediction-performance-kpis > div:nth-child(even) {
+    border-left: 1px solid var(--color-hairline);
+  }
+
+  .prediction-performance-kpis > div:nth-child(n+3) {
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .prediction-performance-kpis strong {
+    font-size: 21px;
+  }
+
+  .prediction-performance-errors__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prediction-performance-errors__grid > div {
+    padding: 12px;
+  }
+
+  .prediction-performance-errors__grid > div + div {
+    border-left: 0;
+  }
+
+  .prediction-performance-errors__grid > div:nth-child(even) {
+    border-left: 1px solid var(--color-hairline);
+  }
+
+  .prediction-performance-errors__grid > div:nth-child(n+3) {
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  .prediction-performance-errors__grid > div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .prediction-performance-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .prediction-performance-table {
+    min-width: 620px;
+  }
+}
