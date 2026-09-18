@@ -5,7 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { logoUrl } from "@/lib/teamCode";
 
 export const metadata = {
-  title: "What Turnovers Actually Cost: PPA/Play Before and After | LEILA Ratings",
+  title: "What Turnovers Actually Cost: PPA/Play Before and After | PRIME Football",
   description:
     "We pulled every turnover from three Week 2 classics -- Michigan-Oklahoma, Alabama-Kentucky, and Texas-Ohio State -- and measured exactly how much each one swung a team's PPA per play.",
   robots: { index: false, follow: false },
@@ -240,7 +240,7 @@ export default function RkAnalysisArticle() {
             play two ways: with every turnover included, and with the turnovers stripped out. The gap between those
             two numbers is exactly how much a giveaway (or a takeaway) is worth beyond what the scoreboard shows.
           </p>
-          <p className="article-byline">LEILA Ratings Data Desk</p>
+          <p className="article-byline">PRIME Football Data Desk</p>
         </header>
 
         <div className="ppa-chart-legend">
@@ -327,7 +327,7 @@ export default function RkAnalysisArticle() {
           <p>
             &ldquo;PPA/play without turnovers&rdquo; is useful for isolating how a team executed on the plays that
             stayed alive, but it can flatter an offense that got bailed out by turnover luck, or undersell one that
-            was otherwise playing well before the ball came loose. The figures on LEILA&rsquo;s Advanced page already
+            was otherwise playing well before the ball came loose. The figures on PRIME&rsquo;s Advanced page already
             include every turnover, for exactly this reason.
           </p>
         </section>
@@ -335,7 +335,7 @@ export default function RkAnalysisArticle() {
         <section className="article-section article-actions">
           <div>
             <span className="eyebrow">Keep Reading</span>
-            <h2>More on how LEILA builds its numbers</h2>
+            <h2>More on how PRIME builds its numbers</h2>
             <p>
               For the mechanism behind why early-season ratings shouldn&rsquo;t be fully trusted yet, see our Week 4
               networks piece. For the full breakdown of every rating on the site, see Methodology.
@@ -343,7 +343,7 @@ export default function RkAnalysisArticle() {
           </div>
           <div className="article-actions__links">
             <Link href="/article/waitingonranks">Read: Nobody Knows Who&rsquo;s Good Yet →</Link>
-            <Link href="/methodology">How LEILA&rsquo;s ratings work →</Link>
+            <Link href="/methodology">How PRIME&rsquo;s ratings work →</Link>
           </div>
         </section>
 
@@ -351,11 +351,11 @@ export default function RkAnalysisArticle() {
           Turnover counts are CFBD&rsquo;s official box score (<code>/games/teams</code>, <code>turnovers</code>{" "}
           category) for gameIds 401856679, 401856674, and 401856682 (Week 2, 2026); each was matched to its
           play-by-play row by hand. PPA/play figures use CFBD&rsquo;s play-level predicted-points-added model and
-          match the live figures on LEILA&rsquo;s Advanced page.
+          match the live figures on PRIME&rsquo;s Advanced page.
         </p>
       </main>
 
-      <SiteFooter note="LEILA Ratings favors explicit definitions over invented completeness. Research-stage metrics stay labeled, missing data stays missing, and predictive claims are separated from descriptive ratings." />
+      <SiteFooter note="PRIME Football favors explicit definitions over invented completeness. Research-stage metrics stay labeled, missing data stays missing, and predictive claims are separated from descriptive ratings." />
     </>
   );
 }
