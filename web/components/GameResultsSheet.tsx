@@ -181,7 +181,7 @@ export default function GameResultsSheet({
         <p>{description}</p>
       </section>
 
-      <div className={styles.breakdownGrid}>
+      <div className={`${styles.breakdownGrid} ${columns.length === 2 ? styles.breakdownGridTwo : ""}`}>
         {columns.map((column) => (
           <BreakdownColumn key={column.title} title={column.title} sections={column.sections} leftTeam={leftTeam} rightTeam={rightTeam} />
         ))}
