@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   const returnTo = safeReturnTo(formData.get("return_to"));
 
   if (!isPaidPlan(requestedPlan)) {
-    return feedbackRedirect(request, returnTo, "error", "Choose a valid LEILA Ratings plan.");
+    return feedbackRedirect(request, returnTo, "error", "Choose a valid PRIME Football plan.");
   }
 
   if (isEarlyBetaActive()) {
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
   if (!userId) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("message", "Sign in to continue with the LEILA Ratings plan you selected.");
+    loginUrl.searchParams.set("message", "Sign in to continue with the PRIME Football plan you selected.");
     loginUrl.searchParams.set("next", destinationWithPlan(request, returnTo, requestedPlan));
     return NextResponse.redirect(loginUrl, 303);
   }
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       request,
       "/account",
       "message",
-      "You already have LEILA Ratings access. Use Manage billing to change your plan."
+      "You already have PRIME Football access. Use Manage billing to change your plan."
     );
   }
 
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
         request,
         "/account",
         "message",
-        "An existing Stripe subscription was found and synced to your LEILA Ratings account."
+        "An existing Stripe subscription was found and synced to your PRIME Football account."
       );
     }
 
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.redirect(session.url, 303);
   } catch (error) {
-    console.error("LEILA Ratings Stripe checkout error", error);
+    console.error("PRIME Football Stripe checkout error", error);
     return feedbackRedirect(
       request,
       returnTo,
