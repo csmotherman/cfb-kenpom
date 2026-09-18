@@ -8,6 +8,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import MarketOddsCard from "@/components/MarketOddsCard";
 import PrimeLoadingState from "@/components/PrimeLoadingState";
+import PredictionsPerformanceSummary from "@/components/PredictionsPerformanceSummary";
 import { logoUrl } from "@/lib/teamCode";
 import {
   PremiumAccessError,
@@ -323,6 +324,7 @@ export default function PredictionsPage() {
       <SiteNav />
 
       <main id="predictionsContent" className="container predictions-main predictions-main--compact">
+        <PredictionsPerformanceSummary />
         {schedule === undefined ? (
           <PrimeLoadingState variant="predictions" />
         ) : schedule === null ? (
