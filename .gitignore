@@ -6,6 +6,10 @@ data/raw/**
 !data/raw/.gitkeep
 data/processed/**
 !data/processed/.gitkeep
+
+# Local research scratch data (multi-season CFBD pulls for one-off model
+# research) -- not project data, never meant to be committed.
+data/research/
 node_modules/
 
 .env.*
