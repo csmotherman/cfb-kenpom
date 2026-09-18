@@ -3,8 +3,19 @@
 The source is CFBD's authenticated betting-lines feed. We retain every provider
 returned for auditability and select a deterministic primary quote for the UI:
 a consensus/average row when available, otherwise the provider row with the
-most populated fields (alphabetical tie-break). Only the nearest incomplete
-schedule weeks are refreshed because distant weeks generally have no market yet.
+most populated fields (alphabetical tie-break).
+
+This file is an archive, not only a current snapshot. Every refresh queries
+two kinds of weeks: the nearest incomplete weeks (their pregame lines can
+still move, so they are re-fetched every run) and any fully-completed week
+that is missing a market row for one of its games (a one-time backfill, so a
+week is never permanently missed just because this exporter didn't happen to
+run while it was still active). Once a specific game is completed and has a
+captured row, that row is frozen -- CFBD is queried again for its week as
+long as other games there still need a market, but a frozen game's own row
+is never overwritten again. This preserves the pregame market state
+permanently rather than letting it disappear once CFBD's live market closes
+or the exporter's lookahead window moves on to newer weeks.
 
 The output is public market context only; LEILA predictions never consume it.
 """
@@ -123,6 +134,39 @@ def _game_index(schedule: dict[str, Any]) -> dict[str, dict[str, Any]]:
     }
 
 
+def select_target_weeks(
+    schedule: dict[str, Any],
+    existing: dict[str, Any] | None,
+    lookahead_weeks: int,
+) -> list[int]:
+    """Weeks to query CFBD for this run.
+
+    Two categories, both real reasons to spend an API call: the nearest
+    incomplete weeks (their pregame lines can still move -- refresh every
+    run) and any fully-completed week missing a market row for one of its
+    games (a one-time backfill so a week already in the past is never
+    permanently missed). A completed week whose every game already has a
+    captured row is frozen and is not queried again.
+    """
+    existing_games = (existing or {}).get("games") or {}
+    incomplete: list[int] = []
+    completed_uncaptured: list[int] = []
+    for week_raw in schedule.get("weeks", []):
+        week = int(week_raw)
+        games = schedule.get("byWeek", {}).get(str(week), [])
+        if not games:
+            continue
+        if any(not game.get("completed") for game in games):
+            incomplete.append(week)
+            continue
+        game_ids = {str(g["gameId"]) for g in games if g.get("gameId") is not None}
+        if not game_ids.issubset(existing_games.keys()):
+            completed_uncaptured.append(week)
+
+    target = incomplete[: max(lookahead_weeks, 1)] + completed_uncaptured
+    return sorted(set(target))
+
+
 def build_snapshot(
     season: int,
     schedule: dict[str, Any],
@@ -130,17 +174,8 @@ def build_snapshot(
     existing: dict[str, Any] | None,
 ) -> dict[str, Any]:
     games = _game_index(schedule)
-    existing_games = dict((existing or {}).get("games") or {})
-    refreshed_weeks = {week for week, _, _ in responses}
-
-    # A fetched week is authoritative for freshness. Remove its old quotes
-    # before adding the new response so a market that disappeared upstream
-    # cannot linger as a stale line.
-    merged = {
-        game_id: value
-        for game_id, value in existing_games.items()
-        if int(games.get(game_id, {}).get("week", -999)) not in refreshed_weeks
-    }
+    merged = dict((existing or {}).get("games") or {})
+    now = datetime.now(timezone.utc).isoformat()
 
     for week, season_type, payload in responses:
         allowed = {
@@ -152,19 +187,30 @@ def build_snapshot(
         extracted = _extract(payload, allowed)
         for game_id, providers in extracted.items():
             game = games[game_id]
-            providers = sorted(providers, key=lambda row: str(row.get("provider") or "").lower())
+            is_completed = bool(game.get("completed"))
+            existing_row = merged.get(game_id)
+            # A completed game's market row is the permanent pregame record
+            # once captured. Never overwrite it again -- even though its
+            # week may still be queried this run for other, still-incomplete
+            # games -- so kickoff freezes exactly this game's row in place.
+            if is_completed and existing_row is not None and existing_row.get("frozen"):
+                continue
+            providers_sorted = sorted(providers, key=lambda row: str(row.get("provider") or "").lower())
             merged[game_id] = {
                 "gameId": game_id,
                 "week": int(game["week"]),
                 "homeTeam": game["homeTeam"],
                 "awayTeam": game["awayTeam"],
-                "primary": _primary(providers),
-                "providers": providers,
+                "primary": _primary(providers_sorted),
+                "providers": providers_sorted,
+                "capturedAt": now,
+                "frozen": is_completed,
             }
 
+    weeks_present = sorted({int(row["week"]) for row in merged.values()})
     stable = {
         "season": season,
-        "weeks": sorted(refreshed_weeks),
+        "weeks": weeks_present,
         "games": dict(sorted(merged.items())),
     }
     old_stable = None
@@ -177,7 +223,7 @@ def build_snapshot(
     generated = (
         existing.get("generatedAt")
         if existing and stable == old_stable and existing.get("generatedAt")
-        else datetime.now(timezone.utc).isoformat()
+        else now
     )
     return {**stable, "generatedAt": generated, "source": "CFBD betting lines"}
 
@@ -195,12 +241,7 @@ def main() -> None:
     schedule = json.loads(schedule_path.read_text())
     existing = json.loads(output_path.read_text()) if output_path.exists() else None
 
-    incomplete = []
-    for week in schedule.get("weeks", []):
-        games = schedule.get("byWeek", {}).get(str(week), [])
-        if any(not game.get("completed") for game in games):
-            incomplete.append(int(week))
-    target_weeks = incomplete[: max(args.lookahead_weeks, 1)]
+    target_weeks = select_target_weeks(schedule, existing, args.lookahead_weeks)
 
     season_types_by_week: dict[int, set[str]] = {}
     for week in target_weeks:
@@ -208,11 +249,12 @@ def main() -> None:
             season_types_by_week.setdefault(week, set()).add(str(game.get("seasonType") or "regular"))
 
     responses: list[tuple[int, str, Any]] = []
-    with CfbdClient() as client:
-        for week in target_weeks:
-            for season_type in sorted(season_types_by_week.get(week, {"regular"})):
-                response = client.lines(args.season, week, season_type)
-                responses.append((week, season_type, response.payload))
+    if target_weeks:
+        with CfbdClient() as client:
+            for week in target_weeks:
+                for season_type in sorted(season_types_by_week.get(week, {"regular"})):
+                    response = client.lines(args.season, week, season_type)
+                    responses.append((week, season_type, response.payload))
 
     snapshot = build_snapshot(args.season, schedule, responses, existing)
     output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -20,6 +20,20 @@ function spreadLabel(market: MarketGame): string {
   return `${market.awayTeam} ${(-quote.spread).toFixed(1)}`;
 }
 
+// CFBD distinguishes the opening line from the current/closing one via
+// spreadOpen/overUnderOpen; only note the open when it's both known and
+// actually different from where the line ended up, so a game with no real
+// movement doesn't show a redundant second line.
+function openingSpreadNote(quote: { spread: number | null; spreadOpen: number | null }): string | null {
+  if (quote.spreadOpen === null || quote.spread === null || quote.spreadOpen === quote.spread) return null;
+  return `Opened ${quote.spreadOpen > 0 ? "+" : ""}${quote.spreadOpen.toFixed(1)}`;
+}
+
+function openingTotalNote(quote: { overUnder: number | null; overUnderOpen: number | null }): string | null {
+  if (quote.overUnderOpen === null || quote.overUnder === null || quote.overUnderOpen === quote.overUnder) return null;
+  return `Opened ${number(quote.overUnderOpen)}`;
+}
+
 export default function MarketOddsCard({
   market,
   compact = false,
@@ -39,16 +53,20 @@ export default function MarketOddsCard({
     );
   }
 
+  const spreadNote = openingSpreadNote(quote);
+  const totalNote = openingTotalNote(quote);
+
   return (
     <div className={`market-odds-card${compact ? " market-odds-card--compact" : ""}`}>
       <div className="market-odds-card__head">
-        <span>Market</span>
+        <span>{market.frozen ? "Pregame Market · Final" : "Market"}</span>
         <em>{quote.provider || "CFBD"}</em>
       </div>
       <div className="market-odds-card__grid">
         <span>
           <small>Spread</small>
           <strong>{spreadLabel(market)}</strong>
+          {spreadNote ? <b>{spreadNote}</b> : null}
         </span>
         <span>
           <small>Moneyline</small>
@@ -58,6 +76,7 @@ export default function MarketOddsCard({
         <span>
           <small>Total</small>
           <strong>{quote.overUnder === null ? "—" : `O/U ${number(quote.overUnder)}`}</strong>
+          {totalNote ? <b>{totalNote}</b> : null}
         </span>
       </div>
     </div>

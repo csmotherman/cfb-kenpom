@@ -289,6 +289,12 @@ export type MarketGame = {
   awayTeam: string;
   primary: MarketQuote | null;
   providers: MarketQuote[];
+  // When this row was last captured from CFBD. For a completed game this is
+  // the moment its pregame market was frozen, not a live refresh time.
+  capturedAt: string;
+  // True once the game is completed -- its row is the permanent pregame
+  // market record and will never be overwritten by a later refresh.
+  frozen: boolean;
 };
 
 export type MarketLinesSeason = {
