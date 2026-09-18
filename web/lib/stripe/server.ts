@@ -12,7 +12,7 @@ export function getStripe() {
   if (!stripeClient) {
     stripeClient = new Stripe(secretKey, {
       appInfo: {
-        name: "LEILA Ratings",
+        name: "PRIME Football",
         version: "1.0.0",
       },
     });
