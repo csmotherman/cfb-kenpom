@@ -54,6 +54,7 @@ import "@/styles/predictions-mobile-width-fix.css";
 /* Exact model-method explainer for the Predictions route. */
 import "@/styles/predictions-model.css";
 import "@/styles/market-odds.css";
+import "@/styles/loading-state.css";
 
 export const metadata: Metadata = {
   title: "LEILA Ratings | College Football Analytics",
