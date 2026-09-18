@@ -16,7 +16,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Account | LEILA Ratings",
+  title: "Account | PRIME Football",
   robots: { index: false, follow: false },
 };
 
@@ -90,7 +90,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
   const checkoutMessage =
     params.checkout === "success"
-      ? "Stripe checkout completed. Your LEILA Ratings access will sync from the verified Stripe webhook."
+      ? "Stripe checkout completed. Your PRIME Football access will sync from the verified Stripe webhook."
       : params.checkout === "canceled"
         ? "Checkout canceled. Nothing was charged."
         : null;
@@ -104,7 +104,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <section className="auth-panel account-panel" aria-labelledby="accountTitle">
             <div className="account-heading">
               <div>
-                <span className="eyebrow auth-kicker">LEILA Ratings Account</span>
+                <span className="eyebrow auth-kicker">PRIME Football Account</span>
                 <h1 id="accountTitle" className="auth-title">Your account</h1>
               </div>
               <span className={`account-plan account-plan--${plan}`}>{accountPlanLabel}</span>
@@ -178,7 +178,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 <span>
                   {earlyBetaAccess && !paidAccess
                     ? `Early Beta unlocks all premium features through ${EARLY_BETA_END_LABEL}.`
-                    : "Paid access levels are synced from Stripe into your LEILA Ratings account."}
+                    : "Paid access levels are synced from Stripe into your PRIME Football account."}
                 </span>
               </div>
               <div className="entitlement-list">
@@ -238,7 +238,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     <div>
                       <span className="billing-plan-card__eyebrow">Advanced + Predictions</span>
                       <h3>Complete premium access</h3>
-                      <p>Everything in Advanced plus full access to weekly LEILA model predictions.</p>
+                      <p>Everything in Advanced plus full access to weekly PRIME model predictions.</p>
                       <strong className="billing-plan-card__price">{PAID_PLAN_MONTHLY_PRICE.pro_plus}</strong>
                     </div>
                     {canStartCheckout ? (
@@ -271,7 +271,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 {earlyBetaAccess
                   ? "No card is required during Early Beta. Stripe checkout opens October 16."
                   : billingConfigured
-                    ? "Payment details are handled by Stripe. LEILA Ratings stores subscription identifiers and access status, not raw card numbers."
+                    ? "Payment details are handled by Stripe. PRIME Football stores subscription identifiers and access status, not raw card numbers."
                     : "Paid checkout is temporarily unavailable while billing setup is completed."}
               </p>
             </div>
@@ -282,7 +282,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </section>
         </div>
       </main>
-      <SiteFooter note="LEILA Ratings accounts use Supabase authentication. Premium access is free during Early Beta and paid subscription state is synchronized from Stripe webhooks afterward." />
+      <SiteFooter note="PRIME Football accounts use Supabase authentication. Premium access is free during Early Beta and paid subscription state is synchronized from Stripe webhooks afterward." />
     </>
   );
 }
