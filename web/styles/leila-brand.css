@@ -70,32 +70,42 @@ body:has(#teamContent) .adv-preview__overlay .subscribe-btn::after {
 }
 
 
-/* PRIME mobile polish — visual-only refinements. Existing dimensions remain unchanged. */
+/* PRIME mobile polish — centered section nav with beta sections signaled by gold text. */
 @media (max-width: 640px) {
-  /* Cleaner premium navigation: labels stack with a quiet BETA marker rather
-     than an outlined pill consuming horizontal space. */
-  .site-nav a {
-    position: relative;
-    flex-direction: column;
-    gap: 1px;
+  .site-nav .container,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav .container {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    padding-left: 0;
+    padding-right: 0;
+    overflow: visible;
+  }
+
+  .site-nav a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+    width: 100%;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     line-height: 1.05;
   }
 
-  .site-nav .nav-pro-badge {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: #d4ad55;
-    font-size: 7px;
-    line-height: 1;
-    letter-spacing: .12em;
+  /* Current tab is identified by the existing gold underline, not gold text. */
+  .site-nav a.active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a.active {
+    color: #fff;
   }
 
-  /* PRIME's gold is the mobile accent while preserving all current box,
-     header, control, and table measurements. */
-  .site-nav a.active {
+  /* During early beta, premium sections themselves are gold; no BETA badge. */
+  .site-nav a[data-beta="true"],
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-beta="true"] {
+    color: #d4ad55;
+  }
+
+  .site-nav a[data-beta="true"].active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-beta="true"].active {
     color: #d4ad55;
   }
 
