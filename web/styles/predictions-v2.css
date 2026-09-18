@@ -1387,3 +1387,107 @@ body:has(#predictionsContent) .ratings-hero__description {
     text-align: center;
   }
 }
+
+
+/* Completed games: dark card treatment only. The page itself remains light. */
+.predictions-table tbody tr.predictions-table__row--final,
+.predictions-table tbody tr.predictions-table__row--final:nth-child(even) {
+  background: var(--color-navy) !important;
+  color: #f7f8fa;
+  box-shadow:
+    0 3px 12px rgba(20,39,66,.16),
+    inset 0 0 0 1px rgba(255,255,255,.08) !important;
+}
+
+.predictions-table tbody tr.predictions-table__row--final:hover {
+  background: #182e4d !important;
+  box-shadow:
+    0 8px 24px rgba(20,39,66,.20),
+    inset 3px 0 0 var(--color-gold),
+    inset 0 0 0 1px rgba(255,255,255,.10) !important;
+}
+
+.predictions-table__row--final .predictions-table__time,
+.predictions-table__row--final .predictions-table__time .mono,
+.predictions-table__row--final .predictions-table__team,
+.predictions-table__row--final .predictions-table__team-name,
+.predictions-table__row--final .predictions-table__pick,
+.predictions-table__row--final .predictions-table__context,
+.predictions-table__row--final .predictions-table__locked {
+  color: #f7f8fa !important;
+}
+
+.predictions-table__row--final .predictions-table__time .mono {
+  font-weight: 800;
+}
+
+.predictions-table__row--final .predictions-table__at {
+  color: rgba(255,255,255,.66);
+}
+
+.predictions-table__row--final .predictions-table__rank {
+  border-color: rgba(220,176,81,.70);
+  background: rgba(220,176,81,.12);
+  color: #f0cf82;
+}
+
+.predictions-table__row--final .predictions-table__pick,
+.predictions-table__row--final .predictions-table__context,
+.predictions-table__row--final .predictions-table__locked {
+  border-color: rgba(255,255,255,.12);
+  background: rgba(255,255,255,.07);
+}
+
+.predictions-table__row--final td:nth-child(4) .mono,
+.predictions-table__row--final td:nth-child(4) .predictions-table__dash {
+  background: #f7f8fa;
+  color: var(--color-navy);
+}
+
+.predictions-table__row--final .market-odds-card {
+  border-color: rgba(255,255,255,.13);
+  background: rgba(255,255,255,.06);
+  box-shadow: none;
+}
+
+.predictions-table__row--final .market-odds-card__head {
+  border-bottom-color: rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
+}
+
+.predictions-table__row--final .market-odds-card__head span,
+.predictions-table__row--final .market-odds-card__grid strong,
+.predictions-table__row--final .market-odds-card__grid b {
+  color: #f7f8fa;
+}
+
+.predictions-table__row--final .market-odds-card__head em,
+.predictions-table__row--final .market-odds-card__grid small {
+  color: rgba(255,255,255,.62);
+}
+
+.predictions-table__row--final .market-odds-card__grid > span {
+  border-right-color: rgba(255,255,255,.09);
+}
+
+@media (max-width: 640px) {
+  .predictions-table tbody tr.predictions-table__row--final,
+  .predictions-table tbody tr.predictions-table__row--final:nth-child(even) {
+    background: var(--color-navy) !important;
+    border-color: rgba(20,39,66,.18) !important;
+  }
+
+  .predictions-table__row--final td:nth-child(1),
+  .predictions-table__row--final td:nth-child(2),
+  .predictions-table__row--final td:nth-child(3),
+  .predictions-table__row--final td:nth-child(4),
+  .predictions-table__row--final td:nth-child(5) {
+    background: transparent !important;
+    border-color: rgba(255,255,255,.10) !important;
+  }
+
+  .predictions-table__row--final td:nth-child(3)::before,
+  .predictions-table__row--final td:nth-child(4)::before {
+    color: rgba(255,255,255,.58);
+  }
+}
