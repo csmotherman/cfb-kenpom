@@ -80,8 +80,8 @@ const GENERAL_SECTIONS: AdvSection[] = [
   {
     title: "Rating",
     columns: [
-      { key: "adjEM", label: "Adj. Net", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "rank", tooltip: "The exact Adj. Net rating and national rank from the Ratings page at the selected end week. Adj. Net = Adj. Off + Adj. Def." },
-      { key: "asm", label: "ASM", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Adjusted Score Matrix: LEILA's opponent-adjusted scoring-margin rating (constrained least squares), with each game's margin capped at 28 points before fitting so blowouts can't dominate a team's number. A results-based counterpart to Adj. Net's process-based (EPA/Success/Explosiveness) rating." },
+      { key: "adjEM", label: "Net APR", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "rank", tooltip: "The exact Net APR rating and national rank from the Ratings page at the selected end week. Net APR = Off APR + Def APR." },
+      { key: "asm", label: "ASM", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Adjusted Score Matrix: LEILA's opponent-adjusted scoring-margin rating (constrained least squares), with each game's margin capped at 28 points before fitting so blowouts can't dominate a team's number. A scoring-margin counterpart to Net APR's possession-efficiency rating." },
       { key: "cfpChancePct", label: "CFP %", fmt: "pct1", rankable: true, kind: "snapshot", tooltip: "Live chance of making the 12-team College Football Playoff field, from a 2,000-trial Monte Carlo simulation of the rest of the season seeded with this week's in-season power, then calibrated against 11 real seasons (2014-2025) of actual outcomes so the percentage reflects real-world accuracy rather than raw model confidence. Conference championship games are simulated, not read from the real schedule, and the committee-selection rule is a statistical proxy validated against real 2024-2025 fields. Blank for past seasons -- this reflects only where things stand right now." },
     ],
   },
@@ -112,7 +112,7 @@ const OFFENSE_SECTIONS: AdvSection[] = [
   {
     title: "Overall",
     columns: [
-      { key: "adjO", label: "Adj. Off", fmt: "signed2", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "adjORank", tooltip: "The exact Adj. Off rating and national rank from the Ratings page at the selected end week." },
+      { key: "adjO", label: "Off APR", fmt: "signed2", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "adjORank", tooltip: "The exact Off APR rating and national rank from the Ratings page at the selected end week." },
       { key: "offYpp", label: "YPP", fmt: "plain1", rankable: true, kind: "rate", num: ["yppNum"], den: ["yppDen"], opponentNum: ["yppNumA"], opponentDen: ["yppDenA"], tooltip: "Offensive yards per play in the selected weeks (raw, not opponent-adjusted)." },
       { key: "offSuccess", label: "Success", fmt: "pct1", rankable: true, kind: "rate", num: ["successNum"], den: ["successDen"], opponentNum: ["successNumA"], opponentDen: ["successDenA"], tooltip: "Offensive success rate in the selected weeks (raw, not opponent-adjusted)." },
     ],
@@ -152,7 +152,7 @@ const DEFENSE_SECTIONS: AdvSection[] = [
   {
     title: "Overall",
     columns: [
-      { key: "adjD", label: "Adj. Def", fmt: "signed2", primary: true, rankable: true, lowerBetter: false, kind: "snapshot", sourceRankKey: "adjDRank", tooltip: "The exact Adj. Def rating and national rank from the Ratings page at the selected end week." },
+      { key: "adjD", label: "Def APR", fmt: "signed2", primary: true, rankable: true, lowerBetter: false, kind: "snapshot", sourceRankKey: "adjDRank", tooltip: "The exact Def APR rating and national rank from the Ratings page at the selected end week." },
       { key: "defYpp", label: "YPP", fmt: "plain1", rankable: true, lowerBetter: true, kind: "rate", num: ["yppNumA"], den: ["yppDenA"], opponentNum: ["yppNum"], opponentDen: ["yppDen"], tooltip: "Yards per play allowed in the selected weeks (raw). Lower is better." },
       { key: "defSuccess", label: "Success", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["successNumA"], den: ["successDenA"], opponentNum: ["successNum"], opponentDen: ["successDen"], tooltip: "Opponent success rate allowed in the selected weeks (raw). Lower is better." },
     ],
@@ -248,7 +248,7 @@ function pairedSections(source: MetricSection[], perspective: Perspective): AdvS
       const defense: AdvColumn = {
         key: `${metric.prefix}AdjAllowed`, label: perspective === "both" ? `${metric.label} Def` : metric.label, fmt,
         primary: sectionIndex === 0 && metricIndex === 0 && perspective === "defense", rankable: true, kind: "snapshot",
-        tooltip: `${metric.tip} Defense allowed, opponent-adjusted. Higher is better (same orientation as Adj. Def). ${CONFIDENCE_TIP}`,
+        tooltip: `${metric.tip} Defense allowed, opponent-adjusted. Higher is better (same orientation as Def APR). ${CONFIDENCE_TIP}`,
       };
       const margin: AdvColumn = {
         key: `${metric.prefix}Margin`, label: metric.label, fmt,
