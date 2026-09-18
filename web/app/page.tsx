@@ -194,22 +194,15 @@ export default function RatingsPage() {
       <SiteHeader tagline="Opponent-Adjusted College Football Ratings" />
       <SiteNav />
 
-      <section className="ratings-hero container" aria-labelledby="ratingsTitle">
+      <section className="ratings-hero ratings-hero--compact container" aria-labelledby="ratingsTitle">
         <div className="ratings-hero__copy">
-          <span className="eyebrow">LEILA Ratings</span>
-          <h1 id="ratingsTitle">{year ? `${year} LEILA Ratings` : "LEILA Ratings"}</h1>
-          <p className="ratings-hero__description">
-            APR (Adjusted Possession Rating) measures team strength through points created and prevented per resolved possession, adjusted for opponent quality across the FBS schedule network.
-          </p>
+          <h1 id="ratingsTitle">{year ? `${year} Net Rankings` : "Net Rankings"}</h1>
         </div>
         <div className="ratings-hero__meta">
-          <span className="ratings-status">
-            {loading ? "Loading season…" : `${year} • through ${weekLabel(Number(week), true)} • ${total} teams`}
-          </span>
           <Link className="utility-link" href="/methodology">Methodology ↗</Link>
           {updatedAt ? (
             <time className="data-updated" dateTime={updatedAt}>
-              Data updated {new Intl.DateTimeFormat("en-US", {
+              Updated {new Intl.DateTimeFormat("en-US", {
                 month: "short",
                 day: "numeric",
                 hour: "numeric",
@@ -222,37 +215,33 @@ export default function RatingsPage() {
         </div>
       </section>
 
-      <section className="onboarding-strip container" aria-label="New here">
-        <p className="onboarding-strip__lede">
-          <strong>Net APR</strong> ranks every FBS team by opponent-adjusted performance &mdash; Off APR + Def APR,
-          accounting for who they played, not just the scoreboard. APR stands for Adjusted Possession Rating. Hover any column header for what it means, or use the glossary below.
-        </p>
-        <div className="onboarding-strip__links">
-          <Link href="/predictions">See this week&rsquo;s games →</Link>
-          <Link href="/methodology">How the ratings work →</Link>
-        </div>
-      </section>
+      <div className="control-bar control-bar--compact">
+        <div className="control-bar__inner control-bar__inner--compact">
+          <label className="control-label" htmlFor="seasonSelect">Season</label>
+          <select
+            id="seasonSelect"
+            className="compact-select compact-select--season"
+            value={year}
+            onChange={(e) => {
+              setYear(e.target.value);
+              setConference("");
+            }}
+          >
+            {[...years].reverse().map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
 
-      <div className="control-bar">
-        <div className="control-bar__inner">
-          <span className="control-label">Season</span>
-          <nav className="year-nav" aria-label="Season">
-            {[...years].reverse().map((y) => (
-              <button
-                key={y}
-                type="button"
-                className={String(y) === year ? "active" : undefined}
-                aria-label={`${y} season`}
-                aria-pressed={String(y) === year}
-                onClick={() => {
-                  setYear(String(y));
-                  setConference("");
-                }}
-              >
-                {y}
-              </button>
-            ))}
-          </nav>
+          <label className="control-label" htmlFor="weekSelect">Thru week</label>
+          <select
+            id="weekSelect"
+            className="compact-select compact-select--week"
+            value={week}
+            onChange={(e) => {
+              setWeek(e.target.value);
+              setConference("");
+            }}
+          >
+            {weeks.map((w) => <option key={w} value={w}>{weekLabel(w, true)}</option>)}
+          </select>
 
           <div className="filter-box">
             <label className="sr-only" htmlFor="filterInput">Search ratings</label>
@@ -275,42 +264,13 @@ export default function RatingsPage() {
               onChange={(e) => setConference(e.target.value)}
             >
               <option value="">All conferences</option>
-              {conferences.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
+              {conferences.map((conf) => <option key={conf} value={conf}>{conf}</option>)}
             </select>
           </div>
 
           <span className="row-count" aria-live="polite">
             {isFiltered ? `${filtered.length} of ${total} teams` : `${total} teams`}
           </span>
-        </div>
-
-        <div className="control-bar__inner control-bar__inner--secondary">
-          <span className="control-label">Week</span>
-          <nav className="week-nav" aria-label="Week">
-            {weeks.map((w) => {
-              const label = weekLabel(w);
-              return (
-                <button
-                  key={w}
-                  type="button"
-                  className={String(w) === week ? "active" : undefined}
-                  aria-label={label}
-                  aria-pressed={String(w) === week}
-                  onClick={() => {
-                    setWeek(String(w));
-                    setConference("");
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </nav>
-          <p className="control-help">
-            Click a column to sort. National metric ranks appear in parentheses.
-          </p>
         </div>
       </div>
 
