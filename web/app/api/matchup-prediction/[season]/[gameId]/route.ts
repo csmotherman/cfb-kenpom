@@ -56,7 +56,7 @@ export async function GET(
     const entitlements = await getCurrentEntitlements();
     if (!entitlements.userId) {
       return NextResponse.json(
-        { code: "SIGN_IN_REQUIRED", message: "Sign in to reveal this LEILA prediction." },
+        { code: "SIGN_IN_REQUIRED", message: "Sign in to reveal this PRIME prediction." },
         { status: 401, headers: PRIVATE_HEADERS }
       );
     }
@@ -65,7 +65,7 @@ export async function GET(
       return NextResponse.json(
         {
           code: "UPGRADE_REQUIRED",
-          message: "LEILA Advanced + Predictions is required to reveal this prediction.",
+          message: "PRIME Advanced + Predictions is required to reveal this prediction.",
         },
         { status: 403, headers: PRIVATE_HEADERS }
       );
