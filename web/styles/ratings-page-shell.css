@@ -1,0 +1,274 @@
+/* ==========================================================================
+   LEILA Ratings — compact data-first page shell
+   The rankings table is the primary content. This file intentionally loads
+   late so older hero/control-bar rules cannot re-expand the page.
+   ========================================================================== */
+
+body:has(#ratingsTable) .ratings-toolbar {
+  width: 100%;
+  max-width: var(--container-width);
+  min-height: 58px;
+  margin: 0 auto;
+  padding: 8px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: #f3f0e8;
+  border-bottom: 1px solid #cec7b8;
+}
+
+body:has(#ratingsTable) .ratings-toolbar__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+body:has(#ratingsTable) .ratings-toolbar h1 {
+  margin: 0;
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body:has(#ratingsTable) .ratings-toolbar__meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #85837c;
+  font-size: 8.5px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body:has(#ratingsTable) .ratings-toolbar__meta a {
+  color: #43516a;
+  font-size: 8.5px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: #b88a2a;
+  text-underline-offset: 2px;
+}
+
+body:has(#ratingsTable) .ratings-toolbar__controls {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+body:has(#ratingsTable) .ratings-control {
+  height: 32px;
+  display: inline-flex;
+  align-items: stretch;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid #c9c2b3;
+  border-radius: 3px;
+  background: #fffefa;
+}
+
+body:has(#ratingsTable) .ratings-control label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  border-right: 1px solid #d6d0c4;
+  background: #ece7dc;
+  color: #77746d;
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body:has(#ratingsTable) .ratings-control select,
+body:has(#ratingsTable) .ratings-conference select {
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: #fffefa;
+  color: #25354d;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+body:has(#ratingsTable) .ratings-control select {
+  padding: 0 25px 0 8px;
+}
+
+body:has(#ratingsTable) .ratings-control--season select { width: 70px; }
+body:has(#ratingsTable) .ratings-control--week select { width: 92px; }
+
+body:has(#ratingsTable) .ratings-search {
+  flex: 0 1 190px;
+  min-width: 125px;
+}
+
+body:has(#ratingsTable) .ratings-search input,
+body:has(#ratingsTable) .ratings-conference select {
+  width: 100%;
+  height: 32px;
+  border: 1px solid #c9c2b3;
+  border-radius: 3px;
+  background: #fffefa;
+  color: #25354d;
+  font-size: 10.5px;
+}
+
+body:has(#ratingsTable) .ratings-search input {
+  padding: 0 9px;
+}
+
+body:has(#ratingsTable) .ratings-search input::placeholder {
+  color: #96938a;
+}
+
+body:has(#ratingsTable) .ratings-conference {
+  flex: 0 1 150px;
+  min-width: 125px;
+  height: 32px;
+}
+
+body:has(#ratingsTable) .ratings-conference select {
+  padding: 0 26px 0 9px;
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+body:has(#ratingsTable) .ratings-search input:focus,
+body:has(#ratingsTable) .ratings-control:focus-within,
+body:has(#ratingsTable) .ratings-conference select:focus {
+  border-color: #7f8997;
+  box-shadow: 0 0 0 2px rgba(20, 39, 66, .07);
+  outline: none;
+}
+
+body:has(#ratingsTable) .ratings-toolbar__count {
+  flex: 0 0 auto;
+  min-width: 24px;
+  color: #88857c;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  text-align: right;
+}
+
+body:has(#ratingsTable) .table-main {
+  padding-top: 0;
+}
+
+body:has(#ratingsTable) .table-scroll {
+  margin-top: 0;
+}
+
+/* Mid-size: keep the page compact, but give filters a clean second line
+   instead of squeezing them into an awkward toolbar. */
+@media (max-width: 1050px) {
+  body:has(#ratingsTable) .ratings-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+
+  body:has(#ratingsTable) .ratings-toolbar__heading {
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  body:has(#ratingsTable) .ratings-toolbar__controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  body:has(#ratingsTable) .ratings-search {
+    margin-left: auto;
+  }
+}
+
+/* Phone: title remains compact; controls become a deliberate two-row grid.
+   The table still begins immediately after the controls. */
+@media (max-width: 640px) {
+  body:has(#ratingsTable) .ratings-toolbar {
+    gap: 6px;
+    min-height: 0;
+    padding: 7px 10px;
+  }
+
+  body:has(#ratingsTable) .ratings-toolbar h1 {
+    font-size: 21px;
+  }
+
+  body:has(#ratingsTable) .ratings-toolbar__meta {
+    gap: 6px;
+    font-size: 7.5px;
+  }
+
+  body:has(#ratingsTable) .ratings-toolbar__meta a {
+    display: none;
+  }
+
+  body:has(#ratingsTable) .ratings-toolbar__controls {
+    display: grid;
+    grid-template-columns: minmax(0, .82fr) minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  body:has(#ratingsTable) .ratings-control {
+    width: 100%;
+    height: 34px;
+  }
+
+  body:has(#ratingsTable) .ratings-control select {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  body:has(#ratingsTable) .ratings-search,
+  body:has(#ratingsTable) .ratings-conference {
+    min-width: 0;
+    width: 100%;
+    height: 36px;
+    flex: none;
+  }
+
+  body:has(#ratingsTable) .ratings-search {
+    margin-left: 0;
+  }
+
+  body:has(#ratingsTable) .ratings-search input,
+  body:has(#ratingsTable) .ratings-conference select {
+    height: 36px;
+    min-height: 36px;
+    font-size: 13px;
+  }
+
+  body:has(#ratingsTable) .ratings-toolbar__count {
+    display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  body:has(#ratingsTable) .ratings-toolbar__meta time {
+    font-size: 7px;
+  }
+
+  body:has(#ratingsTable) .ratings-control label {
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 7px;
+  }
+}
