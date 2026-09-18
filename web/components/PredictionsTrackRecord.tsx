@@ -115,7 +115,7 @@ export default function PredictionsTrackRecord() {
       </table>
 
       <p className="track-record__note">
-        Straight-up (winner only), graded against final scores LEILA Ratings has published. Not betting advice, not against a spread.
+        Straight-up (winner only), graded against final scores PRIME Football has published. Not betting advice, not against a spread.
       </p>
     </section>
   );
