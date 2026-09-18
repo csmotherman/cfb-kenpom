@@ -78,7 +78,7 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
         <Link href="/" className="logotype" aria-label="PRIME Football home">
           <Image
             className="logotype__logo"
-            src="/brand/prime-football-logo.jpg"
+            src="/brand/prime-football-logo.png"
             alt="PRIME Football"
             width={600}
             height={192}

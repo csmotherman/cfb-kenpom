@@ -8,9 +8,9 @@
 
 .logotype__logo {
   display: block;
-  width: 86px;
+  width: 132px;
   height: auto;
-  max-height: 29px;
+  max-height: 66px;
   object-fit: contain;
   object-position: left center;
   flex: 0 0 auto;
@@ -18,7 +18,7 @@
 
 .logotype__divider {
   width: 1px;
-  height: 23px;
+  height: 30px;
   flex: 0 0 1px;
   background: #cec5b4;
 }
@@ -55,11 +55,12 @@ body:has(#teamContent) .adv-preview__overlay .subscribe-btn::after {
 
 @media (max-width: 640px) {
   .logotype__logo {
-    width: 70px;
-    max-height: 23px;
+    width: 96px;
+    height: auto;
+    max-height: 48px;
   }
 
-  .logotype__divider { height: 18px; }
+  .logotype__divider { height: 22px; }
 
   .logotype__name {
     max-width: 112px;
