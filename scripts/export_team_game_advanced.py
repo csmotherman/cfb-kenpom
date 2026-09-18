@@ -282,17 +282,24 @@ def build_row(season: int, canon: dict, exp: dict | None, box: dict | None = Non
         "success_plays": canon.get("successEligiblePlays"),
         "success_rate": canon.get("successRate"),
 
-        # Passing / rushing analytics.
+        # Passing / rushing analytics. These counts are LEILA classifier
+        # populations, not the official attempts displayed in the box score.
+        "dropbacks": canon.get("dropbacks"),
         "pass_epa_plays": canon.get("passEpaPlays"),
         "passing_epa": canon.get("passEpaSum"),
+        "epa_per_dropback": _rate(canon.get("passEpaSum"), canon.get("dropbacks")),
         "epa_per_pass_play": canon.get("passEpaPerPlay"),
         "pass_success_plays": canon.get("passSuccessEligiblePlays"),
         "pass_success_rate": canon.get("passSuccessRate"),
+        "yards_per_dropback": canon.get("netPassYardsPerDropback") or canon.get("yardsPerDropback"),
+        "graded_rush_plays": canon.get("rushSuccessEligiblePlays"),
         "rush_epa_plays": canon.get("rushEpaPlays"),
         "rushing_epa": canon.get("rushEpaSum"),
+        "epa_per_rush": canon.get("rushEpaPerPlay"),
         "epa_per_rush_play": canon.get("rushEpaPerPlay"),
         "rush_success_plays": canon.get("rushSuccessEligiblePlays"),
         "rush_success_rate": canon.get("rushSuccessRate"),
+        "yards_per_rush": canon.get("rushYardsPerAttempt"),
 
         # By down.
         "down1_epa_pass": canon.get("passDown1EpaPerPlay"),
