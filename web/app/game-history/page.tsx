@@ -446,6 +446,134 @@ export default function GameHistoryPage() {
   );
 }
 
+function TeamPicker({
+  id,
+  label,
+  placeholder,
+  value,
+  teams,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  placeholder: string;
+  value: string;
+  teams: TeamOption[];
+  onChange: (value: string) => void;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  useEffect(() => {
+    function onDocumentClick(event: MouseEvent) {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        setOpen(false);
+        setActiveIndex(-1);
+      }
+    }
+    document.addEventListener("click", onDocumentClick);
+    return () => document.removeEventListener("click", onDocumentClick);
+  }, []);
+
+  const needle = normalize(value);
+  const matches = needle
+    ? teams
+        .filter((team) => {
+          const code = teamCode(team.name).toLocaleLowerCase();
+          return (
+            normalize(team.name).includes(needle) ||
+            normalize(team.slug).includes(needle) ||
+            normalize(team.conf).includes(needle) ||
+            code.includes(needle)
+          );
+        })
+        .slice(0, 8)
+    : [];
+
+  function selectTeam(team: TeamOption) {
+    onChange(team.name);
+    setOpen(false);
+    setActiveIndex(-1);
+  }
+
+  function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (!matches.length) return;
+      setOpen(true);
+      setActiveIndex((index) => Math.min(index + 1, matches.length - 1));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!matches.length) return;
+      setActiveIndex((index) => Math.max(index - 1, 0));
+    } else if (event.key === "Enter") {
+      const target = matches[activeIndex >= 0 ? activeIndex : 0];
+      if (!target) return;
+      event.preventDefault();
+      selectTeam(target);
+    } else if (event.key === "Escape") {
+      setOpen(false);
+      setActiveIndex(-1);
+    }
+  }
+
+  return (
+    <div className="history-team-picker" ref={rootRef}>
+      <label htmlFor={id}>{label}</label>
+      <div className="history-team-picker__input-wrap">
+        <input
+          id={id}
+          type="search"
+          value={value}
+          placeholder={placeholder}
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-expanded={open && matches.length > 0}
+          onFocus={() => setOpen(true)}
+          onChange={(event) => {
+            onChange(event.target.value);
+            setOpen(true);
+            setActiveIndex(-1);
+          }}
+          onKeyDown={onKeyDown}
+        />
+        {value ? (
+          <button
+            type="button"
+            className="history-team-picker__clear"
+            aria-label={`Clear ${label.toLowerCase()}`}
+            onClick={() => {
+              onChange("");
+              setOpen(false);
+              setActiveIndex(-1);
+            }}
+          >
+            ×
+          </button>
+        ) : null}
+      </div>
+
+      <div className="history-team-picker__results" hidden={!open || matches.length === 0}>
+        {matches.map((team, index) => (
+          <button
+            type="button"
+            key={team.id}
+            className={"history-team-picker__result" + (index === activeIndex ? " active" : "")}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => selectTeam(team)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoUrl(team.id, 64)} alt="" loading="lazy" decoding="async" />
+            <span className="history-team-picker__name">{team.name}</span>
+            <span className="history-team-picker__meta">{teamCode(team.name)} · {team.conf}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function GameRow({ game }: { game: HistoryGame }) {
   const awayWon = game.awayPoints! > game.homePoints!;
   const homeWon = game.homePoints! > game.awayPoints!;
