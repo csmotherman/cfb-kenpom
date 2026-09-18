@@ -51,7 +51,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const userId = claims?.sub;
 
   if (!userId) {
-    redirect("/login?message=Sign%20in%20to%20manage%20your%20LEILA%20Ratings%20account.");
+    redirect("/login?message=Sign%20in%20to%20manage%20your%20PRIME%20Football%20account.");
   }
 
   const [entitlements, profileResult, subscriptionResult] = await Promise.all([
