@@ -136,6 +136,7 @@ export default function PredictionsPage() {
   const [access, setAccess] = useState<Access>("unknown");
   const [filter, setFilter] = useState<GamesFilter>("all");
   const [search, setSearch] = useState("");
+  const [conference, setConference] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("kickoff");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
@@ -241,11 +242,27 @@ export default function PredictionsPage() {
     });
   }, [schedule, selectedWeek, ratingsBySlug, predictionsByGameId, access]);
 
+  const conferences = useMemo(() => {
+    const names = new Set<string>();
+    for (const row of rows) {
+      if (row.game.homeConference) names.add(row.game.homeConference);
+      if (row.game.awayConference) names.add(row.game.awayConference);
+    }
+    return [...names].sort((a, b) => a.localeCompare(b));
+  }, [rows]);
+
+  const conferenceRows = useMemo(() => {
+    if (!conference) return rows;
+    return rows.filter(
+      (row) => row.game.homeConference === conference || row.game.awayConference === conference,
+    );
+  }, [rows, conference]);
+
   const rowsByFilter = useMemo(() => ({
-    all: rows,
-    top25: rows.filter((r) => topRanked.has(r.game.homeTeamId) || topRanked.has(r.game.awayTeamId)),
-    best: rows.filter((r) => topRanked.has(r.game.homeTeamId) && topRanked.has(r.game.awayTeamId)),
-  }), [rows, topRanked]);
+    all: conferenceRows,
+    top25: conferenceRows.filter((r) => topRanked.has(r.game.homeTeamId) || topRanked.has(r.game.awayTeamId)),
+    best: conferenceRows.filter((r) => topRanked.has(r.game.homeTeamId) && topRanked.has(r.game.awayTeamId)),
+  }), [conferenceRows, topRanked]);
 
   const searched = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -305,43 +322,36 @@ export default function PredictionsPage() {
       <SiteHeader tagline="Weekly Game Predictions" />
       <SiteNav />
 
-      <section className="ratings-hero container" aria-labelledby="predictionsTitle">
-        <div className="ratings-hero__copy">
-          <span className="eyebrow">LEILA Predictions</span>
-          <h1 id="predictionsTitle">{season ? `${season} Predictions` : "Predictions"}</h1>
-          <p className="ratings-hero__description">
-            Every scheduled game involving an FBS team, sortable and searchable. Early-season LEILA projections
-            blend a frozen preseason prior with results already played. A graded pick requires complete model inputs
-            for both teams; otherwise the game stays on the slate and is labeled Not enough data.
-          </p>
-        </div>
-      </section>
-
-      <main id="predictionsContent" className="container predictions-main">
+      <main id="predictionsContent" className="container predictions-main predictions-main--compact">
         {schedule === undefined ? (
           <LeilaLoadingState variant="predictions" />
         ) : schedule === null ? (
           <p className="network-loading">Weekly schedule data is publishing with the next ratings refresh.</p>
         ) : (
           <>
-            <div className="control-bar">
-              <div className="control-bar__inner">
-                <span className="control-label">Week</span>
-                <nav className="week-nav" aria-label="Schedule week">
-                  {schedule.weeks.map((week) => (
-                    <button
-                      key={week}
-                      type="button"
-                      className={week === selectedWeek ? "active" : undefined}
-                      aria-pressed={week === selectedWeek}
-                      onClick={() => setSelectedWeek(week)}
-                    >
-                      {schedule.weekLabels?.[String(week)] || `Wk ${week}`}
-                    </button>
-                  ))}
-                </nav>
+            <section className="predictions-toolbar" aria-labelledby="predictionsTitle">
+              <div className="predictions-toolbar__primary">
+                <div className="predictions-toolbar__title">
+                  <h1 id="predictionsTitle">{season ? `${season} Predictions` : "Predictions"}</h1>
+                  <span>{sorted.length} games</span>
+                </div>
 
-                <div className="filter-box">
+                <label className="predictions-toolbar__field predictions-toolbar__field--week">
+                  <span>Week</span>
+                  <select
+                    value={selectedWeek ?? ""}
+                    onChange={(e) => setSelectedWeek(Number(e.target.value))}
+                    aria-label="Prediction week"
+                  >
+                    {schedule.weeks.map((week) => (
+                      <option key={week} value={week}>
+                        {schedule.weekLabels?.[String(week)] || `Wk ${week}`}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="predictions-toolbar__search">
                   <label className="sr-only" htmlFor="predictionsSearch">Search teams</label>
                   <input
                     id="predictionsSearch"
@@ -352,8 +362,23 @@ export default function PredictionsPage() {
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </div>
+
+                <label className="predictions-toolbar__field predictions-toolbar__field--conference">
+                  <span className="sr-only">Conference</span>
+                  <select
+                    value={conference}
+                    onChange={(e) => setConference(e.target.value)}
+                    aria-label="Filter predictions by conference"
+                  >
+                    <option value="">All conferences</option>
+                    {conferences.map((name) => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                </label>
               </div>
-              <div className="control-bar__inner control-bar__inner--secondary">
+
+              <div className="predictions-toolbar__secondary">
                 <div className="predictions-filters" role="tablist" aria-label="Filter games">
                   {FILTERS.map((f) => (
                     <button
@@ -375,7 +400,7 @@ export default function PredictionsPage() {
                   </Link>
                 ) : null}
               </div>
-            </div>
+            </section>
 
             {sorted.length === 0 ? (
               <p className="network-loading">
