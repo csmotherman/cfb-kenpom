@@ -2,28 +2,28 @@
 
 import { useEffect } from "react";
 
-function normalizeLeilaTitle() {
+function normalizePrimeTitle() {
   let nextTitle = document.title
-    .replaceAll("ARA | Adjusted Ratings & Analytics", "LEILA Ratings | College Football Analytics")
+    .replaceAll("ARA | Adjusted Ratings & Analytics", "PRIME Football | College Football Analytics")
     .replaceAll("Adjusted Ratings & Analytics", "College Football Analytics")
-    .replaceAll("CollegeFootballFocus", "LEILA Ratings")
-    .replaceAll("College Football Focus", "LEILA Ratings")
-    .replaceAll("ARA", "LEILA Ratings");
+    .replaceAll("CollegeFootballFocus", "PRIME Football")
+    .replaceAll("College Football Focus", "PRIME Football")
+    .replaceAll("ARA", "PRIME Football");
 
-  nextTitle = nextTitle.replace(/^(\d{4}) College Football Ratings\s*[—-]\s*LEILA Ratings$/, "$1 Adj. Net Ratings | LEILA Ratings");
-  nextTitle = nextTitle.replace(/^(.+) Football Ratings\s*[—-]\s*LEILA Ratings$/, "$1 Adj. Net | LEILA Ratings");
+  nextTitle = nextTitle.replace(/^(\d{4}) College Football Ratings\s*[—-]\s*PRIME Football$/, "$1 Adj. Net Ratings | PRIME Football");
+  nextTitle = nextTitle.replace(/^(.+) Football Ratings\s*[—-]\s*PRIME Football$/, "$1 Adj. Net | PRIME Football");
 
   if (nextTitle !== document.title) document.title = nextTitle;
 }
 
 export default function BrandTitleGuard() {
   useEffect(() => {
-    normalizeLeilaTitle();
+    normalizePrimeTitle();
 
     const title = document.querySelector("title");
     if (!title) return;
 
-    const observer = new MutationObserver(normalizeLeilaTitle);
+    const observer = new MutationObserver(normalizePrimeTitle);
     observer.observe(title, { childList: true, subtree: true, characterData: true });
 
     return () => observer.disconnect();
