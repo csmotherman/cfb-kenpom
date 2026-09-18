@@ -28,7 +28,7 @@ export async function GET(
 
   if (!entitlements.userId) {
     return NextResponse.json(
-      { code: "SIGN_IN_REQUIRED", message: "Sign in to access LEILA Predictions." },
+      { code: "SIGN_IN_REQUIRED", message: "Sign in to access PRIME Predictions." },
       { status: 401, headers: PRIVATE_HEADERS }
     );
   }
@@ -37,7 +37,7 @@ export async function GET(
     return NextResponse.json(
       {
         code: "UPGRADE_REQUIRED",
-        message: "LEILA Advanced + Predictions is required for weekly Predictions.",
+        message: "PRIME Advanced + Predictions is required for weekly Predictions.",
       },
       { status: 403, headers: PRIVATE_HEADERS }
     );
@@ -74,8 +74,8 @@ export async function GET(
       status: 200,
       headers: {
         ...PRIVATE_HEADERS,
-        "X-LEILA-Predictions-Access": "full",
-        "X-LEILA-Predictions-Total": String(totalGames),
+        "X-PRIME-Predictions-Access": "full",
+        "X-PRIME-Predictions-Total": String(totalGames),
       },
     });
   } catch (error) {
