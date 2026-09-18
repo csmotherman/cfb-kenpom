@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import SiteFooter from "@/components/SiteFooter";
-import LeilaLoadingState from "@/components/LeilaLoadingState";
+import PrimeLoadingState from "@/components/PrimeLoadingState";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import { getMeta, getScheduleSeason } from "@/lib/data";
@@ -99,7 +99,7 @@ export default function GameHistoryPage() {
 
   useEffect(() => {
     let cancelled = false;
-    document.title = "Game History | LEILA Ratings";
+    document.title = "Game History | PRIME Football";
 
     (async () => {
       const meta = await getMeta();
@@ -425,7 +425,7 @@ export default function GameHistoryPage() {
           </div>
 
           {!loaded ? (
-            <LeilaLoadingState variant="archive" compact />
+            <PrimeLoadingState variant="archive" compact />
           ) : visible.length === 0 ? (
             <div className="history-empty">
               <strong>No games match those filters.</strong>
@@ -445,7 +445,7 @@ export default function GameHistoryPage() {
         </section>
       </main>
 
-      <SiteFooter note="Game History contains completed FBS-vs-FBS games for the seasons currently available in LEILA's dataset. Conference labels reflect each team's conference at the time of the game." />
+      <SiteFooter note="Game History contains completed FBS-vs-FBS games for the seasons currently available in PRIME Football's dataset. Conference labels reflect each team's conference at the time of the game." />
     </>
   );
 }
