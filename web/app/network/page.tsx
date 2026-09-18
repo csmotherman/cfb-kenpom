@@ -188,7 +188,7 @@ export default function NetworkPage() {
 
   useEffect(() => {
     if (!year) return;
-    document.title = `${year} Schedule Network | LEILA Ratings`;
+    document.title = `${year} Schedule Network | PRIME Football`;
   }, [year]);
 
   if (loadError) throw loadError;
@@ -201,7 +201,7 @@ export default function NetworkPage() {
 
       <section className="ratings-hero container" aria-labelledby="networkTitle">
         <div className="ratings-hero__copy">
-          <span className="eyebrow">LEILA Ratings</span>
+          <span className="eyebrow">PRIME Football</span>
           <h1 id="networkTitle">Schedule Network</h1>
           <p className="ratings-hero__description">
             Every opponent-adjusted rating (ASM in particular) only compares teams that are tied together by a chain of
