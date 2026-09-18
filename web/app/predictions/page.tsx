@@ -7,7 +7,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import MarketOddsCard from "@/components/MarketOddsCard";
-import LeilaLoadingState from "@/components/LeilaLoadingState";
+import PrimeLoadingState from "@/components/PrimeLoadingState";
 import { logoUrl } from "@/lib/teamCode";
 import {
   PremiumAccessError,
@@ -162,7 +162,7 @@ export default function PredictionsPage() {
   }, []);
 
   useEffect(() => {
-    document.title = season ? `${season} Predictions | LEILA Ratings` : "Predictions | LEILA Ratings";
+    document.title = season ? `${season} Predictions | PRIME Football` : "Predictions | PRIME Football";
   }, [season]);
 
   // Fetch each week's predictions on demand as the user browses weeks, and
@@ -324,7 +324,7 @@ export default function PredictionsPage() {
 
       <main id="predictionsContent" className="container predictions-main predictions-main--compact">
         {schedule === undefined ? (
-          <LeilaLoadingState variant="predictions" />
+          <PrimeLoadingState variant="predictions" />
         ) : schedule === null ? (
           <p className="network-loading">Weekly schedule data is publishing with the next ratings refresh.</p>
         ) : (
@@ -529,7 +529,7 @@ function PreseasonPowerTable({ power }: { power: PreseasonPower }) {
       <div className="predictions-model__header">
         <div className="predictions-model__header-copy">
           <span className="eyebrow">The Model Behind The Picks</span>
-          <h2 id="predictionModelTitle">How LEILA Builds a Pick</h2>
+          <h2 id="predictionModelTitle">How PRIME Builds a Pick</h2>
           <p className="predictions-model__lede">
             The active early-season engine starts with a frozen preseason estimate, then hands more weight to results
             from this season as each matchup gains evidence. It never uses AP or Coaches Poll votes, SP+, FPI, or betting lines.
@@ -566,7 +566,7 @@ function PreseasonPowerTable({ power }: { power: PreseasonPower }) {
           <span className="predictions-model__stage-number">02 / LIVE</span>
           <h3>Add this season&rsquo;s evidence</h3>
           <p>
-            LEILA measures each team&rsquo;s average scoring margin from games already played. It is intentionally raw
+            PRIME measures each team&rsquo;s average scoring margin from games already played. It is intentionally raw
             here because the early schedule graph is still too thin for stable opponent adjustment.
           </p>
         </article>
