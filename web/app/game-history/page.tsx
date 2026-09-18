@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import SiteFooter from "@/components/SiteFooter";
+import LeilaLoadingState from "@/components/LeilaLoadingState";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import { getMeta, getScheduleSeason } from "@/lib/data";
@@ -424,7 +425,7 @@ export default function GameHistoryPage() {
           </div>
 
           {!loaded ? (
-            <p className="history-empty">Loading the game archive…</p>
+            <LeilaLoadingState variant="archive" compact />
           ) : visible.length === 0 ? (
             <div className="history-empty">
               <strong>No games match those filters.</strong>
