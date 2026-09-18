@@ -389,6 +389,7 @@ export type SiteMeta = {
   rankingsYears: number[];
   advancedYears: number[];
   scheduleYears?: number[];
+  predictionYears?: number[];
   ratingModels?: Record<string, string>;
 };
 
