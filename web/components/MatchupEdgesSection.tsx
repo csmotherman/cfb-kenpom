@@ -119,7 +119,7 @@ export default function MatchupEdgesSection({ season, gameId }: { season: number
 
   if (state.status === "locked") {
     return (
-      <section className="matchup-edges matchup-edges--locked" aria-label="LEILA matchup edges locked">
+      <section className="matchup-edges matchup-edges--locked" aria-label="PRIME matchup edges locked">
         <div className="matchup-edges__head">
           <h2>Matchup Edges</h2>
           <span className="matchup-edges__badge">Research</span>
@@ -134,7 +134,7 @@ export default function MatchupEdgesSection({ season, gameId }: { season: number
 
   if (game.status === "limited") {
     return (
-      <section className="matchup-edges matchup-edges--empty" aria-label="LEILA matchup edges">
+      <section className="matchup-edges matchup-edges--empty" aria-label="PRIME matchup edges">
         <div className="matchup-edges__head">
           <h2>Matchup Edges</h2>
           <span className="matchup-edges__badge">Research</span>
@@ -148,7 +148,7 @@ export default function MatchupEdgesSection({ season, gameId }: { season: number
 
   if (edges.length === 0) {
     return (
-      <section className="matchup-edges matchup-edges--empty" aria-label="LEILA matchup edges">
+      <section className="matchup-edges matchup-edges--empty" aria-label="PRIME matchup edges">
         <div className="matchup-edges__head">
           <h2>Matchup Edges</h2>
           <span className="matchup-edges__badge">Research</span>
@@ -159,7 +159,7 @@ export default function MatchupEdgesSection({ season, gameId }: { season: number
   }
 
   return (
-    <section className="matchup-edges" aria-label="LEILA matchup edges">
+    <section className="matchup-edges" aria-label="PRIME matchup edges">
       <div className="matchup-edges__head">
         <h2>Matchup Edges</h2>
         <span className="matchup-edges__badge">Research</span>
