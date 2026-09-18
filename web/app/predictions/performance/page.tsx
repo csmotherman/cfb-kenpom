@@ -30,8 +30,10 @@ export default function PredictionPerformancePage() {
 
     (async () => {
       const meta = await getMeta();
+      const latestSeason = meta.rankingsYears[meta.rankingsYears.length - 1];
+      const predictionYears = meta.predictionYears?.length ? meta.predictionYears : [latestSeason];
       const loaded = (
-        await Promise.all(meta.rankingsYears.map((year) => getPredictionsTrackRecord(year)))
+        await Promise.all(predictionYears.map((year) => getPredictionsTrackRecord(year)))
       )
         .filter((item): item is PredictionsTrackRecord => Boolean(item))
         .sort((a, b) => b.season - a.season);
