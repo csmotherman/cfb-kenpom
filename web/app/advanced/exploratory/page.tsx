@@ -189,7 +189,7 @@ export default function ExploratoryPage() {
           <h1 id="exploratoryTitle">{year} Series &amp; Drive-Level Statistics</h1>
           <p className="ratings-hero__description">
             Research-stage stats that explain how teams sustain drives, recover after bad downs, stay clean on
-            possessions, and create value with or without explosive plays -- built from LEILA&rsquo;s canonical
+            possessions, and create value with or without explosive plays -- built from PRIME&rsquo;s canonical
             play-by-play, not just box-score snapshots.
           </p>
         </div>
@@ -207,9 +207,9 @@ export default function ExploratoryPage() {
       </nav>
 
       <div className="container exploratory-disclaimer">
-        Exploratory metrics are research-stage LEILA statistics designed to measure aspects of football performance
+        Exploratory metrics are research-stage PRIME statistics designed to measure aspects of football performance
         not fully captured by traditional efficiency metrics. Definitions and methodology may evolve as they are
-        validated. Exploratory metrics do not currently affect LEILA Ratings.
+        validated. Exploratory metrics do not currently affect the overall rating.
       </div>
 
       <div className="control-bar">
@@ -313,7 +313,7 @@ export default function ExploratoryPage() {
         <div className="advanced-table-shell exploratory-table-shell">
           <div className="table-scroll" role="region" aria-label={`${activeView.label} exploratory analytics table`} tabIndex={0}>
             <table className={`data-table adv-table exploratory-table exploratory-table--${tableView}`}>
-              <caption className="sr-only">LEILA Exploratory {activeView.label} team analytics</caption>
+              <caption className="sr-only">PRIME Exploratory {activeView.label} team analytics</caption>
               <thead>
                 <tr className="adv-section-row">
                   <th scope="colgroup" colSpan={2} className="adv-section-spacer">Team</th>
@@ -506,7 +506,7 @@ export default function ExploratoryPage() {
       )}
 
       <div id="methodology" tabIndex={-1}>
-        <SiteFooter note="Exploratory statistics include completed FBS-vs-FBS games only and are built from LEILA's canonical play-by-play. They are research-stage and do not feed Adj. Net, Adj. Off, Adj. Def, ASM, or any prediction model." />
+        <SiteFooter note="Exploratory statistics include completed FBS-vs-FBS games only and are built from PRIME's canonical play-by-play. They are research-stage and do not feed Adj. Net, Adj. Off, Adj. Def, ASM, or any prediction model." />
       </div>
     </>
   );
