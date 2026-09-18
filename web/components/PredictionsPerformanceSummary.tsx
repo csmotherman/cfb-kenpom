@@ -81,13 +81,9 @@ export default function PredictionsPerformanceSummary() {
       </div>
 
       <div className="prediction-performance-strip__stats">
-        <div className="prediction-performance-strip__stat">
-          <strong>{summary.correct}</strong>
-          <span>Correct</span>
-        </div>
-        <div className="prediction-performance-strip__stat">
-          <strong>{summary.incorrect}</strong>
-          <span>Incorrect</span>
+        <div className="prediction-performance-strip__stat prediction-performance-strip__stat--record">
+          <strong>{summary.correct}-{summary.incorrect}</strong>
+          <span>All-time record</span>
         </div>
         <div className="prediction-performance-strip__stat">
           <strong>{percent(summary.accuracy)}</strong>

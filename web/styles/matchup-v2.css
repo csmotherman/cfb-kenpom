@@ -91,6 +91,16 @@
 .matchup-v2-side--home { grid-area: home; }
 .matchup-v2-center { grid-area: center; min-width: 0; }
 
+/* Postgame results view: no side-by-side grid, so this target just centers
+   the portaled prediction/market shell as its own section. MatchupPredictionPortal
+   renders nothing into it when there is neither a prediction nor market line for
+   the game, so :empty keeps that case from leaving a bare divider behind. */
+.matchup-v2-center--results:not(:empty) {
+  margin: 20px 0 8px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-hairline-strong);
+}
+
 .matchup-v2-side {
   min-width: 0;
   background: var(--color-paper);

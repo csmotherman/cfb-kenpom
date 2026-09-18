@@ -348,6 +348,11 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
             columns={columns}
           />
 
+          {/* MatchupPredictionPortal (mounted in the root layout) portals PRIME's
+              prediction and the market odds card into whichever ".matchup-v2-center"
+              node is present -- this is that target for the completed-game view. */}
+          <div className="matchup-v2-center matchup-v2-center--results" />
+
           <MatchupEdgesSection season={season} gameId={gameId} />
         </main>
 

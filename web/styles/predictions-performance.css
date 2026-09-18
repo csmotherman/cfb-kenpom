@@ -49,9 +49,14 @@
 
 .prediction-performance-strip__stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(72px, 1fr));
+  grid-template-columns: repeat(3, minmax(72px, 1fr));
   border-left: 1px solid var(--color-hairline);
   border-right: 1px solid var(--color-hairline);
+}
+
+.prediction-performance-strip__stat--record strong {
+  color: var(--color-gold-dark);
+  font-size: 20px;
 }
 
 .prediction-performance-strip__stat {
