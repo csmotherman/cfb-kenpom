@@ -22,13 +22,13 @@ type Column = {
 };
 
 const COLUMNS: Column[] = [
-  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by Adj. Net" },
+  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by Net APR" },
   { key: "team", label: "Team", numeric: false, defaultDir: "asc" },
-  { key: "adjEM", label: "Adj. Net", numeric: true, defaultDir: "desc", primary: true, tooltip: "Overall opponent-adjusted possession-efficiency rating. Adj. Net = Adj. Off + Adj. Def, expressed as points per 10 resolved possessions above or below the FBS average." },
-  { key: "adjO", label: "Adj. Off", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive points per resolved possession, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
-  { key: "adjD", label: "Adj. Def", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted points per resolved possession prevented, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
+  { key: "adjEM", label: "Net APR", numeric: true, defaultDir: "desc", primary: true, tooltip: "Overall opponent-adjusted possession-efficiency rating. Net APR = Off APR + Def APR, expressed as points per 10 resolved possessions above or below the FBS average." },
+  { key: "adjO", label: "Off APR", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive points per resolved possession, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
+  { key: "adjD", label: "Def APR", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted points per resolved possession prevented, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
   { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Strength of schedule: average SRS strength of opponents played through the selected week." },
-  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like Adj. Net. Higher is better." },
+  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like Net APR. Higher is better." },
 ];
 
 function na(v: unknown): v is null | undefined {
@@ -199,7 +199,7 @@ export default function RatingsPage() {
           <span className="eyebrow">LEILA Ratings</span>
           <h1 id="ratingsTitle">{year ? `${year} LEILA Ratings` : "LEILA Ratings"}</h1>
           <p className="ratings-hero__description">
-            Opponent-adjusted team performance, measuring how teams perform relative to what their opponents typically allow.
+            APR (Adjusted Possession Rating) measures team strength through points created and prevented per resolved possession, adjusted for opponent quality across the FBS schedule network.
           </p>
         </div>
         <div className="ratings-hero__meta">
@@ -224,8 +224,8 @@ export default function RatingsPage() {
 
       <section className="onboarding-strip container" aria-label="New here">
         <p className="onboarding-strip__lede">
-          <strong>Adj. Net</strong> ranks every FBS team by opponent-adjusted performance &mdash; Adj. Off + Adj. Def,
-          accounting for who they played, not just the scoreboard. Hover any column header for what it means.
+          <strong>Net APR</strong> ranks every FBS team by opponent-adjusted performance &mdash; Off APR + Def APR,
+          accounting for who they played, not just the scoreboard. APR stands for Adjusted Possession Rating. Hover any column header for what it means, or use the glossary below.
         </p>
         <div className="onboarding-strip__links">
           <Link href="/predictions">See this week&rsquo;s games →</Link>
@@ -375,6 +375,23 @@ export default function RatingsPage() {
         </div>
       </main>
 
+      <section className="ratings-glossary container" aria-labelledby="ratingsGlossaryTitle">
+        <div className="ratings-glossary__heading">
+          <span className="eyebrow">Quick Reference</span>
+          <h2 id="ratingsGlossaryTitle">Ratings glossary</h2>
+        </div>
+        <div className="ratings-glossary__grid">
+          <div><strong>APR</strong><span>Adjusted Possession Rating — LEILA’s opponent-adjusted possession-efficiency rating system.</span></div>
+          <div><strong>Net APR</strong><span>The overall team-strength rating. Net APR = Off APR + Def APR. Zero is FBS average; higher is better.</span></div>
+          <div><strong>Off APR</strong><span>Opponent-adjusted offensive points per resolved possession, expressed per 10 resolved possessions above or below FBS average.</span></div>
+          <div><strong>Def APR</strong><span>Opponent-adjusted points prevented per resolved possession, expressed per 10 resolved possessions above or below FBS average. Higher is better.</span></div>
+          <div><strong>Resolved possession</strong><span>A possession with a usable offensive scoring outcome in the rating model. APR uses offensive drive points rather than defensive or special-teams scores.</span></div>
+          <div><strong>SOS</strong><span>Strength of Schedule — the strength of opponents played through the selected snapshot.</span></div>
+          <div><strong>SOR</strong><span>Strength of Record — wins above what an average FBS team would be expected to earn against the same schedule.</span></div>
+        </div>
+        <Link className="utility-link" href="/methodology">Full methodology ↗</Link>
+      </section>
+
       <aside className="premium-teaser container" aria-label="LEILA Pro advanced analytics preview">
         <div className="premium-teaser__copy">
           <span className="premium-teaser__title">The rating tells you who is good. LEILA Pro tells you why.</span>
@@ -384,7 +401,7 @@ export default function RatingsPage() {
       </aside>
 
       <div id="methodology" tabIndex={-1}>
-        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional, and SOS/SOR omit games without pregame opponent ratings. Adj. Off and Adj. Def are recursively opponent-adjusted possession-efficiency ratings based on offensive drive points per resolved possession and scaled per 10 possessions; higher is better for both. Adj. Net = Adj. Off + Adj. Def. SOR is wins above an average team on the same schedule -- a résumé measure, separate from Adj. Net's performance measure." />
+        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional, and SOS/SOR omit games without pregame opponent ratings. Off APR and Def APR are recursively opponent-adjusted possession-efficiency ratings based on offensive drive points per resolved possession and scaled per 10 possessions; higher is better for both. Net APR = Off APR + Def APR. SOR is wins above an average team on the same schedule -- a résumé measure, separate from Net APR's performance measure." />
       </div>
     </>
   );
