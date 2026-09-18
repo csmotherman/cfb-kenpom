@@ -35,7 +35,7 @@ export async function GET(
   const entitlements = await getCurrentEntitlements();
   if (!entitlements.userId) {
     return NextResponse.json(
-      { code: "SIGN_IN_REQUIRED", message: "Sign in to see LEILA's matchup edges." },
+      { code: "SIGN_IN_REQUIRED", message: "Sign in to see PRIME's matchup edges." },
       { status: 401, headers: PRIVATE_HEADERS }
     );
   }
@@ -45,7 +45,7 @@ export async function GET(
     return NextResponse.json(
       {
         code: "UPGRADE_REQUIRED",
-        message: "LEILA Advanced or Advanced + Predictions is required for matchup edges.",
+        message: "PRIME Advanced or Advanced + Predictions is required for matchup edges.",
       },
       { status: 403, headers: PRIVATE_HEADERS }
     );
