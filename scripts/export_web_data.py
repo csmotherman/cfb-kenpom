@@ -637,6 +637,7 @@ def main():
     summaries = {}
     search = {}
     schedule_years = []
+    prediction_years = []
     for year in years:
         key = str(year)
         payloads = {}
@@ -684,6 +685,7 @@ def main():
             track_record = build_prediction_track_record_payload(year, schedule, prediction_snapshots)
             if track_record is not None:
                 outputs[f"prediction-track-record/{key}.json"] = encode(track_record)
+                prediction_years.append(year)
 
     index = sorted(search.values(), key=lambda row: row["team"])
     outputs["search-index.json"] = encode(index)
@@ -695,6 +697,7 @@ def main():
         "rankingsYears": years,
         "advancedYears": years,
         "scheduleYears": schedule_years,
+        "predictionYears": prediction_years,
         "dataVersion": version,
         "generatedAt": generated,
         "scope": "Completed FBS-vs-FBS games",
@@ -707,7 +710,7 @@ def main():
     atomic_write(web_data / "meta.json", encode(meta))
     print(
         f"Validated and exported {len(years)} seasons; {len(index)} searchable teams; "
-        f"{len(schedule_years)} schedule season(s); version {version[:12]}"
+        f"{len(schedule_years)} schedule season(s); {len(prediction_years)} prediction season(s); version {version[:12]}"
     )
 
 
