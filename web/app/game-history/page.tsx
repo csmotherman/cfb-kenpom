@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import { getMeta, getScheduleSeason } from "@/lib/data";
-import { logoUrl } from "@/lib/teamCode";
+import { logoUrl, teamCode } from "@/lib/teamCode";
 import type { ScheduleGame, ScheduleSeason } from "@/lib/types";
 
 type HistoryGame = ScheduleGame & {
@@ -23,6 +23,7 @@ type TeamOption = {
   id: number;
   name: string;
   slug: string;
+  conf: string;
 };
 
 type SortMode = "newest" | "oldest" | "closest" | "highest";
@@ -85,7 +86,6 @@ function gameContainsTeamPair(
 export default function GameHistoryPage() {
   const [loaded, setLoaded] = useState<LoadedSeason[] | null>(null);
   const [loadError, setLoadError] = useState<Error | null>(null);
-  const [query, setQuery] = useState("");
   const [year, setYear] = useState("all");
   const [week, setWeek] = useState("all");
   const [teamA, setTeamA] = useState("");
@@ -138,8 +138,18 @@ export default function GameHistoryPage() {
   const teams = useMemo<TeamOption[]>(() => {
     const byId = new Map<number, TeamOption>();
     for (const game of games) {
-      byId.set(game.homeTeamId, { id: game.homeTeamId, name: game.homeTeam, slug: game.homeSlug });
-      byId.set(game.awayTeamId, { id: game.awayTeamId, name: game.awayTeam, slug: game.awaySlug });
+      byId.set(game.homeTeamId, {
+        id: game.homeTeamId,
+        name: game.homeTeam,
+        slug: game.homeSlug,
+        conf: game.homeConference ?? "Independent",
+      });
+      byId.set(game.awayTeamId, {
+        id: game.awayTeamId,
+        name: game.awayTeam,
+        slug: game.awaySlug,
+        conf: game.awayConference ?? "Independent",
+      });
     }
     return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [games]);
@@ -181,7 +191,6 @@ export default function GameHistoryPage() {
   const exactB = teamByExactName.get(normalize(teamB));
 
   const filtered = useMemo(() => {
-    const needle = normalize(query);
     const rows = games.filter((game) => {
       if (year !== "all" && game.season !== Number(year)) return false;
       if (week !== "all" && game.week !== Number(week)) return false;
@@ -190,19 +199,6 @@ export default function GameHistoryPage() {
       if (conferenceGamesOnly && !game.conferenceGame) return false;
       if (siteMode === "neutral" && !game.neutralSite) return false;
       if (siteMode === "campus" && game.neutralSite) return false;
-      if (needle) {
-        const haystack = [
-          game.awayTeam,
-          game.homeTeam,
-          game.awayConference ?? "",
-          game.homeConference ?? "",
-          game.venue ?? "",
-          game.weekLabel,
-          String(game.season),
-          `${game.awayPoints}-${game.homePoints}`,
-        ].join(" ").toLocaleLowerCase();
-        if (!haystack.includes(needle)) return false;
-      }
       return true;
     });
 
@@ -213,7 +209,7 @@ export default function GameHistoryPage() {
       return gameDateMs(b) - gameDateMs(a);
     });
     return rows;
-  }, [games, year, week, teamA, teamB, exactA, exactB, conference, conferenceGamesOnly, siteMode, query, sortMode]);
+  }, [games, year, week, teamA, teamB, exactA, exactB, conference, conferenceGamesOnly, siteMode, sortMode]);
 
   const series = useMemo(() => {
     if (!exactA || !exactB || exactA.id === exactB.id) return null;
@@ -245,7 +241,6 @@ export default function GameHistoryPage() {
   }
 
   function clearFilters() {
-    setQuery("");
     setYear("all");
     setWeek("all");
     setTeamA("");
