@@ -50,7 +50,7 @@ export async function GET(
 
   if (!entitlements.userId) {
     return NextResponse.json(
-      { code: "SIGN_IN_REQUIRED", message: "Sign in to access LEILA Advanced Analytics." },
+      { code: "SIGN_IN_REQUIRED", message: "Sign in to access PRIME Advanced Analytics." },
       { status: 401, headers: PRIVATE_HEADERS }
     );
   }
@@ -59,7 +59,7 @@ export async function GET(
     return NextResponse.json(
       {
         code: "UPGRADE_REQUIRED",
-        message: "LEILA Advanced or Advanced + Predictions is required for Advanced Analytics.",
+        message: "PRIME Advanced or Advanced + Predictions is required for Advanced Analytics.",
       },
       { status: 403, headers: PRIVATE_HEADERS }
     );
