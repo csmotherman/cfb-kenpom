@@ -30,12 +30,12 @@ export default function MethodologyPage() {
             <h2>Ratings</h2>
           </div>
           <p>
-            In-season Adj. Net, Adj. Off and Adj. Def use only games from the season being rated. No prior-year team rating, recruiting input or preseason ranking is blended into LEILA&rsquo;s published ratings. Early-season estimates are stabilized only by regularization inside the current season&rsquo;s opponent network.
+            In-season Adj. Net, Adj. Off and Adj. Def are possession-efficiency ratings built from offensive points per resolved possession and solved recursively across the FBS opponent network. A team&rsquo;s own rating is never blended with a preseason rating, recruiting input or conference-strength term. During the first three site weeks only, the opponent-strength adjustment is stabilized with a tapered prior-season opponent baseline; that influence is 50% through Week 2, 25% in Week 3 and 0% from Week 4 onward. A small zero-centered ridge toward the current-season FBS average also stabilizes sparse early-season samples.
           </p>
           <div className="methodology-definitions">
             <Definition term="Adj. Net" tag="Core" text="Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def" />
-            <Definition term="Adj. Off" tag="Core" text="Opponent-adjusted offensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
-            <Definition term="Adj. Def" tag="Core" text="Opponent-adjusted defensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." />
+            <Definition term="Adj. Off" tag="Core" text="Opponent-adjusted offensive points-per-resolved-possession effect, scaled to points per 10 resolved possessions above or below the FBS average. Higher is better." />
+            <Definition term="Adj. Def" tag="Core" text="Opponent-adjusted defensive points-per-resolved-possession effect, scaled to points prevented per 10 resolved possessions above or below the FBS average. Higher is better." />
             <Definition term="SOS" tag="Context" text="Strength of schedule, based on the strength of opponents played through the selected rating snapshot." />
             <Definition term="SOR" tag="Résumé" text="Strength of Record: wins above what an exactly-average FBS team would be expected to earn against the same schedule. It answers a résumé question, separate from Adj. Net's performance question." />
             <Definition term="ASM" tag="Résumé" text="Adjusted Score Matrix: an opponent-adjusted scoring-margin rating (constrained least squares), with each game's margin capped at 28 points before fitting so a blowout can't dominate a team's number. A résumé lens like SOR, not a second opinion on who's better -- see &ldquo;Process vs. résumé&rdquo; below. Shown on Advanced, not the main Ratings page." />
@@ -48,15 +48,7 @@ export default function MethodologyPage() {
             <h2>Process vs. résumé</h2>
           </div>
           <p>
-            Adj. Net is LEILA&rsquo;s primary answer to &ldquo;how good is this team&rdquo; &mdash; fit on per-play process
-            (EPA, Success Rate, Explosiveness) rather than the scoreboard directly, and walk-forward tested against
-            games it hadn&rsquo;t seen to confirm it actually predicts better than a plain margin-based rating, not just
-            fit one better. ASM will look deceptively strong on a same-season fit test, since it&rsquo;s built to
-            minimize error against exactly that season&rsquo;s scores &mdash; but tests that strictly predict
-            future, unseen games show Adj. Net calling more of them correctly, especially early in a season before a
-            margin-only rating has enough games to stabilize. Read ASM as what the scoreboard says, with blowouts
-            capped &mdash; most useful for where it disagrees with Adj. Net (a team over- or under-performing its
-            underlying process is a real story), not as a competing opinion on which team is actually better.
+            Adj. Net is LEILA&rsquo;s primary opponent-adjusted team-strength rating. It is fit from offensive drive points per resolved possession rather than directly from final scoring margin. Every completed FBS-vs-FBS team-game is solved simultaneously, so an efficiency result against a strong opponent is treated differently from the same result against a weak opponent. Adj. Net equals Adj. Off plus Adj. Def, with both components expressed on a points-per-10-resolved-possessions scale. EPA, Success Rate, Explosiveness and other play-level measures remain separate advanced and exploratory statistics; they do not currently determine Adj. Net. ASM is intentionally different: it is an opponent-adjusted scoring-margin r&eacute;sum&eacute; lens with each game&rsquo;s margin capped at 28 points. The disagreement between the possession-efficiency rating and ASM can therefore provide useful context without implying that the two metrics measure the same thing.
           </p>
         </section>
 
