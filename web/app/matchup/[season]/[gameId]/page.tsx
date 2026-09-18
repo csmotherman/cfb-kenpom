@@ -339,7 +339,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
           <MatchupEdgesSection season={season} gameId={gameId} />
         </main>
 
-        <SiteFooter note="Final game breakdown uses LEILA's advanced and exploratory single-game metrics. Percentiles compare each team's single-game performance against every other FBS-vs-FBS team-game in the same season." />
+        <SiteFooter note="Final results use CFBD's official team box score for base game facts and LEILA's play-by-play/drive pipeline for advanced metrics. Conditional colors apply only to LEILA metrics against the historical FBS-vs-FBS single-game baseline." />
       </>
     );
   }
