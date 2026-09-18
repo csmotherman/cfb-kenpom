@@ -12,7 +12,9 @@ function number(value: number | null): string {
 
 function spreadLabel(market: MarketGame): string {
   const quote = market.primary;
-  if (!quote || quote.spread === null) return "—";
+  if (!quote) return "—";
+  if (quote.formattedSpread) return quote.formattedSpread;
+  if (quote.spread === null) return "—";
   if (quote.spread === 0) return "PK";
   if (quote.spread < 0) return `${market.homeTeam} ${quote.spread.toFixed(1)}`;
   return `${market.awayTeam} ${(-quote.spread).toFixed(1)}`;
