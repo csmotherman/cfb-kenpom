@@ -24,6 +24,8 @@ jobs:
         run: python scripts/validate_site_data.py
       - name: Audit cross-artifact data contracts
         run: python scripts/audit_data_contracts.py
+      - name: Audit completed-game results contract
+        run: python scripts/audit_game_results_contract.py
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

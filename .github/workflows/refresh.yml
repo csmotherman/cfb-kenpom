@@ -168,7 +168,7 @@ jobs:
       - name: Hydrate and verify private premium history
         run: python scripts/hydrate_premium_data.py
 
-      - name: Fetch games, drives and play-by-play for changed partitions
+      - name: Fetch games, team box scores, drives and play-by-play for changed partitions
         env:
           REFRESH_PARTITIONS: ${{ needs.detect-new-games.outputs.refresh_partitions }}
           CHANGED_GAME_COUNT: ${{ needs.detect-new-games.outputs.changed_game_count }}
@@ -245,6 +245,8 @@ jobs:
         run: python -m cfb_analytics.analytics.exploratory_matchup_product --season "$SEASON"
       - name: Export completed-game Team-Game Advanced data
         run: python scripts/export_team_game_advanced.py --season "$SEASON"
+      - name: Audit completed-game source and reconciliation contract
+        run: python scripts/audit_game_results_contract.py
       - name: Refresh historical single-game percentile baseline
         run: python scripts/export_team_game_percentile_baseline.py --current-season "$SEASON"
 
