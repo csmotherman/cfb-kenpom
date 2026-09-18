@@ -8,7 +8,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import MatchupEdgesSection from "@/components/MatchupEdgesSection";
 import GameResultsSheet from "@/components/GameResultsSheet";
-import LeilaLoadingState from "@/components/LeilaLoadingState";
+import PrimeLoadingState from "@/components/PrimeLoadingState";
 import {
   getRankingsSeason,
   getScheduleSeason,
@@ -244,7 +244,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
   }, [teamGameAdvanced, game, gameId]);
 
   useEffect(() => {
-    if (game) document.title = `${game.awayTeam} vs ${game.homeTeam} | LEILA Ratings`;
+    if (game) document.title = `${game.awayTeam} vs ${game.homeTeam} | PRIME Football`;
   }, [game]);
 
   const totalRated = rankings && ratingWeek !== null
@@ -262,7 +262,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
         <SiteHeader tagline="College Football Matchup Analysis" />
         <SiteNav />
         <main className="container weekly-state">
-          <LeilaLoadingState variant="matchup" compact />
+          <PrimeLoadingState variant="matchup" compact />
         </main>
       </>
     );
@@ -351,7 +351,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
           <MatchupEdgesSection season={season} gameId={gameId} />
         </main>
 
-        <SiteFooter note="Final results use CFBD's official team box score for base game facts and LEILA's play-by-play/drive pipeline for advanced metrics. Conditional colors apply only to LEILA metrics against the historical FBS-vs-FBS single-game baseline." />
+        <SiteFooter note="Final results use CFBD's official team box score for base game facts and PRIME's play-by-play/drive pipeline for advanced metrics. Conditional colors apply only to performance metrics against the historical FBS-vs-FBS single-game baseline." />
       </>
     );
   }
@@ -415,7 +415,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
         <MatchupEdgesSection season={season} gameId={gameId} />
       </main>
 
-      <SiteFooter note="Matchup pages use the most recent LEILA rating snapshot strictly before the selected game week. Net APR, Off APR, Def APR, SOS and SOR are read directly from that same Rankings snapshot used by the main table; SOR is wins above an average FBS team on the same schedule. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Def APR." />
+      <SiteFooter note="Matchup pages use the most recent overall rating snapshot strictly before the selected game week. Net APR, Off APR, Def APR, SOS and SOR are read directly from that same Rankings snapshot used by the main table; SOR is wins above an average FBS team on the same schedule. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Def APR." />
     </>
   );
 }
@@ -442,7 +442,7 @@ function TeamSideCard({
       <div className="matchup-v2-side__head">
         <span>
           <strong>{team}</strong>
-          <small>{record} · {rank ? `#${rank} LEILA` : "Unranked"}</small>
+          <small>{record} · {rank ? `#${rank}` : "Unranked"}</small>
         </span>
         <img src={logoUrl(teamId, 96)} alt="" decoding="async" />
       </div>
