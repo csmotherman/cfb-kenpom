@@ -270,8 +270,11 @@ export function buildGameResultsColumns(
     title,
     sections: groups.map(([sectionTitle, specs]) => buildSection(sectionTitle, specs, leftRow, rightRow)),
   });
+  const hasOfficialBoxScore =
+    leftRow?.box_score_available === true || rightRow?.box_score_available === true;
+
   return [
-    column("Official Box Score", BOX_SCORE),
+    ...(hasOfficialBoxScore ? [column("Official Box Score", BOX_SCORE)] : []),
     column("LEILA Efficiency", EFFICIENCY),
     column("Game Shape", GAME_SHAPE),
   ];
