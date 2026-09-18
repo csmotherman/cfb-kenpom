@@ -194,7 +194,7 @@ export default function PredictionPerformancePage() {
 
             <p className="prediction-performance-page__method-note">
               Straight-up winner accuracy is not against the spread. Margin MAE is the mean absolute
-              difference between PRIME's predicted home margin and the final home margin. Ties and games
+              difference between PRIME’s predicted home margin and the final home margin. Ties and games
               without verifiable final scores are excluded from grading.
             </p>
           </>
