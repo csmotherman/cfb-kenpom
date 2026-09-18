@@ -403,7 +403,7 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
         <MatchupEdgesSection season={season} gameId={gameId} />
       </main>
 
-      <SiteFooter note="Matchup pages use the most recent LEILA rating snapshot strictly before the selected game week. Adj. Net, Adj. Off, Adj. Def, SOS and SOR are read directly from that same Rankings snapshot used by the main table; SOR is wins above an average FBS team on the same schedule. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Adj. Def." />
+      <SiteFooter note="Matchup pages use the most recent LEILA rating snapshot strictly before the selected game week. Net APR, Off APR, Def APR, SOS and SOR are read directly from that same Rankings snapshot used by the main table; SOR is wins above an average FBS team on the same schedule. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Def APR." />
     </>
   );
 }
