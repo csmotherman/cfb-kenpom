@@ -1,5 +1,5 @@
 /* ========================================================================== */
-/* LEILA Predictions — polished slate layout                                 */
+/* PRIME Predictions — polished slate layout                                 */
 /* ========================================================================== */
 
 body:has(#predictionsContent) {
@@ -658,7 +658,7 @@ body:has(#predictionsContent) .ratings-hero__description {
     color: var(--color-ink-tertiary);
   }
 
-  .predictions-table td:nth-child(3)::before { content: "LEILA PICK"; }
+  .predictions-table td:nth-child(3)::before { content: "PRIME PICK"; }
   .predictions-table td:nth-child(4)::before { content: "WIN %"; }
 
   .predictions-table td:nth-child(4)::before {
