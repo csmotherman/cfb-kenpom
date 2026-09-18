@@ -270,6 +270,34 @@ export type ScheduleSeason = {
   byWeek: Record<string, ScheduleGame[]>;
 };
 
+export type MarketQuote = {
+  gameId: string;
+  provider: string;
+  spread: number | null;
+  spreadOpen: number | null;
+  overUnder: number | null;
+  overUnderOpen: number | null;
+  homeMoneyline: number | null;
+  awayMoneyline: number | null;
+};
+
+export type MarketGame = {
+  gameId: string;
+  week: number;
+  homeTeam: string;
+  awayTeam: string;
+  primary: MarketQuote | null;
+  providers: MarketQuote[];
+};
+
+export type MarketLinesSeason = {
+  season: number;
+  generatedAt: string;
+  source: string;
+  weeks: number[];
+  games: Record<string, MarketGame>;
+};
+
 // Raw per-game numerator/denominator counts, keyed exactly like the `wk`
 // per-week raw-count fields Advanced's rate columns already sum over (see
 // AdvColumn.num/den in app/advanced/page.tsx) -- just for one single game
