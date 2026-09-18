@@ -171,7 +171,7 @@ export default function RatingsPage() {
 
   useEffect(() => {
     if (!year) return;
-    document.title = `${year} LEILA Ratings`;
+    document.title = `${year} Overall Ratings | PRIME Football`;
   }, [year]);
 
   function onHeaderClick(col: Column) {
@@ -275,9 +275,9 @@ export default function RatingsPage() {
       </section>
 
       <main id="mainContent" className="table-main container">
-        <div className="table-scroll" role="region" aria-label="LEILA Ratings college football ratings table" tabIndex={0}>
+        <div className="table-scroll" role="region" aria-label="College football overall ratings table" tabIndex={0}>
           <table id="ratingsTable" className="data-table">
-            <caption className="sr-only">LEILA Ratings college football rankings</caption>
+            <caption className="sr-only">College football overall rankings</caption>
             <thead>
               <tr>
                 {COLUMNS.slice(0, 2).map((col) => (
@@ -341,7 +341,7 @@ export default function RatingsPage() {
           <h2 id="ratingsGlossaryTitle">Ratings glossary</h2>
         </div>
         <div className="ratings-glossary__grid">
-          <div><strong>APR</strong><span>Adjusted Possession Rating — LEILA’s opponent-adjusted possession-efficiency rating system.</span></div>
+          <div><strong>APR</strong><span>Adjusted Possession Rating — PRIME’s opponent-adjusted possession-efficiency rating system.</span></div>
           <div><strong>Net APR</strong><span>The overall team-strength rating. Net APR = Off APR + Def APR. Zero is FBS average; higher is better.</span></div>
           <div><strong>Off APR</strong><span>Opponent-adjusted offensive points per resolved possession, expressed per 10 resolved possessions above or below FBS average.</span></div>
           <div><strong>Def APR</strong><span>Opponent-adjusted points prevented per resolved possession, expressed per 10 resolved possessions above or below FBS average. Higher is better.</span></div>
@@ -352,12 +352,12 @@ export default function RatingsPage() {
         <Link className="utility-link" href="/methodology">Full methodology ↗</Link>
       </section>
 
-      <aside className="premium-teaser container" aria-label="LEILA Pro advanced analytics preview">
+      <aside className="premium-teaser container" aria-label="PRIME Advanced analytics preview">
         <div className="premium-teaser__copy">
-          <span className="premium-teaser__title">The rating tells you who is good. LEILA Pro tells you why.</span>
+          <span className="premium-teaser__title">The overall rating tells you who is good. PRIME Advanced tells you why.</span>
           <span className="premium-teaser__text">Break teams down by offense, defense, success rate, explosiveness, finishing drives, field position and custom week ranges.</span>
         </div>
-        <Link className="premium-teaser__link" href="/advanced">Explore LEILA Pro</Link>
+        <Link className="premium-teaser__link" href="/advanced">Explore PRIME Advanced</Link>
       </aside>
 
       <div id="methodology" tabIndex={-1}>
