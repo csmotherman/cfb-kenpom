@@ -132,7 +132,7 @@ export default function GameResultsSheet({
   gameSubLabel,
   heading = "Game Breakdown",
   headingEyebrow = "Final Game Analytics",
-  description = "Official box-score facts are shown separately from LEILA’s advanced metrics. Color applies only to LEILA performance metrics against the historical FBS-vs-FBS single-game baseline.",
+  description = "Official box-score facts are shown separately from advanced metrics. Color applies only to performance metrics against the historical FBS-vs-FBS single-game baseline.",
   columns,
 }: {
   leftTeam: GameResultsTeam;
