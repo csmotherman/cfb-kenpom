@@ -24,9 +24,9 @@ type Column = {
 const COLUMNS: Column[] = [
   { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by Adj. Net" },
   { key: "team", label: "Team", numeric: false, defaultDir: "asc" },
-  { key: "adjEM", label: "Adj. Net", numeric: true, defaultDir: "desc", primary: true, tooltip: "Overall opponent-adjusted rating. Adj. Net = Adj. Off + Adj. Def" },
-  { key: "adjO", label: "Adj. Off", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." },
-  { key: "adjD", label: "Adj. Def", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted defensive rating combining EPA, Success Rate, and Explosiveness. Higher is better." },
+  { key: "adjEM", label: "Adj. Net", numeric: true, defaultDir: "desc", primary: true, tooltip: "Overall opponent-adjusted possession-efficiency rating. Adj. Net = Adj. Off + Adj. Def, expressed as points per 10 resolved possessions above or below the FBS average." },
+  { key: "adjO", label: "Adj. Off", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive points per resolved possession, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
+  { key: "adjD", label: "Adj. Def", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted points per resolved possession prevented, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
   { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Strength of schedule: average SRS strength of opponents played through the selected week." },
   { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like Adj. Net. Higher is better." },
 ];
@@ -384,7 +384,7 @@ export default function RatingsPage() {
       </aside>
 
       <div id="methodology" tabIndex={-1}>
-        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional, and SOS/SOR omit games without pregame opponent ratings. Adj. Off and Adj. Def are opponent-adjusted ratings combining EPA, Success Rate, and Explosiveness; higher is better for both. Adj. Net = Adj. Off + Adj. Def. SOR is wins above an average team on the same schedule -- a résumé measure, separate from Adj. Net's performance measure." />
+        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional, and SOS/SOR omit games without pregame opponent ratings. Adj. Off and Adj. Def are recursively opponent-adjusted possession-efficiency ratings based on offensive drive points per resolved possession and scaled per 10 possessions; higher is better for both. Adj. Net = Adj. Off + Adj. Def. SOR is wins above an average team on the same schedule -- a résumé measure, separate from Adj. Net's performance measure." />
       </div>
     </>
   );
