@@ -37,6 +37,59 @@ FIELD_AVAILABILITY_REASONS = {
     ),
 }
 
+READINESS_MANIFEST_PATH = REPO / "data/canonical/advanced_data_readiness.json"
+
+# These all come from the LEILA Exploratory drives/risk pipeline, which
+# requires validated drives (driveValidationStatus == "PASS"), a stricter
+# gate than the canonical play-level EPA/Success/Havoc population below.
+# CFBD sometimes finalizes a game's box score and play-by-play before its
+# drives feed has fully settled, so these can legitimately lag by a run or
+# two even after epa_plays is populated. See _advanced_data_pending().
+#
+# turnover_epa_lost is deliberately excluded here: the turnovers propagation
+# CLI omits the field entirely (not 0.0) for a team that committed zero
+# turnovers, which is common and legitimate, not a processing gap. It gets
+# its own check below, gated on the official box score's turnover count.
+EXPLORATORY_READINESS_FIELDS = (
+    "series_conversion_rate",
+    "recovery_rate",
+    "third_long_exposure",
+    "clean_drive_rate",
+    "drive_killer_rate",
+    "failure_rate",
+    "avg_failure_damage",
+    "failure_burden",
+    "failure_pressure",
+    "epa_without_explosives",
+    "explosive_dependency",
+)
+
+
+def _advanced_data_pending(row: dict) -> bool:
+    """True when canonical PBP was graded for this team-game (proof CFBD's
+    play-by-play was available) but LEILA's drive-dependent Exploratory
+    metrics never came through -- a processing gap worth retrying, not a
+    legitimate absence. A game with no PBP at all (epa_plays null/zero) is
+    NOT pending: there is nothing to retry until CFBD publishes plays, and
+    flagging it would retry forever for a game that will never have PBP."""
+    epa_plays = row.get("epa_plays")
+    if not isinstance(epa_plays, (int, float)) or isinstance(epa_plays, bool) or epa_plays <= 0:
+        return False
+    if any(row.get(key) is None for key in EXPLORATORY_READINESS_FIELDS):
+        return True
+    # turnover_epa_lost is only ever computed for FBS-vs-FBS games (see
+    # exploratory_turnovers_propagation_cli.py's documented classification
+    # scope) and only when the official box score actually recorded a
+    # turnover for this team -- zero turnovers means nothing to sum, and an
+    # FBS-vs-FCS game never gets the field at all. Both are legitimate,
+    # permanent absences, not a processing gap to retry.
+    if row.get("classification") != "fbs" or row.get("opponent_classification") != "fbs":
+        return False
+    box_turnovers = row.get("box_turnovers")
+    if isinstance(box_turnovers, (int, float)) and not isinstance(box_turnovers, bool) and box_turnovers > 0:
+        return row.get("turnover_epa_lost") is None
+    return False
+
 
 def _num(v):
     return v if isinstance(v, (int, float)) and not isinstance(v, bool) else None
@@ -442,6 +495,11 @@ def main() -> None:
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    readiness = {}
+    if READINESS_MANIFEST_PATH.exists():
+        readiness = json.loads(READINESS_MANIFEST_PATH.read_text()).get("pendingGameIds", {})
+
     for season in seasons:
         payload = build_season(season)
         rows = payload["rows"]
@@ -453,10 +511,25 @@ def main() -> None:
             if r["classification"] == "fbs" and r["opponent_classification"] == "fbs"
         )
         box_rows = sum(1 for r in rows if r.get("box_score_available"))
+        pending_ids = sorted({r["game_id"] for r in rows if _advanced_data_pending(r)})
+        if pending_ids:
+            readiness[str(season)] = pending_ids
+        else:
+            readiness.pop(str(season), None)
         print(
             f"season {season}: {len(rows)} team-game rows "
             f"({fbs_vs_fbs} FBS-vs-FBS; {box_rows} official box-score rows) -> {out_path}"
         )
+        if pending_ids:
+            print(
+                f"  {len(pending_ids)} game(s) have PBP but incomplete Exploratory metrics "
+                f"(pending retry): {', '.join(pending_ids)}"
+            )
+
+    READINESS_MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
+    READINESS_MANIFEST_PATH.write_text(
+        json.dumps({"pendingGameIds": readiness}, indent=2, sort_keys=True) + "\n"
+    )
 
 
 if __name__ == "__main__":

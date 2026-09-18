@@ -9,8 +9,10 @@ import unittest
 from scripts.export_team_game_advanced import (
     BOX_SCORE_VERSION,
     CURRENT_SEASON_FIELDS_WIRED,
+    EXPLORATORY_READINESS_FIELDS,
     FIELD_AVAILABILITY_REASONS,
     TEAM_GAME_ADVANCED_VERSION,
+    _advanced_data_pending,
     _normalize_box_team,
     build_row,
 )
@@ -184,6 +186,82 @@ class TeamGameAdvancedContractTests(unittest.TestCase):
         self.assertIsNone(row["turnovers_per_drive"])
         self.assertIsNone(row["offensive_penalties"])
         self.assertIsNone(row["drive_share"])
+
+
+class AdvancedDataReadinessTests(unittest.TestCase):
+    """Regression coverage for the newly-completed-game bug: CFBD's box score
+    and play-by-play can be available (and canonical EPA/Success/Havoc
+    correctly populated) before its drives feed has fully settled, leaving
+    the drive-dependent Exploratory group (Series Control, Possession
+    Quality, Turnover Impact, etc.) null on the run that first processes the
+    game. _advanced_data_pending() must distinguish that processing gap from
+    a game that legitimately has no PBP yet."""
+
+    def test_graded_game_missing_exploratory_group_is_pending(self):
+        # Mirrors the real Pittsburgh/Syracuse (401858225) symptom: canonical
+        # PBP graded (epa_plays > 0), box score present, but every field
+        # sourced from the exploratory drives/risk pipeline is null.
+        row = build_row(2026, canon_row(), None, box_row())
+        self.assertGreater(row["epa_plays"], 0)
+        self.assertTrue(_advanced_data_pending(row))
+
+    def test_fully_populated_game_is_not_pending(self):
+        row = build_row(2026, canon_row(), exp_row(), box_row())
+        for key in EXPLORATORY_READINESS_FIELDS:
+            self.assertIsNotNone(row[key], key)
+        self.assertFalse(_advanced_data_pending(row))
+
+    def test_game_with_no_pbp_yet_is_not_pending(self):
+        # Legitimate source-data absence (CFBD hasn't published plays at
+        # all) must never be flagged for endless retry -- there is nothing
+        # to retry until PBP exists.
+        row = build_row(2026, canon_row(epaPlays=None, epaPerPlay=None, epaSum=None), None, box_row())
+        self.assertIsNone(row["epa_plays"])
+        self.assertFalse(_advanced_data_pending(row))
+
+    def test_one_missing_exploratory_field_is_enough_to_flag_pending(self):
+        row = build_row(2026, canon_row(), exp_row(seriesConversionRate=None), box_row())
+        self.assertIsNone(row["series_conversion_rate"])
+        self.assertTrue(_advanced_data_pending(row))
+
+    def test_zero_turnover_game_missing_turnover_epa_lost_is_not_pending(self):
+        # The turnovers propagation CLI omits turnoverEpaSum entirely (not
+        # 0.0) for a team that committed zero turnovers -- a legitimate
+        # absence, not a processing gap. Found while building this check:
+        # it initially false-positived on ~85 real zero-turnover 2026 games.
+        row = build_row(
+            2026,
+            canon_row(),
+            exp_row(turnoverEpaSum=None),
+            box_row(turnovers=0, interceptions=0, fumbles_lost=0),
+        )
+        self.assertEqual(row["box_turnovers"], 0)
+        self.assertIsNone(row["turnover_epa_lost"])
+        self.assertFalse(_advanced_data_pending(row))
+
+    def test_real_turnover_missing_turnover_epa_lost_is_pending(self):
+        # A team that DID commit a turnover (per the official box score)
+        # but has no turnover_epa_lost is a genuine processing gap.
+        row = build_row(2026, canon_row(), exp_row(turnoverEpaSum=None), box_row(turnovers=1))
+        self.assertEqual(row["box_turnovers"], 1)
+        self.assertIsNone(row["turnover_epa_lost"])
+        self.assertTrue(_advanced_data_pending(row))
+
+    def test_fbs_vs_fcs_game_missing_turnover_epa_lost_is_not_pending(self):
+        # exploratory_turnovers_propagation_cli.py only computes
+        # turnoverEpaSum for FBS-vs-FBS games by design. Found while
+        # building this check: it initially false-positived on 78 real
+        # FBS-vs-FCS 2026 games that committed at least one turnover.
+        row = build_row(
+            2026,
+            canon_row(opponent_classification="fcs"),
+            exp_row(turnoverEpaSum=None),
+            box_row(turnovers=3),
+        )
+        self.assertEqual(row["opponent_classification"], "fcs")
+        self.assertEqual(row["box_turnovers"], 3)
+        self.assertIsNone(row["turnover_epa_lost"])
+        self.assertFalse(_advanced_data_pending(row))
 
 
 if __name__ == "__main__":

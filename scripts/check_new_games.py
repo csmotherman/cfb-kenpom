@@ -6,6 +6,23 @@ or source partition changes, or when upcoming schedule metadata changes. A
 daily recent-week sweep additionally forces the latest source partitions to be
 re-fetched so silent drive/PBP corrections are not missed when the final score
 stays the same. Manual full sweeps are supported for recovery/audits.
+
+A completed game's own box score/final score can be available before CFBD's
+drives feed has fully settled, which makes LEILA's drive-dependent Exploratory
+metrics (Series Control, Possession Quality, Turnover Impact, etc.) come out
+null on the run that first processes it even though canonical play-level
+metrics (EPA, Success Rate, Havoc) are already complete. Because that game's
+score does not change on a later run, the normal new/corrected detection above
+would never look at it again. `data/canonical/advanced_data_readiness.json`
+(written by scripts/export_team_game_advanced.py after every export) lists
+exactly those games, and this gate always re-selects them for refresh on every
+run -- hourly included -- independent of whatever CFBD's live /games diff
+shows, until the Exploratory metrics come through and the game drops off the
+list on its own. Reselection is bounded to the same current/previous-week
+recency window as the daily sweep below: a small-sample game the readiness
+check does not perfectly model (e.g. too few qualifying drives for one
+particular rate) should not retry forever once it is no longer a
+newly-completed game.
 """
 from __future__ import annotations
 
@@ -32,6 +49,35 @@ def known_game_ids(path: Path) -> set[str]:
         if game_id is not None:
             ids.add(str(game_id))
     return ids
+
+
+def recent_partitions(completed_games: list[dict]) -> set[str]:
+    """The latest two completed source weeks per season type -- the same
+    recency window the daily correction sweep already uses."""
+    by_type: dict[str, list[int]] = {}
+    for game in completed_games:
+        season_type, week_text = partition_key(game).split(":", 1)
+        by_type.setdefault(season_type, []).append(int(week_text))
+    return {
+        f"{season_type}:{week}"
+        for season_type, weeks in by_type.items()
+        for week in sorted(set(weeks))[-2:]
+    }
+
+
+def pending_advanced_game_ids(path: Path, season: int) -> set[str]:
+    """Game IDs the last export flagged as PBP-graded but still missing
+    LEILA's drive-dependent Exploratory metrics (see
+    scripts/export_team_game_advanced.py's _advanced_data_pending). These
+    must always be re-selected for refresh, independent of whether CFBD's
+    live /games response shows a new or corrected game this run -- that is
+    exactly the self-healing path for a game whose drives feed had not yet
+    settled when it was first processed."""
+    if not path.exists():
+        return set()
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    ids = (payload.get("pendingGameIds") or {}).get(str(season)) or []
+    return {str(gid) for gid in ids}
 
 
 def published_schedule(path: Path) -> dict[str, dict]:
@@ -166,6 +212,7 @@ def main() -> None:
     parser.add_argument("--season", type=int, default=2026)
     parser.add_argument("--canonical", type=Path)
     parser.add_argument("--schedule", type=Path)
+    parser.add_argument("--readiness", type=Path)
     parser.add_argument(
         "--refresh-recent",
         action="store_true",
@@ -180,8 +227,10 @@ def main() -> None:
 
     canonical = args.canonical or REPO / f"data/canonical/season={args.season}/team_games.json"
     schedule_path = args.schedule or REPO / f"web/public/data/schedule/{args.season}.json"
+    readiness_path = args.readiness or REPO / "data/canonical/advanced_data_readiness.json"
     known = known_game_ids(canonical)
     published = published_schedule(schedule_path)
+    pending_ids = pending_advanced_game_ids(readiness_path, args.season)
 
     with CfbdClient() as client:
         all_games = source_games(client, args.season)
@@ -196,26 +245,29 @@ def main() -> None:
         game for game in all_games
         if schedule_metadata_changed(game, published.get(str(game["id"])))
     ]
+    games_by_id = {str(game["id"]): game for game in all_games}
+    # Bounded to the current/previous week: a game whose Exploratory metrics
+    # never arrive (a small-sample edge case the readiness check does not
+    # perfectly model, not a settling-time issue) must not retry forever
+    # once it has aged out of the recency window that new-game timing
+    # problems actually occur in.
+    recent = recent_partitions(completed) if completed else set()
+    pending_advanced = [
+        games_by_id[gid]
+        for gid in pending_ids
+        if gid in games_by_id and partition_key(games_by_id[gid]) in recent
+    ]
 
     selected = {
         str(game["id"]): game
-        for game in new_completed + corrected_completed + schedule_changes
+        for game in new_completed + corrected_completed + schedule_changes + pending_advanced
     }
 
     if args.refresh_all_completed:
         selected.update({str(game["id"]): game for game in completed})
     elif args.refresh_recent and completed:
-        by_type: dict[str, list[int]] = {}
         for game in completed:
-            season_type, week_text = partition_key(game).split(":", 1)
-            by_type.setdefault(season_type, []).append(int(week_text))
-        recent_partitions = {
-            f"{season_type}:{week}"
-            for season_type, weeks in by_type.items()
-            for week in sorted(set(weeks))[-2:]
-        }
-        for game in completed:
-            if partition_key(game) in recent_partitions:
+            if partition_key(game) in recent:
                 selected[str(game["id"])] = game
 
     changed_games = sorted(
@@ -225,6 +277,7 @@ def main() -> None:
     new_ids = sorted(str(game["id"]) for game in new_completed)
     corrected_ids = sorted(str(game["id"]) for game in corrected_completed)
     schedule_ids = sorted(str(game["id"]) for game in schedule_changes)
+    pending_advanced_ids = sorted(str(game["id"]) for game in pending_advanced)
 
     has_changes = bool(changed_games)
     write_output("data_changes", "true" if has_changes else "false")
@@ -234,6 +287,7 @@ def main() -> None:
     write_output("new_game_ids", ",".join(new_ids))
     write_output("corrected_game_ids", ",".join(corrected_ids))
     write_output("schedule_changed_game_ids", ",".join(schedule_ids))
+    write_output("pending_advanced_game_ids", ",".join(pending_advanced_ids))
     write_output("refresh_partitions", " ".join(partitions))
 
     if not has_changes:
@@ -250,6 +304,8 @@ def main() -> None:
         reasons.append(f"{len(corrected_completed)} corrected final")
     if schedule_changes:
         reasons.append(f"{len(schedule_changes)} schedule metadata change(s)")
+    if pending_advanced:
+        reasons.append(f"{len(pending_advanced)} game(s) pending Exploratory metrics")
     if args.refresh_recent:
         reasons.append("daily recent-partition sweep")
     if args.refresh_all_completed:

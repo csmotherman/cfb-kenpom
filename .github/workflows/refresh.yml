@@ -292,7 +292,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           mkdir -p "prospective/$SEASON/predictions"
-          git add "data/canonical/season=$SEASON" site/data.js site/search-index.js web/public/data web/lib/team-game-percentile-baseline.ts "prospective/$SEASON/predictions"
+          git add "data/canonical/season=$SEASON" data/canonical/advanced_data_readiness.json site/data.js site/search-index.js web/public/data web/lib/team-game-percentile-baseline.ts "prospective/$SEASON/predictions"
           if git diff --staged --quiet; then
             echo "Refresh completed and validated, but the publishable output did not change." >> "$GITHUB_STEP_SUMMARY"
           else
