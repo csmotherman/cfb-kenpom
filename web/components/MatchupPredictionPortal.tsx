@@ -119,12 +119,12 @@ export default function MatchupPredictionPortal() {
     <section className="matchup-prediction-shell" aria-label="Prediction and market context">
       {predictionReady ? (
         prediction.status === "ready" ? (
-          <section className="matchup-prediction matchup-prediction--revealed" aria-label="LEILA premium prediction">
+          <section className="matchup-prediction matchup-prediction--revealed" aria-label="PRIME premium prediction">
             <div className="matchup-prediction__eyebrow">
-              <span>LEILA Prediction</span>
+              <span>PRIME Prediction</span>
               <em>Advanced + Predictions</em>
             </div>
-            <strong className="matchup-prediction__pick">{prediction.game.predictedWinner} is LEILA&apos;s pick</strong>
+            <strong className="matchup-prediction__pick">{prediction.game.predictedWinner} is PRIME&apos;s pick</strong>
             <div className="matchup-prediction__result-grid">
               <span>
                 <small>Win probability</small>
@@ -138,14 +138,14 @@ export default function MatchupPredictionPortal() {
             <small className="matchup-prediction__fineprint">Model projection, not betting advice.</small>
           </section>
         ) : (
-          <section className="matchup-prediction matchup-prediction--locked" aria-label="LEILA prediction locked">
+          <section className="matchup-prediction matchup-prediction--locked" aria-label="PRIME prediction locked">
             <div className="matchup-prediction__eyebrow">
-              <span>LEILA Prediction</span>
+              <span>PRIME Prediction</span>
               <em>Advanced + Predictions</em>
             </div>
             <strong className="matchup-prediction__hook">The rankings tell one story. What does the model see?</strong>
-            <p>Reveal LEILA&apos;s projected winner, win probability and model margin for this matchup.</p>
-            <Link href="/upgrade?feature=predictions" className="matchup-prediction__cta">Reveal LEILA&apos;s pick →</Link>
+            <p>Reveal PRIME&apos;s projected winner, win probability and model margin for this matchup.</p>
+            <Link href="/upgrade?feature=predictions" className="matchup-prediction__cta">Reveal PRIME&apos;s pick →</Link>
           </section>
         )
       ) : null}
