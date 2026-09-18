@@ -260,162 +260,134 @@ export default function GameHistoryPage() {
       <SiteHeader tagline="College Football Game Archive" />
       <SiteNav />
 
-      <section className="history-hero container" aria-labelledby="gameHistoryTitle">
-        <div>
-          <span className="eyebrow">LEILA Game Archive</span>
-          <h1 id="gameHistoryTitle">Game History</h1>
-          <p>
-            Find a game by team, season, week, conference, venue, or score. Pick two teams to turn the archive into a head-to-head history search.
-          </p>
+      <section className="history-toolbar container" aria-labelledby="gameHistoryTitle">
+        <div className="history-toolbar__top">
+          <div className="history-toolbar__title">
+            <h1 id="gameHistoryTitle">Game History</h1>
+            <span>{filtered.length.toLocaleString()} games</span>
+          </div>
+          <div className="history-toolbar__archive">
+            <strong>{games.length ? games.length.toLocaleString() : "—"}</strong>
+            <span>FBS vs FBS finals{dataRange ? ` · ${dataRange}` : ""}</span>
+          </div>
         </div>
-        <div className="history-hero__stat" aria-label="Archive size">
-          <strong className="mono">{games.length ? games.length.toLocaleString() : "—"}</strong>
-          <span>FBS vs FBS finals</span>
-          {dataRange ? <small>{dataRange} available seasons</small> : null}
+
+        <div className="history-toolbar__controls" aria-label="Game history filters">
+          <TeamPicker
+            id="historyTeamA"
+            label="Team"
+            placeholder="Search team"
+            value={teamA}
+            teams={teams}
+            onChange={(value) => {
+              setTeamA(value);
+              resetResults();
+            }}
+          />
+
+          <TeamPicker
+            id="historyTeamB"
+            label="Opponent"
+            placeholder="Any opponent"
+            value={teamB}
+            teams={teams}
+            onChange={(value) => {
+              setTeamB(value);
+              resetResults();
+            }}
+          />
+
+          <label className="history-compact-field">
+            <span>Season</span>
+            <select
+              value={year}
+              onChange={(event) => {
+                setYear(event.target.value);
+                setWeek("all");
+                resetResults();
+              }}
+            >
+              <option value="all">All</option>
+              {yearOptions.map((season) => <option value={season} key={season}>{season}</option>)}
+            </select>
+          </label>
+
+          <label className="history-compact-field">
+            <span>Week</span>
+            <select
+              value={week}
+              onChange={(event) => {
+                setWeek(event.target.value);
+                resetResults();
+              }}
+            >
+              <option value="all">All</option>
+              {weekOptions.map(([number, label]) => <option value={number} key={number}>{label}</option>)}
+            </select>
+          </label>
+
+          <label className="history-compact-field history-compact-field--conference">
+            <span>Conference</span>
+            <select
+              value={conference}
+              onChange={(event) => {
+                setConference(event.target.value);
+                resetResults();
+              }}
+            >
+              <option value="all">All conferences</option>
+              {conferences.map((name) => <option value={name} key={name}>{name}</option>)}
+            </select>
+          </label>
+
+          <label className="history-compact-field">
+            <span>Site</span>
+            <select
+              value={siteMode}
+              onChange={(event) => {
+                setSiteMode(event.target.value as SiteMode);
+                resetResults();
+              }}
+            >
+              <option value="all">All sites</option>
+              <option value="campus">Campus</option>
+              <option value="neutral">Neutral</option>
+            </select>
+          </label>
+
+          <label className="history-compact-field history-compact-field--sort">
+            <span>Sort</span>
+            <select
+              value={sortMode}
+              onChange={(event) => {
+                setSortMode(event.target.value as SortMode);
+                resetResults();
+              }}
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="closest">Closest</option>
+              <option value="highest">Highest scoring</option>
+            </select>
+          </label>
+
+          <label className="history-toggle">
+            <input
+              type="checkbox"
+              checked={conferenceGamesOnly}
+              onChange={(event) => {
+                setConferenceGamesOnly(event.target.checked);
+                resetResults();
+              }}
+            />
+            <span>Conf. only</span>
+          </label>
+
+          <button className="history-clear" type="button" onClick={clearFilters}>Clear</button>
         </div>
       </section>
 
       <main className="container history-main">
-        <section className="history-finder" aria-label="Game history filters">
-          <div className="history-finder__search">
-            <label htmlFor="historySearch">Search the archive</label>
-            <input
-              id="historySearch"
-              type="search"
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                resetResults();
-              }}
-              placeholder="Team, venue, conference, year, score…"
-              autoComplete="off"
-            />
-          </div>
-
-          <div className="history-matchup-builder">
-            <div className="history-team-search">
-              <label htmlFor="historyTeamA">Team 1</label>
-              <input
-                id="historyTeamA"
-                list="historyTeams"
-                value={teamA}
-                onChange={(event) => {
-                  setTeamA(event.target.value);
-                  resetResults();
-                }}
-                placeholder="Any team"
-                autoComplete="off"
-              />
-            </div>
-            <span className="history-matchup-builder__vs">VS</span>
-            <div className="history-team-search">
-              <label htmlFor="historyTeamB">Team 2</label>
-              <input
-                id="historyTeamB"
-                list="historyTeams"
-                value={teamB}
-                onChange={(event) => {
-                  setTeamB(event.target.value);
-                  resetResults();
-                }}
-                placeholder="Optional opponent"
-                autoComplete="off"
-              />
-            </div>
-            <datalist id="historyTeams">
-              {teams.map((team) => <option value={team.name} key={team.id} />)}
-            </datalist>
-          </div>
-
-          <div className="history-filter-grid">
-            <label>
-              <span>Season</span>
-              <select
-                value={year}
-                onChange={(event) => {
-                  setYear(event.target.value);
-                  setWeek("all");
-                  resetResults();
-                }}
-              >
-                <option value="all">All seasons</option>
-                {yearOptions.map((season) => <option value={season} key={season}>{season}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Week</span>
-              <select
-                value={week}
-                onChange={(event) => {
-                  setWeek(event.target.value);
-                  resetResults();
-                }}
-              >
-                <option value="all">All weeks</option>
-                {weekOptions.map(([number, label]) => <option value={number} key={number}>{label}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Conference</span>
-              <select
-                value={conference}
-                onChange={(event) => {
-                  setConference(event.target.value);
-                  resetResults();
-                }}
-              >
-                <option value="all">All conferences</option>
-                {conferences.map((name) => <option value={name} key={name}>{name}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Site</span>
-              <select
-                value={siteMode}
-                onChange={(event) => {
-                  setSiteMode(event.target.value as SiteMode);
-                  resetResults();
-                }}
-              >
-                <option value="all">All sites</option>
-                <option value="campus">Non-neutral</option>
-                <option value="neutral">Neutral only</option>
-              </select>
-            </label>
-            <label>
-              <span>Sort</span>
-              <select
-                value={sortMode}
-                onChange={(event) => {
-                  setSortMode(event.target.value as SortMode);
-                  resetResults();
-                }}
-              >
-                <option value="newest">Newest first</option>
-                <option value="oldest">Oldest first</option>
-                <option value="closest">Closest games</option>
-                <option value="highest">Highest scoring</option>
-              </select>
-            </label>
-            <label className="history-checkbox">
-              <input
-                type="checkbox"
-                checked={conferenceGamesOnly}
-                onChange={(event) => {
-                  setConferenceGamesOnly(event.target.checked);
-                  resetResults();
-                }}
-              />
-              <span>Conference games only</span>
-            </label>
-          </div>
-
-          <div className="history-finder__footer">
-            <span><strong>{filtered.length.toLocaleString()}</strong> games found</span>
-            <button type="button" onClick={clearFilters}>Clear filters</button>
-          </div>
-        </section>
-
         {series && exactA && exactB ? (
           <section className="history-series" aria-label={`${exactA.name} versus ${exactB.name} series in the selected data`}>
             <div className="history-series__team">
