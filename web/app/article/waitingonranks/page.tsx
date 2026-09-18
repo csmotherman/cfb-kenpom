@@ -4,9 +4,9 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata = {
-  title: "Nobody Knows Who's Good Yet. Here's Why Week 4 Matters | LEILA Ratings",
+  title: "Nobody Knows Who's Good Yet. Here's Why Week 4 Matters | PRIME Football",
   description:
-    "After two games, college football is still split into dozens of disconnected groups. LEILA's data shows why rankings become much more useful around Week 4.",
+    "After two games, college football is still split into dozens of disconnected groups. PRIME's data shows why rankings become much more useful around Week 4.",
   robots: { index: false, follow: false },
 };
 
@@ -35,7 +35,7 @@ export default function WaitingOnRanksArticle() {
             football have not crossed paths yet, which makes national rankings much shakier than the number beside a
             team&rsquo;s name suggests. Our own data shows when that starts to change.
           </p>
-          <p className="article-byline">LEILA Ratings Data Desk</p>
+          <p className="article-byline">PRIME Football Data Desk</p>
         </header>
 
         <section className="article-section">
@@ -122,7 +122,7 @@ export default function WaitingOnRanksArticle() {
             In plain English: <strong>the computer had not seen enough football yet.</strong>
           </p>
           <p>
-            LEILA&rsquo;s main rating, Adj. Net, is designed to pull extreme early results back toward average until
+            the overall rating, Adj. Net, is designed to pull extreme early results back toward average until
             more evidence arrives. That helps prevent wild rankings like Sam Houston at No. 4. But no model can create
             information that has not happened on the field yet.
           </p>
@@ -134,7 +134,7 @@ export default function WaitingOnRanksArticle() {
             <h2>Our own history says two games are not enough</h2>
           </div>
           <p>
-            Instead of only criticizing the AP Poll, we tested LEILA against itself. We went back through eleven full
+            Instead of only criticizing the AP Poll, we tested the rating model against itself. We went back through eleven full
             seasons of our historical ratings from 2014 through 2025, excluding 2020, and asked a simple question:
             how similar are the rankings after about two games to the rankings at the end of the season?
           </p>
@@ -158,7 +158,7 @@ export default function WaitingOnRanksArticle() {
 
         <section className="article-section">
           <div className="article-section__heading">
-            <span className="eyebrow">It Is Not Just LEILA</span>
+            <span className="eyebrow">It Is Not Just PRIME</span>
             <h2>The AP Poll starts the season guessing too</h2>
           </div>
           <p>
@@ -238,15 +238,15 @@ export default function WaitingOnRanksArticle() {
           </div>
           <div className="article-actions__links">
             <Link href="/network">See this week&rsquo;s network →</Link>
-            <Link href="/methodology">How LEILA&rsquo;s ratings work →</Link>
+            <Link href="/methodology">How PRIME&rsquo;s ratings work →</Link>
             <Link href="/">View current ratings →</Link>
           </div>
         </section>
 
         <p className="article-footnote">
-          Network figures are LEILA Ratings&rsquo; own analysis of the published 2026 FBS schedule (via CFBD).
+          Network figures are PRIME Football&rsquo;s own analysis of the published 2026 FBS schedule (via CFBD).
           Rank-similarity figures use Spearman correlation across eleven historical seasons (2014-2025, excluding
-          2020, which has no published data) of LEILA&rsquo;s own rating history. Because site week-numbering shifted
+          2020, which has no published data) of the site&rsquo;s own rating history. Because site week-numbering shifted
           slightly across seasons, each season is aligned by median games played (&asymp;2 and &asymp;4) rather than
           raw week label. Returning-production figures are CFBD&rsquo;s <code>/player/returning</code> data (national
           average and per-team usage share, 2014-2026; 2013 has no published data). AP Poll historical figures via
@@ -254,7 +254,7 @@ export default function WaitingOnRanksArticle() {
         </p>
       </main>
 
-      <SiteFooter note="LEILA Ratings favors explicit definitions over invented completeness. Research-stage metrics stay labeled, missing data stays missing, and predictive claims are separated from descriptive ratings." />
+      <SiteFooter note="PRIME Football favors explicit definitions over invented completeness. Research-stage metrics stay labeled, missing data stays missing, and predictive claims are separated from descriptive ratings." />
     </>
   );
 }
