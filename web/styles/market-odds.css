@@ -1,0 +1,258 @@
+/* ==========================================================================
+   Shared Market Odds Card
+   ========================================================================== */
+
+.market-odds-card {
+  width: min(100%, 390px);
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid rgba(178, 132, 39, .42);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fffdf7 0%, #f7f1e4 100%);
+  box-shadow: 0 4px 14px rgba(20, 39, 66, .055);
+  text-align: center;
+}
+
+.market-odds-card__head {
+  min-height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(178, 132, 39, .24);
+  background: rgba(197, 154, 67, .10);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+
+.market-odds-card__head span {
+  color: var(--color-navy);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+.market-odds-card__head em {
+  color: #8d7a54;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.market-odds-card__grid {
+  display: grid;
+  grid-template-columns: .9fr 1.25fr .8fr;
+}
+
+.market-odds-card__grid > span {
+  min-width: 0;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 7px 8px;
+  border-right: 1px solid rgba(20, 39, 66, .08);
+}
+
+.market-odds-card__grid > span:last-child {
+  border-right: 0;
+}
+
+.market-odds-card__grid small {
+  color: #8d897f;
+  font-family: var(--font-mono);
+  font-size: 6.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.market-odds-card__grid strong,
+.market-odds-card__grid b {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--color-navy);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-odds-card__grid b {
+  color: #59657a;
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.market-odds-card--empty {
+  min-height: 42px;
+  box-shadow: none;
+}
+
+.market-odds-card--empty .market-odds-card__head {
+  border-bottom: 0;
+}
+
+.market-odds-card--compact {
+  width: 100%;
+  max-width: 300px;
+  border-radius: 7px;
+  box-shadow: none;
+}
+
+.market-odds-card--compact .market-odds-card__head {
+  min-height: 23px;
+  padding: 3px 6px;
+}
+
+.market-odds-card--compact .market-odds-card__grid > span {
+  min-height: 45px;
+  padding: 5px 5px;
+}
+
+.market-odds-card--compact .market-odds-card__grid strong {
+  font-size: 8px;
+}
+
+.market-odds-card--compact .market-odds-card__grid b {
+  font-size: 7px;
+}
+
+/* Predictions slate: keep kickoff metadata in its own lane and give market
+   context a dedicated centered card rather than letting it collide with the
+   model columns. */
+.predictions-table thead th:first-child {
+  width: 150px !important;
+}
+
+.predictions-table thead th:nth-child(3) {
+  width: 220px !important;
+}
+
+.predictions-table thead th:nth-child(4) {
+  width: 78px !important;
+}
+
+.predictions-table thead th:nth-child(5) {
+  width: 310px !important;
+}
+
+.predictions-table__time {
+  min-width: 150px;
+  vertical-align: middle;
+}
+
+.predictions-kickoff {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.predictions-kickoff strong {
+  color: var(--color-navy);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.predictions-kickoff small {
+  color: var(--color-ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  line-height: 1.15;
+}
+
+.predictions-table__market-head {
+  text-align: center !important;
+}
+
+.predictions-table__market {
+  padding: 7px 10px !important;
+  text-align: center !important;
+}
+
+.predictions-table tbody tr {
+  height: 88px;
+}
+
+/* Matchup preview: prediction and market are a centered product block under
+   the headline comparison, not mixed into the stat rows. */
+.matchup-prediction-shell {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 460px);
+  margin: 14px auto 0;
+}
+
+.matchup-prediction-shell .matchup-prediction {
+  width: 100%;
+  margin-top: 0;
+}
+
+.matchup-prediction-shell > .market-odds-card {
+  width: min(100%, 390px);
+}
+
+@media (max-width: 900px) and (min-width: 641px) {
+  .predictions-table thead th:first-child { width: 132px !important; }
+  .predictions-table thead th:nth-child(3) { width: 190px !important; }
+  .predictions-table thead th:nth-child(4) { width: 72px !important; }
+  .predictions-table thead th:nth-child(5) { width: 260px !important; }
+  .predictions-table__time { min-width: 132px; }
+}
+
+/* Mobile prediction cards: kickoff owns the full header and the centered
+   market card becomes a full-width footer. */
+@media (max-width: 640px) {
+  .predictions-table tbody tr,
+  .predictions-table tbody tr:nth-child(even) {
+    grid-template-columns: minmax(0, 1fr) 76px !important;
+  }
+
+  .predictions-table td:nth-child(5) {
+    display: block !important;
+    grid-column: 1 / -1 !important;
+    min-width: 0 !important;
+    padding: 9px 10px 10px !important;
+    border-top: 1px solid rgba(20, 39, 66, .08) !important;
+    background: rgba(197, 154, 67, .035) !important;
+    text-align: center !important;
+  }
+
+  .predictions-kickoff {
+    align-items: center;
+    gap: 1px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .predictions-kickoff strong {
+    font-size: 8.5px;
+  }
+
+  .predictions-kickoff small {
+    font-size: 8px;
+  }
+
+  .predictions-table__market .market-odds-card {
+    max-width: 360px;
+  }
+
+  .market-odds-card--compact .market-odds-card__grid strong {
+    font-size: 8.5px;
+  }
+
+  .matchup-prediction-shell {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
