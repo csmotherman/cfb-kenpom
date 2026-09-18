@@ -107,7 +107,10 @@ body:has(#ratingsTable) .ratings-control select {
   padding: 0 25px 0 8px;
 }
 
-body:has(#ratingsTable) .ratings-control--season select { width: 70px; }
+body:has(#ratingsTable) .ratings-control--season select {
+  width: 88px;
+  min-width: 88px;
+}
 body:has(#ratingsTable) .ratings-control--week select { width: 92px; }
 
 body:has(#ratingsTable) .ratings-search {
