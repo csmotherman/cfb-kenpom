@@ -283,7 +283,7 @@ function TeamProfile({ slug }: { slug: string }) {
   const latest = seasons?.[0];
 
   useEffect(() => {
-    if (latest) document.title = `${latest.team} Analytics | LEILA Ratings`;
+    if (latest) document.title = `${latest.team} Analytics | PRIME Football`;
   }, [latest]);
 
   const teamGames = useMemo(() => {
@@ -368,13 +368,13 @@ function TeamProfile({ slug }: { slug: string }) {
             <div>
               <span>{latest.conf} · {latest.year} through {latest.finalWeekLabel}</span>
               <h1>{latest.team}</h1>
-              <p><strong>{latest.record}</strong> · {latest.rank ? `#${latest.rank} LEILA` : "Unranked"}</p>
+              <p><strong>{latest.record}</strong> · {latest.rank ? `#${latest.rank}` : "Unranked"}</p>
             </div>
           </div>
           <div className="team-v2-masthead__note">Value · national rank</div>
         </section>
 
-        <section className="team-v2-rating-strip" aria-label="Current LEILA ratings">
+        <section className="team-v2-rating-strip" aria-label="Current ratings">
           {headline.map((item) => (
             <RatingTile
               key={item.label}
@@ -417,7 +417,7 @@ function TeamProfile({ slug }: { slug: string }) {
               <GroupedMetrics
                 eyebrow="Offense"
                 title={`${latest.team} offensive profile`}
-                note="Raw season results and opponent-adjusted context in the same grouped format as LEILA Advanced Analytics."
+                note="Raw season results and opponent-adjusted context in the same grouped format as PRIME Advanced Analytics."
                 groups={offenseGroups(latest, teamStats, advancedTeam, advancedRows, slug, totalStatted, totalRated)}
               />
             ) : tab === "defense" ? (
@@ -509,7 +509,7 @@ function TeamProfile({ slug }: { slug: string }) {
         </section>
       </main>
 
-      <SiteFooter note="Team profiles use LEILA's latest published season snapshot. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Def APR. Schedule links open the corresponding pregame matchup page." />
+      <SiteFooter note="Team profiles use PRIME's latest published season snapshot. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Def APR. Schedule links open the corresponding pregame matchup page." />
     </>
   );
 }
@@ -908,7 +908,7 @@ function ScheduleTab({
               <th scope="col">Week</th>
               <th scope="col">Opponent</th>
               <th scope="col">Result</th>
-              <th scope="col" className="num">Opp Net APR<TipTrigger text="The opponent's LEILA Net APR from the week strictly before this game." /></th>
+              <th scope="col" className="num">Opp Net APR<TipTrigger text="The opponent's Net APR from the week strictly before this game." /></th>
               <th scope="col" className="team-v2-schedule__action">Matchup</th>
             </tr>
           </thead>
