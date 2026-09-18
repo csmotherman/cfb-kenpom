@@ -513,6 +513,18 @@ def main():
             outputs[f"team-stats-weekly/{key}.json"] = encode(team_stats_weekly)
 
         schedule = build_schedule_payload(year)
+        if schedule is None:
+            # Incremental/current-season refreshes may not have historical raw
+            # CFBD schedule caches available even though validated historical
+            # schedule JSON is already published and committed. Preserve those
+            # existing public schedules instead of shrinking meta.scheduleYears
+            # to only the season whose raw cache happened to be present.
+            existing_schedule_path = web_data / "schedule" / f"{key}.json"
+            if existing_schedule_path.exists():
+                try:
+                    schedule = json.loads(existing_schedule_path.read_text())
+                except (OSError, json.JSONDecodeError):
+                    schedule = None
         if schedule is not None:
             outputs[f"schedule/{key}.json"] = encode(schedule)
             schedule_years.append(year)
