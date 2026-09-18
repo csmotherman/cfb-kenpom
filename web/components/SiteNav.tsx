@@ -27,11 +27,9 @@ export default function SiteNav() {
               className={active ? "active" : undefined}
               aria-current={active ? "page" : undefined}
               data-pro={link.premium || undefined}
+              data-beta={link.premium && earlyBetaActive ? "true" : undefined}
             >
               {link.label}
-              {link.premium ? (
-                <span className="nav-pro-badge">{earlyBetaActive ? "BETA" : "PAID"}</span>
-              ) : null}
             </Link>
           );
         })}
