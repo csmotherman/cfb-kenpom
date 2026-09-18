@@ -75,11 +75,11 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
   return (
     <header className="site-header">
       <div className="site-header__inner">
-        <Link href="/" className="logotype" aria-label="LEILA Ratings home">
+        <Link href="/" className="logotype" aria-label="PRIME Football home">
           <Image
             className="logotype__logo"
-            src="/brand/leila-ratings-logo.png"
-            alt="LEILA Ratings"
+            src="/brand/prime-football-logo.jpg"
+            alt="PRIME Football"
             width={600}
             height={192}
             priority
