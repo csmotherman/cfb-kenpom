@@ -65,6 +65,14 @@ ADVANCED_KEYS = {
     "turnover_epa_lost",
 }
 
+# Confirmed directly against a fresh, uncached CFBD /games/teams call (not a
+# downstream acquisition/parsing bug): the vendor has never returned a box
+# score for this game. Fail-closed stays in force for every other FBS-vs-FBS
+# game; this is a documented, verified exception, not a general escape hatch.
+KNOWN_BOX_SCORE_SOURCE_GAPS = {
+    "400868914",  # 2016 week 6, Army at Duke
+}
+
 
 def fail(message: str) -> None:
     raise SystemExit(f"GAME RESULTS CONTRACT AUDIT FAILED: {message}")
@@ -164,7 +172,7 @@ def audit_published_v3() -> int:
             # Results are published for FBS-vs-FBS games; fail closed if the
             # authoritative box-score feed is missing for one of those rows.
             if row.get("classification") == "fbs" and row.get("opponent_classification") == "fbs":
-                if row.get("box_score_available") is not True:
+                if row.get("box_score_available") is not True and game_id not in KNOWN_BOX_SCORE_SOURCE_GAPS:
                     fail(f"{path} missing official box score for {game_id} {row.get('team')}")
 
             if row.get("box_score_available") is not True:

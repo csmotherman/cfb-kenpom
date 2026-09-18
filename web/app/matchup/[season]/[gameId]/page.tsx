@@ -311,10 +311,19 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
   // runs for a finished game. An in-progress/未-completed game (or one
   // whose completed-game analytics haven't published yet) still falls
   // through to the pregame preview, which degrades gracefully on its own.
-  if (game.completed && gameResultRows.away && gameResultRows.home && teamGameAdvanced) {
+  const awayPoints = gameResultRows.away?.points;
+  const homePoints = gameResultRows.home?.points;
+  if (
+    game.completed &&
+    gameResultRows.away &&
+    gameResultRows.home &&
+    typeof awayPoints === "number" &&
+    typeof homePoints === "number" &&
+    teamGameAdvanced
+  ) {
     const awayRow = gameResultRows.away;
     const homeRow = gameResultRows.home;
-    const columns = buildGameResultsColumns(awayRow, homeRow, teamGameAdvanced.rows);
+    const columns = buildGameResultsColumns(awayRow, homeRow);
     return (
       <>
         <a className="skip-link" href="#matchupContent">Skip to game results</a>
@@ -325,11 +334,11 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
           <GameResultsSheet
             leftTeam={{
               name: game.awayTeam, short: game.awayTeam, teamId: game.awayTeamId,
-              score: awayRow.points ?? 0, record: ratings.away?.record || "—",
+              score: awayPoints, record: ratings.away?.record || "—",
             }}
             rightTeam={{
               name: game.homeTeam, short: game.homeTeam, teamId: game.homeTeamId,
-              score: homeRow.points ?? 0, record: ratings.home?.record || "—",
+              score: homePoints, record: ratings.home?.record || "—",
             }}
             gameLabel={`${season} · ${weekName}`}
             gameSubLabel={game.venue || undefined}
@@ -604,17 +613,17 @@ function headlineComparisonRows({
 
   return [
     {
-      label: "Overall Rating",
+      label: "Net APR",
       left: { value: signed(awayRating?.adjEM, 1), rank: awayRating?.rank, totalTeams: totalRated },
       right: { value: signed(homeRating?.adjEM, 1), rank: homeRating?.rank, totalTeams: totalRated },
     },
     {
-      label: "Offense Rating",
+      label: "Off APR",
       left: { value: signed(awayRating?.adjO, 2), rank: awayRating?.adjORank, totalTeams: totalRated },
       right: { value: signed(homeRating?.adjO, 2), rank: homeRating?.adjORank, totalTeams: totalRated },
     },
     {
-      label: "Defense Rating",
+      label: "Def APR",
       left: { value: signed(awayRating?.adjD, 2), rank: awayRating?.adjDRank, totalTeams: totalRated },
       right: { value: signed(homeRating?.adjD, 2), rank: homeRating?.adjDRank, totalTeams: totalRated },
     },

@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { logoUrl } from "@/lib/teamCode";
+import { TipTrigger } from "./Tooltip";
 import styles from "./GameResultsSheet.module.css";
 
 export type PercentileTone = "elite" | "good" | "average" | "poor" | "bad" | "neutral";
@@ -12,6 +13,7 @@ export type StatValue = {
 
 export type StatRow = {
   label: string;
+  tip?: string;
   left: StatValue;
   right: StatValue;
   indent?: 0 | 1;
@@ -80,6 +82,7 @@ function StatSectionBlock({ section }: { section: StatSection }) {
         <div className={styles.statRow} key={`${row.label}-${index}`}>
           <span className={`${styles.metricLabel} ${row.indent ? styles.metricLabelIndented : ""}`}>
             <strong>{row.label}</strong>
+            {row.tip ? <TipTrigger text={row.tip} /> : null}
           </span>
           <ResultValue datum={row.left} />
           <ResultValue datum={row.right} />
