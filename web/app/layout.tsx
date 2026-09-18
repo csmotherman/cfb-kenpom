@@ -14,7 +14,7 @@ import "./additions.css";
 import "@/styles/dense-ratings.css";
 import "@/styles/ara-polish.css";
 import "@/styles/advanced-table-polish.css";
-import "@/styles/leila-brand.css";
+import "@/styles/prime-brand.css";
 import "@/styles/team-logo-align.css";
 import "@/styles/auth.css";
 import "@/styles/billing.css";
@@ -57,9 +57,9 @@ import "@/styles/market-odds.css";
 import "@/styles/loading-state.css";
 
 export const metadata: Metadata = {
-  title: "LEILA Ratings | College Football Analytics",
+  title: "PRIME Football | College Football Analytics",
   description:
-    "LEILA Ratings provides opponent-adjusted college football ratings, weekly matchup analysis, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
+    "PRIME Football provides opponent-adjusted college football ratings, weekly matchup analysis, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
 };
 
 const analyticsInit = `window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};`;
