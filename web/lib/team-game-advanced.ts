@@ -70,6 +70,44 @@ function fieldPosition(yardsToGoal: number | null): string {
   return yardsToGoal > 50 ? `Own ${Math.round(100 - yardsToGoal)}` : `Opp ${Math.round(yardsToGoal)}`;
 }
 
+function ratioLine(
+  row: TeamGameAdvancedRow | undefined,
+  madeKey: string,
+  attemptKey: string,
+  rateKey: string,
+): string {
+  const made = num(row, madeKey);
+  const attempts = num(row, attemptKey);
+  const rate = num(row, rateKey);
+  if (made === null || attempts === null) return "—";
+  return String(Math.round(made)) + "/" + String(Math.round(attempts)) +
+    (rate === null ? "" : " (" + pct(rate) + ")");
+}
+
+function completionLine(row: TeamGameAdvancedRow | undefined): string {
+  const completions = num(row, "box_completions");
+  const attempts = num(row, "box_pass_attempts");
+  if (completions === null || attempts === null) return "—";
+  return String(Math.round(completions)) + "/" + String(Math.round(attempts));
+}
+
+function penaltyLine(row: TeamGameAdvancedRow | undefined): string {
+  const penalties = num(row, "box_penalties");
+  const yards = num(row, "box_penalty_yards");
+  if (penalties === null || yards === null) return "—";
+  return String(Math.round(penalties)) + "-" + String(Math.round(yards));
+}
+
+function possessionLine(row: TeamGameAdvancedRow | undefined): string {
+  const seconds = num(row, "box_possession_seconds");
+  const share = num(row, "box_possession_share");
+  if (seconds === null) return "—";
+  const minutes = Math.floor(seconds / 60);
+  const remainder = Math.round(seconds % 60);
+  const clock = String(minutes) + ":" + String(remainder).padStart(2, "0");
+  return share === null ? clock : clock + " (" + pct(share) + ")";
+}
+
 type Fmt = (v: number | null) => string;
 
 type Spec = {
@@ -78,15 +116,17 @@ type Spec = {
   fallbackKeys?: string[];
   baselineKey?: string;
   fmt: Fmt;
+  display?: (row: TeamGameAdvancedRow | undefined) => string;
   neutral?: boolean;
   indent?: 0 | 1;
 };
 
 function datum(row: TeamGameAdvancedRow | undefined, spec: Spec): StatValue {
   const v = firstNum(row, [spec.key, ...(spec.fallbackKeys || [])]);
-  if (spec.neutral) return { value: spec.fmt(v), neutral: true };
+  const value = spec.display ? spec.display(row) : spec.fmt(v);
+  if (spec.neutral) return { value, neutral: true };
   return {
-    value: spec.fmt(v),
+    value,
     percentile: historicalGamePercentileBand(spec.baselineKey || spec.key, v),
   };
 }
@@ -108,31 +148,66 @@ function buildSection(
   };
 }
 
-// Completed-game results deliberately separate official facts (score/record in
-// the game header) from LEILA's PBP/drive-derived analytics below. Labels here
-// must describe the exact population exported by export_team_game_advanced.py;
-// never substitute a different metric because the intended one is unavailable.
-// fallbackKeys only bridge the previous artifact's NAMES when the underlying
-// value has the exact same definition; there is intentionally no 3rd-down ->
-// series-conversion fallback. baselineKey does the same for historical color
-// cut points after a semantics-preserving rename.
-const EFFICIENCY: [string, Spec[]][] = [
+// Completed-game results have a hard source boundary:
+// - BOX_SCORE uses CFBD /games/teams and is descriptive/neutral.
+// - EFFICIENCY and GAME_SHAPE use LEILA's PBP/drive analytics and historical
+//   single-game percentile coloring.
+// Never fill an official box-score row with a similarly named LEILA metric.
+const BOX_SCORE: [string, Spec[]][] = [
   ["Overall", [
-    { label: "Analytics Plays", key: "analytics_plays", fallbackKeys: ["offensive_plays"], fmt: count, neutral: true },
-    { label: "EPA / Play", key: "epa_per_play", fmt: (v) => signed(v, 3) },
-    { label: "Success Rate", key: "success_rate", fmt: pct },
-    { label: "Yards / Analytics Play", key: "yards_per_play", fmt: (v) => plain(v, 1) },
-    { label: "Total EPA", key: "total_epa", fmt: (v) => signed(v, 1) },
+    { label: "Plays", key: "box_total_plays", fmt: count, neutral: true },
+    { label: "Total Yards", key: "box_total_yards", fmt: count, neutral: true },
+    { label: "Yards / Play", key: "box_yards_per_play", fmt: (v) => plain(v, 1), neutral: true },
+    { label: "First Downs", key: "box_first_downs", fmt: count, neutral: true },
   ]],
   ["Passing", [
-    { label: "Dropbacks", key: "dropbacks", fmt: count, neutral: true },
+    { label: "Comp / Att", key: "box_pass_attempts", fmt: count, display: completionLine, neutral: true },
+    { label: "Net Pass Yards", key: "box_net_pass_yards", fmt: count, neutral: true, indent: 1 },
+    { label: "Yards / Attempt", key: "box_yards_per_pass_attempt", fmt: (v) => plain(v, 1), neutral: true, indent: 1 },
+  ]],
+  ["Rushing", [
+    { label: "Rush Attempts", key: "box_rush_attempts", fmt: count, neutral: true },
+    { label: "Rush Yards", key: "box_rush_yards", fmt: count, neutral: true, indent: 1 },
+    { label: "Yards / Carry", key: "box_yards_per_rush_attempt", fmt: (v) => plain(v, 1), neutral: true, indent: 1 },
+  ]],
+  ["Situational", [
+    {
+      label: "3rd Down",
+      key: "box_third_down_rate",
+      fmt: pct,
+      display: (row) => ratioLine(row, "box_third_down_conversions", "box_third_down_attempts", "box_third_down_rate"),
+      neutral: true,
+    },
+    {
+      label: "4th Down",
+      key: "box_fourth_down_rate",
+      fmt: pct,
+      display: (row) => ratioLine(row, "box_fourth_down_conversions", "box_fourth_down_attempts", "box_fourth_down_rate"),
+      neutral: true,
+    },
+    { label: "Penalties", key: "box_penalties", fmt: count, display: penaltyLine, neutral: true },
+    { label: "Turnovers", key: "box_turnovers", fmt: count, neutral: true },
+    { label: "Interceptions", key: "box_interceptions", fmt: count, neutral: true, indent: 1 },
+    { label: "Fumbles Lost", key: "box_fumbles_lost", fmt: count, neutral: true, indent: 1 },
+    { label: "Possession", key: "box_possession_seconds", fmt: count, display: possessionLine, neutral: true },
+  ]],
+];
+
+const EFFICIENCY: [string, Spec[]][] = [
+  ["Overall", [
+    { label: "EPA / Play", key: "epa_per_play", fmt: (v) => signed(v, 3) },
+    { label: "Total EPA", key: "total_epa", fmt: (v) => signed(v, 1) },
+    { label: "Success Rate", key: "success_rate", fmt: pct },
+  ]],
+  ["Passing", [
+    { label: "LEILA Dropbacks", key: "dropbacks", fmt: count, neutral: true },
     { label: "Passing EPA", key: "passing_epa", fmt: (v) => signed(v, 1), indent: 1 },
     { label: "EPA / Dropback", key: "epa_per_dropback", fmt: (v) => signed(v, 2), indent: 1 },
     { label: "Success Rate", key: "pass_success_rate", fmt: pct, indent: 1 },
     { label: "Yards / Dropback", key: "yards_per_dropback", fmt: (v) => plain(v, 1), indent: 1 },
   ]],
   ["Rushing", [
-    { label: "Graded Rush Plays", key: "graded_rush_plays", fallbackKeys: ["rush_attempts"], fmt: count, neutral: true },
+    { label: "Graded Rush Plays", key: "graded_rush_plays", fmt: count, neutral: true },
     { label: "Rushing EPA", key: "rushing_epa", fmt: (v) => signed(v, 1), indent: 1 },
     { label: "EPA / Rush", key: "epa_per_rush", fmt: (v) => signed(v, 2), indent: 1 },
     { label: "Success Rate", key: "rush_success_rate", fmt: pct, indent: 1 },
@@ -151,35 +226,20 @@ const EFFICIENCY: [string, Spec[]][] = [
   ]],
 ];
 
-const CONTROL: [string, Spec[]][] = [
+const GAME_SHAPE: [string, Spec[]][] = [
   ["Drives", [
     { label: "Validated Offensive Drives", key: "offensive_drives", fmt: count, neutral: true },
     { label: "Yards / Drive", key: "yards_per_drive", fmt: (v) => plain(v, 1) },
-    { label: "Analytics Plays / Drive", key: "plays_per_drive", fmt: (v) => plain(v, 1) },
     { label: "Avg Starting Field Position", key: "avg_start_yards_to_goal", fmt: fieldPosition, neutral: true },
     { label: "Scoring Opportunities", key: "scoring_opportunities", fmt: count, neutral: true },
     { label: "Points / Opportunity", key: "points_per_opportunity", fmt: (v) => plain(v, 2), indent: 1 },
-    { label: "Drive Share", key: "drive_share", fallbackKeys: ["possession_share"], fmt: pct, neutral: true },
+    { label: "Drive Share", key: "drive_share", fmt: pct, neutral: true },
   ]],
   ["Series Control", [
     { label: "Series Conversion", key: "series_conversion_rate", fmt: pct },
     { label: "Recovery Rate", key: "recovery_rate", fmt: pct, indent: 1 },
     { label: "3rd & Long Exposure", key: "third_long_exposure", fmt: pct, indent: 1 },
   ]],
-  ["Situational", [
-    { label: "3rd Down Success", key: "third_down_success_rate", fmt: pct },
-    {
-      label: "4th Down Success",
-      key: "fourth_down_success_rate",
-      fallbackKeys: ["fourth_down_rate"],
-      baselineKey: "fourth_down_rate",
-      fmt: pct,
-    },
-    { label: "Scoring Opp. TD Rate", key: "scoring_opportunity_touchdown_rate", fmt: pct },
-  ]],
-];
-
-const SHAPE: [string, Spec[]][] = [
   ["Explosiveness", [
     { label: "Explosive Play Rate", key: "explosive_play_rate", fmt: pct },
     { label: "Explosive Pass Rate", key: "explosive_pass_rate", fmt: pct, indent: 1 },
@@ -200,32 +260,8 @@ const SHAPE: [string, Spec[]][] = [
     { label: "Sacks Taken", key: "sacks_taken", fmt: count, neutral: true, indent: 1 },
     { label: "TFLs Taken", key: "tfls_taken", fmt: count, neutral: true, indent: 1 },
   ]],
-  ["Turnovers", [
-    { label: "Turnovers Lost", key: "turnovers_lost", fmt: count, neutral: true },
-    { label: "Interceptions", key: "interceptions_thrown", fmt: count, neutral: true, indent: 1 },
-    { label: "Fumbles Lost", key: "fumbles_lost", fmt: count, neutral: true, indent: 1 },
-    {
-      label: "Turnovers / Drive",
-      key: "turnovers_per_drive",
-      fallbackKeys: ["turnover_rate"],
-      baselineKey: "turnover_rate",
-      fmt: (v) => plain(v, 2),
-      indent: 1,
-    },
-    { label: "Turnover EPA Lost", key: "turnover_epa_lost", fmt: (v) => plain(v, 1), indent: 1 },
-  ]],
-  ["Penalties", [
-    { label: "Offensive Penalties", key: "offensive_penalties", fallbackKeys: ["penalties"], fmt: count, neutral: true },
-    { label: "Offensive Penalty Yards", key: "offensive_penalty_yards", fallbackKeys: ["penalty_yards"], fmt: count, neutral: true, indent: 1 },
-    {
-      label: "Penalties / Drive",
-      key: "penalties_per_drive",
-      fallbackKeys: ["penalty_rate"],
-      baselineKey: "penalty_rate",
-      fmt: (v) => plain(v, 2),
-      indent: 1,
-    },
-    { label: "Penalty Yards / Drive", key: "penalty_yards_per_drive", fmt: (v) => plain(v, 1), indent: 1 },
+  ["Turnover Impact", [
+    { label: "Turnover EPA Lost", key: "turnover_epa_lost", fmt: (v) => plain(v, 1) },
   ]],
 ];
 
@@ -239,8 +275,8 @@ export function buildGameResultsColumns(
     sections: groups.map(([sectionTitle, specs]) => buildSection(sectionTitle, specs, leftRow, rightRow)),
   });
   return [
-    column("Efficiency", EFFICIENCY),
-    column("Control & Situations", CONTROL),
-    column("Game Shape", SHAPE),
+    column("Official Box Score", BOX_SCORE),
+    column("LEILA Efficiency", EFFICIENCY),
+    column("Game Shape", GAME_SHAPE),
   ];
 }
