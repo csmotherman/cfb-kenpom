@@ -448,15 +448,45 @@ export type PredictionRecordStats = {
   correct: number;
   accuracySU: number | null;
   avgAbsMarginError: number | null;
+  medianAbsMarginError?: number | null;
+  within3Pct?: number | null;
+  within7Pct?: number | null;
+  within10Pct?: number | null;
+  within14Pct?: number | null;
 };
 
 export type PredictionWeekRecord = PredictionRecordStats & { week: number };
+
+export type PredictionConferenceRecord = PredictionRecordStats & {
+  conference: string;
+};
+
+export type PredictionConfidenceBucket = {
+  label: string;
+  min: number;
+  max: number;
+  games: number;
+  graded: number;
+  correct: number;
+  avgConfidence: number | null;
+  actualWinRate: number | null;
+  calibrationGap: number | null;
+};
+
+export type PredictionMarginBucket = PredictionRecordStats & {
+  label: string;
+  min: number;
+  max: number | null;
+};
 
 export type PredictionsTrackRecord = {
   season: number;
   modelVersion: string;
   generatedAt: string;
   weeks: PredictionWeekRecord[];
+  conferences?: PredictionConferenceRecord[];
+  confidenceBuckets?: PredictionConfidenceBucket[];
+  marginBuckets?: PredictionMarginBucket[];
   overall: PredictionRecordStats;
 };
 
