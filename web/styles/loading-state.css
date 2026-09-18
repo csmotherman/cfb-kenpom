@@ -1,0 +1,376 @@
+/* ==========================================================================
+   LEILA Loading State
+   Full-page loading uses a content-shaped skeleton plus explicit status copy.
+   Motion is decorative and fully disabled by prefers-reduced-motion.
+   ========================================================================== */
+
+.leila-loader {
+  width: min(100%, 920px);
+  margin: 18px auto 26px;
+  padding: 20px 20px 18px;
+  border: 1px solid rgba(20, 39, 66, .12);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,245,237,.98));
+  box-shadow: 0 8px 28px rgba(20, 39, 66, .055);
+  text-align: center;
+}
+
+.leila-loader__top {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.leila-loader__eyebrow {
+  color: #9b7526;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.leila-loader__top > strong {
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  line-height: .96;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+}
+
+.leila-loader__top p {
+  max-width: 560px;
+  margin: 2px 0 0;
+  color: var(--color-ink-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.leila-loader__drive {
+  position: relative;
+  height: 44px;
+  margin: 16px auto 14px;
+  overflow: hidden;
+  border: 1px solid rgba(20,39,66,.14);
+  border-radius: 7px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(10% - 1px),
+      rgba(20,39,66,.065) calc(10% - 1px),
+      rgba(20,39,66,.065) 10%
+    ),
+    linear-gradient(90deg, rgba(20,39,66,.035), rgba(197,154,67,.08), rgba(20,39,66,.035));
+}
+
+.leila-loader__drive::before {
+  content: "";
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: rgba(20,39,66,.16);
+}
+
+.leila-loader__yard {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: rgba(20,39,66,.12);
+}
+
+.leila-loader__yard--20 { left: 20%; }
+.leila-loader__yard--40 { left: 40%; }
+.leila-loader__yard--60 { left: 60%; }
+.leila-loader__yard--80 { left: 80%; }
+
+.leila-loader__endzone {
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(20,39,66,.32);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.leila-loader__endzone--right {
+  left: auto;
+  right: 7px;
+}
+
+.leila-loader__football {
+  position: absolute;
+  top: 50%;
+  left: 8%;
+  width: 22px;
+  height: 13px;
+  margin-top: -7px;
+  border: 2px solid var(--color-navy);
+  border-radius: 50%;
+  background: #fffdf8;
+  box-shadow: 0 2px 6px rgba(20,39,66,.12);
+  animation: leila-drive 2.6s cubic-bezier(.45,0,.2,1) infinite alternate;
+}
+
+.leila-loader__football::before,
+.leila-loader__football::after {
+  content: "";
+  position: absolute;
+  background: var(--color-gold);
+}
+
+.leila-loader__football::before {
+  left: 50%;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+.leila-loader__football::after {
+  left: 7px;
+  right: 7px;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.leila-loader__football i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 1px;
+  transform: translate(-50%, -50%);
+  background: var(--color-navy);
+}
+
+.leila-loader__skeleton {
+  display: grid;
+  gap: 7px;
+}
+
+.leila-loader__card {
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 120px minmax(280px, 1fr) 170px;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 12px;
+  border: 1px solid rgba(20,39,66,.08);
+  border-radius: 8px;
+  background: rgba(255,255,255,.78);
+}
+
+.leila-loader__teams {
+  display: grid;
+  grid-template-columns: 28px minmax(70px,1fr) 18px minmax(70px,1fr) 28px;
+  align-items: center;
+  gap: 7px;
+}
+
+.leila-loader__teams b {
+  display: block;
+  width: 14px;
+  height: 2px;
+  justify-self: center;
+  background: rgba(20,39,66,.12);
+}
+
+.leila-loader__logo,
+.leila-loader__block {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: #e7e2d7;
+}
+
+.leila-loader__logo {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+}
+
+.leila-loader__block {
+  height: 10px;
+  border-radius: 999px;
+}
+
+.leila-loader__block--time { width: 82px; }
+.leila-loader__block--team { width: 82%; }
+.leila-loader__block--pick { width: 128px; justify-self: end; }
+
+.leila-loader__logo::after,
+.leila-loader__block::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-110%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,.72) 48%,
+    transparent 100%
+  );
+  animation: leila-shimmer 1.35s ease-in-out infinite;
+}
+
+.leila-loader__status {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(20,39,66,.045);
+  color: #59657a;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.leila-loader__pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b88a2a;
+  box-shadow: 0 0 0 0 rgba(184,138,42,.28);
+  animation: leila-pulse 1.5s ease-out infinite;
+}
+
+.leila-loader__reload {
+  display: block;
+  margin: 10px auto 0;
+  padding: 7px 11px;
+  border: 1px solid rgba(20,39,66,.2);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--color-navy);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.leila-loader__reload:hover {
+  border-color: var(--color-navy);
+  background: var(--color-navy);
+  color: #fff;
+}
+
+.leila-loader--compact {
+  max-width: 720px;
+  margin-top: 14px;
+  padding: 16px;
+}
+
+.leila-loader--compact .leila-loader__top > strong {
+  font-size: 29px;
+}
+
+.leila-loader--compact .leila-loader__drive {
+  margin-bottom: 8px;
+}
+
+@keyframes leila-drive {
+  0% {
+    left: 8%;
+    transform: rotate(-18deg);
+  }
+  55% {
+    transform: rotate(12deg);
+  }
+  100% {
+    left: calc(92% - 22px);
+    transform: rotate(22deg);
+  }
+}
+
+@keyframes leila-shimmer {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(110%); }
+}
+
+@keyframes leila-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(184,138,42,.28); }
+  70% { box-shadow: 0 0 0 7px rgba(184,138,42,0); }
+  100% { box-shadow: 0 0 0 0 rgba(184,138,42,0); }
+}
+
+@media (max-width: 700px) {
+  .leila-loader {
+    width: 100%;
+    margin-top: 10px;
+    padding: 16px 12px 14px;
+    border-radius: 9px;
+  }
+
+  .leila-loader__top > strong {
+    font-size: 30px;
+  }
+
+  .leila-loader__top p {
+    max-width: 360px;
+    font-size: 10.5px;
+  }
+
+  .leila-loader__drive {
+    height: 40px;
+    margin-top: 13px;
+  }
+
+  .leila-loader__skeleton {
+    gap: 6px;
+  }
+
+  .leila-loader__card {
+    min-height: 70px;
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 9px 10px;
+  }
+
+  .leila-loader__block--time {
+    width: 72px;
+  }
+
+  .leila-loader__teams {
+    grid-template-columns: 24px minmax(0,1fr) 14px minmax(0,1fr) 24px;
+  }
+
+  .leila-loader__logo {
+    width: 23px;
+    height: 23px;
+  }
+
+  .leila-loader__block--pick {
+    width: 110px;
+    justify-self: start;
+  }
+
+  .leila-loader__status {
+    max-width: 100%;
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leila-loader__football,
+  .leila-loader__logo::after,
+  .leila-loader__block::after,
+  .leila-loader__pulse {
+    animation: none !important;
+  }
+
+  .leila-loader__football {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
