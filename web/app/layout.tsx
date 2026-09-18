@@ -34,6 +34,7 @@ import "@/styles/upgrade.css";
 import "@/styles/table-identity-polish.css";
 import "@/styles/table-freshness.css";
 import "@/styles/ratings-table-polish.css";
+import "@/styles/ratings-page-shell.css";
 import "@/styles/exploratory.css";
 import "@/styles/exploratory-desktop-table.css";
 import "@/styles/exploratory-modal-wide.css";
