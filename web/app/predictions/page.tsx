@@ -6,16 +6,19 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import MarketOddsCard from "@/components/MarketOddsCard";
 import { logoUrl } from "@/lib/teamCode";
 import {
   PremiumAccessError,
   getMeta,
+  getMarketLinesSeason,
   getPredictionsWeek,
   getPreseasonPower,
   getRankingsSeason,
   getScheduleSeason,
 } from "@/lib/data";
 import type {
+  MarketLinesSeason,
   PredictionGame,
   PreseasonPower,
   RankingsRow,
@@ -80,18 +83,25 @@ function defaultPredictionsWeek(schedule: ScheduleSeason): number {
   return schedule.currentWeek;
 }
 
-function gameTimeLabel(game: ScheduleGame): string {
-  if (game.completed) return "Final";
-  if (game.startTimeTBD || !game.startDate) return "Time TBA";
+function gameTimeParts(game: ScheduleGame): { date: string; time: string } {
+  if (game.completed) return { date: "Final", time: "" };
+  if (game.startTimeTBD || !game.startDate) return { date: "Time TBA", time: "" };
   const date = new Date(game.startDate);
-  if (Number.isNaN(date.getTime())) return "Time TBA";
-  return date.toLocaleString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  if (Number.isNaN(date.getTime())) return { date: "Time TBA", time: "" };
+  return {
+    date: date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      timeZone: "America/New_York",
+    }),
+    time: date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "America/New_York",
+      timeZoneName: "short",
+    }),
+  };
 }
 
 function kickoffMs(game: ScheduleGame): number {
@@ -118,6 +128,7 @@ export default function PredictionsPage() {
   const [season, setSeason] = useState<number | null>(null);
   const [schedule, setSchedule] = useState<ScheduleSeason | null | undefined>(undefined);
   const [rankings, setRankings] = useState<RankingsSeason | null>(null);
+  const [marketLines, setMarketLines] = useState<MarketLinesSeason | null>(null);
   const [power, setPower] = useState<PreseasonPower | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   const [predictionsByWeek, setPredictionsByWeek] = useState<Map<number, PredictionGame[]>>(new Map());
@@ -132,14 +143,16 @@ export default function PredictionsPage() {
     (async () => {
       const meta = await getMeta();
       const latestSeason = meta.rankingsYears[meta.rankingsYears.length - 1];
-      const [scheduleData, rankingData] = await Promise.all([
+      const [scheduleData, rankingData, marketData] = await Promise.all([
         getScheduleSeason(latestSeason),
         getRankingsSeason(latestSeason),
+        getMarketLinesSeason(latestSeason),
       ]);
       if (cancelled) return;
       setSeason(latestSeason);
       setSchedule(scheduleData);
       setRankings(rankingData);
+      setMarketLines(marketData);
       setSelectedWeek(scheduleData ? defaultPredictionsWeek(scheduleData) : null);
       getPreseasonPower(latestSeason).then((p) => { if (!cancelled) setPower(p); }).catch(() => {});
     })().catch((error: Error) => { if (!cancelled) setLoadError(error); });
@@ -205,6 +218,8 @@ export default function PredictionsPage() {
     for (const p of predictionsByWeek.get(selectedWeek) ?? []) map.set(p.gameId, p);
     return map;
   }, [predictionsByWeek, selectedWeek]);
+
+  const marketByGameId = useMemo(() => marketLines?.games ?? {}, [marketLines]);
 
   const rows = useMemo((): Row[] => {
     if (!schedule || selectedWeek === null) return [];
@@ -386,6 +401,7 @@ export default function PredictionsPage() {
                         <button type="button" className="column-sort" onClick={() => onHeaderClick("confidence")}>Win %</button>
                         <span className="sort-indicator">{sortKey === "confidence" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
                       </th>
+                      <th scope="col" className="predictions-table__market-head">Market</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -410,7 +426,15 @@ export default function PredictionsPage() {
                             {game.completed && game.awayPoints !== null && game.homePoints !== null ? (
                               <span className="mono">{game.awayPoints}–{game.homePoints} Final</span>
                             ) : (
-                              gameTimeLabel(game)
+                              (() => {
+                                const parts = gameTimeParts(game);
+                                return (
+                                  <span className="predictions-kickoff">
+                                    <strong>{parts.date}</strong>
+                                    {parts.time ? <small>{parts.time}</small> : null}
+                                  </span>
+                                );
+                              })()
                             )}
                           </td>
                           <td>
@@ -439,6 +463,9 @@ export default function PredictionsPage() {
                             ) : (
                               <span className="predictions-table__dash">N/A</span>
                             )}
+                          </td>
+                          <td className="predictions-table__market">
+                            <MarketOddsCard market={marketByGameId[game.gameId]} compact />
                           </td>
                         </tr>
                       );
