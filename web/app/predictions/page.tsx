@@ -436,7 +436,7 @@ export default function PredictionsPage() {
                       return (
                         <tr
                           key={game.gameId}
-                          className="predictions-table__row"
+                          className={`predictions-table__row${game.completed ? " predictions-table__row--final" : ""}`}
                           tabIndex={0}
                           role="link"
                           aria-label={`View matchup preview: ${game.awayTeam} at ${game.homeTeam}`}
