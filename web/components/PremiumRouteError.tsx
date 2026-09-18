@@ -37,7 +37,7 @@ export default function PremiumRouteError({
             earlyBetaEndLabel={EARLY_BETA_END_LABEL}
           />
         </main>
-        <SiteFooter note="Core LEILA ratings remain free. Premium features are free to signed-in users during Early Beta and require the appropriate plan afterward." />
+        <SiteFooter note="Core overall ratings remain free. Premium features are free to signed-in users during Early Beta and require the appropriate plan afterward." />
       </>
     );
   }
@@ -49,7 +49,7 @@ export default function PremiumRouteError({
       <main className="auth-main">
         <div className="auth-shell">
           <section className="auth-panel" role="alert">
-            <span className="eyebrow auth-kicker">LEILA {product}</span>
+            <span className="eyebrow auth-kicker">PRIME {product}</span>
             <h1 className="auth-title">Couldn’t load data</h1>
             <p className="auth-copy">
               The data could not be loaded right now. Your public Adj. Net ratings are still available.
@@ -66,7 +66,7 @@ export default function PremiumRouteError({
           </section>
         </div>
       </main>
-      <SiteFooter note="Premium LEILA data is delivered only after server-side account entitlement checks." />
+      <SiteFooter note="Premium PRIME data is delivered only after server-side account entitlement checks." />
     </>
   );
 }
