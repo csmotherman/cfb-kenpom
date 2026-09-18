@@ -16,16 +16,16 @@ export const dynamic = "force-dynamic";
 export function generateMetadata(): Metadata {
   if (isEarlyBetaActive()) {
     return {
-      title: "Early Beta Access | LEILA Ratings",
+      title: "Early Beta Access | PRIME Football",
       description:
-        "Use LEILA Advanced Analytics and Predictions free during Early Beta, then choose Advanced or Advanced + Predictions beginning October 16, 2026.",
+        "Use PRIME Advanced Analytics and Predictions free during Early Beta, then choose Advanced or Advanced + Predictions beginning October 16, 2026.",
     };
   }
 
   return {
-    title: "Plans | LEILA Ratings",
+    title: "Plans | PRIME Football",
     description:
-      "Compare LEILA Advanced at $1.99 per month with LEILA Advanced + Predictions at $4.99 per month.",
+      "Compare PRIME Advanced at $1.99 per month with PRIME Advanced + Predictions at $4.99 per month.",
   };
 }
 
@@ -73,7 +73,7 @@ export default async function UpgradePage({ searchParams }: UpgradePageProps) {
     redirect(
       "/account?message=" +
         encodeURIComponent(
-          "You already have LEILA Ratings access. Use Manage billing from your account to change plans."
+          "You already have PRIME Football access. Use Manage billing from your account to change plans."
         )
     );
   }
@@ -100,7 +100,7 @@ export default async function UpgradePage({ searchParams }: UpgradePageProps) {
           error={params.error ?? null}
         />
       </main>
-      <SiteFooter note="Core LEILA ratings remain free. Early Beta includes premium features through October 15, 2026; paid Advanced plans begin October 16." />
+      <SiteFooter note="Core overall ratings remain free. Early Beta includes premium features through October 15, 2026; paid Advanced plans begin October 16." />
     </>
   );
 }
