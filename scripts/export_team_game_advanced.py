@@ -249,6 +249,7 @@ def build_row(season: int, canon: dict, exp: dict | None, box: dict | None = Non
 
         # Authoritative CFBD team box score. These fields never fall back to PBP.
         "box_score_available": bool(box),
+        "box_points": box.get("points"),
         "box_first_downs": box.get("first_downs"),
         "box_total_plays": box.get("total_plays"),
         "box_total_yards": box.get("total_yards"),
