@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
+import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, MarketLinesSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
@@ -79,6 +79,9 @@ const exploratoryInflight = new Map<string, Promise<ExploratorySeason>>();
 
 const scheduleData = new Map<string, ScheduleSeason | null>();
 const scheduleInflight = new Map<string, Promise<ScheduleSeason | null>>();
+
+const marketLinesData = new Map<string, MarketLinesSeason | null>();
+const marketLinesInflight = new Map<string, Promise<MarketLinesSeason | null>>();
 
 const gameLogData = new Map<string, GameLogSeason | null>();
 const gameLogInflight = new Map<string, Promise<GameLogSeason | null>>();
@@ -218,6 +221,25 @@ export function getScheduleSeason(year: number | string): Promise<ScheduleSeason
       throw error;
     });
     scheduleInflight.set(key, entry);
+  }
+  return entry;
+}
+
+export function getMarketLinesSeason(year: number | string): Promise<MarketLinesSeason | null> {
+  const key = String(year);
+  if (marketLinesData.has(key)) return Promise.resolve(marketLinesData.get(key) ?? null);
+  let entry = marketLinesInflight.get(key);
+  if (!entry) {
+    entry = fetchOptionalJson<MarketLinesSeason>(`/data/market-lines/${key}.json`).then((season) => {
+      marketLinesData.set(key, season);
+      marketLinesInflight.delete(key);
+      return season;
+    });
+    entry = entry.catch((error: Error) => {
+      marketLinesInflight.delete(key);
+      throw error;
+    });
+    marketLinesInflight.set(key, entry);
   }
   return entry;
 }
