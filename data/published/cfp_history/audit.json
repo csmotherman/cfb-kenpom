@@ -1,0 +1,31 @@
+{
+  "actualSelections": 60,
+  "brierScore": 0.011745,
+  "evaluation": "leave-one-season-out",
+  "features": [
+    "winPercentage",
+    "losses",
+    "strengthOfSchedule",
+    "qualityWins",
+    "scoringMarginPerGame",
+    "conferenceChampion"
+  ],
+  "logLoss": 0.039844,
+  "maxFieldSizeSumError": 7e-06,
+  "modelVersion": "historical-cfp-resume-v1",
+  "seasons": [
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "teamSeasons": 1438,
+  "topFieldAccuracy": 0.816667
+}

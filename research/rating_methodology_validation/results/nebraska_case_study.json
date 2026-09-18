@@ -1,0 +1,71 @@
+{
+  "season": 2026,
+  "cutoffWeek": 3,
+  "gameLog": [
+    {
+      "week": 1,
+      "opponent": "Ohio",
+      "pointsFor": 49,
+      "pointsAgainst": 21,
+      "offensiveDrivePoints": 49.0,
+      "resolvedPointPossessions": 11,
+      "offensivePPD": 4.454545454545454
+    },
+    {
+      "week": 2,
+      "opponent": "Bowling Green",
+      "pointsFor": 56,
+      "pointsAgainst": 7,
+      "offensiveDrivePoints": 49.0,
+      "resolvedPointPossessions": 10,
+      "offensivePPD": 4.9
+    }
+  ],
+  "modelResults": {
+    "A_AdjPPP": {
+      "rating": 2.0977734459444264,
+      "rank": 1,
+      "teams": 137
+    },
+    "B_SRS_uncapped": {
+      "rating": 20.16666666666667,
+      "rank": 17,
+      "teams": 137
+    },
+    "B_SRS_cap28": {
+      "rating": 16.66666666666667,
+      "rank": 13,
+      "teams": 137
+    },
+    "C_RawPPP": {
+      "rating": 4.057971014492754,
+      "rank": 3,
+      "teams": 137
+    },
+    "D_AdjEPA": {
+      "rating": 0.16369774744709814,
+      "rank": 40,
+      "teams": 137
+    },
+    "E_AdjSuccess": {
+      "rating": 0.11305998237315655,
+      "rank": 15,
+      "teams": 137
+    },
+    "F_AdjExplosive": {
+      "rating": 0.06770849100621515,
+      "rank": 14,
+      "teams": 137
+    },
+    "A2_production_with_taper": {
+      "rating": 21.672581236792276,
+      "rank": 1,
+      "teams": 137
+    },
+    "A3_no_taper": {
+      "rating": 20.977734496009628,
+      "rank": 1,
+      "teams": 137
+    }
+  }
+}

@@ -1,0 +1,506 @@
+{
+  "A2_AdjPPP_production_faithful": {
+    "perf_low__opp_low": {
+      "n": 1246,
+      "mean_signed_error_points": 3.0631018474720473,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.0631018474720473
+    },
+    "perf_high__opp_high": {
+      "n": 1148,
+      "mean_signed_error_points": 3.065578858942308,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.065578858942308
+    },
+    "perf_high__opp_mid": {
+      "n": 791,
+      "mean_signed_error_points": 2.079165501506896,
+      "mean_actual_margin": 11.833122629582807,
+      "mean_predicted_margin": 13.912288131089701
+    },
+    "perf_mid__opp_low": {
+      "n": 743,
+      "mean_signed_error_points": 2.1350393089517787,
+      "mean_actual_margin": 12.090174966352624,
+      "mean_predicted_margin": 14.225214275304403
+    },
+    "perf_mid__opp_mid": {
+      "n": 752,
+      "mean_signed_error_points": 3.0656346989100234,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.0656346989100234
+    },
+    "perf_high__opp_low": {
+      "n": 405,
+      "mean_signed_error_points": 0.9758066654942013,
+      "mean_actual_margin": 22.51851851851852,
+      "mean_predicted_margin": 23.494325184012723
+    },
+    "perf_mid__opp_high": {
+      "n": 791,
+      "mean_signed_error_points": 4.049424963455011,
+      "mean_actual_margin": -11.833122629582807,
+      "mean_predicted_margin": -7.783697666127796
+    },
+    "perf_low__opp_high": {
+      "n": 405,
+      "mean_signed_error_points": 5.167749855272413,
+      "mean_actual_margin": -22.51851851851852,
+      "mean_predicted_margin": -17.350768663246104
+    },
+    "perf_low__opp_mid": {
+      "n": 743,
+      "mean_signed_error_points": 4.003177909701594,
+      "mean_actual_margin": -12.090174966352624,
+      "mean_predicted_margin": -8.08699705665103
+    }
+  },
+  "A3_AdjPPP_no_taper": {
+    "perf_low__opp_low": {
+      "n": 1246,
+      "mean_signed_error_points": 3.096160077253507,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.096160077253507
+    },
+    "perf_high__opp_high": {
+      "n": 1148,
+      "mean_signed_error_points": 3.0986255742987834,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.0986255742987834
+    },
+    "perf_high__opp_mid": {
+      "n": 791,
+      "mean_signed_error_points": 2.0849207883944536,
+      "mean_actual_margin": 11.833122629582807,
+      "mean_predicted_margin": 13.91804341797726
+    },
+    "perf_mid__opp_low": {
+      "n": 743,
+      "mean_signed_error_points": 2.13942274473635,
+      "mean_actual_margin": 12.090174966352624,
+      "mean_predicted_margin": 14.229597711088974
+    },
+    "perf_mid__opp_mid": {
+      "n": 752,
+      "mean_signed_error_points": 3.0987265191286153,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.0987265191286153
+    },
+    "perf_high__opp_low": {
+      "n": 405,
+      "mean_signed_error_points": 0.9566237624204105,
+      "mean_actual_margin": 22.51851851851852,
+      "mean_predicted_margin": 23.475142280938933
+    },
+    "perf_mid__opp_high": {
+      "n": 791,
+      "mean_signed_error_points": 4.109788840637261,
+      "mean_actual_margin": -11.833122629582807,
+      "mean_predicted_margin": -7.723333788945545
+    },
+    "perf_low__opp_high": {
+      "n": 405,
+      "mean_signed_error_points": 5.2532086217878655,
+      "mean_actual_margin": -22.51851851851852,
+      "mean_predicted_margin": -17.265309896730653
+    },
+    "perf_low__opp_mid": {
+      "n": 743,
+      "mean_signed_error_points": 4.064929173009414,
+      "mean_actual_margin": -12.090174966352624,
+      "mean_predicted_margin": -8.025245793343212
+    }
+  },
+  "A_AdjPPP": {
+    "perf_low__opp_low": {
+      "n": 1246,
+      "mean_signed_error_points": 3.096160077287348,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.096160077287348
+    },
+    "perf_high__opp_high": {
+      "n": 1148,
+      "mean_signed_error_points": 3.0986255743150686,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.0986255743150686
+    },
+    "perf_high__opp_mid": {
+      "n": 791,
+      "mean_signed_error_points": 2.0849207938205456,
+      "mean_actual_margin": 11.833122629582807,
+      "mean_predicted_margin": 13.918043423403352
+    },
+    "perf_mid__opp_low": {
+      "n": 743,
+      "mean_signed_error_points": 2.139422743366113,
+      "mean_actual_margin": 12.090174966352624,
+      "mean_predicted_margin": 14.229597709718737
+    },
+    "perf_mid__opp_mid": {
+      "n": 752,
+      "mean_signed_error_points": 3.098726519135313,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.098726519135313
+    },
+    "perf_high__opp_low": {
+      "n": 405,
+      "mean_signed_error_points": 0.9566237647248322,
+      "mean_actual_margin": 22.51851851851852,
+      "mean_predicted_margin": 23.475142283243354
+    },
+    "perf_mid__opp_high": {
+      "n": 791,
+      "mean_signed_error_points": 4.109788835266717,
+      "mean_actual_margin": -11.833122629582807,
+      "mean_predicted_margin": -7.7233337943160905
+    },
+    "perf_low__opp_high": {
+      "n": 405,
+      "mean_signed_error_points": 5.253208619435855,
+      "mean_actual_margin": -22.51851851851852,
+      "mean_predicted_margin": -17.265309899082663
+    },
+    "perf_low__opp_mid": {
+      "n": 743,
+      "mean_signed_error_points": 4.0649291743788645,
+      "mean_actual_margin": -12.090174966352624,
+      "mean_predicted_margin": -8.02524579197376
+    }
+  },
+  "B_SRS_cap28": {
+    "perf_low__opp_low": {
+      "n": 1268,
+      "mean_signed_error_points": 3.1212032796054925,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.1212032796054925
+    },
+    "perf_high__opp_high": {
+      "n": 1164,
+      "mean_signed_error_points": 3.1223421540510636,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.1223421540510636
+    },
+    "perf_high__opp_mid": {
+      "n": 808,
+      "mean_signed_error_points": -0.8684239483311282,
+      "mean_actual_margin": 11.725247524752476,
+      "mean_predicted_margin": 10.856823576421347
+    },
+    "perf_mid__opp_low": {
+      "n": 754,
+      "mean_signed_error_points": -1.1582330433409085,
+      "mean_actual_margin": 12.1657824933687,
+      "mean_predicted_margin": 11.00754945002779
+    },
+    "perf_mid__opp_mid": {
+      "n": 726,
+      "mean_signed_error_points": 3.1225362968231822,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.1225362968231822
+    },
+    "perf_high__opp_low": {
+      "n": 371,
+      "mean_signed_error_points": -4.448646881251922,
+      "mean_actual_margin": 22.110512129380055,
+      "mean_predicted_margin": 17.66186524812813
+    },
+    "perf_mid__opp_high": {
+      "n": 808,
+      "mean_signed_error_points": 7.109839801630024,
+      "mean_actual_margin": -11.725247524752476,
+      "mean_predicted_margin": -4.615407723122451
+    },
+    "perf_low__opp_high": {
+      "n": 371,
+      "mean_signed_error_points": 10.696420296758896,
+      "mean_actual_margin": -22.110512129380055,
+      "mean_predicted_margin": -11.414091832621157
+    },
+    "perf_low__opp_mid": {
+      "n": 754,
+      "mean_signed_error_points": 7.40571600591426,
+      "mean_actual_margin": -12.1657824933687,
+      "mean_predicted_margin": -4.7600664874544405
+    }
+  },
+  "B_SRS_uncapped": {
+    "perf_low__opp_low": {
+      "n": 1336,
+      "mean_signed_error_points": 3.113302709456111,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.113302709456111
+    },
+    "perf_high__opp_high": {
+      "n": 1214,
+      "mean_signed_error_points": 3.114966353612965,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.114966353612965
+    },
+    "perf_high__opp_mid": {
+      "n": 799,
+      "mean_signed_error_points": -1.6592294744456326,
+      "mean_actual_margin": 12.76971214017522,
+      "mean_predicted_margin": 11.110482665729586
+    },
+    "perf_mid__opp_low": {
+      "n": 729,
+      "mean_signed_error_points": -1.6109075433204338,
+      "mean_actual_margin": 12.882030178326474,
+      "mean_predicted_margin": 11.271122635006043
+    },
+    "perf_mid__opp_mid": {
+      "n": 758,
+      "mean_signed_error_points": 3.1127457724623717,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.1127457724623717
+    },
+    "perf_high__opp_low": {
+      "n": 330,
+      "mean_signed_error_points": -4.942141012671955,
+      "mean_actual_margin": 22.903030303030302,
+      "mean_predicted_margin": 17.96088929035835
+    },
+    "perf_mid__opp_high": {
+      "n": 799,
+      "mean_signed_error_points": 7.888126636048666,
+      "mean_actual_margin": -12.76971214017522,
+      "mean_predicted_margin": -4.881585504126553
+    },
+    "perf_low__opp_high": {
+      "n": 330,
+      "mean_signed_error_points": 11.174132066410946,
+      "mean_actual_margin": -22.903030303030302,
+      "mean_predicted_margin": -11.728898236619356
+    },
+    "perf_low__opp_mid": {
+      "n": 729,
+      "mean_signed_error_points": 7.847880129475683,
+      "mean_actual_margin": -12.882030178326474,
+      "mean_predicted_margin": -5.034150048850792
+    }
+  },
+  "C_RawPPP": {
+    "perf_mid__opp_low": {
+      "n": 781,
+      "mean_signed_error_points": -0.9328667382847702,
+      "mean_actual_margin": 11.215108834827145,
+      "mean_predicted_margin": 10.282242096542374
+    },
+    "perf_high__opp_mid": {
+      "n": 777,
+      "mean_signed_error_points": -0.20104293397600997,
+      "mean_actual_margin": 10.325611325611325,
+      "mean_predicted_margin": 10.124568391635316
+    },
+    "perf_high__opp_high": {
+      "n": 916,
+      "mean_signed_error_points": 3.2939357372171996,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.2939357372171996
+    },
+    "perf_high__opp_low": {
+      "n": 664,
+      "mean_signed_error_points": -2.0862866481688136,
+      "mean_actual_margin": 18.72289156626506,
+      "mean_predicted_margin": 16.636604918096246
+    },
+    "perf_mid__opp_high": {
+      "n": 777,
+      "mean_signed_error_points": 6.789179229102524,
+      "mean_actual_margin": -10.325611325611325,
+      "mean_predicted_margin": -3.5364320965088014
+    },
+    "perf_low__opp_mid": {
+      "n": 781,
+      "mean_signed_error_points": 7.518878887350351,
+      "mean_actual_margin": -11.215108834827145,
+      "mean_predicted_margin": -3.6962299474767937
+    },
+    "perf_low__opp_high": {
+      "n": 664,
+      "mean_signed_error_points": 8.67113249687956,
+      "mean_actual_margin": -18.72289156626506,
+      "mean_predicted_margin": -10.0517590693855
+    },
+    "perf_mid__opp_mid": {
+      "n": 716,
+      "mean_signed_error_points": 3.2934634917890837,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.2934634917890837
+    },
+    "perf_low__opp_low": {
+      "n": 948,
+      "mean_signed_error_points": 3.2951384189619657,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.2951384189619657
+    }
+  },
+  "D_AdjEPA": {
+    "perf_low__opp_low": {
+      "n": 1232,
+      "mean_signed_error_points": 3.0373927438282897,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.0373927438282897
+    },
+    "perf_high__opp_mid": {
+      "n": 770,
+      "mean_signed_error_points": 0.6503239661182958,
+      "mean_actual_margin": 11.603896103896103,
+      "mean_predicted_margin": 12.254220070014402
+    },
+    "perf_mid__opp_mid": {
+      "n": 738,
+      "mean_signed_error_points": 3.039373273662555,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.039373273662555
+    },
+    "perf_high__opp_high": {
+      "n": 1192,
+      "mean_signed_error_points": 3.0374584511414673,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.0374584511414673
+    },
+    "perf_mid__opp_low": {
+      "n": 777,
+      "mean_signed_error_points": 0.6257235088446439,
+      "mean_actual_margin": 11.61003861003861,
+      "mean_predicted_margin": 12.235762118883255
+    },
+    "perf_high__opp_low": {
+      "n": 384,
+      "mean_signed_error_points": -1.333467006663306,
+      "mean_actual_margin": 21.611979166666668,
+      "mean_predicted_margin": 20.278512160003363
+    },
+    "perf_low__opp_mid": {
+      "n": 777,
+      "mean_signed_error_points": 5.447792964791455,
+      "mean_actual_margin": -11.61003861003861,
+      "mean_predicted_margin": -6.162245645247155
+    },
+    "perf_mid__opp_high": {
+      "n": 770,
+      "mean_signed_error_points": 5.421113828474166,
+      "mean_actual_margin": -11.603896103896103,
+      "mean_predicted_margin": -6.182782275421938
+    },
+    "perf_low__opp_high": {
+      "n": 384,
+      "mean_signed_error_points": 7.410801590862658,
+      "mean_actual_margin": -21.611979166666668,
+      "mean_predicted_margin": -14.20117757580401
+    }
+  },
+  "E_AdjSuccess": {
+    "perf_mid__opp_low": {
+      "n": 757,
+      "mean_signed_error_points": 0.012233738434444487,
+      "mean_actual_margin": 11.61558784676354,
+      "mean_predicted_margin": 11.627821585197985
+    },
+    "perf_high__opp_mid": {
+      "n": 762,
+      "mean_signed_error_points": 1.2591736725077556,
+      "mean_actual_margin": 10.808398950131233,
+      "mean_predicted_margin": 12.067572622638988
+    },
+    "perf_mid__opp_mid": {
+      "n": 762,
+      "mean_signed_error_points": 3.069336206127237,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.069336206127237
+    },
+    "perf_high__opp_low": {
+      "n": 403,
+      "mean_signed_error_points": -0.8640970450959772,
+      "mean_actual_margin": 20.379652605459057,
+      "mean_predicted_margin": 19.51555556036308
+    },
+    "perf_high__opp_high": {
+      "n": 1184,
+      "mean_signed_error_points": 3.069305654638326,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.069305654638326
+    },
+    "perf_low__opp_mid": {
+      "n": 757,
+      "mean_signed_error_points": 6.137855702172297,
+      "mean_actual_margin": -11.61558784676354,
+      "mean_predicted_margin": -5.4777321445912435
+    },
+    "perf_mid__opp_high": {
+      "n": 762,
+      "mean_signed_error_points": 4.88965231430085,
+      "mean_actual_margin": -10.808398950131233,
+      "mean_predicted_margin": -5.9187466358303835
+    },
+    "perf_low__opp_low": {
+      "n": 1234,
+      "mean_signed_error_points": 3.0694362217345517,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.0694362217345517
+    },
+    "perf_low__opp_high": {
+      "n": 403,
+      "mean_signed_error_points": 7.024482854221669,
+      "mean_actual_margin": -20.379652605459057,
+      "mean_predicted_margin": -13.355169751237389
+    }
+  },
+  "F_AdjExplosive": {
+    "perf_low__opp_low": {
+      "n": 1112,
+      "mean_signed_error_points": 3.2185119864931724,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.2185119864931724
+    },
+    "perf_high__opp_mid": {
+      "n": 762,
+      "mean_signed_error_points": -0.29328205502118904,
+      "mean_actual_margin": 10.391076115485564,
+      "mean_predicted_margin": 10.097794060464375
+    },
+    "perf_mid__opp_mid": {
+      "n": 754,
+      "mean_signed_error_points": 3.2200457454521336,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.2200457454521336
+    },
+    "perf_mid__opp_low": {
+      "n": 774,
+      "mean_signed_error_points": 0.1397464162672138,
+      "mean_actual_margin": 9.516795865633075,
+      "mean_predicted_margin": 9.65654228190029
+    },
+    "perf_mid__opp_high": {
+      "n": 762,
+      "mean_signed_error_points": 6.735180966664485,
+      "mean_actual_margin": -10.391076115485564,
+      "mean_predicted_margin": -3.655895148821079
+    },
+    "perf_high__opp_low": {
+      "n": 506,
+      "mean_signed_error_points": -0.3944627207881129,
+      "mean_actual_margin": 16.211462450592887,
+      "mean_predicted_margin": 15.816999729804772
+    },
+    "perf_low__opp_mid": {
+      "n": 774,
+      "mean_signed_error_points": 6.301085883095736,
+      "mean_actual_margin": -9.516795865633075,
+      "mean_predicted_margin": -3.215709982537339
+    },
+    "perf_high__opp_high": {
+      "n": 1074,
+      "mean_signed_error_points": 3.217485987588398,
+      "mean_actual_margin": 0.0,
+      "mean_predicted_margin": 3.217485987588398
+    },
+    "perf_low__opp_high": {
+      "n": 506,
+      "mean_signed_error_points": 6.846049590992584,
+      "mean_actual_margin": -16.211462450592887,
+      "mean_predicted_margin": -9.365412859600301
+    }
+  }
+}

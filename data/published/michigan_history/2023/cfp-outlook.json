@@ -1,0 +1,18 @@
+{
+  "actualSelected": true,
+  "conferenceChampion": true,
+  "fieldSize": 4,
+  "losses": 0,
+  "modelVersion": "historical-cfp-resume-v1",
+  "qualityWins": 3,
+  "scoringMarginPerGame": 27.231,
+  "season": 2023,
+  "selectionChance": 0.8294,
+  "selectionRank": 1,
+  "strengthOfSchedule": 0.522682,
+  "team": "Michigan",
+  "teamId": 130,
+  "valueType": "RETROSPECTIVE",
+  "winPercentage": 1.0,
+  "wins": 13
+}

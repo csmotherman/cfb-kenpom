@@ -1,0 +1,18 @@
+{
+  "actualSelected": true,
+  "conferenceChampion": true,
+  "fieldSize": 4,
+  "losses": 0,
+  "modelVersion": "historical-cfp-resume-v1",
+  "qualityWins": 2,
+  "scoringMarginPerGame": 26.692,
+  "season": 2022,
+  "selectionChance": 0.898016,
+  "selectionRank": 2,
+  "strengthOfSchedule": 0.507396,
+  "team": "Michigan",
+  "teamId": 130,
+  "valueType": "RETROSPECTIVE",
+  "winPercentage": 1.0,
+  "wins": 13
+}

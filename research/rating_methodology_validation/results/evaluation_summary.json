@@ -1,0 +1,1729 @@
+{
+  "A2_AdjPPP_production_faithful": {
+    "per_season": {
+      "2014": {
+        "n": 677,
+        "margin_mae": 13.749902577142361,
+        "margin_rmse": 17.241787647976434,
+        "correlation": 0.5462059412123129,
+        "winner_accuracy": 0.6957163958641064,
+        "brier": 0.19855526808767854,
+        "log_loss": 0.578380215461237,
+        "regression_slope": 1.1216154702453107,
+        "regression_intercept": 3.095435831200889
+      },
+      "2015": {
+        "n": 684,
+        "margin_mae": 13.227944234865213,
+        "margin_rmse": 16.971402430853274,
+        "correlation": 0.604527057361025,
+        "winner_accuracy": 0.7426900584795322,
+        "brier": 0.17538828535798828,
+        "log_loss": 0.5266565304245657,
+        "regression_slope": 1.1148678890741455,
+        "regression_intercept": 3.095407561713345
+      },
+      "2016": {
+        "n": 678,
+        "margin_mae": 14.139309254339745,
+        "margin_rmse": 17.886591725194688,
+        "correlation": 0.5485332660608747,
+        "winner_accuracy": 0.6946902654867256,
+        "brier": 0.19845526389126253,
+        "log_loss": 0.5784569702588891,
+        "regression_slope": 1.1257557026550324,
+        "regression_intercept": 3.032477589780573
+      },
+      "2017": {
+        "n": 693,
+        "margin_mae": 13.343081250934747,
+        "margin_rmse": 17.082711632512744,
+        "correlation": 0.5930102501040381,
+        "winner_accuracy": 0.7113997113997114,
+        "brier": 0.1842048384863855,
+        "log_loss": 0.5428921464238241,
+        "regression_slope": 1.1170491507040967,
+        "regression_intercept": 3.055717507585689
+      },
+      "2018": {
+        "n": 689,
+        "margin_mae": 13.712905090278584,
+        "margin_rmse": 17.3164373065214,
+        "correlation": 0.5651994011574503,
+        "winner_accuracy": 0.7053701015965167,
+        "brier": 0.1855816183510235,
+        "log_loss": 0.5492555948735524,
+        "regression_slope": 1.1268392366310103,
+        "regression_intercept": 3.0558452542120484
+      },
+      "2019": {
+        "n": 695,
+        "margin_mae": 13.385630712919774,
+        "margin_rmse": 16.989997993727506,
+        "correlation": 0.626952487760958,
+        "winner_accuracy": 0.7223021582733813,
+        "brier": 0.1824618699177166,
+        "log_loss": 0.5425943985588741,
+        "regression_slope": 1.1171026055089521,
+        "regression_intercept": 3.000391758454361
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 13.87406787491981,
+        "margin_rmse": 17.246008747148004,
+        "correlation": 0.5596464124072562,
+        "winner_accuracy": 0.6810966810966811,
+        "brier": 0.20212144777411403,
+        "log_loss": 0.5895194749866941,
+        "regression_slope": 1.1311554579250547,
+        "regression_intercept": 3.159347554918306
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 13.149660675303421,
+        "margin_rmse": 16.5434558746839,
+        "correlation": 0.5344648662709703,
+        "winner_accuracy": 0.6743515850144092,
+        "brier": 0.2053513368879281,
+        "log_loss": 0.5964360755171433,
+        "regression_slope": 1.1400486054292205,
+        "regression_intercept": 3.139717379982522
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 13.214405361318029,
+        "margin_rmse": 16.750755600782725,
+        "correlation": 0.5388055850949287,
+        "winner_accuracy": 0.7082748948106592,
+        "brier": 0.19037310321511688,
+        "log_loss": 0.5603649094390976,
+        "regression_slope": 1.135816380941297,
+        "regression_intercept": 3.100735404722204
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 12.945667958710995,
+        "margin_rmse": 16.299023677316136,
+        "correlation": 0.5524132536627717,
+        "winner_accuracy": 0.6843575418994413,
+        "brier": 0.19675907784727978,
+        "log_loss": 0.5718091583198948,
+        "regression_slope": 1.1401166666954063,
+        "regression_intercept": 3.032210939705506
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.068293976535442,
+        "margin_rmse": 16.504389822321844,
+        "correlation": 0.5626735852501926,
+        "winner_accuracy": 0.6951724137931035,
+        "brier": 0.19280536863616723,
+        "log_loss": 0.566041387895403,
+        "regression_slope": 1.1352569196651396,
+        "regression_intercept": 2.977324015756457
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 161,
+        "margin_mae": 16.275903415721142,
+        "brier": 0.1821425154108902
+      },
+      "week3": {
+        "n": 523,
+        "margin_mae": 15.683161061556872,
+        "brier": 0.19380960582259593
+      },
+      "week4": {
+        "n": 593,
+        "margin_mae": 13.639747289998663,
+        "brier": 0.19227613838654833
+      },
+      "weeks5-8": {
+        "n": 2386,
+        "margin_mae": 13.395947330596965,
+        "brier": 0.19901735979656573
+      },
+      "weeks9+": {
+        "n": 3540,
+        "margin_mae": 12.929807214862876,
+        "brier": 0.18131283200115036
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 13.660251312568347,
+        "brier": 0.2397451571759789
+      }
+    }
+  },
+  "A3_AdjPPP_no_taper": {
+    "per_season": {
+      "2014": {
+        "n": 677,
+        "margin_mae": 13.75009101048195,
+        "margin_rmse": 17.24379710887362,
+        "correlation": 0.5462059412123129,
+        "winner_accuracy": 0.6986706056129985,
+        "brier": 0.19857723971089267,
+        "log_loss": 0.5784675239666897,
+        "regression_slope": 1.1184567613696976,
+        "regression_intercept": 3.1314593687733927
+      },
+      "2015": {
+        "n": 684,
+        "margin_mae": 13.3210130773126,
+        "margin_rmse": 17.09110717618477,
+        "correlation": 0.5966692783831298,
+        "winner_accuracy": 0.7383040935672515,
+        "brier": 0.1774626231137694,
+        "log_loss": 0.5315864561632938,
+        "regression_slope": 1.1124789830775084,
+        "regression_intercept": 3.130006296192681
+      },
+      "2016": {
+        "n": 678,
+        "margin_mae": 14.209764761556182,
+        "margin_rmse": 18.001987464558397,
+        "correlation": 0.5401588510000218,
+        "winner_accuracy": 0.6946902654867256,
+        "brier": 0.1999744011757614,
+        "log_loss": 0.5821338266049015,
+        "regression_slope": 1.123702158954054,
+        "regression_intercept": 3.0638493754984992
+      },
+      "2017": {
+        "n": 693,
+        "margin_mae": 13.353639021062516,
+        "margin_rmse": 17.10025303276284,
+        "correlation": 0.5919353393002251,
+        "winner_accuracy": 0.7113997113997114,
+        "brier": 0.18439062514205376,
+        "log_loss": 0.543409925798455,
+        "regression_slope": 1.1139685574261597,
+        "regression_intercept": 3.088338698856277
+      },
+      "2018": {
+        "n": 689,
+        "margin_mae": 13.797589120121787,
+        "margin_rmse": 17.399391058248515,
+        "correlation": 0.5593849416311665,
+        "winner_accuracy": 0.706821480406386,
+        "brier": 0.1865083367760757,
+        "log_loss": 0.5518162282910615,
+        "regression_slope": 1.124194510172954,
+        "regression_intercept": 3.087583136159501
+      },
+      "2019": {
+        "n": 695,
+        "margin_mae": 13.43409240310701,
+        "margin_rmse": 17.085208620719452,
+        "correlation": 0.6212997099345502,
+        "winner_accuracy": 0.7223021582733813,
+        "brier": 0.18445012912085995,
+        "log_loss": 0.5473465334307429,
+        "regression_slope": 1.1144495962954866,
+        "regression_intercept": 3.034245146795664
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 13.87367002729094,
+        "margin_rmse": 17.24744896073331,
+        "correlation": 0.5596464124072562,
+        "winner_accuracy": 0.6825396825396826,
+        "brier": 0.20208278639017324,
+        "log_loss": 0.5893655494549472,
+        "regression_slope": 1.1280279601197392,
+        "regression_intercept": 3.19578171910229
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 13.205394219719539,
+        "margin_rmse": 16.60797047268671,
+        "correlation": 0.5287396289152507,
+        "winner_accuracy": 0.670028818443804,
+        "brier": 0.2060943968207922,
+        "log_loss": 0.597707831796002,
+        "regression_slope": 1.1368847637088446,
+        "regression_intercept": 3.1679144468460225
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 13.188587835265075,
+        "margin_rmse": 16.76631692936586,
+        "correlation": 0.5370835851504273,
+        "winner_accuracy": 0.7152875175315568,
+        "brier": 0.19045486723792351,
+        "log_loss": 0.560945273503857,
+        "regression_slope": 1.1318843979932618,
+        "regression_intercept": 3.1335386610261002
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 12.968050580327983,
+        "margin_rmse": 16.320840885002713,
+        "correlation": 0.5505329735985753,
+        "winner_accuracy": 0.6885474860335196,
+        "brier": 0.1965418003078401,
+        "log_loss": 0.5714322453821012,
+        "regression_slope": 1.1370934893288862,
+        "regression_intercept": 3.0672361131793893
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.130177809428625,
+        "margin_rmse": 16.599570724372388,
+        "correlation": 0.5557970802759631,
+        "winner_accuracy": 0.696551724137931,
+        "brier": 0.1932273206579657,
+        "log_loss": 0.5669850945136309,
+        "regression_slope": 1.1327321965540829,
+        "regression_intercept": 3.0082177990164394
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 161,
+        "margin_mae": 16.843060985890027,
+        "brier": 0.18854060976225914
+      },
+      "week3": {
+        "n": 523,
+        "margin_mae": 15.975744074004965,
+        "brier": 0.19902612025626143
+      },
+      "week4": {
+        "n": 593,
+        "margin_mae": 13.637801779560755,
+        "brier": 0.19223380751334862
+      },
+      "weeks5-8": {
+        "n": 2386,
+        "margin_mae": 13.39355744150395,
+        "brier": 0.1989776275103381
+      },
+      "weeks9+": {
+        "n": 3540,
+        "margin_mae": 12.930071840585967,
+        "brier": 0.18134680162578037
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 13.777813674692082,
+        "brier": 0.2431628893753755
+      }
+    }
+  },
+  "A_AdjPPP": {
+    "per_season": {
+      "2014": {
+        "n": 677,
+        "margin_mae": 13.750090999835944,
+        "margin_rmse": 17.24379710766649,
+        "correlation": 0.5462059412288013,
+        "winner_accuracy": 0.6986706056129985,
+        "brier": 0.19857723956967388,
+        "log_loss": 0.5784675236053565,
+        "regression_slope": 11.184567625861545,
+        "regression_intercept": 3.131459368155398
+      },
+      "2015": {
+        "n": 684,
+        "margin_mae": 13.321013061496956,
+        "margin_rmse": 17.091107163491994,
+        "correlation": 0.5966692792645245,
+        "winner_accuracy": 0.7383040935672515,
+        "brier": 0.17746262278859903,
+        "log_loss": 0.531586455393126,
+        "regression_slope": 11.124789840721562,
+        "regression_intercept": 3.1300062973855916
+      },
+      "2016": {
+        "n": 678,
+        "margin_mae": 14.20976475343443,
+        "margin_rmse": 18.00198746254086,
+        "correlation": 0.5401588511429154,
+        "winner_accuracy": 0.6946902654867256,
+        "brier": 0.19997440119395285,
+        "log_loss": 0.5821338268287601,
+        "regression_slope": 11.237021600863459,
+        "regression_intercept": 3.063849375540043
+      },
+      "2017": {
+        "n": 693,
+        "margin_mae": 13.353639016619379,
+        "margin_rmse": 17.100253028119603,
+        "correlation": 0.5919353395032395,
+        "winner_accuracy": 0.7113997113997114,
+        "brier": 0.18439062499245998,
+        "log_loss": 0.5434099254173962,
+        "regression_slope": 11.139685586751321,
+        "regression_intercept": 3.0883386985776746
+      },
+      "2018": {
+        "n": 689,
+        "margin_mae": 13.797589109157414,
+        "margin_rmse": 17.399391051387365,
+        "correlation": 0.5593849421265334,
+        "winner_accuracy": 0.706821480406386,
+        "brier": 0.18650833671664205,
+        "log_loss": 0.5518162280628327,
+        "regression_slope": 11.241945111177547,
+        "regression_intercept": 3.0875831352938867
+      },
+      "2019": {
+        "n": 695,
+        "margin_mae": 13.434092399970416,
+        "margin_rmse": 17.085208617093883,
+        "correlation": 0.621299710149183,
+        "winner_accuracy": 0.7223021582733813,
+        "brier": 0.1844501291726635,
+        "log_loss": 0.5473465336808311,
+        "regression_slope": 11.144495973848558,
+        "regression_intercept": 3.0342451467039275
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 13.873670021310087,
+        "margin_rmse": 17.24744895679132,
+        "correlation": 0.5596464126820673,
+        "winner_accuracy": 0.6825396825396826,
+        "brier": 0.2020827864260759,
+        "log_loss": 0.5893655494958757,
+        "regression_slope": 11.280279611647298,
+        "regression_intercept": 3.195781719130352
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 13.205394206608137,
+        "margin_rmse": 16.607970462024088,
+        "correlation": 0.5287396298968776,
+        "winner_accuracy": 0.670028818443804,
+        "brier": 0.2060943966052575,
+        "log_loss": 0.5977078313334853,
+        "regression_slope": 11.368847649338198,
+        "regression_intercept": 3.1679144471632994
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 13.188587824050694,
+        "margin_rmse": 16.766316909351996,
+        "correlation": 0.537083586598079,
+        "winner_accuracy": 0.7152875175315568,
+        "brier": 0.19045486675078743,
+        "log_loss": 0.5609452724215188,
+        "regression_slope": 11.31884398768732,
+        "regression_intercept": 3.1335386607667237
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 12.968050575891043,
+        "margin_rmse": 16.3208408829843,
+        "correlation": 0.5505329738061444,
+        "winner_accuracy": 0.6885474860335196,
+        "brier": 0.19654180023014906,
+        "log_loss": 0.5714322451405928,
+        "regression_slope": 11.370934905105676,
+        "regression_intercept": 3.067236113678108
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.130177805022061,
+        "margin_rmse": 16.599570728485784,
+        "correlation": 0.5557970799717551,
+        "winner_accuracy": 0.696551724137931,
+        "brier": 0.19322732075281124,
+        "log_loss": 0.5669850946970467,
+        "regression_slope": 11.32732197672417,
+        "regression_intercept": 3.008217799226817
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 161,
+        "margin_mae": 16.84306098038161,
+        "brier": 0.18854060965949185
+      },
+      "week3": {
+        "n": 523,
+        "margin_mae": 15.975744080508687,
+        "brier": 0.1990261203054313
+      },
+      "week4": {
+        "n": 593,
+        "margin_mae": 13.637801741505257,
+        "brier": 0.19223380758234093
+      },
+      "weeks5-8": {
+        "n": 2386,
+        "margin_mae": 13.393557424589426,
+        "brier": 0.19897762719558404
+      },
+      "weeks9+": {
+        "n": 3540,
+        "margin_mae": 12.930071842273877,
+        "brier": 0.18134680161556702
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 13.777813653719363,
+        "brier": 0.24316288907555342
+      }
+    }
+  },
+  "B_SRS_cap28": {
+    "per_season": {
+      "2014": {
+        "n": 681,
+        "margin_mae": 14.516567720297827,
+        "margin_rmse": 18.456149416143425,
+        "correlation": 0.4479710975148917,
+        "winner_accuracy": 0.6637298091042585,
+        "brier": 0.21168127579832494,
+        "log_loss": 0.6267557586778162,
+        "regression_slope": 0.6471694277271296,
+        "regression_intercept": 3.1901477902255975
+      },
+      "2015": {
+        "n": 685,
+        "margin_mae": 14.384863159088411,
+        "margin_rmse": 18.718805623248514,
+        "correlation": 0.4737504289888397,
+        "winner_accuracy": 0.7372262773722628,
+        "brier": 0.1902750690368502,
+        "log_loss": 0.5756362770812912,
+        "regression_slope": 0.6422598907861328,
+        "regression_intercept": 3.157693959992815
+      },
+      "2016": {
+        "n": 679,
+        "margin_mae": 14.422471515898819,
+        "margin_rmse": 18.545490718885727,
+        "correlation": 0.4984089829679684,
+        "winner_accuracy": 0.6892488954344624,
+        "brier": 0.19832135863312997,
+        "log_loss": 0.5806650637052446,
+        "regression_slope": 0.6357045434757876,
+        "regression_intercept": 3.0980406228967343
+      },
+      "2017": {
+        "n": 695,
+        "margin_mae": 14.081945028855232,
+        "margin_rmse": 17.96541810957738,
+        "correlation": 0.5390505506929303,
+        "winner_accuracy": 0.6906474820143885,
+        "brier": 0.1956903337606672,
+        "log_loss": 0.5724424001844287,
+        "regression_slope": 0.6275445367313986,
+        "regression_intercept": 3.116048314505894
+      },
+      "2018": {
+        "n": 689,
+        "margin_mae": 14.403737698460573,
+        "margin_rmse": 18.23065509766345,
+        "correlation": 0.49595992167613057,
+        "winner_accuracy": 0.6952104499274311,
+        "brier": 0.19617338117285998,
+        "log_loss": 0.5777207792454231,
+        "regression_slope": 0.6373600934901784,
+        "regression_intercept": 3.1012653424722134
+      },
+      "2019": {
+        "n": 695,
+        "margin_mae": 14.749547470083176,
+        "margin_rmse": 18.564925987162074,
+        "correlation": 0.5222438670305813,
+        "winner_accuracy": 0.702158273381295,
+        "brier": 0.19864697759993974,
+        "log_loss": 0.5967593691868027,
+        "regression_slope": 0.6364190269380163,
+        "regression_intercept": 3.040635929867166
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 14.745271779168979,
+        "margin_rmse": 18.43472332420654,
+        "correlation": 0.4641952973416776,
+        "winner_accuracy": 0.6464646464646465,
+        "brier": 0.2169693604382757,
+        "log_loss": 0.627113951918277,
+        "regression_slope": 0.6403078711060818,
+        "regression_intercept": 3.2307545277605922
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 13.637091626983658,
+        "margin_rmse": 17.405599941696618,
+        "correlation": 0.4525850947134026,
+        "winner_accuracy": 0.654178674351585,
+        "brier": 0.21817630728197704,
+        "log_loss": 0.6301463597881537,
+        "regression_slope": 0.644551902360026,
+        "regression_intercept": 3.1690853253792968
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 13.788396432182555,
+        "margin_rmse": 17.55446088729972,
+        "correlation": 0.46690835454805024,
+        "winner_accuracy": 0.6788218793828892,
+        "brier": 0.20390733115414295,
+        "log_loss": 0.5952228372908026,
+        "regression_slope": 0.6379748643106535,
+        "regression_intercept": 3.1405844041033864
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 13.496286345356202,
+        "margin_rmse": 17.107152646003126,
+        "correlation": 0.4790910249918862,
+        "winner_accuracy": 0.6829608938547486,
+        "brier": 0.20396304740080484,
+        "log_loss": 0.5933730554128944,
+        "regression_slope": 0.6398403137629842,
+        "regression_intercept": 3.082296219974295
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.406131725680286,
+        "margin_rmse": 17.158670736063,
+        "correlation": 0.5096966188975474,
+        "winner_accuracy": 0.7006896551724138,
+        "brier": 0.19598651116909713,
+        "log_loss": 0.5796558924103411,
+        "regression_slope": 0.6413842960090834,
+        "regression_intercept": 3.03312620188948
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 162,
+        "margin_mae": 17.393663152832385,
+        "brier": 0.19733851297668395
+      },
+      "week3": {
+        "n": 529,
+        "margin_mae": 17.190733421733395,
+        "brier": 0.21735988435304268
+      },
+      "week4": {
+        "n": 594,
+        "margin_mae": 17.68416293440515,
+        "brier": 0.24627397109775467
+      },
+      "weeks5-8": {
+        "n": 2386,
+        "margin_mae": 13.625308829476708,
+        "brier": 0.20486154300129225
+      },
+      "weeks9+": {
+        "n": 3540,
+        "margin_mae": 13.35490359335091,
+        "brier": 0.1872874930694626
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 13.630953596782522,
+        "brier": 0.23927963547881612
+      }
+    }
+  },
+  "B_SRS_uncapped": {
+    "per_season": {
+      "2014": {
+        "n": 681,
+        "margin_mae": 14.173751354878613,
+        "margin_rmse": 18.073614837720903,
+        "correlation": 0.48077021648752033,
+        "winner_accuracy": 0.6754772393538914,
+        "brier": 0.2068250155950375,
+        "log_loss": 0.6176322347021241,
+        "regression_slope": 0.5328974265965362,
+        "regression_intercept": 3.1948986182496797
+      },
+      "2015": {
+        "n": 685,
+        "margin_mae": 14.372203052881657,
+        "margin_rmse": 18.647893611750856,
+        "correlation": 0.4804107523646874,
+        "winner_accuracy": 0.7343065693430657,
+        "brier": 0.19081131949384691,
+        "log_loss": 0.5772518164914896,
+        "regression_slope": 0.5327675480879674,
+        "regression_intercept": 3.150380407048875
+      },
+      "2016": {
+        "n": 679,
+        "margin_mae": 14.421036789157665,
+        "margin_rmse": 18.366149576145286,
+        "correlation": 0.5124776379730815,
+        "winner_accuracy": 0.6892488954344624,
+        "brier": 0.19802219694328024,
+        "log_loss": 0.5810857446811526,
+        "regression_slope": 0.5271699733770197,
+        "regression_intercept": 3.087702533119381
+      },
+      "2017": {
+        "n": 695,
+        "margin_mae": 13.872320782584206,
+        "margin_rmse": 17.799137164586547,
+        "correlation": 0.5531625777715002,
+        "winner_accuracy": 0.697841726618705,
+        "brier": 0.1933224740080715,
+        "log_loss": 0.5664450491242865,
+        "regression_slope": 0.5191998084098193,
+        "regression_intercept": 3.109497692161348
+      },
+      "2018": {
+        "n": 689,
+        "margin_mae": 14.333227092386243,
+        "margin_rmse": 18.178772978368183,
+        "correlation": 0.4999994354588603,
+        "winner_accuracy": 0.7097242380261248,
+        "brier": 0.19280363020402258,
+        "log_loss": 0.5716079522612224,
+        "regression_slope": 0.5288767157992267,
+        "regression_intercept": 3.1015114999854925
+      },
+      "2019": {
+        "n": 695,
+        "margin_mae": 14.591813335844304,
+        "margin_rmse": 18.56581489677608,
+        "correlation": 0.5223442294770363,
+        "winner_accuracy": 0.6992805755395683,
+        "brier": 0.19585564533058675,
+        "log_loss": 0.5879675982213731,
+        "regression_slope": 0.5321851927374777,
+        "regression_intercept": 3.026380363467563
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 14.508066629405349,
+        "margin_rmse": 18.156299506035168,
+        "correlation": 0.4887603607492883,
+        "winner_accuracy": 0.6608946608946609,
+        "brier": 0.2122126175994026,
+        "log_loss": 0.6156568129785056,
+        "regression_slope": 0.5281343207294258,
+        "regression_intercept": 3.2201490352252193
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 13.480384725483704,
+        "margin_rmse": 17.174389208628654,
+        "correlation": 0.4744754526702755,
+        "winner_accuracy": 0.6815561959654178,
+        "brier": 0.2131417426728226,
+        "log_loss": 0.6176783144458828,
+        "regression_slope": 0.5326919639786678,
+        "regression_intercept": 3.171414946639685
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 13.713377094799611,
+        "margin_rmse": 17.467033353444382,
+        "correlation": 0.47585297971633045,
+        "winner_accuracy": 0.6788218793828892,
+        "brier": 0.20339804552933988,
+        "log_loss": 0.592457395840468,
+        "regression_slope": 0.5270502053023225,
+        "regression_intercept": 3.136139185010034
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 13.434065099472477,
+        "margin_rmse": 17.045750591761138,
+        "correlation": 0.4853598332951534,
+        "winner_accuracy": 0.6857541899441341,
+        "brier": 0.201612185024853,
+        "log_loss": 0.5878929008555924,
+        "regression_slope": 0.5310053066127802,
+        "regression_intercept": 3.0668413176351264
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.342446139803046,
+        "margin_rmse": 17.10477974371299,
+        "correlation": 0.5147273335022289,
+        "winner_accuracy": 0.7034482758620689,
+        "brier": 0.1933992837416011,
+        "log_loss": 0.5754265367934588,
+        "regression_slope": 0.5313254437956073,
+        "regression_intercept": 3.0176112709862717
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 162,
+        "margin_mae": 16.996912762438047,
+        "brier": 0.18864947131846896
+      },
+      "week3": {
+        "n": 529,
+        "margin_mae": 16.776209383207497,
+        "brier": 0.21212415203932644
+      },
+      "week4": {
+        "n": 594,
+        "margin_mae": 17.809224969924756,
+        "brier": 0.24219142687628203
+      },
+      "weeks5-8": {
+        "n": 2386,
+        "margin_mae": 13.448748991673042,
+        "brier": 0.201413892795564
+      },
+      "weeks9+": {
+        "n": 3540,
+        "margin_mae": 13.254670809220917,
+        "brier": 0.18571340740412956
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 13.677245606587054,
+        "brier": 0.24068473930702697
+      }
+    }
+  },
+  "C_RawPPP": {
+    "per_season": {
+      "2014": {
+        "n": 675,
+        "margin_mae": 14.037371284732696,
+        "margin_rmse": 17.812179126240675,
+        "correlation": 0.4996729020843162,
+        "winner_accuracy": 0.7007407407407408,
+        "brier": 0.20191861435046463,
+        "log_loss": 0.590356004697531,
+        "regression_slope": 7.095079482567179,
+        "regression_intercept": 3.3196859824916047
+      },
+      "2015": {
+        "n": 684,
+        "margin_mae": 13.94819595307548,
+        "margin_rmse": 17.837026413812122,
+        "correlation": 0.5489499746986187,
+        "winner_accuracy": 0.7251461988304093,
+        "brier": 0.18561371497026266,
+        "log_loss": 0.5519381251241356,
+        "regression_slope": 7.041651569138929,
+        "regression_intercept": 3.3247575725956384
+      },
+      "2016": {
+        "n": 678,
+        "margin_mae": 14.63359768930279,
+        "margin_rmse": 18.61323502658948,
+        "correlation": 0.493865952663474,
+        "winner_accuracy": 0.672566371681416,
+        "brier": 0.20512031547074008,
+        "log_loss": 0.5953269406922872,
+        "regression_slope": 7.108940735426307,
+        "regression_intercept": 3.269645579671403
+      },
+      "2017": {
+        "n": 693,
+        "margin_mae": 13.979751444861146,
+        "margin_rmse": 17.871430493352516,
+        "correlation": 0.5412942991574001,
+        "winner_accuracy": 0.670995670995671,
+        "brier": 0.19656704807197903,
+        "log_loss": 0.5727797189689026,
+        "regression_slope": 7.051748829549684,
+        "regression_intercept": 3.2845541897564905
+      },
+      "2018": {
+        "n": 689,
+        "margin_mae": 14.423793078880815,
+        "margin_rmse": 18.364346056592634,
+        "correlation": 0.48447635739589723,
+        "winner_accuracy": 0.6937590711175616,
+        "brier": 0.19915478673044645,
+        "log_loss": 0.5855580165452181,
+        "regression_slope": 7.147222116041411,
+        "regression_intercept": 3.2700221644626817
+      },
+      "2019": {
+        "n": 695,
+        "margin_mae": 14.421259777732002,
+        "margin_rmse": 18.35295750062502,
+        "correlation": 0.5402251912223911,
+        "winner_accuracy": 0.7107913669064748,
+        "brier": 0.19715225615337145,
+        "log_loss": 0.5811496362373363,
+        "regression_slope": 7.067031138508563,
+        "regression_intercept": 3.239764155873236
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 14.618666497359618,
+        "margin_rmse": 18.0575803438067,
+        "correlation": 0.4961020130961515,
+        "winner_accuracy": 0.6767676767676768,
+        "brier": 0.20878383596596417,
+        "log_loss": 0.6092262368372664,
+        "regression_slope": 7.173705261315105,
+        "regression_intercept": 3.375866919305745
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 13.358701040347356,
+        "margin_rmse": 17.236042730132993,
+        "correlation": 0.47832842543741205,
+        "winner_accuracy": 0.6858789625360231,
+        "brier": 0.20993170459759294,
+        "log_loss": 0.6167129190267903,
+        "regression_slope": 7.279925348939007,
+        "regression_intercept": 3.380775634083812
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 13.76896221106092,
+        "margin_rmse": 17.538766579339686,
+        "correlation": 0.4757303223533415,
+        "winner_accuracy": 0.699859747545582,
+        "brier": 0.19735256211820487,
+        "log_loss": 0.5799846449700119,
+        "regression_slope": 7.260229455436033,
+        "regression_intercept": 3.3412310537106986
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 13.144700956026773,
+        "margin_rmse": 16.782273893129098,
+        "correlation": 0.5123885657897799,
+        "winner_accuracy": 0.6913407821229051,
+        "brier": 0.20070491931875803,
+        "log_loss": 0.5865192805041347,
+        "regression_slope": 7.240876586395879,
+        "regression_intercept": 3.261776436069284
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.921837694535842,
+        "margin_rmse": 17.55724166815785,
+        "correlation": 0.47879849123156615,
+        "winner_accuracy": 0.6924137931034483,
+        "brier": 0.20293099416244528,
+        "log_loss": 0.5933036947409881,
+        "regression_slope": 7.229982884235946,
+        "regression_intercept": 3.178376163937092
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 159,
+        "margin_mae": 17.620152313244475,
+        "brier": 0.19206092738851688
+      },
+      "week3": {
+        "n": 523,
+        "margin_mae": 17.221101879956418,
+        "brier": 0.21949441868863007
+      },
+      "week4": {
+        "n": 593,
+        "margin_mae": 14.690964670681065,
+        "brier": 0.20233242370722948
+      },
+      "weeks5-8": {
+        "n": 2386,
+        "margin_mae": 13.645754080932356,
+        "brier": 0.20539829492244444
+      },
+      "weeks9+": {
+        "n": 3540,
+        "margin_mae": 13.547674897824749,
+        "brier": 0.1895087492334416
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 13.816011803253499,
+        "brier": 0.23887669925091023
+      }
+    }
+  },
+  "D2_AdjEPA_noGarbageTime": {
+    "per_season": {
+      "2014": {
+        "n": 666,
+        "margin_mae": 13.984238779116335,
+        "margin_rmse": 17.62944283326319,
+        "correlation": 0.5136900789636103,
+        "winner_accuracy": 0.6771771771771772,
+        "brier": 0.20354444148461598,
+        "log_loss": 0.5912473324366835,
+        "regression_slope": 46.960658335152836,
+        "regression_intercept": 3.186401395498762
+      },
+      "2015": {
+        "n": 678,
+        "margin_mae": 14.342364947533076,
+        "margin_rmse": 18.38277764786372,
+        "correlation": 0.4968472500137003,
+        "winner_accuracy": 0.7050147492625368,
+        "brier": 0.1936287939634524,
+        "log_loss": 0.5711511988112048,
+        "regression_slope": 47.02441681062273,
+        "regression_intercept": 3.1660520194108424
+      },
+      "2016": {
+        "n": 666,
+        "margin_mae": 14.644485100493746,
+        "margin_rmse": 18.530478381780483,
+        "correlation": 0.5029370799104188,
+        "winner_accuracy": 0.6801801801801802,
+        "brier": 0.20538335538588975,
+        "log_loss": 0.5941920598089858,
+        "regression_slope": 47.25158734303614,
+        "regression_intercept": 3.1099400373214023
+      },
+      "2017": {
+        "n": 691,
+        "margin_mae": 13.957641246714813,
+        "margin_rmse": 17.966311696620426,
+        "correlation": 0.5304492048020811,
+        "winner_accuracy": 0.7076700434153401,
+        "brier": 0.1967456114537199,
+        "log_loss": 0.5785288914796978,
+        "regression_slope": 46.78877574481983,
+        "regression_intercept": 3.1357509064072238
+      },
+      "2018": {
+        "n": 687,
+        "margin_mae": 14.31154333403014,
+        "margin_rmse": 18.33827341310207,
+        "correlation": 0.4880986564370182,
+        "winner_accuracy": 0.6870451237263464,
+        "brier": 0.19987091099611629,
+        "log_loss": 0.5856722273474851,
+        "regression_slope": 47.52186047002541,
+        "regression_intercept": 3.1172034364744206
+      },
+      "2019": {
+        "n": 694,
+        "margin_mae": 13.838999390330168,
+        "margin_rmse": 17.545363084428406,
+        "correlation": 0.5952041786572002,
+        "winner_accuracy": 0.7190201729106628,
+        "brier": 0.18666017499746038,
+        "log_loss": 0.5542801524135518,
+        "regression_slope": 46.675558721175236,
+        "regression_intercept": 3.0575760154654823
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 14.034887476050613,
+        "margin_rmse": 17.73947059727577,
+        "correlation": 0.5228572310868014,
+        "winner_accuracy": 0.6724386724386724,
+        "brier": 0.2071136077871002,
+        "log_loss": 0.60495571322642,
+        "regression_slope": 47.18718547488812,
+        "regression_intercept": 3.247341078962049
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 13.737811154071427,
+        "margin_rmse": 17.324785200033897,
+        "correlation": 0.46215847232601853,
+        "winner_accuracy": 0.6426512968299711,
+        "brier": 0.21805720604553275,
+        "log_loss": 0.6249827722022742,
+        "regression_slope": 47.544295468265446,
+        "regression_intercept": 3.2266166451010556
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 13.60594003028465,
+        "margin_rmse": 17.295421567507805,
+        "correlation": 0.49119920789481825,
+        "winner_accuracy": 0.6605890603085554,
+        "brier": 0.2031722094424477,
+        "log_loss": 0.5899393629350187,
+        "regression_slope": 47.19407698416895,
+        "regression_intercept": 3.18731023414518
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 13.362913525577943,
+        "margin_rmse": 16.81317003447382,
+        "correlation": 0.5087509602893908,
+        "winner_accuracy": 0.7136871508379888,
+        "brier": 0.20000535323823754,
+        "log_loss": 0.586626290082633,
+        "regression_slope": 47.67331898414607,
+        "regression_intercept": 3.122280586339132
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.422859638226495,
+        "margin_rmse": 16.832142327954145,
+        "correlation": 0.5373448495883522,
+        "winner_accuracy": 0.6717241379310345,
+        "brier": 0.20044846624878163,
+        "log_loss": 0.583161959664693,
+        "regression_slope": 47.16692575699643,
+        "regression_intercept": 3.032001325959168
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 161,
+        "margin_mae": 17.727007676234237,
+        "brier": 0.20997486898309528
+      },
+      "week3": {
+        "n": 523,
+        "margin_mae": 17.130168324315846,
+        "brier": 0.2157798564779728
+      },
+      "week4": {
+        "n": 592,
+        "margin_mae": 14.840805950387715,
+        "brier": 0.20745662668550438
+      },
+      "weeks5-8": {
+        "n": 2373,
+        "margin_mae": 13.577728302617306,
+        "brier": 0.20562477886897157
+      },
+      "weeks9+": {
+        "n": 3520,
+        "margin_mae": 13.352802030114038,
+        "brier": 0.18869638674367167
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 13.902766987472305,
+        "brier": 0.24901121999486125
+      }
+    }
+  },
+  "D_AdjEPA": {
+    "per_season": {
+      "2014": {
+        "n": 677,
+        "margin_mae": 13.976628178693563,
+        "margin_rmse": 17.608734172009672,
+        "correlation": 0.5173755852658012,
+        "winner_accuracy": 0.6779911373707533,
+        "brier": 0.20314757235111344,
+        "log_loss": 0.5910369640246849,
+        "regression_slope": 50.18093945197253,
+        "regression_intercept": 3.085179396731774
+      },
+      "2015": {
+        "n": 684,
+        "margin_mae": 14.022068056824333,
+        "margin_rmse": 17.92322617444058,
+        "correlation": 0.5366763895226421,
+        "winner_accuracy": 0.6988304093567251,
+        "brier": 0.18991719323403614,
+        "log_loss": 0.5589008053085256,
+        "regression_slope": 50.052709707333996,
+        "regression_intercept": 3.067788768374588
+      },
+      "2016": {
+        "n": 678,
+        "margin_mae": 14.478726738078397,
+        "margin_rmse": 18.244189476531457,
+        "correlation": 0.5220603877450054,
+        "winner_accuracy": 0.6858407079646017,
+        "brier": 0.20113013169275795,
+        "log_loss": 0.5839435739504705,
+        "regression_slope": 50.282853361290115,
+        "regression_intercept": 3.0090932852673946
+      },
+      "2017": {
+        "n": 693,
+        "margin_mae": 13.648709298339192,
+        "margin_rmse": 17.68079733344879,
+        "correlation": 0.5526879502888817,
+        "winner_accuracy": 0.70995670995671,
+        "brier": 0.19210791833631352,
+        "log_loss": 0.5664153130298075,
+        "regression_slope": 49.8511379734534,
+        "regression_intercept": 3.035774961593765
+      },
+      "2018": {
+        "n": 689,
+        "margin_mae": 14.160770633587653,
+        "margin_rmse": 18.17050611369261,
+        "correlation": 0.5018420162619598,
+        "winner_accuracy": 0.6995645863570392,
+        "brier": 0.19721293141212975,
+        "log_loss": 0.5796993612656799,
+        "regression_slope": 50.70664454217764,
+        "regression_intercept": 3.028151857039092
+      },
+      "2019": {
+        "n": 695,
+        "margin_mae": 13.84624838187965,
+        "margin_rmse": 17.641556191729673,
+        "correlation": 0.5885964506399132,
+        "winner_accuracy": 0.7237410071942446,
+        "brier": 0.18663823618175068,
+        "log_loss": 0.556177077113753,
+        "regression_slope": 49.86832304503387,
+        "regression_intercept": 2.9493823727343864
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 13.940686560568448,
+        "margin_rmse": 17.568172980489912,
+        "correlation": 0.5358549912839504,
+        "winner_accuracy": 0.6623376623376623,
+        "brier": 0.20770565408798913,
+        "log_loss": 0.60472421726077,
+        "regression_slope": 50.22514932058459,
+        "regression_intercept": 3.1317010893026325
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 13.740384298066083,
+        "margin_rmse": 17.36100129317699,
+        "correlation": 0.46418708392095154,
+        "winner_accuracy": 0.6512968299711815,
+        "brier": 0.2163684784460118,
+        "log_loss": 0.6237780715121086,
+        "regression_slope": 51.122491131097206,
+        "regression_intercept": 3.1058570209422203
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 13.602675063485597,
+        "margin_rmse": 17.249274459824964,
+        "correlation": 0.4952829508886898,
+        "winner_accuracy": 0.6746143057503506,
+        "brier": 0.20329554838798397,
+        "log_loss": 0.5890160372123581,
+        "regression_slope": 50.43669871161845,
+        "regression_intercept": 3.0788565147115294
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 13.282425911871593,
+        "margin_rmse": 16.692661675556106,
+        "correlation": 0.5200008756427299,
+        "winner_accuracy": 0.7011173184357542,
+        "brier": 0.19985129286306544,
+        "log_loss": 0.5859912052001021,
+        "regression_slope": 50.96219584988589,
+        "regression_intercept": 3.006144237168187
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.489404266687371,
+        "margin_rmse": 16.89617172681213,
+        "correlation": 0.5324675592615871,
+        "winner_accuracy": 0.6758620689655173,
+        "brier": 0.19948560069491694,
+        "log_loss": 0.5824640974937544,
+        "regression_slope": 50.584063551757005,
+        "regression_intercept": 2.9288519153626362
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 161,
+        "margin_mae": 17.332770779865044,
+        "brier": 0.2010624798300432
+      },
+      "week3": {
+        "n": 523,
+        "margin_mae": 16.88435525622864,
+        "brier": 0.21365748871508494
+      },
+      "week4": {
+        "n": 593,
+        "margin_mae": 14.724835897454742,
+        "brier": 0.2067517702666505
+      },
+      "weeks5-8": {
+        "n": 2386,
+        "margin_mae": 13.546410998374157,
+        "brier": 0.2035608845951173
+      },
+      "weeks9+": {
+        "n": 3540,
+        "margin_mae": 13.238836975183382,
+        "brier": 0.187314100482088
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 13.994804915808048,
+        "brier": 0.2506359246419232
+      }
+    }
+  },
+  "E2_AdjSuccess_noGarbageTime": {
+    "per_season": {
+      "2014": {
+        "n": 666,
+        "margin_mae": 14.048438426670355,
+        "margin_rmse": 17.883480927602445,
+        "correlation": 0.49149040473528705,
+        "winner_accuracy": 0.6636636636636637,
+        "brier": 0.20499098138438468,
+        "log_loss": 0.5953270213797741,
+        "regression_slope": 94.32047696101955,
+        "regression_intercept": 3.1650252246423145
+      },
+      "2015": {
+        "n": 678,
+        "margin_mae": 14.6223588464841,
+        "margin_rmse": 18.492507586599288,
+        "correlation": 0.48765992797005414,
+        "winner_accuracy": 0.7094395280235988,
+        "brier": 0.1961145005942719,
+        "log_loss": 0.5790521265437376,
+        "regression_slope": 94.59945474682493,
+        "regression_intercept": 3.0988193293030974
+      },
+      "2016": {
+        "n": 666,
+        "margin_mae": 14.102843342490297,
+        "margin_rmse": 17.997174905752384,
+        "correlation": 0.5460457181498507,
+        "winner_accuracy": 0.7177177177177178,
+        "brier": 0.1934823675455059,
+        "log_loss": 0.5677388788487637,
+        "regression_slope": 93.36926453873873,
+        "regression_intercept": 3.10031675417952
+      },
+      "2017": {
+        "n": 691,
+        "margin_mae": 14.625940779983022,
+        "margin_rmse": 18.560547958205742,
+        "correlation": 0.48028105996906817,
+        "winner_accuracy": 0.6743849493487699,
+        "brier": 0.2078169568279328,
+        "log_loss": 0.6020769118088112,
+        "regression_slope": 94.27778536298463,
+        "regression_intercept": 3.111179968492961
+      },
+      "2018": {
+        "n": 687,
+        "margin_mae": 14.173154844967152,
+        "margin_rmse": 17.90785618940745,
+        "correlation": 0.5228953173345526,
+        "winner_accuracy": 0.7001455604075691,
+        "brier": 0.19289999183686435,
+        "log_loss": 0.567620582654912,
+        "regression_slope": 93.6661377528986,
+        "regression_intercept": 3.1383814662071425
+      },
+      "2019": {
+        "n": 694,
+        "margin_mae": 14.088920722523481,
+        "margin_rmse": 17.62899047703492,
+        "correlation": 0.5914796520929453,
+        "winner_accuracy": 0.7146974063400576,
+        "brier": 0.1891034857640511,
+        "log_loss": 0.5594686776903219,
+        "regression_slope": 92.78275442600022,
+        "regression_intercept": 3.085746094728648
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 14.253203047023183,
+        "margin_rmse": 18.038322832694266,
+        "correlation": 0.49842184630543784,
+        "winner_accuracy": 0.6767676767676768,
+        "brier": 0.20761490056118306,
+        "log_loss": 0.6046536421531027,
+        "regression_slope": 94.84480928532498,
+        "regression_intercept": 3.200945075904447
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 13.48969205565624,
+        "margin_rmse": 17.14125790990988,
+        "correlation": 0.4835897315609991,
+        "winner_accuracy": 0.6873198847262247,
+        "brier": 0.20779507629147917,
+        "log_loss": 0.6015572402177182,
+        "regression_slope": 95.63846333695543,
+        "regression_intercept": 3.1868332447931533
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 13.876027596803802,
+        "margin_rmse": 17.4461131008628,
+        "correlation": 0.47884440512328436,
+        "winner_accuracy": 0.6746143057503506,
+        "brier": 0.2099751781238075,
+        "log_loss": 0.6064802141817109,
+        "regression_slope": 94.88490430364168,
+        "regression_intercept": 3.1596623442848655
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 13.40828893097016,
+        "margin_rmse": 16.947467124463067,
+        "correlation": 0.4935168469881874,
+        "winner_accuracy": 0.6620111731843575,
+        "brier": 0.20841643964218243,
+        "log_loss": 0.602849609245703,
+        "regression_slope": 94.28801852105951,
+        "regression_intercept": 3.0945060084268206
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.381669042299078,
+        "margin_rmse": 16.85873778613802,
+        "correlation": 0.5346792550482055,
+        "winner_accuracy": 0.6813793103448276,
+        "brier": 0.20109370597610302,
+        "log_loss": 0.5876635473178148,
+        "regression_slope": 94.47071955091444,
+        "regression_intercept": 3.0226064109595483
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 161,
+        "margin_mae": 17.165210389952446,
+        "brier": 0.19568674396830263
+      },
+      "week3": {
+        "n": 523,
+        "margin_mae": 17.07644575637709,
+        "brier": 0.21085518680050624
+      },
+      "week4": {
+        "n": 592,
+        "margin_mae": 14.689745946365107,
+        "brier": 0.19843620181655758
+      },
+      "weeks5-8": {
+        "n": 2373,
+        "margin_mae": 13.726845907369729,
+        "brier": 0.20895537655569746
+      },
+      "weeks9+": {
+        "n": 3520,
+        "margin_mae": 13.479820324699762,
+        "brier": 0.1913507743196814
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 13.888089240742405,
+        "brier": 0.24199545595050398
+      }
+    }
+  },
+  "E_AdjSuccess": {
+    "per_season": {
+      "2014": {
+        "n": 677,
+        "margin_mae": 14.17675866668076,
+        "margin_rmse": 17.969248904225946,
+        "correlation": 0.4865012465040264,
+        "winner_accuracy": 0.670605612998523,
+        "brier": 0.20783214678119744,
+        "log_loss": 0.6025049305486997,
+        "regression_slope": 101.92047719775344,
+        "regression_intercept": 3.118018734185307
+      },
+      "2015": {
+        "n": 684,
+        "margin_mae": 14.4951239670692,
+        "margin_rmse": 18.361232694280876,
+        "correlation": 0.5012103250442267,
+        "winner_accuracy": 0.7046783625730995,
+        "brier": 0.19585325185265476,
+        "log_loss": 0.578028011943744,
+        "regression_slope": 101.9499427582273,
+        "regression_intercept": 3.057142572349702
+      },
+      "2016": {
+        "n": 678,
+        "margin_mae": 14.085697617788801,
+        "margin_rmse": 17.98670442535219,
+        "correlation": 0.5439131271448919,
+        "winner_accuracy": 0.7123893805309734,
+        "brier": 0.19362884484838128,
+        "log_loss": 0.5688691380779126,
+        "regression_slope": 100.71858218190273,
+        "regression_intercept": 3.0541654055520944
+      },
+      "2017": {
+        "n": 693,
+        "margin_mae": 14.580183911329495,
+        "margin_rmse": 18.485333219970077,
+        "correlation": 0.48663873562631127,
+        "winner_accuracy": 0.6738816738816739,
+        "brier": 0.20599163002540716,
+        "log_loss": 0.5964160308760846,
+        "regression_slope": 101.5252158261027,
+        "regression_intercept": 3.061041292299248
+      },
+      "2018": {
+        "n": 689,
+        "margin_mae": 14.284606864351593,
+        "margin_rmse": 17.941547683925197,
+        "correlation": 0.5224829758576681,
+        "winner_accuracy": 0.6937590711175616,
+        "brier": 0.19543806409653394,
+        "log_loss": 0.5712845103504837,
+        "regression_slope": 100.7523166122158,
+        "regression_intercept": 3.102527049199019
+      },
+      "2019": {
+        "n": 695,
+        "margin_mae": 14.166848423059895,
+        "margin_rmse": 17.77178288667767,
+        "correlation": 0.5812101978045577,
+        "winner_accuracy": 0.702158273381295,
+        "brier": 0.19237292915270635,
+        "log_loss": 0.5668554468319023,
+        "regression_slope": 100.20436524436016,
+        "regression_intercept": 3.0321033055168867
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 14.326650405384228,
+        "margin_rmse": 18.111078547752584,
+        "correlation": 0.49333703519339334,
+        "winner_accuracy": 0.6825396825396826,
+        "brier": 0.2085225022922568,
+        "log_loss": 0.6078010555953809,
+        "regression_slope": 102.72462401471256,
+        "regression_intercept": 3.138201840159358
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 13.484828445762451,
+        "margin_rmse": 17.132724843354428,
+        "correlation": 0.483476793645782,
+        "winner_accuracy": 0.6873198847262247,
+        "brier": 0.20719228980892374,
+        "log_loss": 0.6014772571800119,
+        "regression_slope": 103.1388947858219,
+        "regression_intercept": 3.131083970233712
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 13.808176143240967,
+        "margin_rmse": 17.34509425547315,
+        "correlation": 0.486788694388955,
+        "winner_accuracy": 0.6619915848527349,
+        "brier": 0.20988871925831706,
+        "log_loss": 0.6071033974844551,
+        "regression_slope": 101.82842424665517,
+        "regression_intercept": 3.118036190066444
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 13.603438572659105,
+        "margin_rmse": 17.074870150511668,
+        "correlation": 0.4824725553823092,
+        "winner_accuracy": 0.6564245810055865,
+        "brier": 0.2113443893018932,
+        "log_loss": 0.6091215274327845,
+        "regression_slope": 102.04681823221877,
+        "regression_intercept": 3.0302279268823735
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.530102516144021,
+        "margin_rmse": 17.147434919026256,
+        "correlation": 0.5122201028814781,
+        "winner_accuracy": 0.6882758620689655,
+        "brier": 0.20265256965986075,
+        "log_loss": 0.5938706131788994,
+        "regression_slope": 102.46656212387938,
+        "regression_intercept": 2.9721575127187525
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 161,
+        "margin_mae": 16.897338200273204,
+        "brier": 0.1869185529136705
+      },
+      "week3": {
+        "n": 523,
+        "margin_mae": 17.249347606173938,
+        "brier": 0.2151961272966019
+      },
+      "week4": {
+        "n": 593,
+        "margin_mae": 14.672072744800799,
+        "brier": 0.19893792129495527
+      },
+      "weeks5-8": {
+        "n": 2386,
+        "margin_mae": 13.83990733860923,
+        "brier": 0.21069423250846417
+      },
+      "weeks9+": {
+        "n": 3540,
+        "margin_mae": 13.497565131622574,
+        "brier": 0.19227052292085697
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 13.855047076298291,
+        "brier": 0.2407108214516284
+      }
+    }
+  },
+  "F_AdjExplosive": {
+    "per_season": {
+      "2014": {
+        "n": 677,
+        "margin_mae": 15.002844909608704,
+        "margin_rmse": 18.875141444880345,
+        "correlation": 0.3973678340224549,
+        "winner_accuracy": 0.6558345642540621,
+        "brier": 0.22088739824428502,
+        "log_loss": 0.633658116924046,
+        "regression_slope": 153.72087996477438,
+        "regression_intercept": 3.2602392739474055
+      },
+      "2015": {
+        "n": 684,
+        "margin_mae": 14.944367198173495,
+        "margin_rmse": 18.93738949951158,
+        "correlation": 0.4529087752662888,
+        "winner_accuracy": 0.6681286549707602,
+        "brier": 0.2118355068832682,
+        "log_loss": 0.6097566061281149,
+        "regression_slope": 151.61958088201177,
+        "regression_intercept": 3.2448753392882987
+      },
+      "2016": {
+        "n": 678,
+        "margin_mae": 15.14056410356473,
+        "margin_rmse": 19.372144332019694,
+        "correlation": 0.42520541947022544,
+        "winner_accuracy": 0.6563421828908554,
+        "brier": 0.21433735395098386,
+        "log_loss": 0.6162601592064726,
+        "regression_slope": 151.8098169561932,
+        "regression_intercept": 3.230253236497716
+      },
+      "2017": {
+        "n": 693,
+        "margin_mae": 14.491045333806117,
+        "margin_rmse": 18.712128348633193,
+        "correlation": 0.4695425777130664,
+        "winner_accuracy": 0.6883116883116883,
+        "brier": 0.20461120749206677,
+        "log_loss": 0.596019440681446,
+        "regression_slope": 151.21020688816668,
+        "regression_intercept": 3.229149668328912
+      },
+      "2018": {
+        "n": 689,
+        "margin_mae": 15.208080034733728,
+        "margin_rmse": 19.231666801869128,
+        "correlation": 0.40108527085826645,
+        "winner_accuracy": 0.6386066763425254,
+        "brier": 0.21694762318455837,
+        "log_loss": 0.6233017065347259,
+        "regression_slope": 153.54153753416642,
+        "regression_intercept": 3.1990909322171515
+      },
+      "2019": {
+        "n": 695,
+        "margin_mae": 15.299647721509233,
+        "margin_rmse": 19.36997737244947,
+        "correlation": 0.46482758862875073,
+        "winner_accuracy": 0.6820143884892086,
+        "brier": 0.20860280338313958,
+        "log_loss": 0.6048291420060389,
+        "regression_slope": 149.93378732788167,
+        "regression_intercept": 3.1577268046188522
+      },
+      "2021": {
+        "n": 693,
+        "margin_mae": 15.01965118292019,
+        "margin_rmse": 18.915893068778622,
+        "correlation": 0.4183117575931107,
+        "winner_accuracy": 0.6479076479076479,
+        "brier": 0.22235960589157097,
+        "log_loss": 0.6349196126182725,
+        "regression_slope": 154.23066282246333,
+        "regression_intercept": 3.33244354800528
+      },
+      "2022": {
+        "n": 694,
+        "margin_mae": 14.337579273841056,
+        "margin_rmse": 18.26850768418675,
+        "correlation": 0.3576466407801287,
+        "winner_accuracy": 0.6368876080691642,
+        "brier": 0.22596742797490785,
+        "log_loss": 0.6443068783560488,
+        "regression_slope": 155.5288772973659,
+        "regression_intercept": 3.2713530071920816
+      },
+      "2023": {
+        "n": 713,
+        "margin_mae": 14.589330395119063,
+        "margin_rmse": 18.636340554406253,
+        "correlation": 0.34894772717813466,
+        "winner_accuracy": 0.6395511921458625,
+        "brier": 0.21910862985231688,
+        "log_loss": 0.6269157829158186,
+        "regression_slope": 154.67619788152956,
+        "regression_intercept": 3.254196287131054
+      },
+      "2024": {
+        "n": 716,
+        "margin_mae": 14.230793999025682,
+        "margin_rmse": 17.923232980293704,
+        "correlation": 0.39738662253146234,
+        "winner_accuracy": 0.659217877094972,
+        "brier": 0.2162438101806674,
+        "log_loss": 0.6224228389987889,
+        "regression_slope": 154.870437700428,
+        "regression_intercept": 3.1585344505361808
+      },
+      "2025": {
+        "n": 725,
+        "margin_mae": 13.967536049275369,
+        "margin_rmse": 17.73072991563404,
+        "correlation": 0.4593889764138685,
+        "winner_accuracy": 0.6675862068965517,
+        "brier": 0.20986735358008912,
+        "log_loss": 0.6080688743502004,
+        "regression_slope": 152.3980795615053,
+        "regression_intercept": 3.1072971028432783
+      }
+    },
+    "per_bucket": {
+      "week2": {
+        "n": 161,
+        "margin_mae": 18.182496815845386,
+        "brier": 0.20984688539885915
+      },
+      "week3": {
+        "n": 523,
+        "margin_mae": 17.038717220437402,
+        "brier": 0.21572267402155956
+      },
+      "week4": {
+        "n": 593,
+        "margin_mae": 16.053018236401993,
+        "brier": 0.22479528377837676
+      },
+      "weeks5-8": {
+        "n": 2386,
+        "margin_mae": 14.375716480676752,
+        "brier": 0.21955060880687924
+      },
+      "weeks9+": {
+        "n": 3540,
+        "margin_mae": 14.343511636521429,
+        "brier": 0.20650190914772462
+      },
+      "postseason": {
+        "n": 454,
+        "margin_mae": 14.185757111960823,
+        "brier": 0.2540912817039408
+      }
+    }
+  }
+}

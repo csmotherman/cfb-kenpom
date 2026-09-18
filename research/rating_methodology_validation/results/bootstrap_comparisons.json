@@ -1,0 +1,26 @@
+{
+  "A_AdjPPP_vs_A2_AdjPPP_production_faithful": {
+    "observed_diff_A_minus_B": 0.03810726717370372,
+    "ci_low": 0.017393360736717156,
+    "ci_high": 0.062355437309090433,
+    "significant": true
+  },
+  "A_AdjPPP_vs_B_SRS_uncapped": {
+    "observed_diff_A_minus_B": -0.5453204625302064,
+    "ci_low": -0.7702105263480217,
+    "ci_high": -0.33807227398724393,
+    "significant": true
+  },
+  "A_AdjPPP_vs_C_RawPPP": {
+    "observed_diff_A_minus_B": -0.5484071724581181,
+    "ci_low": -0.6734654792428287,
+    "ci_high": -0.42866532964942117,
+    "significant": true
+  },
+  "A_AdjPPP_vs_D_AdjEPA": {
+    "observed_diff_A_minus_B": -0.3597896575205297,
+    "ci_low": -0.4669921713186618,
+    "ci_high": -0.25348409784795045,
+    "significant": true
+  }
+}

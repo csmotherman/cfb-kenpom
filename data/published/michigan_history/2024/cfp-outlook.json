@@ -1,0 +1,18 @@
+{
+  "actualSelected": false,
+  "conferenceChampion": false,
+  "fieldSize": 12,
+  "losses": 5,
+  "modelVersion": "historical-cfp-resume-v1",
+  "qualityWins": 1,
+  "scoringMarginPerGame": 1.75,
+  "season": 2024,
+  "selectionChance": 0.009918,
+  "selectionRank": 44,
+  "strengthOfSchedule": 0.646902,
+  "team": "Michigan",
+  "teamId": 130,
+  "valueType": "RETROSPECTIVE",
+  "winPercentage": 0.583333,
+  "wins": 7
+}
