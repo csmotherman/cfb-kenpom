@@ -43,7 +43,7 @@ export async function GET(
       status: 200,
       headers: {
         ...PRIVATE_HEADERS,
-        "X-LEILA-Advanced-Access": "none",
+        "X-PRIME-Advanced-Access": "none",
       },
     });
   }
@@ -70,7 +70,7 @@ export async function GET(
       status: 200,
       headers: {
         ...PRIVATE_HEADERS,
-        "X-LEILA-Advanced-Access": "full",
+        "X-PRIME-Advanced-Access": "full",
       },
     });
   } catch (error) {
