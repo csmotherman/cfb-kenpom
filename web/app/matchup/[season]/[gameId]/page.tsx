@@ -8,6 +8,7 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import MatchupEdgesSection from "@/components/MatchupEdgesSection";
 import GameResultsSheet from "@/components/GameResultsSheet";
+import LeilaLoadingState from "@/components/LeilaLoadingState";
 import {
   getRankingsSeason,
   getScheduleSeason,
@@ -260,7 +261,9 @@ export default function MatchupPage({ params }: { params: Promise<{ season: stri
       <>
         <SiteHeader tagline="College Football Matchup Analysis" />
         <SiteNav />
-        <main className="container weekly-state">Loading matchup…</main>
+        <main className="container weekly-state">
+          <LeilaLoadingState variant="matchup" compact />
+        </main>
       </>
     );
   }
