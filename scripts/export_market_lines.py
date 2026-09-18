@@ -46,6 +46,7 @@ def _normalize_line(game_id: str, row: dict[str, Any]) -> dict[str, Any]:
         "gameId": game_id,
         "provider": _provider_name(row.get("provider")),
         "spread": _num(row.get("spread")),
+        "formattedSpread": row.get("formattedSpread") or row.get("formatted_spread"),
         "spreadOpen": _num(row.get("spreadOpen") if "spreadOpen" in row else row.get("spread_open")),
         "overUnder": _num(row.get("overUnder") if "overUnder" in row else row.get("over_under")),
         "overUnderOpen": _num(row.get("overUnderOpen") if "overUnderOpen" in row else row.get("over_under_open")),
