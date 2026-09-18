@@ -152,12 +152,12 @@ function buildSection(
 
 // Completed-game results have a hard source boundary:
 // - BOX_SCORE uses CFBD /games/teams and is descriptive/neutral.
-// - EFFICIENCY and GAME_SHAPE use LEILA's PBP/drive analytics and historical
+// - EFFICIENCY and GAME_SHAPE use PRIME's PBP/drive analytics and historical
 //   single-game percentile coloring.
-// Never fill an official box-score row with a similarly named LEILA metric.
+// Never fill an official box-score row with a similarly named PRIME metric.
 const BOX_SCORE: [string, Spec[]][] = [
   ["Overall", [
-    { label: "Plays", key: "box_total_plays", fmt: count, neutral: true, tip: "Official offensive plays from CFBD's team box score (rush attempts plus pass attempts). Not colored -- it's a game fact, not a LEILA rating." },
+    { label: "Plays", key: "box_total_plays", fmt: count, neutral: true, tip: "Official offensive plays from CFBD's team box score (rush attempts plus pass attempts). Not colored -- it's a game fact, not a PRIME rating." },
     { label: "Total Yards", key: "box_total_yards", fmt: count, neutral: true, tip: "Official total offensive yards from CFBD's team box score." },
     { label: "Yards / Play", key: "box_yards_per_play", fmt: (v) => plain(v, 1), neutral: true, tip: "Official total yards divided by official plays. Higher is generally better, but this row is descriptive and not conditionally colored." },
     { label: "First Downs", key: "box_first_downs", fmt: count, neutral: true, tip: "Official first downs from CFBD's team box score." },
@@ -179,7 +179,7 @@ const BOX_SCORE: [string, Spec[]][] = [
       fmt: pct,
       display: (row) => ratioLine(row, "box_third_down_conversions", "box_third_down_attempts", "box_third_down_rate"),
       neutral: true,
-      tip: "Official 3rd-down conversions over 3rd-down attempts from CFBD's team box score. This is the official rate, not LEILA's own play-level 3rd-down success metric.",
+      tip: "Official 3rd-down conversions over 3rd-down attempts from CFBD's team box score. This is the official rate, not PRIME's own play-level 3rd-down success metric.",
     },
     {
       label: "4th Down",
@@ -197,22 +197,22 @@ const BOX_SCORE: [string, Spec[]][] = [
   ]],
 ];
 
-const EPA_PLAY_TIP = "Expected Points Added per play, from LEILA's play-by-play model. Positive means the offense gained expected points on average; negative means it lost them. Higher is better. LEILA-derived, not an official box-score stat.";
-const SUCCESS_RATE_TIP = "Share of plays that gained a positive share of the expected points needed to keep a drive on schedule (roughly 50% of yards to go on 1st down, 70% on 2nd, 100% on 3rd/4th). Higher is better. LEILA-derived.";
+const EPA_PLAY_TIP = "Expected Points Added per play, from PRIME's play-by-play model. Positive means the offense gained expected points on average; negative means it lost them. Higher is better. PRIME-derived, not an official box-score stat.";
+const SUCCESS_RATE_TIP = "Share of plays that gained a positive share of the expected points needed to keep a drive on schedule (roughly 50% of yards to go on 1st down, 70% on 2nd, 100% on 3rd/4th). Higher is better. PRIME-derived.";
 
 const EFFICIENCY: [string, Spec[]][] = [
   ["Overall", [
     { label: "EPA / Play", key: "epa_per_play", fmt: (v) => signed(v, 3), tip: EPA_PLAY_TIP },
-    { label: "Total EPA", key: "total_epa", fmt: (v) => signed(v, 1), tip: "Sum of Expected Points Added across every offensive play in the game. Higher is better. LEILA-derived." },
+    { label: "Total EPA", key: "total_epa", fmt: (v) => signed(v, 1), tip: "Sum of Expected Points Added across every offensive play in the game. Higher is better. PRIME-derived." },
     { label: "Success Rate", key: "success_rate", fmt: pct, tip: SUCCESS_RATE_TIP },
   ]],
   ["Passing", [
-    { label: "Passing EPA", key: "passing_epa", fmt: (v) => signed(v, 1), tip: "Sum of Expected Points Added on dropbacks (pass attempts plus sacks). Higher is better. LEILA-derived." },
+    { label: "Passing EPA", key: "passing_epa", fmt: (v) => signed(v, 1), tip: "Sum of Expected Points Added on dropbacks (pass attempts plus sacks). Higher is better. PRIME-derived." },
     { label: "EPA / Dropback", key: "epa_per_dropback", fmt: (v) => signed(v, 2), indent: 1, tip: EPA_PLAY_TIP + " Limited to dropbacks." },
     { label: "Success Rate", key: "pass_success_rate", fmt: pct, indent: 1, tip: SUCCESS_RATE_TIP + " Limited to dropbacks." },
   ]],
   ["Rushing", [
-    { label: "Rushing EPA", key: "rushing_epa", fmt: (v) => signed(v, 1), tip: "Sum of Expected Points Added on rush attempts. Higher is better. LEILA-derived." },
+    { label: "Rushing EPA", key: "rushing_epa", fmt: (v) => signed(v, 1), tip: "Sum of Expected Points Added on rush attempts. Higher is better. PRIME-derived." },
     { label: "EPA / Rush", key: "epa_per_rush", fmt: (v) => signed(v, 2), indent: 1, tip: EPA_PLAY_TIP + " Limited to rush attempts." },
     { label: "Success Rate", key: "rush_success_rate", fmt: pct, indent: 1, tip: SUCCESS_RATE_TIP + " Limited to rush attempts." },
   ]],
@@ -231,40 +231,40 @@ const EFFICIENCY: [string, Spec[]][] = [
 
 const GAME_SHAPE: [string, Spec[]][] = [
   ["Drives", [
-    { label: "Validated Offensive Drives", key: "offensive_drives", fmt: count, neutral: true, tip: "Offensive possessions LEILA's drive pipeline could fully validate for this game. The denominator behind the other Drives-section rates." },
-    { label: "Yards / Drive", key: "yards_per_drive", fmt: (v) => plain(v, 1), tip: "Offensive yards gained per validated drive. Higher is better. LEILA-derived." },
+    { label: "Validated Offensive Drives", key: "offensive_drives", fmt: count, neutral: true, tip: "Offensive possessions PRIME's drive pipeline could fully validate for this game. The denominator behind the other Drives-section rates." },
+    { label: "Yards / Drive", key: "yards_per_drive", fmt: (v) => plain(v, 1), tip: "Offensive yards gained per validated drive. Higher is better. PRIME-derived." },
     { label: "Avg Starting Field Position", key: "avg_start_yards_to_goal", fmt: fieldPosition, neutral: true, tip: "Average distance to the end zone where this offense's drives began. Shown as a yard line; not conditionally colored." },
-    { label: "Scoring Opportunities", key: "scoring_opportunities", fmt: count, neutral: true, tip: "Drives where LEILA's pipeline marked the offense inside the opponent's 40-yard line. The denominator for Points / Opportunity." },
-    { label: "Points / Opportunity", key: "points_per_opportunity", fmt: (v) => plain(v, 2), indent: 1, tip: "Points scored per scoring opportunity (a drive reaching the opponent's 40). Higher is better -- a finishing-drives measure. LEILA-derived." },
+    { label: "Scoring Opportunities", key: "scoring_opportunities", fmt: count, neutral: true, tip: "Drives where PRIME's pipeline marked the offense inside the opponent's 40-yard line. The denominator for Points / Opportunity." },
+    { label: "Points / Opportunity", key: "points_per_opportunity", fmt: (v) => plain(v, 2), indent: 1, tip: "Points scored per scoring opportunity (a drive reaching the opponent's 40). Higher is better -- a finishing-drives measure. PRIME-derived." },
     { label: "Drive Share", key: "drive_share", fmt: pct, neutral: true, tip: "This team's share of the game's total validated drives (both teams combined). Descriptive; not conditionally colored." },
   ]],
   ["Series Control", [
-    { label: "Series Conversion", key: "series_conversion_rate", fmt: pct, tip: "Share of 1st-down series (a set of downs, not an individual play) that earned a new first down or a touchdown. Higher is better. LEILA-derived." },
-    { label: "Recovery Rate", key: "recovery_rate", fmt: pct, indent: 1, tip: "Share of series that fell behind schedule (e.g. a negative or short-gain play) but still converted. Higher is better. LEILA-derived." },
-    { label: "3rd & Long Exposure", key: "third_long_exposure", fmt: pct, indent: 1, tip: "Share of series that reached a 3rd (or 4th) down needing 7 or more yards. Lower is better -- it means the offense stayed ahead of schedule. LEILA-derived." },
+    { label: "Series Conversion", key: "series_conversion_rate", fmt: pct, tip: "Share of 1st-down series (a set of downs, not an individual play) that earned a new first down or a touchdown. Higher is better. PRIME-derived." },
+    { label: "Recovery Rate", key: "recovery_rate", fmt: pct, indent: 1, tip: "Share of series that fell behind schedule (e.g. a negative or short-gain play) but still converted. Higher is better. PRIME-derived." },
+    { label: "3rd & Long Exposure", key: "third_long_exposure", fmt: pct, indent: 1, tip: "Share of series that reached a 3rd (or 4th) down needing 7 or more yards. Lower is better -- it means the offense stayed ahead of schedule. PRIME-derived." },
   ]],
   ["Explosiveness", [
-    { label: "Explosive Play Rate", key: "explosive_play_rate", fmt: pct, tip: "Share of offensive plays gaining 15+ yards through the air or 10+ on the ground. Higher is better. LEILA-derived." },
-    { label: "Explosive Pass Rate", key: "explosive_pass_rate", fmt: pct, indent: 1, tip: "Explosive Play Rate limited to dropbacks. Higher is better. LEILA-derived." },
-    { label: "Explosive Rush Rate", key: "explosive_rush_rate", fmt: pct, indent: 1, tip: "Explosive Play Rate limited to rush attempts. Higher is better. LEILA-derived." },
+    { label: "Explosive Play Rate", key: "explosive_play_rate", fmt: pct, tip: "Share of offensive plays gaining 15+ yards through the air or 10+ on the ground. Higher is better. PRIME-derived." },
+    { label: "Explosive Pass Rate", key: "explosive_pass_rate", fmt: pct, indent: 1, tip: "Explosive Play Rate limited to dropbacks. Higher is better. PRIME-derived." },
+    { label: "Explosive Rush Rate", key: "explosive_rush_rate", fmt: pct, indent: 1, tip: "Explosive Play Rate limited to rush attempts. Higher is better. PRIME-derived." },
     { label: "EPA / Play w/o Explosives", key: "epa_without_explosives", fmt: (v) => signed(v, 2), tip: EPA_PLAY_TIP + " Explosive plays removed, to show how the offense performed on its ordinary snaps." },
     { label: "Explosive Dependency", key: "explosive_dependency", fmt: pct, neutral: true, tip: "Share of this offense's positive EPA that came from explosive plays alone. Descriptive, not conditionally colored -- a high number isn't necessarily bad, it just means the offense leaned on big plays rather than sustained drives." },
   ]],
   ["Possession Quality", [
-    { label: "Clean Drive Rate", key: "clean_drive_rate", fmt: pct, tip: "Share of drives with no turnover, sack, TFL, or backward-progress accepted penalty. Higher is better. LEILA-derived." },
-    { label: "Drive Killer Rate", key: "drive_killer_rate", fmt: pct, tip: "Share of drives where a negative event (turnover, sack, TFL, failed 4th down, etc.) ended the drive rather than being overcome. Lower is better. LEILA-derived." },
-    { label: "Failure Rate", key: "failure_rate", fmt: pct, indent: 1, tip: "Share of offensive plays with negative EPA. Lower is better. LEILA-derived." },
-    { label: "Avg Failure Damage", key: "avg_failure_damage", fmt: (v) => plain(v, 2), indent: 1, tip: "Average EPA lost on plays that had negative EPA. Lower (more negative) is worse; closer to zero is better. LEILA-derived." },
-    { label: "Failure Burden", key: "failure_burden", fmt: (v) => plain(v, 3), indent: 1, tip: "Total negative EPA from failed plays spread across every eligible play this offense ran. Lower (more negative) is worse; closer to zero is better. LEILA-derived." },
-    { label: "Failure Pressure", key: "failure_pressure", fmt: (v) => plain(v, 3), indent: 1, tip: "Failure Burden inflicted on the opponent's offense by this team's defense. Higher is better -- more pressure created. LEILA-derived." },
+    { label: "Clean Drive Rate", key: "clean_drive_rate", fmt: pct, tip: "Share of drives with no turnover, sack, TFL, or backward-progress accepted penalty. Higher is better. PRIME-derived." },
+    { label: "Drive Killer Rate", key: "drive_killer_rate", fmt: pct, tip: "Share of drives where a negative event (turnover, sack, TFL, failed 4th down, etc.) ended the drive rather than being overcome. Lower is better. PRIME-derived." },
+    { label: "Failure Rate", key: "failure_rate", fmt: pct, indent: 1, tip: "Share of offensive plays with negative EPA. Lower is better. PRIME-derived." },
+    { label: "Avg Failure Damage", key: "avg_failure_damage", fmt: (v) => plain(v, 2), indent: 1, tip: "Average EPA lost on plays that had negative EPA. Lower (more negative) is worse; closer to zero is better. PRIME-derived." },
+    { label: "Failure Burden", key: "failure_burden", fmt: (v) => plain(v, 3), indent: 1, tip: "Total negative EPA from failed plays spread across every eligible play this offense ran. Lower (more negative) is worse; closer to zero is better. PRIME-derived." },
+    { label: "Failure Pressure", key: "failure_pressure", fmt: (v) => plain(v, 3), indent: 1, tip: "Failure Burden inflicted on the opponent's offense by this team's defense. Higher is better -- more pressure created. PRIME-derived." },
   ]],
   ["Disruption", [
-    { label: "Havoc Allowed", key: "havoc_allowed", fmt: pct, tip: "Share of this offense's plays that resulted in a TFL, sack, or turnover against it. Lower is better. LEILA-derived; current-season coverage only." },
-    { label: "Sacks Taken", key: "sacks_taken", fmt: count, neutral: true, indent: 1, tip: "Sacks this team's offense allowed, from LEILA's play-by-play classifier. Descriptive; not conditionally colored. Current-season coverage only." },
-    { label: "TFLs Taken", key: "tfls_taken", fmt: count, neutral: true, indent: 1, tip: "Tackles for loss this team's offense allowed, from LEILA's play-by-play classifier. Descriptive; not conditionally colored." },
+    { label: "Havoc Allowed", key: "havoc_allowed", fmt: pct, tip: "Share of this offense's plays that resulted in a TFL, sack, or turnover against it. Lower is better. PRIME-derived; current-season coverage only." },
+    { label: "Sacks Taken", key: "sacks_taken", fmt: count, neutral: true, indent: 1, tip: "Sacks this team's offense allowed, from PRIME's play-by-play classifier. Descriptive; not conditionally colored. Current-season coverage only." },
+    { label: "TFLs Taken", key: "tfls_taken", fmt: count, neutral: true, indent: 1, tip: "Tackles for loss this team's offense allowed, from PRIME's play-by-play classifier. Descriptive; not conditionally colored." },
   ]],
   ["Turnover Impact", [
-    { label: "Turnover EPA Lost", key: "turnover_epa_lost", fmt: (v) => plain(v, 1), tip: "Total Expected Points this offense's turnovers cost it, from LEILA's play-by-play model. Stored as a negative number; closer to zero (e.g. -3 vs -15) is better. LEILA-derived." },
+    { label: "Turnover EPA Lost", key: "turnover_epa_lost", fmt: (v) => plain(v, 1), tip: "Total Expected Points this offense's turnovers cost it, from PRIME's play-by-play model. Stored as a negative number; closer to zero (e.g. -3 vs -15) is better. PRIME-derived." },
   ]],
 ];
 
@@ -278,7 +278,7 @@ export function buildGameResultsColumns(
   });
   return [
     column("Official Box Score", BOX_SCORE),
-    column("LEILA Efficiency", EFFICIENCY),
+    column("Efficiency", EFFICIENCY),
     column("Game Shape", GAME_SHAPE),
   ];
 }
