@@ -3,8 +3,8 @@ export type PaidPlan = "pro" | "pro_plus";
 // Keep the existing database plan keys for backwards compatibility while the
 // customer-facing product names are Advanced and Advanced + Predictions.
 export const PAID_PLAN_LABELS: Record<PaidPlan, string> = {
-  pro: "LEILA Advanced",
-  pro_plus: "LEILA Advanced + Predictions",
+  pro: "PRIME Advanced",
+  pro_plus: "PRIME Advanced + Predictions",
 };
 
 export const PAID_PLAN_MONTHLY_PRICE: Record<PaidPlan, string> = {
