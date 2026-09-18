@@ -872,7 +872,7 @@ body:has(#predictionsContent) .ratings-hero__description {
 }
 .predictions-table__matchup {
   display: grid;
-  grid-template-columns: max-content 50px max-content;
+  grid-template-columns: max-content 24px max-content;
   justify-content: center;
   align-items: center;
   gap: 14px;
@@ -902,20 +902,19 @@ body:has(#predictionsContent) .ratings-hero__description {
   flex-basis: 34px;
 }
 .predictions-table__at {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(20,39,66,.10);
-  border-radius: 50%;
-  background: rgba(20,39,66,.055);
-  color: var(--color-navy);
-  font-family: var(--font-display);
-  font-size: 19px;
-  font-weight: 800;
+  width: auto;
+  height: auto;
+  display: inline-block;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #6f7784;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: 0;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.65);
+  box-shadow: none;
 }
 .predictions-table__pick {
   border-color: rgba(20,39,66,.10);
@@ -1121,7 +1120,7 @@ body:has(#predictionsContent) .ratings-hero__description {
 .predictions-toolbar__primary {
   min-height: 52px;
   display: grid;
-  grid-template-columns: auto 112px minmax(210px, 320px) 190px;
+  grid-template-columns: auto 138px minmax(210px, 320px) 190px;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
@@ -1190,6 +1189,15 @@ body:has(#predictionsContent) .ratings-hero__description {
   color: #2a3a52;
   font-size: 10.5px;
   font-weight: 700;
+}
+
+.predictions-toolbar__field--week {
+  min-width: 138px;
+}
+
+.predictions-toolbar__field--week select {
+  min-width: 86px;
+  padding-right: 32px;
 }
 
 .predictions-toolbar__field--conference {
@@ -1271,7 +1279,7 @@ body:has(#predictionsContent) .ratings-hero__description {
 
 @media (max-width: 1050px) {
   .predictions-toolbar__primary {
-    grid-template-columns: auto 108px minmax(190px, 1fr) 170px;
+    grid-template-columns: auto 132px minmax(190px, 1fr) 170px;
   }
 
   .predictions-toolbar__title h1 {
