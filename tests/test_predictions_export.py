@@ -97,11 +97,18 @@ class TrackRecordTests(unittest.TestCase):
         self.assertAlmostEqual(week["accuracySU"], 0.5)
         # game 1: |6.0 - 7| = 1.0; game 2: |3.0 - (17-24)| = |3.0 - (-7)| = 10.0
         self.assertAlmostEqual(week["avgAbsMarginError"], 5.5)
-        # Only one week is scored, so season totals equal that week's stats.
-        self.assertEqual(record["overall"], {
-            "games": week["games"], "graded": week["graded"], "correct": week["correct"],
-            "accuracySU": week["accuracySU"], "avgAbsMarginError": week["avgAbsMarginError"],
-        })
+        # Only one week is scored, so season headline totals equal that week's.
+        self.assertEqual(record["overall"]["games"], week["games"])
+        self.assertEqual(record["overall"]["graded"], week["graded"])
+        self.assertEqual(record["overall"]["correct"], week["correct"])
+        self.assertEqual(record["overall"]["accuracySU"], week["accuracySU"])
+        self.assertEqual(record["overall"]["avgAbsMarginError"], week["avgAbsMarginError"])
+        self.assertAlmostEqual(record["overall"]["medianAbsMarginError"], 5.5)
+        self.assertAlmostEqual(record["overall"]["within3Pct"], 0.5)
+        self.assertAlmostEqual(record["overall"]["within14Pct"], 1.0)
+        self.assertIn("confidenceBuckets", record)
+        self.assertIn("marginBuckets", record)
+        self.assertIn("conferences", record)
 
     def test_ungraded_week_is_null_not_zero(self):
         schedule = _schedule([_game("1", 4, "LSU", 5, "Alabama", 6)])
