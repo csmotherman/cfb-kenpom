@@ -162,6 +162,18 @@ class CfbdClient:
     def game_team_stats(self, season: int, team: str) -> CfbdResponse:
         return self.get_json("/games/teams", {"year": season, "team": team})
 
+    def game_team_stats_week(self, season: int, week: int, season_type: str) -> CfbdResponse:
+        """Return authoritative team box-score stats for one schedule partition."""
+        return self.get_json(
+            "/games/teams",
+            {
+                "year": season,
+                "week": week,
+                "seasonType": season_type,
+                "classification": CLASSIFICATION,
+            },
+        )
+
     def roster(self, season: int, team: str) -> CfbdResponse:
         """Return the source roster for one team and season."""
         return self.get_json("/roster", {"year": season, "team": team})
