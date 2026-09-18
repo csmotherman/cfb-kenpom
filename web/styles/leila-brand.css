@@ -68,3 +68,53 @@ body:has(#teamContent) .adv-preview__overlay .subscribe-btn::after {
     letter-spacing: .055em;
   }
 }
+
+
+/* PRIME mobile polish — visual-only refinements. Existing dimensions remain unchanged. */
+@media (max-width: 640px) {
+  /* Cleaner premium navigation: labels stack with a quiet BETA marker rather
+     than an outlined pill consuming horizontal space. */
+  .site-nav a {
+    position: relative;
+    flex-direction: column;
+    gap: 1px;
+    line-height: 1.05;
+  }
+
+  .site-nav .nav-pro-badge {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #d4ad55;
+    font-size: 7px;
+    line-height: 1;
+    letter-spacing: .12em;
+  }
+
+  /* PRIME's gold is the mobile accent while preserving all current box,
+     header, control, and table measurements. */
+  .site-nav a.active {
+    color: #d4ad55;
+  }
+
+  body:has(#ratingsTable) .ratings-toolbar h1 {
+    color: var(--color-navy);
+  }
+
+  body:has(#ratingsTable) .ratings-control label {
+    color: #77746d;
+  }
+
+  body:has(#ratingsTable) .ratings-control,
+  body:has(#ratingsTable) .ratings-search input,
+  body:has(#ratingsTable) .ratings-conference select {
+    border-color: #c9c2b3;
+    background: #fffefa;
+  }
+
+  body:has(#ratingsTable) .ratings-toolbar {
+    background: #f7f4ec;
+  }
+}
