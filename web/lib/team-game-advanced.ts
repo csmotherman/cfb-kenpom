@@ -200,18 +200,14 @@ const EFFICIENCY: [string, Spec[]][] = [
     { label: "Success Rate", key: "success_rate", fmt: pct },
   ]],
   ["Passing", [
-    { label: "LEILA Dropbacks", key: "dropbacks", fmt: count, neutral: true },
-    { label: "Passing EPA", key: "passing_epa", fmt: (v) => signed(v, 1), indent: 1 },
+    { label: "Passing EPA", key: "passing_epa", fmt: (v) => signed(v, 1) },
     { label: "EPA / Dropback", key: "epa_per_dropback", fmt: (v) => signed(v, 2), indent: 1 },
     { label: "Success Rate", key: "pass_success_rate", fmt: pct, indent: 1 },
-    { label: "Yards / Dropback", key: "yards_per_dropback", fmt: (v) => plain(v, 1), indent: 1 },
   ]],
   ["Rushing", [
-    { label: "Graded Rush Plays", key: "graded_rush_plays", fmt: count, neutral: true },
-    { label: "Rushing EPA", key: "rushing_epa", fmt: (v) => signed(v, 1), indent: 1 },
+    { label: "Rushing EPA", key: "rushing_epa", fmt: (v) => signed(v, 1) },
     { label: "EPA / Rush", key: "epa_per_rush", fmt: (v) => signed(v, 2), indent: 1 },
     { label: "Success Rate", key: "rush_success_rate", fmt: pct, indent: 1 },
-    { label: "Yards / Graded Rush", key: "yards_per_rush", fmt: (v) => plain(v, 1), indent: 1 },
   ]],
   ["By Down", [
     { label: "1st Down EPA / Play", key: "down1_epa", fmt: (v) => signed(v, 2) },
