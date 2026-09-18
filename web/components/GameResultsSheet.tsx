@@ -44,9 +44,10 @@ export function percentileTone(percentile: number | undefined, neutral = false):
 
 export function postgameRecord(pregameRecord: string, score: number, opponentScore: number): string {
   const match = pregameRecord.trim().match(/^(\d+)-(\d+)(?:-(\d+))?$/);
-  let wins = match ? Number.parseInt(match[1], 10) : 0;
-  let losses = match ? Number.parseInt(match[2], 10) : 0;
-  let ties = match?.[3] ? Number.parseInt(match[3], 10) : 0;
+  if (!match) return pregameRecord;
+  let wins = Number.parseInt(match[1], 10);
+  let losses = Number.parseInt(match[2], 10);
+  let ties = match[3] ? Number.parseInt(match[3], 10) : 0;
 
   if (score > opponentScore) wins += 1;
   else if (score < opponentScore) losses += 1;
@@ -128,7 +129,7 @@ export default function GameResultsSheet({
   gameSubLabel,
   heading = "Game Breakdown",
   headingEyebrow = "Final Game Analytics",
-  description = "One dense game sheet using LEILA’s advanced and exploratory metrics. Cell colors compare each performance against the historical FBS-vs-FBS single-game baseline.",
+  description = "Official box-score facts are shown separately from LEILA’s advanced metrics. Color applies only to LEILA performance metrics against the historical FBS-vs-FBS single-game baseline.",
   columns,
 }: {
   leftTeam: GameResultsTeam;
