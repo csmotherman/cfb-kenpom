@@ -102,7 +102,10 @@ export default function GameHistoryPage() {
 
     (async () => {
       const meta = await getMeta();
-      const years = [...(meta.scheduleYears ?? meta.rankingsYears)].sort((a, b) => a - b);
+      // Game History can use any published schedule file. scheduleYears may be
+      // narrower than rankingsYears after an incremental refresh when only the
+      // current season's raw schedule source was available, so use the union.
+      const years = [...new Set([...(meta.rankingsYears ?? []), ...(meta.scheduleYears ?? [])])].sort((a, b) => a - b);
       const schedules = await Promise.all(years.map((season) => getScheduleSeason(season)));
       if (cancelled) return;
       setLoaded(
