@@ -7,6 +7,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import MarketOddsCard from "@/components/MarketOddsCard";
+import LeilaLoadingState from "@/components/LeilaLoadingState";
 import { logoUrl } from "@/lib/teamCode";
 import {
   PremiumAccessError,
@@ -318,7 +319,7 @@ export default function PredictionsPage() {
 
       <main id="predictionsContent" className="container predictions-main">
         {schedule === undefined ? (
-          <p className="network-loading">Loading this week&rsquo;s slate…</p>
+          <LeilaLoadingState variant="predictions" />
         ) : schedule === null ? (
           <p className="network-loading">Weekly schedule data is publishing with the next ratings refresh.</p>
         ) : (
