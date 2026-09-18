@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
-import type { PredictionGame } from "@/lib/types";
+import MarketOddsCard from "@/components/MarketOddsCard";
+import { getMarketLinesSeason } from "@/lib/data";
+import type { MarketGame, PredictionGame } from "@/lib/types";
 
 type PredictionState =
   | { key: string; status: "none" | "locked" }
@@ -25,6 +27,7 @@ export default function MatchupPredictionPortal() {
 
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const [prediction, setPrediction] = useState<PredictionState>({ key: "", status: "none" });
+  const [market, setMarket] = useState<{ key: string; game: MarketGame | null }>({ key: "", game: null });
 
   useEffect(() => {
     if (!route) return;
@@ -48,6 +51,22 @@ export default function MatchupPredictionPortal() {
     return () => {
       cancelled = true;
       if (frame) cancelAnimationFrame(frame);
+    };
+  }, [route]);
+
+  useEffect(() => {
+    if (!route) return;
+    let cancelled = false;
+    const key = `${route.season}/${route.gameId}`;
+    getMarketLinesSeason(route.season)
+      .then((season) => {
+        if (!cancelled) setMarket({ key, game: season?.games?.[route.gameId] ?? null });
+      })
+      .catch(() => {
+        if (!cancelled) setMarket({ key, game: null });
+      });
+    return () => {
+      cancelled = true;
     };
   }, [route]);
 
@@ -91,41 +110,47 @@ export default function MatchupPredictionPortal() {
     };
   }, [route]);
 
-  if (!route || !target || prediction.key !== routeKey || prediction.status === "none") {
-    return null;
-  }
+  if (!route || !target) return null;
+  const predictionReady = prediction.key === routeKey && prediction.status !== "none";
+  const marketReady = market.key === routeKey && market.game !== null;
+  if (!predictionReady && !marketReady) return null;
 
   return createPortal(
-    prediction.status === "ready" ? (
-      <section className="matchup-prediction matchup-prediction--revealed" aria-label="LEILA premium prediction">
-        <div className="matchup-prediction__eyebrow">
-          <span>LEILA Prediction</span>
-          <em>Advanced + Predictions</em>
-        </div>
-        <strong className="matchup-prediction__pick">{prediction.game.predictedWinner} is LEILA&apos;s pick</strong>
-        <div className="matchup-prediction__result-grid">
-          <span>
-            <small>Win probability</small>
-            <strong>{confidence(prediction.game.confidence)}</strong>
-          </span>
-          <span>
-            <small>Model margin</small>
-            <strong>{Math.abs(prediction.game.predictedMargin).toFixed(1)} pts</strong>
-          </span>
-        </div>
-        <small className="matchup-prediction__fineprint">Model projection, not betting advice.</small>
-      </section>
-    ) : (
-      <section className="matchup-prediction matchup-prediction--locked" aria-label="LEILA prediction locked">
-        <div className="matchup-prediction__eyebrow">
-          <span>LEILA Prediction</span>
-          <em>Advanced + Predictions</em>
-        </div>
-        <strong className="matchup-prediction__hook">The rankings tell one story. What does the model see?</strong>
-        <p>Reveal LEILA&apos;s projected winner, win probability and model margin for this matchup.</p>
-        <Link href="/upgrade?feature=predictions" className="matchup-prediction__cta">Reveal LEILA&apos;s pick →</Link>
-      </section>
-    ),
+    <section className="matchup-prediction-shell" aria-label="Prediction and market context">
+      {predictionReady ? (
+        prediction.status === "ready" ? (
+          <section className="matchup-prediction matchup-prediction--revealed" aria-label="LEILA premium prediction">
+            <div className="matchup-prediction__eyebrow">
+              <span>LEILA Prediction</span>
+              <em>Advanced + Predictions</em>
+            </div>
+            <strong className="matchup-prediction__pick">{prediction.game.predictedWinner} is LEILA&apos;s pick</strong>
+            <div className="matchup-prediction__result-grid">
+              <span>
+                <small>Win probability</small>
+                <strong>{confidence(prediction.game.confidence)}</strong>
+              </span>
+              <span>
+                <small>Model margin</small>
+                <strong>{Math.abs(prediction.game.predictedMargin).toFixed(1)} pts</strong>
+              </span>
+            </div>
+            <small className="matchup-prediction__fineprint">Model projection, not betting advice.</small>
+          </section>
+        ) : (
+          <section className="matchup-prediction matchup-prediction--locked" aria-label="LEILA prediction locked">
+            <div className="matchup-prediction__eyebrow">
+              <span>LEILA Prediction</span>
+              <em>Advanced + Predictions</em>
+            </div>
+            <strong className="matchup-prediction__hook">The rankings tell one story. What does the model see?</strong>
+            <p>Reveal LEILA&apos;s projected winner, win probability and model margin for this matchup.</p>
+            <Link href="/upgrade?feature=predictions" className="matchup-prediction__cta">Reveal LEILA&apos;s pick →</Link>
+          </section>
+        )
+      ) : null}
+      {marketReady ? <MarketOddsCard market={market.game} /> : null}
+    </section>,
     target,
   );
 }
