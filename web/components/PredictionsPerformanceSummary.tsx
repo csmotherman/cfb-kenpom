@@ -25,8 +25,10 @@ export default function PredictionsPerformanceSummary() {
 
     (async () => {
       const meta = await getMeta();
+      const latestSeason = meta.rankingsYears[meta.rankingsYears.length - 1];
+      const predictionYears = meta.predictionYears?.length ? meta.predictionYears : [latestSeason];
       const records = (
-        await Promise.all(meta.rankingsYears.map((year) => getPredictionsTrackRecord(year)))
+        await Promise.all(predictionYears.map((year) => getPredictionsTrackRecord(year)))
       ).filter((record): record is NonNullable<typeof record> => Boolean(record?.overall.graded));
 
       if (cancelled || records.length === 0) return;
