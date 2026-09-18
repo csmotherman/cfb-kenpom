@@ -53,6 +53,7 @@ import "@/styles/predictions-mobile-reset.css";
 import "@/styles/predictions-mobile-width-fix.css";
 /* Exact model-method explainer for the Predictions route. */
 import "@/styles/predictions-model.css";
+import "@/styles/predictions-performance.css";
 import "@/styles/market-odds.css";
 import "@/styles/loading-state.css";
 
