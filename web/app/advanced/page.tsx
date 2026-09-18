@@ -81,7 +81,7 @@ const GENERAL_SECTIONS: AdvSection[] = [
     title: "Rating",
     columns: [
       { key: "adjEM", label: "Net APR", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "rank", tooltip: "The exact Net APR rating and national rank from the Ratings page at the selected end week. Net APR = Off APR + Def APR." },
-      { key: "asm", label: "ASM", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Adjusted Score Matrix: LEILA's opponent-adjusted scoring-margin rating (constrained least squares), with each game's margin capped at 28 points before fitting so blowouts can't dominate a team's number. A scoring-margin counterpart to Net APR's possession-efficiency rating." },
+      { key: "asm", label: "ASM", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Adjusted Score Matrix: PRIME's opponent-adjusted scoring-margin rating (constrained least squares), with each game's margin capped at 28 points before fitting so blowouts can't dominate a team's number. A scoring-margin counterpart to Net APR's possession-efficiency rating." },
       { key: "cfpChancePct", label: "CFP %", fmt: "pct1", rankable: true, kind: "snapshot", tooltip: "Live chance of making the 12-team College Football Playoff field, from a 2,000-trial Monte Carlo simulation of the rest of the season seeded with this week's in-season power, then calibrated against 11 real seasons (2014-2025) of actual outcomes so the percentage reflects real-world accuracy rather than raw model confidence. Conference championship games are simulated, not read from the real schedule, and the committee-selection rule is a statistical proxy validated against real 2024-2025 fields. Blank for past seasons -- this reflects only where things stand right now." },
     ],
   },
@@ -191,46 +191,46 @@ const DEFENSE_SECTIONS: AdvSection[] = [
 const EPA_METRICS: MetricSection[] = [
   {
     title: "Overall",
-    metrics: [{ prefix: "epa", label: "EPA/Play", fmt: "signed2", tip: "LEILA's opponent-adjusted EPA per play (CFBD's ppa model, summed over every clean rush/pass snap)." }],
+    metrics: [{ prefix: "epa", label: "EPA/Play", fmt: "signed2", tip: "PRIME's opponent-adjusted EPA per play (CFBD's ppa model, summed over every clean rush/pass snap)." }],
   },
   {
     title: "Passing",
     metrics: [
-      { prefix: "passEpa", label: "EPA/Dropback", tip: "LEILA's opponent-adjusted passing EPA per dropback (attempts + sacks)." },
-      { prefix: "passEpaDown1", label: "1st Down", tip: "LEILA's opponent-adjusted passing EPA per dropback on 1st down." },
-      { prefix: "passEpaDown2", label: "2nd Down", tip: "LEILA's opponent-adjusted passing EPA per dropback on 2nd down." },
-      { prefix: "passEpaDown3", label: "3rd Down", tip: "LEILA's opponent-adjusted passing EPA per dropback on 3rd down." },
+      { prefix: "passEpa", label: "EPA/Dropback", tip: "PRIME's opponent-adjusted passing EPA per dropback (attempts + sacks)." },
+      { prefix: "passEpaDown1", label: "1st Down", tip: "PRIME's opponent-adjusted passing EPA per dropback on 1st down." },
+      { prefix: "passEpaDown2", label: "2nd Down", tip: "PRIME's opponent-adjusted passing EPA per dropback on 2nd down." },
+      { prefix: "passEpaDown3", label: "3rd Down", tip: "PRIME's opponent-adjusted passing EPA per dropback on 3rd down." },
     ],
   },
   {
     title: "Rushing",
     metrics: [
-      { prefix: "rushEpa", label: "EPA/Rush", tip: "LEILA's opponent-adjusted rushing EPA per carry." },
-      { prefix: "rushEpaDown1", label: "1st Down", tip: "LEILA's opponent-adjusted rushing EPA per carry on 1st down." },
-      { prefix: "rushEpaDown2", label: "2nd Down", tip: "LEILA's opponent-adjusted rushing EPA per carry on 2nd down." },
-      { prefix: "rushEpaDown3", label: "3rd Down", tip: "LEILA's opponent-adjusted rushing EPA per carry on 3rd down." },
+      { prefix: "rushEpa", label: "EPA/Rush", tip: "PRIME's opponent-adjusted rushing EPA per carry." },
+      { prefix: "rushEpaDown1", label: "1st Down", tip: "PRIME's opponent-adjusted rushing EPA per carry on 1st down." },
+      { prefix: "rushEpaDown2", label: "2nd Down", tip: "PRIME's opponent-adjusted rushing EPA per carry on 2nd down." },
+      { prefix: "rushEpaDown3", label: "3rd Down", tip: "PRIME's opponent-adjusted rushing EPA per carry on 3rd down." },
     ],
   },
 ];
 
 const SUCCESS_METRICS: MetricSection[] = [
-  { title: "Overall", metrics: [{ prefix: "success", label: "Success Rate", fmt: "signed2", tip: "LEILA's opponent-adjusted success rate using down-scaled yardage thresholds." }] },
+  { title: "Overall", metrics: [{ prefix: "success", label: "Success Rate", fmt: "signed2", tip: "PRIME's opponent-adjusted success rate using down-scaled yardage thresholds." }] },
   {
     title: "Passing",
     metrics: [
-      { prefix: "passSuccess", label: "Pass Success", tip: "LEILA's opponent-adjusted passing success rate." },
-      { prefix: "passSuccessDown1", label: "1st Down", tip: "LEILA's opponent-adjusted passing success rate on 1st down." },
-      { prefix: "passSuccessDown2", label: "2nd Down", tip: "LEILA's opponent-adjusted passing success rate on 2nd down." },
-      { prefix: "passSuccessDown3", label: "3rd Down", tip: "LEILA's opponent-adjusted passing success rate on 3rd down." },
+      { prefix: "passSuccess", label: "Pass Success", tip: "PRIME's opponent-adjusted passing success rate." },
+      { prefix: "passSuccessDown1", label: "1st Down", tip: "PRIME's opponent-adjusted passing success rate on 1st down." },
+      { prefix: "passSuccessDown2", label: "2nd Down", tip: "PRIME's opponent-adjusted passing success rate on 2nd down." },
+      { prefix: "passSuccessDown3", label: "3rd Down", tip: "PRIME's opponent-adjusted passing success rate on 3rd down." },
     ],
   },
   {
     title: "Rushing",
     metrics: [
-      { prefix: "rushSuccess", label: "Rush Success", tip: "LEILA's opponent-adjusted rushing success rate." },
-      { prefix: "rushSuccessDown1", label: "1st Down", tip: "LEILA's opponent-adjusted rushing success rate on 1st down." },
-      { prefix: "rushSuccessDown2", label: "2nd Down", tip: "LEILA's opponent-adjusted rushing success rate on 2nd down." },
-      { prefix: "rushSuccessDown3", label: "3rd Down", tip: "LEILA's opponent-adjusted rushing success rate on 3rd down." },
+      { prefix: "rushSuccess", label: "Rush Success", tip: "PRIME's opponent-adjusted rushing success rate." },
+      { prefix: "rushSuccessDown1", label: "1st Down", tip: "PRIME's opponent-adjusted rushing success rate on 1st down." },
+      { prefix: "rushSuccessDown2", label: "2nd Down", tip: "PRIME's opponent-adjusted rushing success rate on 2nd down." },
+      { prefix: "rushSuccessDown3", label: "3rd Down", tip: "PRIME's opponent-adjusted rushing success rate on 3rd down." },
     ],
   },
 ];
@@ -360,14 +360,14 @@ export default function AdvancedPage() {
      app/page.tsx and the SSR-safe mount flag in GameLogModal). */
   useEffect(() => {
     try {
-      if (localStorage.getItem("leila:advancedDrillDownTipDismissed") !== "1") setShowDrillDownTip(true);
+      if (localStorage.getItem("prime:advancedDrillDownTipDismissed") !== "1") setShowDrillDownTip(true);
     } catch {}
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   function dismissDrillDownTip() {
     setShowDrillDownTip(false);
-    try { localStorage.setItem("leila:advancedDrillDownTipDismissed", "1"); } catch {}
+    try { localStorage.setItem("prime:advancedDrillDownTipDismissed", "1"); } catch {}
   }
 
   useEffect(() => {
