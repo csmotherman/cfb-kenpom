@@ -274,6 +274,7 @@ export type MarketQuote = {
   gameId: string;
   provider: string;
   spread: number | null;
+  formattedSpread: string | null;
   spreadOpen: number | null;
   overUnder: number | null;
   overUnderOpen: number | null;
