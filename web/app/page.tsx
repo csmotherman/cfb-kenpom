@@ -194,68 +194,68 @@ export default function RatingsPage() {
       <SiteHeader tagline="Opponent-Adjusted College Football Ratings" />
       <SiteNav />
 
-      <section className="ratings-hero ratings-hero--compact container" aria-labelledby="ratingsTitle">
-        <div className="ratings-hero__copy">
+      <section className="ratings-toolbar container" aria-labelledby="ratingsTitle">
+        <div className="ratings-toolbar__heading">
           <h1 id="ratingsTitle">{year ? `${year} Net Rankings` : "Net Rankings"}</h1>
+          <div className="ratings-toolbar__meta">
+            {updatedAt ? (
+              <time dateTime={updatedAt}>
+                Updated {new Intl.DateTimeFormat("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  timeZone: "America/New_York",
+                  timeZoneName: "short",
+                }).format(new Date(updatedAt))}
+              </time>
+            ) : null}
+            <Link href="/methodology">Methodology ↗</Link>
+          </div>
         </div>
-        <div className="ratings-hero__meta">
-          <Link className="utility-link" href="/methodology">Methodology ↗</Link>
-          {updatedAt ? (
-            <time className="data-updated" dateTime={updatedAt}>
-              Updated {new Intl.DateTimeFormat("en-US", {
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                timeZone: "America/New_York",
-                timeZoneName: "short",
-              }).format(new Date(updatedAt))}
-            </time>
-          ) : null}
-        </div>
-      </section>
 
-      <div className="control-bar control-bar--compact">
-        <div className="control-bar__inner control-bar__inner--compact">
-          <label className="control-label" htmlFor="seasonSelect">Season</label>
-          <select
-            id="seasonSelect"
-            className="compact-select compact-select--season"
-            value={year}
-            onChange={(e) => {
-              setYear(e.target.value);
-              setConference("");
-            }}
-          >
-            {[...years].reverse().map((y) => <option key={y} value={y}>{y}</option>)}
-          </select>
+        <div className="ratings-toolbar__controls" aria-label="Ratings filters">
+          <div className="ratings-control ratings-control--season">
+            <label htmlFor="seasonSelect">Season</label>
+            <select
+              id="seasonSelect"
+              value={year}
+              onChange={(e) => {
+                setYear(e.target.value);
+                setConference("");
+              }}
+            >
+              {[...years].reverse().map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
 
-          <label className="control-label" htmlFor="weekSelect">Thru week</label>
-          <select
-            id="weekSelect"
-            className="compact-select compact-select--week"
-            value={week}
-            onChange={(e) => {
-              setWeek(e.target.value);
-              setConference("");
-            }}
-          >
-            {weeks.map((w) => <option key={w} value={w}>{weekLabel(w, true)}</option>)}
-          </select>
+          <div className="ratings-control ratings-control--week">
+            <label htmlFor="weekSelect">Thru</label>
+            <select
+              id="weekSelect"
+              value={week}
+              onChange={(e) => {
+                setWeek(e.target.value);
+                setConference("");
+              }}
+            >
+              {weeks.map((w) => <option key={w} value={w}>{weekLabel(w, true)}</option>)}
+            </select>
+          </div>
 
-          <div className="filter-box">
+          <div className="ratings-search">
             <label className="sr-only" htmlFor="filterInput">Search ratings</label>
             <input
               id="filterInput"
               type="search"
-              placeholder="Search team…"
+              placeholder="Search team"
               autoComplete="off"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             />
           </div>
 
-          <div className="conference-filter">
+          <div className="ratings-conference">
             <label className="sr-only" htmlFor="conferenceSelect">Conference</label>
             <select
               id="conferenceSelect"
@@ -268,11 +268,11 @@ export default function RatingsPage() {
             </select>
           </div>
 
-          <span className="row-count" aria-live="polite">
-            {isFiltered ? `${filtered.length} of ${total} teams` : `${total} teams`}
+          <span className="ratings-toolbar__count" aria-live="polite">
+            {isFiltered ? `${filtered.length}/${total}` : total}
           </span>
         </div>
-      </div>
+      </section>
 
       <main id="mainContent" className="table-main container">
         <div className="table-scroll" role="region" aria-label="LEILA Ratings college football ratings table" tabIndex={0}>
