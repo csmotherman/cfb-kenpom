@@ -112,6 +112,11 @@ def audit_source() -> None:
 
     # Official display rows must point only at box_* fields.
     require(frontend, 'column("Official Box Score", BOX_SCORE)', str(FRONTEND))
+    require(
+        frontend,
+        "leftRow?.box_score_available === true && rightRow?.box_score_available === true",
+        str(FRONTEND),
+    )
     require(frontend, 'label: "Plays", key: "box_total_plays"', str(FRONTEND))
     require(frontend, 'label: "3rd Down"', str(FRONTEND))
     require(frontend, '"box_third_down_conversions"', str(FRONTEND))

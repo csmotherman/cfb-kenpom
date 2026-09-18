@@ -276,8 +276,14 @@ export function buildGameResultsColumns(
     title,
     sections: groups.map(([sectionTitle, specs]) => buildSection(sectionTitle, specs, leftRow, rightRow)),
   });
+  // The Results sheet is a side-by-side comparison. Never render an official
+  // column for only one team; a partial box score would make the comparison
+  // look complete when it is not.
+  const hasOfficialBoxScore =
+    leftRow?.box_score_available === true && rightRow?.box_score_available === true;
+
   return [
-    column("Official Box Score", BOX_SCORE),
+    ...(hasOfficialBoxScore ? [column("Official Box Score", BOX_SCORE)] : []),
     column("LEILA Efficiency", EFFICIENCY),
     column("Game Shape", GAME_SHAPE),
   ];

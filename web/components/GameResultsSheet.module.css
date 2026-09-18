@@ -148,6 +148,10 @@
   background: transparent;
 }
 
+.breakdownGridTwo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .breakdownColumn {
   min-width: 0;
 }
