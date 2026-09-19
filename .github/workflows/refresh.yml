@@ -1,6 +1,7 @@
 name: Refresh 2026 ratings and metrics
 
 on:
+  # Workflow-file pushes intentionally run a full end-to-end refresh proof.
   push:
     branches:
       - main
