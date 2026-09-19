@@ -1,0 +1,290 @@
++ RAW_ROOT=data/research/raw
++ PROCESSED_ROOT=data/research/processed
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2014: ingest ==='
+=== SEASON 2014: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2014 --raw-root data/research/raw --force
+season=2014 manifests=51 refreshed_partitions=0
++ echo '=== SEASON 2014: canonical-plays ==='
+=== SEASON 2014: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2014
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 17
+Written: 17
+Reused: 0
+Records: 158,315
+Output: data\research\processed\canonical
++ echo '=== SEASON 2014: derived-drives ==='
+=== SEASON 2014: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2014
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 17
+Written: 17
+Reused: 0
+Drives: 22,491
+Review drives: 4
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2014: DONE ==='
+=== SEASON 2014: DONE ===
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2015: ingest ==='
+=== SEASON 2015: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2015 --raw-root data/research/raw --force
+season=2015 manifests=48 refreshed_partitions=0
++ echo '=== SEASON 2015: canonical-plays ==='
+=== SEASON 2015: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2015
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Records: 160,180
+Output: data\research\processed\canonical
++ echo '=== SEASON 2015: derived-drives ==='
+=== SEASON 2015: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2015
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Drives: 22,855
+Review drives: 7
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2015: DONE ==='
+=== SEASON 2015: DONE ===
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2016: ingest ==='
+=== SEASON 2016: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2016 --raw-root data/research/raw --force
+season=2016 manifests=48 refreshed_partitions=0
++ echo '=== SEASON 2016: canonical-plays ==='
+=== SEASON 2016: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2016
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Records: 158,518
+Output: data\research\processed\canonical
++ echo '=== SEASON 2016: derived-drives ==='
+=== SEASON 2016: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2016
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Drives: 22,515
+Review drives: 8
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2016: DONE ==='
+=== SEASON 2016: DONE ===
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2017: ingest ==='
+=== SEASON 2017: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2017 --raw-root data/research/raw --force
+season=2017 manifests=48 refreshed_partitions=0
++ echo '=== SEASON 2017: canonical-plays ==='
+=== SEASON 2017: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2017
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Records: 158,574
+Output: data\research\processed\canonical
++ echo '=== SEASON 2017: derived-drives ==='
+=== SEASON 2017: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2017
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Drives: 22,519
+Review drives: 12
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2017: DONE ==='
+=== SEASON 2017: DONE ===
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2018: ingest ==='
+=== SEASON 2018: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2018 --raw-root data/research/raw --force
+season=2018 manifests=48 refreshed_partitions=0
++ echo '=== SEASON 2018: canonical-plays ==='
+=== SEASON 2018: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2018
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Records: 160,512
+Output: data\research\processed\canonical
++ echo '=== SEASON 2018: derived-drives ==='
+=== SEASON 2018: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2018
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Drives: 22,717
+Review drives: 3
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2018: DONE ==='
+=== SEASON 2018: DONE ===
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2019: ingest ==='
+=== SEASON 2019: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2019 --raw-root data/research/raw --force
+season=2019 manifests=51 refreshed_partitions=0
++ echo '=== SEASON 2019: canonical-plays ==='
+=== SEASON 2019: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2019
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 17
+Written: 17
+Reused: 0
+Records: 159,915
+Output: data\research\processed\canonical
++ echo '=== SEASON 2019: derived-drives ==='
+=== SEASON 2019: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2019
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 17
+Written: 17
+Reused: 0
+Drives: 22,392
+Review drives: 5
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2019: DONE ==='
+=== SEASON 2019: DONE ===
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2021: ingest ==='
+=== SEASON 2021: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2021 --raw-root data/research/raw --force
+season=2021 manifests=48 refreshed_partitions=0
++ echo '=== SEASON 2021: canonical-plays ==='
+=== SEASON 2021: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2021
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Records: 158,498
+Output: data\research\processed\canonical
++ echo '=== SEASON 2021: derived-drives ==='
+=== SEASON 2021: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2021
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Drives: 21,611
+Review drives: 44
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2021: DONE ==='
+=== SEASON 2021: DONE ===
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2022: ingest ==='
+=== SEASON 2022: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2022 --raw-root data/research/raw --force
+season=2022 manifests=48 refreshed_partitions=0
++ echo '=== SEASON 2022: canonical-plays ==='
+=== SEASON 2022: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2022
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Records: 160,282
+Output: data\research\processed\canonical
++ echo '=== SEASON 2022: derived-drives ==='
+=== SEASON 2022: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2022
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Drives: 21,917
+Review drives: 8
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2022: DONE ==='
+=== SEASON 2022: DONE ===
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2023: ingest ==='
+=== SEASON 2023: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2023 --raw-root data/research/raw --force
+season=2023 manifests=48 refreshed_partitions=0
++ echo '=== SEASON 2023: canonical-plays ==='
+=== SEASON 2023: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2023
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Records: 158,995
+Output: data\research\processed\canonical
++ echo '=== SEASON 2023: derived-drives ==='
+=== SEASON 2023: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2023
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 16
+Written: 16
+Reused: 0
+Drives: 21,866
+Review drives: 11
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2023: DONE ==='
+=== SEASON 2023: DONE ===
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2024: ingest ==='
+=== SEASON 2024: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2024 --raw-root data/research/raw --force
+season=2024 manifests=51 refreshed_partitions=0
++ echo '=== SEASON 2024: canonical-plays ==='
+=== SEASON 2024: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2024
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 17
+Written: 17
+Reused: 0
+Records: 162,751
+Output: data\research\processed\canonical
++ echo '=== SEASON 2024: derived-drives ==='
+=== SEASON 2024: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2024
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 17
+Written: 17
+Reused: 0
+Drives: 21,766
+Review drives: 8
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2024: DONE ==='
+=== SEASON 2024: DONE ===
++ for season in 2014 2015 2016 2017 2018 2019 2021 2022 2023 2024 2025
++ echo '=== SEASON 2025: ingest ==='
+=== SEASON 2025: ingest ===
++ .venv/Scripts/python.exe -m cfb_analytics.pipelines.ingest --season 2025 --raw-root data/research/raw --force
+season=2025 manifests=51 refreshed_partitions=0
++ echo '=== SEASON 2025: canonical-plays ==='
+=== SEASON 2025: canonical-plays ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed canonical-plays --season 2025
+CANONICAL PLAYS MATERIALIZATION: PASS
+Partitions: 17
+Written: 12
+Reused: 5
+Records: 166,236
+Output: data\research\processed\canonical
++ echo '=== SEASON 2025: derived-drives ==='
+=== SEASON 2025: derived-drives ===
++ .venv/Scripts/python.exe -m cfb_analytics.raw.cli --root data/research/raw --processed-root data/research/processed derived-drives --season 2025
+DERIVED DRIVES MATERIALIZATION: PASS
+Partitions: 17
+Written: 12
+Reused: 5
+Drives: 21,762
+Review drives: 97
+Output: data\research\processed\derived\drives
++ echo '=== SEASON 2025: DONE ==='
+=== SEASON 2025: DONE ===
++ echo 'ALL SEASONS COMPLETE'
+ALL SEASONS COMPLETE

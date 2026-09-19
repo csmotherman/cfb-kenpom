@@ -1,0 +1,384 @@
+Loading season 2014...
+  158,315 plays, 22,491 drives
+Loading season 2015...
+  160,180 plays, 22,855 drives
+Loading season 2016...
+  158,518 plays, 22,515 drives
+Loading season 2017...
+  158,574 plays, 22,519 drives
+Loading season 2018...
+  160,512 plays, 22,717 drives
+Loading season 2019...
+  159,915 plays, 22,392 drives
+Loading season 2021...
+  158,498 plays, 21,611 drives
+
+--- Chronology pair check: 2014 ---
+Total adjacent state-eligible pairs: 153,577
+Flagged (crosses a known chronology exception): 32 (0.021%)
+Reasons: {'clock_increase_same_period': 27, 'period_regression': 5}
+  game 400610203 reasons=['clock_increase_same_period']
+    a: {'id': '400610203102926801', 'driveId': '4006102039', 'driveNumber': 9, 'playNumber': 11, 'period': 2, 'clock': {'minutes': 7, 'seconds': 30}, 'offense': 'Northern Illinois', 'playText': 'Christian Hagan 19 Yd Field Goal '}
+    b: {'id': '400610203102926802', 'driveId': '40061020310', 'driveNumber': 10, 'playNumber': 1, 'period': 2, 'clock': {'minutes': 7, 'seconds': 31}, 'offense': 'Northern Illinois', 'playText': "Tyler Wedel kickoff for 30 yds , Ra'Shawde Myers return for no gain to the Marsh 35"}
+  game 400547640 reasons=['period_regression']
+    a: {'id': '400547640104866801', 'driveId': '40054764027', 'driveNumber': 25, 'playNumber': 4, 'period': 4, 'clock': {'minutes': 13, 'seconds': 31}, 'offense': 'Vanderbilt', 'playText': 'Colby Cooke punt for 36 yds, fair catch by Khalif Herbin at the Temp 39'}
+    b: {'id': '400547640103985101', 'driveId': '40054764026', 'driveNumber': 26, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 1, 'seconds': 48}, 'offense': 'Temple', 'playText': 'Jim Cooper kickoff for 64 yds , Tre Herndon return for 19 yds to the Vandy 20 Tre Herndon fumbled, forced by Boye Aromire, recovered by Temp Artrel Foster'}
+  game 400547640 reasons=['period_regression']
+    a: {'id': '400547640104854401', 'driveId': '40054764026', 'driveNumber': 26, 'playNumber': 8, 'period': 4, 'clock': {'minutes': 14, 'seconds': 55}, 'offense': 'Temple', 'playText': 'Austin Jones 22 yd FG MISSED'}
+    b: {'id': '400547640103959401', 'driveId': '40054764025', 'driveNumber': 27, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 4, 'seconds': 5}, 'offense': 'Temple', 'playText': 'P.J. Walker pass complete to Khalif Herbin for 4 yds to the Vandy 10'}
+  game 400548400 reasons=['period_regression']
+    a: {'id': '400548400104894901', 'driveId': '40054840020', 'driveNumber': 19, 'playNumber': 5, 'period': 4, 'clock': {'minutes': 10, 'seconds': 50}, 'offense': 'Kentucky', 'playText': 'Landon Foster punt for 46 yds, punt out-of-bounds at the TnMar 24'}
+    b: {'id': '400548400103988603', 'driveId': '40054840019', 'driveNumber': 20, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 1, 'seconds': 13}, 'offense': 'Kentucky', 'playText': 'Austin MacGinnis kickoff for 65 yds for a touchback'}
+  game 400548400 reasons=['clock_increase_same_period']
+    a: {'id': '400548400104958601', 'driveId': '40054840022', 'driveNumber': 21, 'playNumber': 5, 'period': 4, 'clock': {'minutes': 4, 'seconds': 13}, 'offense': 'Kentucky', 'playText': 'Mikel Horton run for 14 yds for a TD, (Austin MacGinnis KICK)'}
+    b: {'id': '400548400104894902', 'driveId': '40054840021', 'driveNumber': 22, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 10, 'seconds': 50}, 'offense': 'UT Martin', 'playText': 'Abou Toure run for 3 yds to the TnMar 27'}
+  game 400548400 reasons=['clock_increase_same_period']
+    a: {'id': '400548400104995901', 'driveId': '40054840024', 'driveNumber': 23, 'playNumber': 3, 'period': 4, 'clock': {'minutes': 0, 'seconds': 40}, 'offense': 'Kentucky', 'playText': 'TEAM run for no gain to the TnMar 34'}
+    b: {'id': '400548400104958603', 'driveId': '40054840023', 'driveNumber': 24, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 4, 'seconds': 13}, 'offense': 'Kentucky', 'playText': 'Austin MacGinnis kickoff for 60 yds , Jordan Landry return for 14 yds to the TnMar 49 TENN MARTIN Penalty, Offensive Holding (10 Yards) to the TnMar 9'}
+  game 400548259 reasons=['clock_increase_same_period']
+    a: {'id': '400548259103975701', 'driveId': '40054825921', 'driveNumber': 4, 'playNumber': 2, 'period': 3, 'clock': {'minutes': 2, 'seconds': 42}, 'offense': 'UC Davis', 'playText': 'London Lacy pass intercepted Noor Davis return for no gain to the UCDav 17'}
+    b: {'id': '400548259103925401', 'driveId': '40054825920', 'driveNumber': 5, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 7, 'seconds': 45}, 'offense': 'Stanford', 'playText': 'Ricky Seale run for 1 yd to the Stanf 14'}
+  game 400548259 reasons=['clock_increase_same_period']
+    a: {'id': '400548259104917101', 'driveId': '40054825925', 'driveNumber': 6, 'playNumber': 4, 'period': 4, 'clock': {'minutes': 8, 'seconds': 28}, 'offense': 'UC Davis', 'playText': 'Colby Wadman punt for 47 yds , Christian McCaffrey returns for 41 yds to the UCDav 14'}
+    b: {'id': '400548259104857801', 'driveId': '40054825924', 'driveNumber': 7, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 14, 'seconds': 21}, 'offense': 'Stanford', 'playText': 'Remound Wright run for 4 yds to the Stanf 43'}
+
+--- Chronology pair check: 2015 ---
+Total adjacent state-eligible pairs: 155,193
+Flagged (crosses a known chronology exception): 30 (0.019%)
+Reasons: {'period_regression': 4, 'clock_increase_same_period': 26}
+  game 400756884 reasons=['period_regression']
+    a: {'id': '400756884104869002', 'driveId': '40075688427', 'driveNumber': 19, 'playNumber': 5, 'period': 4, 'clock': {'minutes': 13, 'seconds': 9}, 'offense': 'USC', 'playText': 'Kris Albarado punt for 38 yds, fair catch by TEAM at the ArkSt 14'}
+    b: {'id': '400756884103869903', 'driveId': '40075688419', 'driveNumber': 20, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 13, 'seconds': 0}, 'offense': 'Arkansas State', 'playText': 'Luke Ferguson kickoff for 65 yds , Dominic Davis return for 2 yds to the USC 2'}
+  game 400763589 reasons=['period_regression']
+    a: {'id': '400763589102849902', 'driveId': '40076358911', 'driveNumber': 9, 'playNumber': 6, 'period': 2, 'clock': {'minutes': 15, 'seconds': 0}, 'offense': 'Louisiana Tech', 'playText': 'Gerald Shouse punt for 32 yds, punt out-of-bounds at the Sthrn 35'}
+    b: {'id': '400763589101849901', 'driveId': '4007635892', 'driveNumber': 10, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 15, 'seconds': 0}, 'offense': 'Louisiana Tech', 'playText': 'Jonathan Barnes kickoff for 65 yds , Willie Quinn return for 19 yds to the Sthrn 19'}
+  game 400787116 reasons=['clock_increase_same_period']
+    a: {'id': '400787116101975906', 'driveId': '4007871165', 'driveNumber': 5, 'playNumber': 9, 'period': 1, 'clock': {'minutes': 2, 'seconds': 40}, 'offense': 'North Dakota', 'playText': 'Kyle Norberg run for 3 yds to the Wyom 44'}
+    b: {'id': '400787116101955511', 'driveId': '4007871166', 'driveNumber': 6, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 4, 'seconds': 44}, 'offense': 'North Dakota', 'playText': 'Reid Taubenheim kickoff for 63 yds'}
+  game 400763604 reasons=['clock_increase_same_period']
+    a: {'id': '400763604101885901', 'driveId': '4007636041', 'driveNumber': 1, 'playNumber': 8, 'period': 1, 'clock': {'minutes': 11, 'seconds': 40}, 'offense': 'New Mexico State', 'playText': 'Larry Rose III run for 4 yds for a TD, (Parker Davidson PAT MISSED)'}
+    b: {'id': '400763604101885801', 'driveId': '4007636042', 'driveNumber': 2, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 11, 'seconds': 41}, 'offense': 'UTEP', 'playText': 'Mack Leftwich pass complete to Autrey Golden for 7 yds to the UTEP 17'}
+  game 400763417 reasons=['clock_increase_same_period']
+    a: {'id': '400763417104929501', 'driveId': '40076341721', 'driveNumber': 21, 'playNumber': 2, 'period': 4, 'clock': {'minutes': 7, 'seconds': 4}, 'offense': 'Kansas State', 'playText': 'Charles Jones run for 2 yds for a TD, (Jack Cantele KICK)'}
+    b: {'id': '400763417104929401', 'driveId': '40076341722', 'driveNumber': 22, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 7, 'seconds': 5}, 'offense': 'Louisiana Tech', 'playText': 'Jeff Driskel pass incomplete to Marlon Watts'}
+  game 400763421 reasons=['clock_increase_same_period']
+    a: {'id': '400763421102964901', 'driveId': '4007634219', 'driveNumber': 9, 'playNumber': 9, 'period': 2, 'clock': {'minutes': 3, 'seconds': 50}, 'offense': 'Iowa State', 'playText': "Sam B. Richardson pass complete to D'Vario Montgomery for 59 yds for a TD, (Cole Netten KICK)"}
+    b: {'id': '400763421102964701', 'driveId': '40076342110', 'driveNumber': 10, 'playNumber': 1, 'period': 2, 'clock': {'minutes': 3, 'seconds': 52}, 'offense': 'Toledo', 'playText': 'TOLEDO Penalty, delay of game (Phillip Ely) to the Toled 18'}
+  game 400757029 reasons=['period_regression']
+    a: {'id': '400757029103849901', 'driveId': '40075702913', 'driveNumber': 11, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 15, 'seconds': 0}, 'offense': 'Utah', 'playText': "Andy Phillips kickoff for 60 yds , Da'Mari Scott return for 18 yds to the FrsSt 24 Da'Mari Scott fumbled, forced by TEAM, recovered by Utah Christian Drews"}
+    b: {'id': '400757029102994601', 'driveId': '40075702912', 'driveNumber': 12, 'playNumber': 1, 'period': 2, 'clock': {'minutes': 0, 'seconds': 53}, 'offense': 'Fresno State', 'playText': 'Marteze Waller run for no gain to the FrsSt 8'}
+  game 400756934 reasons=['clock_increase_same_period']
+    a: {'id': '400756934103898801', 'driveId': '40075693416', 'driveNumber': 15, 'playNumber': 3, 'period': 3, 'clock': {'minutes': 10, 'seconds': 11}, 'offense': 'Louisville', 'playText': 'Lamar Jackson pass complete to James Quick for 36 yds for a TD, (John Wallace KICK)'}
+    b: {'id': '400756934103889701', 'driveId': '40075693415', 'driveNumber': 16, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 11, 'seconds': 2}, 'offense': 'Samford', 'playText': 'Devlin Hodges pass intercepted Chucky Williams return for no gain to the Samf 31'}
+
+--- Chronology pair check: 2016 ---
+Total adjacent state-eligible pairs: 153,645
+Flagged (crosses a known chronology exception): 47 (0.031%)
+Reasons: {'clock_increase_same_period': 43, 'period_regression': 4}
+  game 400876097 reasons=['clock_increase_same_period']
+    a: {'id': '400876097104938201', 'driveId': '40087609720', 'driveNumber': 20, 'playNumber': 5, 'period': 4, 'clock': {'minutes': 6, 'seconds': 14}, 'offense': 'Northwestern', 'playText': 'Jack Mitchell 37 Yd Field Goal '}
+    b: {'id': '400876097104938202', 'driveId': '40087609721', 'driveNumber': 21, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 6, 'seconds': 17}, 'offense': 'Northwestern', 'playText': 'Jack Mitchell kickoff for 40 yds , Rachid Ibrahim return for 7 yds to the Pitt 32'}
+  game 400903226 reasons=['clock_increase_same_period']
+    a: {'id': '400903226101915701', 'driveId': '4009032264', 'driveNumber': 4, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 8, 'seconds': 41}, 'offense': 'Utah', 'playText': 'Joe Williams 16 Yd Run (Andy Phillips Kick)'}
+    b: {'id': '400903226101915703', 'driveId': '4009032265', 'driveNumber': 5, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 8, 'seconds': 42}, 'offense': 'Utah', 'playText': 'Hayes Hicken kickoff for 65 yds , Devonte Williams return for 23 yds to the Ind 23'}
+  game 400876103 reasons=['clock_increase_same_period']
+    a: {'id': '400876103103979101', 'driveId': '40087610321', 'driveNumber': 20, 'playNumber': 13, 'period': 3, 'clock': {'minutes': 2, 'seconds': 7}, 'offense': 'TCU', 'playText': 'John Diarse 9 Yd pass from Kenny Hill (Brandon Hatfield Kick)'}
+    b: {'id': '400876103103979103', 'driveId': '40087610322', 'driveNumber': 21, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 2, 'seconds': 8}, 'offense': 'TCU', 'playText': 'Cole Bunce kickoff for 56 yds , Reggie Davis return for 22 yds to the Geo 31'}
+  game 400876105 reasons=['clock_increase_same_period']
+    a: {'id': '400876105102906201', 'driveId': '40087610511', 'driveNumber': 11, 'playNumber': 11, 'period': 2, 'clock': {'minutes': 9, 'seconds': 36}, 'offense': 'Michigan', 'playText': 'Kenny Allen 28 Yd Field Goal '}
+    b: {'id': '400876105102906202', 'driveId': '40087610512', 'driveNumber': 12, 'playNumber': 1, 'period': 2, 'clock': {'minutes': 9, 'seconds': 37}, 'offense': 'Michigan', 'playText': 'Kenny Allen kickoff for 65 yds for a touchback'}
+  game 400869619 reasons=['clock_increase_same_period']
+    a: {'id': '400869619103854802', 'driveId': '40086961918', 'driveNumber': 17, 'playNumber': 3, 'period': 3, 'clock': {'minutes': 14, 'seconds': 38}, 'offense': 'SE Louisiana', 'playText': 'Ramon Richards 9 Yd Fumble Return (Ben Grogan Kick)'}
+    b: {'id': '400869619103854804', 'driveId': '40086961919', 'driveNumber': 18, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 14, 'seconds': 51}, 'offense': 'Oklahoma State', 'playText': 'Zach Sinor kickoff for 65 yds , Darius Durall return for 26 yds to the SELa 26'}
+  game 400869619 reasons=['clock_increase_same_period']
+    a: {'id': '400869619104854801', 'driveId': '40086961926', 'driveNumber': 25, 'playNumber': 5, 'period': 4, 'clock': {'minutes': 14, 'seconds': 50}, 'offense': 'Oklahoma State', 'playText': 'Ben Grogan 28 Yd Field Goal '}
+    b: {'id': '400869619104854802', 'driveId': '40086961927', 'driveNumber': 26, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 14, 'seconds': 51}, 'offense': 'Oklahoma State', 'playText': 'Matt Ammendola kickoff for 60 yds , Darius Durall return for 16 yds to the SELa 21'}
+  game 400869343 reasons=['clock_increase_same_period']
+    a: {'id': '400869343104985901', 'driveId': '40086934330', 'driveNumber': 30, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 1, 'seconds': 40}, 'offense': 'Southern Illinois', 'playText': 'Josh Straughan pass complete to Aaron Stanton for 12 yds Aaron Stanton fumbled, forced by Ocie Rose, recovered by FlAtl Jalen Young'}
+    b: {'id': '400869343104985503', 'driveId': '40086934331', 'driveNumber': 31, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 1, 'seconds': 44}, 'offense': 'Florida Atlantic', 'playText': 'Timeout SOUTHN ILLINOIS, clock 01:44'}
+  game 400868979 reasons=['clock_increase_same_period']
+    a: {'id': '400868979103887001', 'driveId': '40086897916', 'driveNumber': 16, 'playNumber': 3, 'period': 3, 'clock': {'minutes': 11, 'seconds': 28}, 'offense': 'Florida State', 'playText': 'Freddie Stevenson 1 Yd Run (Ricky Aguayo Kick)'}
+    b: {'id': '400868979103887003', 'driveId': '40086897917', 'driveNumber': 17, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 11, 'seconds': 29}, 'offense': 'Florida State', 'playText': 'Logan Tyler kickoff for 65 yds , Carlos Davis return for 15 yds to the Miss 15'}
+
+--- Chronology pair check: 2017 ---
+Total adjacent state-eligible pairs: 153,658
+Flagged (crosses a known chronology exception): 28 (0.018%)
+Reasons: {'clock_increase_same_period': 22, 'period_regression': 6}
+  game 400953391 reasons=['clock_increase_same_period']
+    a: {'id': '400953391101866101', 'driveId': '4009533911', 'driveNumber': 1, 'playNumber': 5, 'period': 1, 'clock': {'minutes': 13, 'seconds': 36}, 'offense': 'San Diego State', 'playText': 'Rashaad Penny 81 Yd Run (John Baron II Kick)'}
+    b: {'id': '400953391101866103', 'driveId': '4009533912', 'driveNumber': 2, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 13, 'seconds': 38}, 'offense': 'San Diego State', 'playText': 'John Baron II kickoff for 58 yds , Glen Coates return for 11 yds to the Army 18'}
+  game 400935235 reasons=['clock_increase_same_period']
+    a: {'id': '400935235103888902', 'driveId': '40093523516', 'driveNumber': 15, 'playNumber': 12, 'period': 3, 'clock': {'minutes': 11, 'seconds': 10}, 'offense': 'Nebraska', 'playText': 'ARKANSAS ST Penalty, unsportsmanlike conduct ( Yards) to the ArkSt 1 for a 1ST down'}
+    b: {'id': '400935235103888503', 'driveId': '40093523517', 'driveNumber': 16, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 11, 'seconds': 14}, 'offense': 'Nebraska', 'playText': 'Drew Brown kickoff for 65 yds for a touchback'}
+  game 400935260 reasons=['clock_increase_same_period']
+    a: {'id': '400935260102885601', 'driveId': '4009352606', 'driveNumber': 6, 'playNumber': 4, 'period': 2, 'clock': {'minutes': 11, 'seconds': 42}, 'offense': 'USC', 'playText': 'Deontay Burnett 22 Yd pass from Sam Darnold (Chase McGrath Kick)'}
+    b: {'id': '400935260102885603', 'driveId': '4009352607', 'driveNumber': 7, 'playNumber': 1, 'period': 2, 'clock': {'minutes': 11, 'seconds': 43}, 'offense': 'USC', 'playText': 'Chase McGrath kickoff for 65 yds , Cameron Scarlett return for 22 yds to the Stanf 22'}
+  game 400938604 reasons=['clock_increase_same_period']
+    a: {'id': '400938604103878302', 'driveId': '40093860421', 'driveNumber': 19, 'playNumber': 9, 'period': 3, 'clock': {'minutes': 12, 'seconds': 16}, 'offense': 'Southern', 'playText': 'Timeout SOUTHERN, clock 12:16'}
+    b: {'id': '400938604103877301', 'driveId': '40093860422', 'driveNumber': 20, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 12, 'seconds': 26}, 'offense': 'Southern Miss', 'playText': 'Kwadra Griggs pass incomplete to Korey Robertson, broken up by Montavius Gaines'}
+  game 400935240 reasons=['clock_increase_same_period']
+    a: {'id': '400935240104974901', 'driveId': '40093524026', 'driveNumber': 26, 'playNumber': 8, 'period': 4, 'clock': {'minutes': 2, 'seconds': 5}, 'offense': 'Northwestern', 'playText': 'Riley Lees 20 Yd pass from Matt Alviti (Charlie Kuhbander Kick)'}
+    b: {'id': '400935240104975601', 'driveId': '40093524027', 'driveNumber': 27, 'playNumber': 2, 'period': 4, 'clock': {'minutes': 2, 'seconds': 43}, 'offense': 'Duke', 'playText': 'Brittain Brown run for 2 yds to the Duke 42'}
+  game 400933861 reasons=['clock_increase_same_period']
+    a: {'id': '400933861104979201', 'driveId': '40093386123', 'driveNumber': 22, 'playNumber': 12, 'period': 4, 'clock': {'minutes': 2, 'seconds': 7}, 'offense': 'Kentucky', 'playText': 'Austin MacGinnis 21 yd FG GOOD'}
+    b: {'id': '400933861104978403', 'driveId': '40093386124', 'driveNumber': 23, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 2, 'seconds': 15}, 'offense': 'South Carolina', 'playText': 'Jake Bentley sacked by Josh Allen for a loss of 3 yards to the SCaro 36'}
+  game 400941800 reasons=['clock_increase_same_period']
+    a: {'id': '400941800103984601', 'driveId': '40094180018', 'driveNumber': 18, 'playNumber': 12, 'period': 3, 'clock': {'minutes': 1, 'seconds': 52}, 'offense': 'Temple', 'playText': 'Austin Jones 37 Yd Field Goal '}
+    b: {'id': '400941800103984602', 'driveId': '40094180019', 'driveNumber': 19, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 1, 'seconds': 53}, 'offense': 'Temple', 'playText': 'Aaron Boumerhi kickoff for 65 yds , Jessie Britt return for 22 yds to the UMass 22'}
+  game 400934509 reasons=['clock_increase_same_period']
+    a: {'id': '400934509101966501', 'driveId': '4009345095', 'driveNumber': 5, 'playNumber': 6, 'period': 1, 'clock': {'minutes': 3, 'seconds': 33}, 'offense': 'Oklahoma State', 'playText': 'Marcell Ateman 69 Yd pass from Mason Rudolph (Matt Ammendola Kick)'}
+    b: {'id': '400934509101966503', 'driveId': '4009345096', 'driveNumber': 6, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 3, 'seconds': 34}, 'offense': 'Oklahoma State', 'playText': 'Matt Ammendola kickoff for 65 yds for a touchback'}
+
+--- Chronology pair check: 2018 ---
+Total adjacent state-eligible pairs: 155,864
+Flagged (crosses a known chronology exception): 26 (0.017%)
+Reasons: {'clock_increase_same_period': 24, 'period_regression': 2}
+  game 401032081 reasons=['clock_increase_same_period']
+    a: {'id': '401032081101904101', 'driveId': '4010320812', 'driveNumber': 2, 'playNumber': 9, 'period': 1, 'clock': {'minutes': 9, 'seconds': 58}, 'offense': 'Oklahoma State', 'playText': 'Taylor Cornelius run for 1 yd to the Misso 30'}
+    b: {'id': '401032081101874002', 'driveId': '4010320813', 'driveNumber': 3, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 12, 'seconds': 59}, 'offense': 'Oklahoma State', 'playText': 'Taylor Cornelius run for 9 yds to the OKSt 24'}
+  game 401032081 reasons=['clock_increase_same_period']
+    a: {'id': '401032081101935301', 'driveId': '4010320813', 'driveNumber': 3, 'playNumber': 10, 'period': 1, 'clock': {'minutes': 6, 'seconds': 46}, 'offense': 'Missouri', 'playText': 'Tucker McCann 24 yd FG GOOD'}
+    b: {'id': '401032081101907701', 'driveId': '4010320814', 'driveNumber': 4, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 9, 'seconds': 22}, 'offense': 'Oklahoma State', 'playText': 'Jake McClure kickoff for 65 yds , Tyler Badie return for 19 yds to the Misso 19'}
+  game 401022512 reasons=['clock_increase_same_period']
+    a: {'id': '401022512103955601', 'driveId': '40102251218', 'driveNumber': 17, 'playNumber': 6, 'period': 3, 'clock': {'minutes': 4, 'seconds': 43}, 'offense': 'Stanford', 'playText': 'K.J. Costello pass complete to JJ Arcega-Whiteside for 80 yds for a TD (K.J. Costello pass  for Two-Point Conversion)'}
+    b: {'id': '401022512103955402', 'driveId': '40102251219', 'driveNumber': 18, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 4, 'seconds': 45}, 'offense': 'Stanford', 'playText': 'Jake Bailey kickoff for 65 yds , Juwan Washington return for 27 yds to the SDSt 27'}
+  game 401020673 reasons=['clock_increase_same_period']
+    a: {'id': '401020673103859301', 'driveId': '40102067317', 'driveNumber': 17, 'playNumber': 2, 'period': 3, 'clock': {'minutes': 14, 'seconds': 6}, 'offense': 'Western Michigan', 'playText': "Jon Wassink pass complete to D'Wayne Eskridge for 21 yds for a TD (Josh Grant KICK)"}
+    b: {'id': '401020673103859201', 'driveId': '40102067318', 'driveNumber': 18, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 14, 'seconds': 7}, 'offense': 'Syracuse', 'playText': 'Tommy DeVito pass complete to Jamal Custis for 2 yds to the Syrac 43'}
+  game 401012862 reasons=['clock_increase_same_period']
+    a: {'id': '401012862104926301', 'driveId': '40101286224', 'driveNumber': 24, 'playNumber': 2, 'period': 4, 'clock': {'minutes': 7, 'seconds': 36}, 'offense': 'Northern Illinois', 'playText': 'Jordan Nettles run for a loss of 1 yard for a SAFETY'}
+    b: {'id': '401012862104924001', 'driveId': '40101286225', 'driveNumber': 25, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 7, 'seconds': 59}, 'offense': 'Iowa', 'playText': 'Peyton Mansell pass complete to Nate Wieting for 30 yds to the NoIll 5 for a 1ST down'}
+  game 401019472 reasons=['clock_increase_same_period']
+    a: {'id': '401019472103937616', 'driveId': '40101947215', 'driveNumber': 15, 'playNumber': 16, 'period': 3, 'clock': {'minutes': 6, 'seconds': 23}, 'offense': 'South Florida', 'playText': 'Blake Barnett pass incomplete to R St Felix, broken up by Tristen Cox'}
+    b: {'id': '401019472103897403', 'driveId': '40101947216', 'driveNumber': 16, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 10, 'seconds': 25}, 'offense': 'Elon', 'playText': 'Jalen Greene run for 12 yds for a TD, (Skyler Davis KICK)'}
+  game 401019472 reasons=['clock_increase_same_period']
+    a: {'id': '401019472104897401', 'driveId': '40101947218', 'driveNumber': 18, 'playNumber': 7, 'period': 4, 'clock': {'minutes': 10, 'seconds': 25}, 'offense': 'Elon', 'playText': 'Brelynd Cyphers run for 2 yds for a TD, (Skyler Davis KICK)'}
+    b: {'id': '401019472104868701', 'driveId': '40101947219', 'driveNumber': 19, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 13, 'seconds': 12}, 'offense': 'Elon', 'playText': 'Christian VanSickle kickoff for 56 yds , Terrence Horne return for 18 yds to the SFla 27'}
+  game 401013490 reasons=['clock_increase_same_period']
+    a: {'id': '401013490104956001', 'driveId': '40101349028', 'driveNumber': 27, 'playNumber': 8, 'period': 4, 'clock': {'minutes': 4, 'seconds': 39}, 'offense': 'Oklahoma State', 'playText': 'Keondre Wudtee pass complete to J.D. King for 25 yds for a TD (Matt Ammendola KICK)'}
+    b: {'id': '401013490104897304', 'driveId': '40101349029', 'driveNumber': 28, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 10, 'seconds': 26}, 'offense': 'South Alabama', 'playText': 'Deonta Moore run for 19 yds to the OKSt 43 for a 1ST down'}
+
+--- Chronology pair check: 2019 ---
+Total adjacent state-eligible pairs: 155,074
+Flagged (crosses a known chronology exception): 40 (0.026%)
+Reasons: {'clock_increase_same_period': 36, 'period_regression': 4}
+  game 401147695 reasons=['clock_increase_same_period']
+    a: {'id': '401147695103925601', 'driveId': '40114769517', 'driveNumber': 17, 'playNumber': 3, 'period': 3, 'clock': {'minutes': 7, 'seconds': 43}, 'offense': 'Georgia State', 'playText': 'Dan Ellington pass complete to Cornelius McCoy for 44 yds for a TD (Brandon Wright KICK)'}
+    b: {'id': '401147695103917901', 'driveId': '40114769518', 'driveNumber': 18, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 8, 'seconds': 20}, 'offense': 'Wyoming', 'playText': 'Xazavian Valladay run for a loss of 2 yards to the Wyom 23'}
+  game 401112245 reasons=['clock_increase_same_period']
+    a: {'id': '401112245104925901', 'driveId': '40111224518', 'driveNumber': 18, 'playNumber': 13, 'period': 4, 'clock': {'minutes': 7, 'seconds': 40}, 'offense': 'Northwestern', 'playText': 'Hunter Johnson run for 2 yds to the Stanf 1 Hunter Johnson fumbled, recovered by Nwest Hunter Johnson'}
+    b: {'id': '401112245104925004', 'driveId': '40111224519', 'driveNumber': 19, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 7, 'seconds': 49}, 'offense': 'Northwestern', 'playText': 'Trey Finison kickoff for 56 yds , Connor Wedington return for 25 yds to the Stanf 34'}
+  game 401114218 reasons=['clock_increase_same_period']
+    a: {'id': '401114218101966301', 'driveId': '4011142184', 'driveNumber': 4, 'playNumber': 11, 'period': 1, 'clock': {'minutes': 3, 'seconds': 31}, 'offense': 'Fresno State', 'playText': 'Cesar Silva 45 Yd Field Goal '}
+    b: {'id': '401114218101966302', 'driveId': '4011142185', 'driveNumber': 5, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 3, 'seconds': 36}, 'offense': 'Fresno State', 'playText': 'Asa Fuller kickoff for 61 yds , Velus Jones Jr. return for 27 yds to the USC 31'}
+  game 401114184 reasons=['clock_increase_same_period']
+    a: {'id': '401114184104987501', 'driveId': '40111418422', 'driveNumber': 22, 'playNumber': 9, 'period': 4, 'clock': {'minutes': 1, 'seconds': 24}, 'offense': 'Colorado State', 'playText': 'Collin Hill pass complete to Jaylen Thomas for 2 yds to the Colo 18'}
+    b: {'id': '401114184104979901', 'driveId': '40111418423', 'driveNumber': 23, 'playNumber': 1, 'period': 4, 'clock': {'minutes': 2, 'seconds': 0}, 'offense': 'Colorado State', 'playText': 'Collin Hill pass incomplete to Nikko Hall'}
+  game 401112135 reasons=['clock_increase_same_period']
+    a: {'id': '401112135102866902', 'driveId': '4011121355', 'driveNumber': 5, 'playNumber': 12, 'period': 2, 'clock': {'minutes': 13, 'seconds': 20}, 'offense': 'Texas', 'playText': 'Collin Johnson 6 Yd pass from Sam Ehlinger (Cameron Dicker Kick)'}
+    b: {'id': '401112135102866904', 'driveId': '4011121356', 'driveNumber': 6, 'playNumber': 1, 'period': 2, 'clock': {'minutes': 13, 'seconds': 30}, 'offense': 'Texas', 'playText': 'Cameron Dicker kickoff for 64 yds , Smoke Harris return for 11 yds to the LaTch 12'}
+  game 401112135 reasons=['clock_increase_same_period']
+    a: {'id': '401112135103908401', 'driveId': '40111213516', 'driveNumber': 16, 'playNumber': 9, 'period': 3, 'clock': {'minutes': 9, 'seconds': 6}, 'offense': 'Texas', 'playText': 'Brennan Eagles 25 Yd pass from Sam Ehlinger (Cameron Dicker Kick)'}
+    b: {'id': '401112135103908403', 'driveId': '40111213517', 'driveNumber': 17, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 9, 'seconds': 15}, 'offense': 'Texas', 'playText': 'Cameron Dicker kickoff for 53 yds , Smoke Harris return for 7 yds to the LaTch 19'}
+  game 401117855 reasons=['clock_increase_same_period']
+    a: {'id': '401117855103957001', 'driveId': '40111785516', 'driveNumber': 16, 'playNumber': 4, 'period': 3, 'clock': {'minutes': 4, 'seconds': 29}, 'offense': 'UConn', 'playText': 'Mike Beaudry pass intercepted for a TD Myron Morris return for 71 yds for a TD'}
+    b: {'id': '401117855103926001', 'driveId': '40111785518', 'driveNumber': 17, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 7, 'seconds': 39}, 'offense': 'Wagner', 'playText': 'Eric Silvester kickoff for 42 yds , Donovan Williams return for 14 yds to the UConn 37'}
+  game 401117855 reasons=['clock_increase_same_period']
+    a: {'id': '401117855103957903', 'driveId': '40111785519', 'driveNumber': 18, 'playNumber': 4, 'period': 3, 'clock': {'minutes': 4, 'seconds': 20}, 'offense': 'Wagner', 'playText': 'Christian Alexander-Stevens pass complete to Adam Giordano for 12 yds to the Wagn 45 for a 1ST down'}
+    b: {'id': '401117855103957007', 'driveId': '40111785520', 'driveNumber': 19, 'playNumber': 1, 'period': 3, 'clock': {'minutes': 4, 'seconds': 29}, 'offense': 'UConn', 'playText': 'Art Thompkins run for 5 yds for a TD, (Clayton Harris KICK)'}
+
+--- Chronology pair check: 2021 ---
+Total adjacent state-eligible pairs: 150,401
+Flagged (crosses a known chronology exception): 597 (0.397%)
+Reasons: {'clock_increase_same_period': 544, 'period_regression': 53}
+  game 401282054 reasons=['clock_increase_same_period']
+    a: {'id': '-20294', 'driveId': '-2596', 'driveNumber': 5, 'playNumber': 7, 'period': 1, 'clock': {'minutes': 5, 'seconds': 56}, 'offense': 'Vanderbilt', 'playText': 'K.Seals rushed to ETSU 24 for 2 yards. Tackled by T.Dorsey; M.Evans at ETSU 24.'}
+    b: {'id': '-20295', 'driveId': '-2596', 'driveNumber': 5, 'playNumber': 8, 'period': 1, 'clock': {'minutes': 6, 'seconds': 1}, 'offense': 'Vanderbilt', 'playText': 'Timeout'}
+  game 401282054 reasons=['clock_increase_same_period']
+    a: {'id': '-20311', 'driveId': '-2597', 'driveNumber': 6, 'playNumber': 11, 'period': 1, 'clock': {'minutes': 0, 'seconds': 40}, 'offense': 'East Tennessee State', 'playText': 'J.Saylors rushed to VAN 40 for 0 yards. Tackled by N.Clifton at VAN 40.'}
+    b: {'id': '-20312', 'driveId': '-2598', 'driveNumber': 7, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 0, 'seconds': 41}, 'offense': 'Vanderbilt', 'playText': 'M.Wright pass complete to VAN 40. Catch made by W.Sheppard at VAN 40. Gain of 13 yards. Tackled by S.Scott at ETSU 47.'}
+  game 401282054 reasons=['clock_increase_same_period']
+    a: {'id': '-20353', 'driveId': '-2602', 'driveNumber': 11, 'playNumber': 6, 'period': 2, 'clock': {'minutes': 1, 'seconds': 5}, 'offense': 'Vanderbilt', 'playText': 'K.Seals pass complete to ETSU 49. Catch made by C.Johnson at ETSU 49. Gain of 5 yards. Tackled by K.Delince at ETSU 44.'}
+    b: {'id': '-20354', 'driveId': '-2602', 'driveNumber': 11, 'playNumber': 7, 'period': 2, 'clock': {'minutes': 1, 'seconds': 15}, 'offense': 'Vanderbilt', 'playText': 'K.Seals pass complete to ETSU 44. Catch made by W.Sheppard at ETSU 44. Gain of -1 yards. Tackled by A.Huzzie at ETSU 45.'}
+  game 401282054 reasons=['clock_increase_same_period']
+    a: {'id': '-20408', 'driveId': '-2609', 'driveNumber': 18, 'playNumber': 3, 'period': 4, 'clock': {'minutes': 9, 'seconds': 3}, 'offense': 'Vanderbilt', 'playText': 'K.Seals steps back to pass. K.Seals pass incomplete intended for C.Johnson.'}
+    b: {'id': '-20409', 'driveId': '-2609', 'driveNumber': 18, 'playNumber': 4, 'period': 4, 'clock': {'minutes': 9, 'seconds': 4}, 'offense': 'Vanderbilt', 'playText': 'K.Seals pass complete to VAN 35. Catch made by C.Johnson at VAN 35. Gain of 5 yards. Tackled by K.Delince at VAN 40.'}
+  game 401287888 reasons=['clock_increase_same_period']
+    a: {'id': '401287888102997501', 'driveId': '40128788813', 'driveNumber': 13, 'playNumber': 9, 'period': 2, 'clock': {'minutes': 0, 'seconds': 24}, 'offense': 'Kansas', 'playText': 'Jason Bean pass complete to Lawrence Arnold for 8 yds for a TD (Jacob Borcila KICK)'}
+    b: {'id': '401287888102997401', 'driveId': '40128788814', 'driveNumber': 14, 'playNumber': 1, 'period': 2, 'clock': {'minutes': 0, 'seconds': 25}, 'offense': 'Kansas', 'playText': 'Tabor Allen kickoff for 65 yds for a touchback'}
+  game 401281943 reasons=['clock_increase_same_period']
+    a: {'id': '-461', 'driveId': '-65', 'driveNumber': 13, 'playNumber': 5, 'period': 2, 'clock': {'minutes': 2, 'seconds': 0}, 'offense': 'Arkansas', 'playText': 'Arkansas Razorbacks timeout.'}
+    b: {'id': '-462', 'driveId': '-65', 'driveNumber': 13, 'playNumber': 6, 'period': 2, 'clock': {'minutes': 2, 'seconds': 56}, 'offense': 'Arkansas', 'playText': 'TEAM rush to Ark14 for -4 yards. FUMBLES, recovered at Ark14 by Treylon Burks RETURNED for 0 yards.'}
+  game 401281943 reasons=['clock_increase_same_period']
+    a: {'id': '-511', 'driveId': '-73', 'driveNumber': 21, 'playNumber': 10, 'period': 3, 'clock': {'minutes': 1, 'seconds': 1}, 'offense': 'Arkansas', 'playText': 'Trelon Smith rush to Rice16 for 1 yard'}
+    b: {'id': '-514', 'driveId': '-74', 'driveNumber': 22, 'playNumber': 2, 'period': 3, 'clock': {'minutes': 13, 'seconds': 0}, 'offense': 'Rice', 'playText': 'Brendan Suckley rush to Rice26 for 7 yards'}
+  game 401309837 reasons=['period_regression']
+    a: {'id': '401309837102999701', 'driveId': '40130983710', 'driveNumber': 9, 'playNumber': 9, 'period': 2, 'clock': {'minutes': 0, 'seconds': 2}, 'offense': 'Nevada', 'playText': 'Brandon Talton 35 yd FG GOOD'}
+    b: {'id': '401309837101999901', 'driveId': '4013098374', 'driveNumber': 10, 'playNumber': 1, 'period': 1, 'clock': {'minutes': 0, 'seconds': 0}, 'offense': 'California', 'playText': 'Dario Longhetto kickoff for 65 yds'}
+
+======================================================================
+FOLD: test=2018  train=(2014, 2015, 2016, 2017)
+
+--- Class balance / missingness: train (through 2017) ---
+n labeled examples: 621,784  null-feature rows: 2,130 (0.34%)
+  NONE            100,248 (16.12%)
+  OPP_FG           41,235 ( 6.63%)
+  OPP_SAFETY        1,452 ( 0.23%)
+  OPP_TD          128,460 (20.66%)
+  OWN_FG          100,994 (16.24%)
+  OWN_SAFETY        1,738 ( 0.28%)
+  OWN_TD          247,657 (39.83%)
+
+--- Class balance / missingness: test 2018 ---
+n labeled examples: 157,228  null-feature rows: 459 (0.29%)
+  NONE             24,836 (15.80%)
+  OPP_FG            9,998 ( 6.36%)
+  OPP_SAFETY          395 ( 0.25%)
+  OPP_TD           32,924 (20.94%)
+  OWN_FG           24,376 (15.50%)
+  OWN_SAFETY          487 ( 0.31%)
+  OWN_TD           64,212 (40.84%)
+
+--- Eligibility population mismatch: test 2018 ---
+game_level_correlation population (broad):  119,678
+production classify_epa population (strict): 117,289
+Difference (plays with a state-transition modifier still counted by the eval): 2,389 (2.00%)
+
+--- Refit variance: test 2018 ---
+n_team_games=1762
+ppa_corr=0.5234  95% CI [0.4885, 0.5583]
+old_corr=0.5259  95% CI [0.4891, 0.5613]
+gbt_corr(seed=0)=0.5319  95% CI [0.4985, 0.5652]  n_iter_=30
+gbt_corr(seed=1)=0.5297  95% CI [0.4950, 0.5630]  n_iter_=37
+gbt_corr(seed=2)=0.5313  95% CI [0.4971, 0.5654]  n_iter_=38
+
+--- Outlier diagnostic: test 2018 ---
+n plays compared: 118,538
+GBT per-play EPA distribution: {'min': -17.418559359848288, 'p01': -6.266970846697426, 'p50': -0.018181862814511618, 'p95': 3.8656593344036825, 'p99': 7.094946323571419, 'max': 14.139413394204347}
+Old per-play EPA distribution: {'min': -20.996076274294097, 'p01': -2.937966101694915, 'p50': -0.1385467980295565, 'p95': 2.894278204851881, 'p99': 4.820278523429478, 'max': 14.266666666666666}
+
+Top 10 most extreme |GBT EPA| plays (gbt_epa, old_epa, ppa, state):
+  gbt=-17.42  old=-7.19  ppa=-0.26587881160037785  Q1 3&7 ytg=72 score=0-21  Drew Plitt sacked by Terrance Taylor for a loss of 28 yards Drew Plitt fumbled, recovered 
+  gbt=-17.30  old=-10.68  ppa=2.871925509503132  Q3 2&4 ytg=48 score=7-14  Zeb Noland sacked by Innis Gaines for a loss of 6 yards Zeb Noland fumbled, recovered by T
+  gbt=-17.29  old=-8.51  ppa=3.2967838408651815  Q1 3&4 ytg=64 score=0-7  Willie Jones III sacked by Josiah Tauaefa for a loss of 11 yards Willie Jones III fumbled,
+  gbt=-17.29  old=-5.42  ppa=0.01792775393595036  Q3 3&10 ytg=77 score=6-28  Reid Herring sacked by Ed Oliver for a loss of 16 yards Reid Herring fumbled, recovered by
+  gbt=-17.26  old=-7.30  ppa=4.524917009756897  Q1 3&17 ytg=50 score=0-7  Ryan Agnew sacked by Alexander Vainikolo for a loss of 5 yards Ryan Agnew fumbled, recover
+  gbt=-17.24  old=-9.10  ppa=3.040631318550478  Q3 2&10 ytg=72 score=12-21  Ben Hicks sacked by Ben Banogu for a loss of 4 yards Ben Hicks fumbled, recovered by TCU A
+  gbt=-17.20  old=-4.81  ppa=-0.0753733732097821  Q1 3&9 ytg=90 score=7-7  Jack Abraham sacked by Donald Louis Jr. for a loss of 6 yards Jack Abraham fumbled, recove
+  gbt=-17.01  old=-8.49  ppa=2.0124627194826914  Q1 3&6 ytg=69 score=3-14  Nathan Elliott sacked by Shaquille Quarterman for a loss of 15 yards Nathan Elliott fumble
+  gbt=-16.88  old=-6.70  ppa=1.0302063625083466  Q3 2&5 ytg=70 score=17-27  Jarrett Stidham sacked by Kyle Phillips and Alexis Johnson Jr. for a loss of 15 yards Jarr
+  gbt=-16.79  old=-5.90  ppa=-0.05253981459561354  Q1 2&16 ytg=92 score=0-10  Harry Woodbery sacked by Armon Watts for a loss of 7 yards Harry Woodbery fumbled, recover
+
+======================================================================
+FOLD: test=2021  train=(2014, 2015, 2016, 2017, 2018, 2019)
+
+--- Class balance / missingness: train (through 2019) ---
+n labeled examples: 935,458  null-feature rows: 3,055 (0.33%)
+  NONE            150,104 (16.05%)
+  OPP_FG           61,631 ( 6.59%)
+  OPP_SAFETY        2,048 ( 0.22%)
+  OPP_TD          193,408 (20.68%)
+  OWN_FG          151,457 (16.19%)
+  OWN_SAFETY        2,522 ( 0.27%)
+  OWN_TD          374,288 (40.01%)
+
+--- Class balance / missingness: test 2021 ---
+n labeled examples: 151,561  null-feature rows: 256 (0.17%)
+  NONE             24,885 (16.42%)
+  OPP_FG            9,997 ( 6.60%)
+  OPP_SAFETY          398 ( 0.26%)
+  OPP_TD           29,503 (19.47%)
+  OWN_FG           25,786 (17.01%)
+  OWN_SAFETY          421 ( 0.28%)
+  OWN_TD           60,571 (39.96%)
+
+--- Eligibility population mismatch: test 2021 ---
+game_level_correlation population (broad):  117,535
+production classify_epa population (strict): 115,454
+Difference (plays with a state-transition modifier still counted by the eval): 2,081 (1.77%)
+
+--- Refit variance: test 2021 ---
+n_team_games=1774
+ppa_corr=0.6991  95% CI [0.6707, 0.7266]
+old_corr=0.6400  95% CI [0.6029, 0.6748]
+gbt_corr(seed=0)=0.3912  95% CI [0.3420, 0.4395]  n_iter_=28
+gbt_corr(seed=1)=0.3887  95% CI [0.3402, 0.4377]  n_iter_=36
+gbt_corr(seed=2)=0.3894  95% CI [0.3404, 0.4381]  n_iter_=38
+
+--- Outlier diagnostic: test 2021 ---
+n plays compared: 116,597
+GBT per-play EPA distribution: {'min': -32.00665709470822, 'p01': -9.420282708030612, 'p50': -0.02385071137132666, 'p95': 1.0023432463286, 'p99': 6.999416440929708, 'max': 34.12529357539862}
+Old per-play EPA distribution: {'min': -27.086550355395552, 'p01': -3.831614077669903, 'p50': -0.14839572192513373, 'p95': 2.933939922722174, 'p99': 5.133620156423967, 'max': 34.83275818558492}
+
+Top 10 most extreme |GBT EPA| plays (gbt_epa, old_epa, ppa, state):
+  gbt=+34.13  old=+34.83  ppa=0.1862575200166155  Q1 1&10 ytg=25 score=35-1  Michael Pratt pass complete to Jaetavian Toles for 15 yds to the MorgS 10 for a 1ST down
+  gbt=-32.01  old=-27.09  ppa=2.211424613960093  Q3 2&3 ytg=3 score=42-7  Jabari Small 3 Yd Run (Chase McGrath Kick)
+  gbt=-31.60  old=-23.90  ppa=4.463369682619486  Q3 3&18 ytg=24 score=55-17  Cedric Tillman 24 Yd pass from Hendon Hooker (Chase McGrath Kick)
+  gbt=+29.06  old=+28.53  ppa=2.067936525322223  Q3 2&2 ytg=2 score=13-28  Asher O'Hara 2 Yd Run (Kyle Sentkowski Kick)
+  gbt=-28.58  old=-23.77  ppa=0.042995013320164865  Q4 4&9 ytg=61 score=43-87  Luke Zban pass complete to Rasheen Ali for 3 yds to the Marsh 42
+  gbt=+24.02  old=+25.01  ppa=0.8350381090299867  Q3 1&10 ytg=75 score=94-34  Hendon Hooker pass complete to Len'Neth Whitehead for 10 yds to the Tenn 35 for a 1ST down
+  gbt=+23.71  old=+23.22  ppa=-0.5380287086286026  Q2 1&10 ytg=77 score=17--17  Jonzell Norrils run for 1 yd to the Akron 24
+  gbt=-21.93  old=-22.28  ppa=-0.18295577132328322  Q4 1&12 ytg=89 score=43-87  Rasheen Ali run for 2 yds to the Marsh 13
+  gbt=-21.58  old=-20.28  ppa=2.93672616091367  Q2 1&10 ytg=34 score=20-0  Bo Nix pass complete to Ja'Varrius Johnson for 34 yds for a TD (Anders Carlson KICK)
+  gbt=+21.08  old=+22.00  ppa=0.042995013320164865  Q4 4&9 ytg=61 score=21-43  Luke Zban pass complete to Rasheen Ali for 3 yds to the Marsh 42
+
+--- Manual spot check: 2026 regular week 2, game 401856679 ---
+  Q1 1&10 ytg=65 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (15:00) #97 J.Baggett kickoff 65 yards to the OU 00, Touchback
+  Q1 1&10 ytg=75 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (14:57) Shotgun #9 L.Avant rush middle for 8 yards gain to the OU 33 (#44 N.Stae
+  Q1 2&2 ytg=67 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (14:26) No Huddle-Shotgun #10 J.Mateer pass complete short right to #81 R.Beers 
+  Q1 1&10 ytg=60 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (13:49) No Huddle-Shotgun #1 I.Sategna III rush left for 7 yards gain to the OU 
+  Q1 2&3 ytg=53 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (13:28) No Huddle-Shotgun #10 J.Mateer pass incomplete short left to #1 I.Sategn
+  Q1 3&3 ytg=53 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (13:22) No Huddle-Shotgun #10 J.Mateer sacked for loss of 9 yards to the OU 38 (
+  Q1 4&12 ytg=62 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (12:36) #43 G.Miller punt 40 yards to the UOM22 fair catch by #3 A.Marsh at UOM2
+  Q1 1&10 ytg=78 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (12:31) Shotgun #23 J.Marshall rush middle for 3 yards gain to the UOM25 (#25 M.
+  Q1 2&7 ytg=75 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (11:52) Shotgun #19 B.Underwood sacked for loss of 2 yards to the UOM23 (#38 O.H
+  Q1 3&9 ytg=77 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (11:15) Shotgun #19 B.Underwood pass incomplete short left to #3 A.Marsh thrown 
+  Q1 1&10 ytg=69 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (11:12) Shotgun #19 B.Underwood rush middle for 1 yard gain to the UOM32 (#38 O.
+  Q1 3&6 ytg=65 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (10:14) Shotgun #3 A.Marsh rush left for 15 yards gain to the UOM50 (#23 E.Bowen
+  Q1 1&10 ytg=50 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (09:52) Shotgun #19 B.Underwood pass complete short left to #6 J.Buchanan caught
+  Q1 1&10 ytg=38 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (09:18) Shotgun #5 S.Hiter rush middle for 18 yards gain to the OU 20 (#4 C.Guil
+  Q1 1&20 ytg=48 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (08:54) Shotgun #19 B.Underwood rush left for 2 yards gain to the OU 46 (#25 M.B
+  Q1 2&18 ytg=46 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (08:12) Shotgun #19 B.Underwood pass incomplete short middle to #3 A.Marsh throw
+  Q1 3&18 ytg=46 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (08:07) Shotgun #5 S.Hiter rush middle for 3 yards gain to the OU 43 (#8 B.Thoma
+  Q1 4&15 ytg=43 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (07:26) #33 C.Brown punt 31 yards to the OU 12 fair catch by #1 I.Sategna III at
+  Q1 1&10 ytg=88 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (07:19) Shotgun #9 L.Avant rush middle for 6 yards gain to the OU 18 (#18 T.Bowl
+  Q1 2&4 ytg=82 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (06:45) Shotgun #10 J.Mateer pass incomplete deep left to #11 T.Harris thrown to
+  Q1 3&4 ytg=82 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (06:41) Shotgun #10 J.Mateer pass incomplete deep middle to #1 I.Sategna III thr
+  Q1 4&4 ytg=82 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (06:37) #43 G.Miller punt 82 yards to the UOM00, Touchback PENALTY UOM Running I
+  Q1 1&10 ytg=77 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (06:26) Shotgun #10 J.Mateer rush right for 6 yards gain to the OU 29 (#10 Z.Ber
+  Q1 2&4 ytg=71 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (05:51) Shotgun #10 J.Mateer pass complete short right to #81 R.Beers caught at 
+  Q1 3&4 ytg=71 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (05:42) Shotgun #10 J.Mateer rush right for 12 yards gain to the OU 41 (#1 R.Moo
+  Q1 1&10 ytg=59 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (05:05) Shotgun #21 X.Robinson rush middle for 1 yard loss to the OU 40 (#90 J.D
+  Q1 2&11 ytg=60 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (04:39) #10 J.Mateer pass incomplete short left to #89 H.Hansen thrown to OU 38
+  Q1 3&11 ytg=60 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (04:37) Shotgun #10 J.Mateer pass incomplete short right to #81 R.Beers thrown t
+  Q1 4&11 ytg=60 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (04:32) #43 G.Miller punt 51 yards to the UOM09 fair catch by #3 A.Marsh at UOM0
+  Q1 1&10 ytg=91 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (04:26) Shotgun #5 S.Hiter rush middle for 3 yards gain to the UOM12 (#4 C.Guill
+  Q1 2&7 ytg=88 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (03:38) Shotgun #19 B.Underwood rush middle for 5 yards gain to the UOM17 (#10 K
+  Q1 2&12 ytg=93 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (03:22) Shotgun #19 B.Underwood pass complete short right to #5 S.Hiter caught a
+  Q1 3&5 ytg=86 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  PENALTY UOM False Start (#77 B.Frazier) 5 yards from UOM14 to UOM09. NO PLAY
+  Q1 3&10 ytg=91 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (02:23) Shotgun #19 B.Underwood pass complete short left to #6 J.Buchanan caught
+  Q1 1&10 ytg=55 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (01:45) Shotgun #23 J.Marshall rush middle for 3 yards gain to the UOM48 (#65 J.
+  Q1 2&7 ytg=52 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (01:04) Shotgun #19 B.Underwood pass incomplete deep to #3 A.Marsh thrown to OU 
+  Q1 1&10 ytg=38 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (00:58) Shotgun #19 B.Underwood pass incomplete short right to #6 J.Buchanan thr
+  Q1 2&10 ytg=38 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (00:54) Shotgun #19 B.Underwood rush right for 38 yards gain to the OU 00 TOUCHD
+  Q1 1&10 ytg=65 off=Michigan -> label=OWN_FG pts=+3.0 scoredBy=Michigan  (00:47) #97 J.Baggett kickoff 65 yards to the OU 00, Touchback
+  Q1 1&10 ytg=75 off=Oklahoma -> label=OPP_FG pts=+3.0 scoredBy=Michigan  (00:47) Shotgun #10 J.Mateer pass complete short middle to #11 T.Harris caught a
+  Q2 2&10 ytg=35 off=Oklahoma -> label=OPP_FG pts=+3.0 scoredBy=Michigan  (13:32) Shotgun #10 J.Mateer pass complete short left to #3 P.Livingstone caught
+  Q2 1&10 ytg=60 off=Michigan -> label=OWN_FG pts=+3.0 scoredBy=Michigan  (11:55) Shotgun #19 B.Underwood rush middle for 3 yards gain to the UOM43 fumble
+  Q2 3&8 ytg=38 off=Michigan -> label=OWN_FG pts=+3.0 scoredBy=Michigan  (09:56) Shotgun #5 S.Hiter rush for 2 yards loss to the OU 40 fumbled by #5 S.Hi
+  Q2 4&10 ytg=40 off=Michigan -> label=OWN_FG pts=+3.0 scoredBy=Michigan  (08:47) #33 C.Brown punt 39 yards to the OU 01
+  Q2 4&7 ytg=96 off=Oklahoma -> label=OPP_FG pts=+3.0 scoredBy=Michigan  (07:47) #43 G.Miller punt 52 yards to the UOM44
+  Q2 4&14 ytg=22 off=Michigan -> label=OWN_FG pts=+3.0 scoredBy=Michigan  (02:30) #99 T.Butkowski field goal attempt from 40 yards GOOD (H: #33 C.Brown, L
+  Q2 4&9 ytg=47 off=Oklahoma -> label=NONE pts=+0.0 scoredBy=None  (00:19) #43 G.Miller punt 38 yards to the UOM09 fair catch by #3 A.Marsh at UOM0
+  Q3 4&2 ytg=67 off=Michigan -> label=OPP_TD pts=+6.0 scoredBy=Oklahoma  (13:36) #33 C.Brown punt 48 yards to the OU 19 fair catch by #1 I.Sategna III at
+  Q3 4&1 ytg=67 off=Michigan -> label=OPP_FG pts=+3.0 scoredBy=Oklahoma  (06:36) #19 B.Underwood rush middle for 3 yards gain to the UOM36 (#0 D.Stone), 
+  Q3 4&14 ytg=38 off=Michigan -> label=OPP_FG pts=+3.0 scoredBy=Oklahoma  PENALTY UOM Delay Of Game (#33 C.Brown) 5 yards from OU 38 to OU 43. NO PLAY
+  Q3 4&19 ytg=43 off=Michigan -> label=OPP_FG pts=+3.0 scoredBy=Oklahoma  (01:30) #33 C.Brown punt 42 yards to the OU 01
+  Q4 4&5 ytg=16 off=Oklahoma -> label=OWN_FG pts=+3.0 scoredBy=Oklahoma  (11:51) #29 T.Sandell field goal attempt from 34 yards GOOD (H: #87 J.Ulrich, LS
+  Q4 4&6 ytg=71 off=Michigan -> label=OWN_TD pts=+6.0 scoredBy=Michigan  (09:44) #33 C.Brown punt 51 yards to the OU 20 #1 I.Sategna III return for loss 
+  Q4 3&9 ytg=84 off=Oklahoma -> label=OPP_TD pts=+6.0 scoredBy=Michigan  (08:49) Shotgun #10 J.Mateer pass intercepted by #0 J.Hill at OU 30 #0 J.Hill re
+  Q4 4&11 ytg=63 off=Oklahoma -> label=NONE pts=+0.0 scoredBy=None  (04:50) #43 G.Miller punt 62 yards to the UOM01 PENALTY UOM Blocking Out Of Boun
+  Q4 4&2 ytg=91 off=Michigan -> label=NONE pts=+0.0 scoredBy=None  (03:13) #33 C.Brown punt 43 yards to the OU 48 #1 I.Sategna III return 12 yards 
+  Q4 4&7 ytg=47 off=Oklahoma -> label=NONE pts=+0.0 scoredBy=None  (02:16) Shotgun #10 J.Mateer pass incomplete short right to #81 R.Beers thrown t
+  Q4 4&4 ytg=47 off=Michigan -> label=NONE pts=+0.0 scoredBy=None  (01:14)  punt 42 yards to the OU 05 #1 I.Sategna III return 10 yards to the OU 1
+  Q4 4&4 ytg=47 off=Michigan -> label=NONE pts=+0.0 scoredBy=None  Timeout Michigan, clock 01:14

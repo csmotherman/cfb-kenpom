@@ -1,0 +1,97 @@
+EPA ELIGIBILITY AUDIT (Phase 1)
+Version: epa-eligibility-audit-v2
+
+Total offensive scrimmage snaps: 1,306,983
+Current LEILA EPA eligible:      1,280,013 (97.9%)
+Current LEILA EPA excluded:      26,970 (2.1%)
+
+Exclusions by PRIMARY category (mutually exclusive):
+  penalty context                      18,015
+  interception                          3,056
+  ambiguous turnover                    2,593
+  missing PPA                           1,627
+  true no-play                          1,173
+  administrative/review-only              447
+  self-recovered fumble                    50
+  lost fumble                               9
+
+Raw context-flag signature within each primary category (top 20, shows overlaps):
+  penalty context | hasPenaltyContext                            17,977
+  interception | hasInterceptionContext                           2,893
+  ambiguous turnover | hasFumbleContext                           2,492
+  missing PPA | NONE                                              1,627
+  true no-play | hasPenaltyContext                                  637
+  true no-play | hasNoPlayContext+hasPenaltyContext                 523
+  administrative/review-only | hasReviewContext                     440
+  interception | hasPenaltyContext+hasInterceptionContext            95
+  ambiguous turnover | hasPenaltyContext+hasFumbleContext            51
+  ambiguous turnover | hasReviewContext+hasFumbleContext             48
+  self-recovered fumble | hasFumbleContext                           47
+  penalty context | hasPenaltyContext+hasReviewContext               38
+  interception | hasReviewContext+hasInterceptionContext             28
+  interception | hasFumbleContext+hasInterceptionContext             25
+  interception | hasNoPlayContext+hasPenaltyContext+hasInterceptionContext       11
+  true no-play | hasNoPlayContext+hasPenaltyContext+hasReviewContext       11
+  lost fumble | hasFumbleContext                                      8
+  administrative/review-only | hasFumbleContext                       6
+  interception | hasPenaltyContext+hasFumbleContext+hasInterceptionContext        2
+  self-recovered fumble | hasReviewContext+hasFumbleContext           2
+
+'missing PPA' breakdown by eventSubtype (top 10):
+  RUSH                                777
+  PASS_COMPLETION                     362
+  PASS_INCOMPLETE                     238
+  RUSH_TD                             108
+  PASS_TD                              85
+  SACK                                 27
+  TWO_POINT_PASS                       20
+  TWO_POINT_RUSH                       10
+
+FUMBLES (overall, self recovered / opponent recovered / out of bounds / ambiguous recovery):
+  ambiguous recovery   n=  2,555  %currently_epa_eligible=  0.0%  mean_ppa=-0.600  ppa_range=[-4.6661097595520395, 6.535182582551657]
+  out of bounds        n=     75  %currently_epa_eligible=  0.0%  mean_ppa=-0.116  ppa_range=[-4.336834277664512, 3.2157591443424387]
+  self recovered       n=     48  %currently_epa_eligible=  0.0%  mean_ppa=-0.583  ppa_range=[-3.9000051678942684, 2.5787052676688322]
+  opponent recovered   n=      9  %currently_epa_eligible=  0.0%  mean_ppa=-0.729  ppa_range=[-3.308362330270418, 2.7791613871501966]
+
+INTERCEPTIONS (overall):
+  plays=3,056  with_ppa=3,041 (missing 0.5%)
+  %currently_epa_eligible=0.0%
+  ppa min/median/max: -6.061978724879557 / -1.8488854628073987 / 6.836996696290429
+  % ppa >= 0: 12.2%   % ppa > 0.1: 9.3%
+
+PENALTIES (overall, outcome category vs current EPA eligibility):
+  UNSPECIFIED_LIVE_BALL            n=  42,744  currently_epa_eligible=       0 (  0.0%)
+  EXPLICIT_NO_PLAY                 n=  35,844  currently_epa_eligible=       0 (  0.0%)
+  PRE_SNAP_NO_PLAY                 n=  34,688  currently_epa_eligible=       0 (  0.0%)
+  DECLINED_LIVE_BALL               n=   4,941  currently_epa_eligible=       0 (  0.0%)
+  ACCEPTED_DEFENSIVE_FIRST_DOWN    n=     158  currently_epa_eligible=       0 (  0.0%)
+  ACCEPTED_OTHER                   n=     156  currently_epa_eligible=       0 (  0.0%)
+  AMBIGUOUS                        n=      55  currently_epa_eligible=       0 (  0.0%)
+  HALF_DISTANCE                    n=      43  currently_epa_eligible=       0 (  0.0%)
+  OFFSETTING                       n=      32  currently_epa_eligible=       0 (  0.0%)
+
+INTERCEPTION -> PASS-SNAP SEQUENCE MAPPING FORENSICS
+Validated interception possessions: 12,308
+No plausible PASS-family snap in possession: 2,820
+Mapped at/before turnover anchor: 9,488
+Mapped after turnover anchor: 0
+Unique nearest plausible PASS snap: 9,488
+Ambiguous nearest mapping: 0
+
+Mapped snap already in Dropback candidate: 9,488
+Mapped snap outside candidate: 0
+  state-transition modified: 0
+  no-play: 0
+Mapped to sack: 567
+
+Gap 0: 5,220
+Gap 1: 2,545
+Gap 2: 1,055
+Gap 3: 390
+Gap 4: 142
+Gap 5+: 136
+
+Diagnostic only. The denominator can be locked only if interception possessions map reliably to exactly one plausible pass snap and those snaps are already represented consistently.
+Use --json for ambiguous, distant, or outside-candidate examples.
+
+Diagnostic only. No canonical/raw field is modified. Use --json for per-season and example detail.

@@ -1,0 +1,47 @@
+PENALTY OUTCOME FORENSICS
+Version: penalty-forensics-v1
+Penalty-context plays: 118,661
+
+Outcome category (confidence-tiered, cross-validated against next-play state):
+  UNSPECIFIED_LIVE_BALL              42,744   currently excluded from EPA:   14,341 ( 33.6%)
+  EXPLICIT_NO_PLAY                   35,844   currently excluded from EPA:      501 (  1.4%)
+  PRE_SNAP_NO_PLAY                   34,688   currently excluded from EPA:      664 (  1.9%)
+  DECLINED_LIVE_BALL                  4,941   currently excluded from EPA:    3,610 ( 73.1%)
+  ACCEPTED_DEFENSIVE_FIRST_DOWN         158   currently excluded from EPA:      106 ( 67.1%)
+  ACCEPTED_OTHER                        156   currently excluded from EPA:      101 ( 64.7%)
+  AMBIGUOUS                              55   currently excluded from EPA:        0 (  0.0%)
+  HALF_DISTANCE                          43   currently excluded from EPA:        5 ( 11.6%)
+  OFFSETTING                             32   currently excluded from EPA:       23 ( 71.9%)
+
+Confidence distribution:
+  MEDIUM         66,857
+  LOW            44,613
+  HIGH            7,191
+
+Raw textPenaltyStatus (pre-validation) counts:
+  UNSPECIFIED        68,685
+  NO_PLAY            43,794
+  DECLINED            5,678
+  ACCEPTED              372
+  None                   56
+  HALF_DISTANCE          43
+  OFFSETTING             33
+
+Raw textPenaltyType counts (top 15):
+  FALSE_START                24,592
+  HOLDING                    12,236
+  None                       11,116
+  PASS_INTERFERENCE          10,447
+  PERSONAL_FOUL              10,327
+  OFFENSIVE_HOLDING           9,655
+  OFFSIDE                     8,586
+  DELAY_OF_GAME               5,809
+  UNSPORTSMANLIKE_CONDUCT     4,791
+  FACE_MASK                   3,843
+  ILLEGAL_BLOCK               3,619
+  DEFENSIVE_PASS_INTERFERENCE    2,585
+  ILLEGAL_FORMATION           2,438
+  DEFENSIVE_HOLDING           1,724
+  ROUGHING_PASSER             1,541
+
+Diagnostic only. No canonical/raw field is modified. Use --json for examples.
