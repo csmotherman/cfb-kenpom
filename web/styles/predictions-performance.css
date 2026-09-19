@@ -47,6 +47,14 @@
   white-space: nowrap;
 }
 
+.prediction-performance-strip__note {
+  max-width: 46ch;
+  margin: 3px 0 0;
+  color: var(--color-ink-tertiary);
+  font-size: 8.5px;
+  line-height: 1.4;
+}
+
 .prediction-performance-strip__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(72px, 1fr));
