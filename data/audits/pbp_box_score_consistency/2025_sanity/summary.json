@@ -1,0 +1,782 @@
+{
+  "auditVersion": "pbp-box-score-consistency-v1",
+  "candidateDuplicatePlayFix": {
+    "after_dedup": {
+      "net_pass_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5328358208955224,
+        "exact_matches": 357,
+        "max_abs_diff": 250.0,
+        "mean_abs_error": 9.264179104477613,
+        "mean_signed_error": 2.9686567164179105,
+        "median_abs_error": 0.0,
+        "mismatches": 313,
+        "p95_abs_error": 42.0
+      },
+      "pass_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.41940298507462687,
+        "exact_matches": 281,
+        "max_abs_diff": 24,
+        "mean_abs_error": 1.2328358208955223,
+        "mean_signed_error": -0.4597014925373134,
+        "median_abs_error": 1.0,
+        "mismatches": 389,
+        "p95_abs_error": 4
+      },
+      "rush_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5238805970149254,
+        "exact_matches": 351,
+        "max_abs_diff": 20,
+        "mean_abs_error": 1.0820895522388059,
+        "mean_signed_error": -0.11492537313432835,
+        "median_abs_error": 0.0,
+        "mismatches": 319,
+        "p95_abs_error": 4
+      },
+      "rush_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.3835820895522388,
+        "exact_matches": 257,
+        "max_abs_diff": 101.0,
+        "mean_abs_error": 7.7880597014925375,
+        "mean_signed_error": 0.8656716417910447,
+        "median_abs_error": 3.0,
+        "mismatches": 413,
+        "p95_abs_error": 33.0
+      },
+      "total_plays": {
+        "comparisons": 670,
+        "exact_match_rate": 0.2835820895522388,
+        "exact_matches": 190,
+        "max_abs_diff": 38,
+        "mean_abs_error": 2.162686567164179,
+        "mean_signed_error": -0.5746268656716418,
+        "median_abs_error": 1.0,
+        "mismatches": 480,
+        "p95_abs_error": 7
+      },
+      "total_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.26865671641791045,
+        "exact_matches": 180,
+        "max_abs_diff": 293.0,
+        "mean_abs_error": 14.777611940298508,
+        "mean_signed_error": 3.837313432835821,
+        "median_abs_error": 6.0,
+        "mismatches": 490,
+        "p95_abs_error": 54.0
+      }
+    },
+    "before": {
+      "net_pass_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5313432835820896,
+        "exact_matches": 356,
+        "max_abs_diff": 270.0,
+        "mean_abs_error": 9.317910447761195,
+        "mean_signed_error": 3.0223880597014925,
+        "median_abs_error": 0.0,
+        "mismatches": 314,
+        "p95_abs_error": 42.0
+      },
+      "pass_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.417910447761194,
+        "exact_matches": 280,
+        "max_abs_diff": 24,
+        "mean_abs_error": 1.2149253731343284,
+        "mean_signed_error": -0.3940298507462687,
+        "median_abs_error": 1.0,
+        "mismatches": 390,
+        "p95_abs_error": 4
+      },
+      "rush_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5253731343283582,
+        "exact_matches": 352,
+        "max_abs_diff": 20,
+        "mean_abs_error": 1.0805970149253732,
+        "mean_signed_error": -0.1044776119402985,
+        "median_abs_error": 0.0,
+        "mismatches": 318,
+        "p95_abs_error": 4
+      },
+      "rush_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.3835820895522388,
+        "exact_matches": 257,
+        "max_abs_diff": 124.0,
+        "mean_abs_error": 7.877611940298507,
+        "mean_signed_error": 0.7940298507462686,
+        "median_abs_error": 2.5,
+        "mismatches": 413,
+        "p95_abs_error": 33.0
+      },
+      "total_plays": {
+        "comparisons": 670,
+        "exact_match_rate": 0.29850746268656714,
+        "exact_matches": 200,
+        "max_abs_diff": 38,
+        "mean_abs_error": 2.1164179104477614,
+        "mean_signed_error": -0.49850746268656715,
+        "median_abs_error": 1.0,
+        "mismatches": 470,
+        "p95_abs_error": 7
+      },
+      "total_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.26865671641791045,
+        "exact_matches": 180,
+        "max_abs_diff": 321.0,
+        "mean_abs_error": 14.92089552238806,
+        "mean_signed_error": 3.819402985074627,
+        "median_abs_error": 6.0,
+        "mismatches": 490,
+        "p95_abs_error": 54.0
+      }
+    },
+    "description": "NOT applied to production. Some CFBD /plays games contain literal duplicate play rows (same driveId/offense/down/distance/playText/wallclock, different play id) that neither ingestion nor canonicalization removes -- the existing raw/audit.py unique_play_ids check only verifies id uniqueness, which duplicate rows with distinct ids pass trivially. before/after strips duplicate rows (keeping the first occurrence) before reconstructing rush/pass/total stats.",
+    "duplicatePlayPrevalence": {
+      "excessDuplicatePlayRows": 111,
+      "excessDuplicatePlayRowsPct": 0.0018503083847307884,
+      "games": 335,
+      "gamesWithDuplicatePlays": 65,
+      "gamesWithDuplicatePlaysPct": 0.19402985074626866,
+      "totalPlayRows": 59990
+    }
+  },
+  "candidateTurnoverFix": {
+    "after_scoped_no_play_fix": {
+      "fumbles_lost": {
+        "comparisons": 670,
+        "exact_match_rate": 0.7119402985074627,
+        "exact_matches": 477,
+        "max_abs_diff": 3,
+        "mean_abs_error": 0.3208955223880597,
+        "mean_signed_error": -0.21940298507462686,
+        "median_abs_error": 0.0,
+        "mismatches": 193,
+        "p95_abs_error": 1
+      },
+      "interceptions": {
+        "comparisons": 670,
+        "exact_match_rate": 0.844776119402985,
+        "exact_matches": 566,
+        "max_abs_diff": 2,
+        "mean_abs_error": 0.1701492537313433,
+        "mean_signed_error": -0.05373134328358209,
+        "median_abs_error": 0.0,
+        "mismatches": 104,
+        "p95_abs_error": 1
+      },
+      "turnovers": {
+        "comparisons": 670,
+        "exact_match_rate": 0.608955223880597,
+        "exact_matches": 408,
+        "max_abs_diff": 3,
+        "mean_abs_error": 0.46417910447761196,
+        "mean_signed_error": -0.27313432835820894,
+        "median_abs_error": 0.0,
+        "mismatches": 262,
+        "p95_abs_error": 2
+      }
+    },
+    "before_turnovers-v1": {
+      "fumbles_lost": {
+        "comparisons": 670,
+        "exact_match_rate": 0.6895522388059702,
+        "exact_matches": 462,
+        "max_abs_diff": 3,
+        "mean_abs_error": 0.3582089552238806,
+        "mean_signed_error": -0.2835820895522388,
+        "median_abs_error": 0.0,
+        "mismatches": 208,
+        "p95_abs_error": 1
+      },
+      "interceptions": {
+        "comparisons": 670,
+        "exact_match_rate": 0.755223880597015,
+        "exact_matches": 506,
+        "max_abs_diff": 4,
+        "mean_abs_error": 0.2880597014925373,
+        "mean_signed_error": -0.20746268656716418,
+        "median_abs_error": 0.0,
+        "mismatches": 164,
+        "p95_abs_error": 1
+      },
+      "turnovers": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5253731343283582,
+        "exact_matches": 352,
+        "max_abs_diff": 4,
+        "mean_abs_error": 0.6223880597014926,
+        "mean_signed_error": -0.491044776119403,
+        "median_abs_error": 0.0,
+        "mismatches": 318,
+        "p95_abs_error": 2
+      }
+    },
+    "description": "NOT applied to production. cfb_analytics/analytics/turnover_forensics.py's classify_drive_turnover_from_plays computes its no-play signal across every play in the drive, so an unrelated no-play penalty earlier in the same possession wrongly excludes a clean turnover later in the drive (MODIFIED_CONTEXT_REVIEW). This scopes the no-play check to the turnover-signal play itself. before/after below is measured against the same box-score population."
+  },
+  "fbsVsFbs": 670,
+  "fbsVsFcsOrOther": 0,
+  "gameLevelIntegrity": {
+    "canonical": {
+      "all_core_stats_match_pct": 0.08059701492537313,
+      "at_least_one_mismatch_pct": 0.9194029850746268,
+      "at_least_two_mismatches_pct": 0.9194029850746268,
+      "major_mismatch_definition": "abs(reconstructed - official) exceeds the per-statistic MAJOR_MISMATCH_THRESHOLDS in this script (e.g. >2 plays, >10 yards, >1 turnover) -- not an arbitrary tolerance band used to hide small noise, but a threshold for what counts as a materially wrong number rather than off-by-one counting noise.",
+      "major_mismatch_pct": 0.5223880597014925,
+      "team_games": 670
+    },
+    "raw": {
+      "all_core_stats_match_pct": 0.04477611940298507,
+      "at_least_one_mismatch_pct": 0.9552238805970149,
+      "at_least_two_mismatches_pct": 0.9552238805970149,
+      "major_mismatch_definition": "abs(reconstructed - official) exceeds the per-statistic MAJOR_MISMATCH_THRESHOLDS in this script (e.g. >2 plays, >10 yards, >1 turnover) -- not an arbitrary tolerance band used to hide small noise, but a threshold for what counts as a materially wrong number rather than off-by-one counting noise.",
+      "major_mismatch_pct": 0.5895522388059702,
+      "team_games": 670
+    }
+  },
+  "reconstructability": {
+    "completions": {
+      "class": "EXACTLY_RECONSTRUCTABLE",
+      "reason": "Completions are convention-independent: PASS_COMPLETION/PASS_TD records never move between rush/pass buckets."
+    },
+    "fourth_down_attempts": {
+      "class": "APPROXIMATELY_RECONSTRUCTABLE",
+      "reason": "Same as third_down_attempts."
+    },
+    "fourth_down_conversions": {
+      "class": "APPROXIMATELY_RECONSTRUCTABLE",
+      "reason": "Same as third_down_conversions."
+    },
+    "fumbles_lost": {
+      "class": "RECONSTRUCTABLE_WITH_RULES",
+      "reason": "Same drive-level dependency as turnovers; also the hardest-to-attribute NCAA stat historically."
+    },
+    "interceptions": {
+      "class": "RECONSTRUCTABLE_WITH_RULES",
+      "reason": "Same drive-level dependency as turnovers."
+    },
+    "net_pass_yards": {
+      "class": "RECONSTRUCTABLE_WITH_RULES",
+      "reason": "Same convention dependency as pass_attempts."
+    },
+    "pass_attempts": {
+      "class": "RECONSTRUCTABLE_WITH_RULES",
+      "reason": "Same convention dependency as rush_attempts; interceptions thrown count as attempts, two-point passes are excluded."
+    },
+    "points": {
+      "class": "EXACTLY_RECONSTRUCTABLE",
+      "reason": "Final offense/defenseScore on the chronologically last play is a direct passthrough of CFBD's own running score; not derived from our taxonomy at all."
+    },
+    "rush_attempts": {
+      "class": "RECONSTRUCTABLE_WITH_RULES",
+      "reason": "Exact match requires picking the correct sack-attribution convention (see CONVENTION_RESULT in summary.json); ambiguous PASS_UNSPECIFIED and two-point plays are excluded by rule."
+    },
+    "rush_yards": {
+      "class": "RECONSTRUCTABLE_WITH_RULES",
+      "reason": "Same convention dependency as rush_attempts."
+    },
+    "third_down_attempts": {
+      "class": "APPROXIMATELY_RECONSTRUCTABLE",
+      "reason": "Down==3 offensive scrimmage snap count; excludes no-play penalty snaps by rule but cannot distinguish a defensive-penalty automatic-first-down non-snap from a real attempt in all cases."
+    },
+    "third_down_conversions": {
+      "class": "APPROXIMATELY_RECONSTRUCTABLE",
+      "reason": "Structural yards>=distance-or-touchdown heuristic; prior repo research (first_down_generation_final_residual_forensics.py) already found unexplained reset/generation residuals in this exact signal, so this is a known-imperfect proxy, not a locked definition."
+    },
+    "total_plays": {
+      "class": "EXACTLY_RECONSTRUCTABLE",
+      "reason": "rush_plays + pass_attempts(excl. sack or incl. sack, whichever bucket) + sacks always sums to the same offensive-snap count regardless of which convention is used for the rush/pass split -- convention-independent."
+    },
+    "total_yards": {
+      "class": "EXACTLY_RECONSTRUCTABLE",
+      "reason": "Sack yardage moves between the rushing and passing bucket depending on convention, but total offensive yardage does not change -- convention-independent."
+    },
+    "turnovers": {
+      "class": "RECONSTRUCTABLE_WITH_RULES",
+      "reason": "Requires the validated drive-level turnover classifier (turnovers-v1) rather than naive per-play interception/fumble counting, because CFBD sometimes records a turnover-and-return as a separate non-possession drive group."
+    }
+  },
+  "rootCauseFrequency": {
+    "canonical": {
+      "accepted_or_declined_penalty": {
+        "mismatches": 186,
+        "team_games_affected": 60
+      },
+      "duplicate_plays": {
+        "mismatches": 371,
+        "team_games_affected": 73
+      },
+      "fumble_or_safety_swallows_scrimmage_type": {
+        "mismatches": 1046,
+        "team_games_affected": 272
+      },
+      "kneel_accounting": {
+        "mismatches": 470,
+        "team_games_affected": 179
+      },
+      "no_play_penalty": {
+        "mismatches": 788,
+        "team_games_affected": 273
+      },
+      "sack_accounting": {
+        "mismatches": 864,
+        "team_games_affected": 203
+      },
+      "safety_accounting": {
+        "mismatches": 65,
+        "team_games_affected": 14
+      },
+      "spike_accounting": {
+        "mismatches": 24,
+        "team_games_affected": 10
+      }
+    },
+    "raw": {
+      "accepted_or_declined_penalty": {
+        "mismatches": 183,
+        "team_games_affected": 60
+      },
+      "duplicate_plays": {
+        "mismatches": 393,
+        "team_games_affected": 74
+      },
+      "fumble_or_safety_swallows_scrimmage_type": {
+        "mismatches": 1462,
+        "team_games_affected": 324
+      },
+      "kneel_accounting": {
+        "mismatches": 464,
+        "team_games_affected": 172
+      },
+      "no_play_penalty": {
+        "mismatches": 799,
+        "team_games_affected": 272
+      },
+      "sack_accounting": {
+        "mismatches": 873,
+        "team_games_affected": 205
+      },
+      "safety_accounting": {
+        "mismatches": 65,
+        "team_games_affected": 14
+      },
+      "spike_accounting": {
+        "mismatches": 25,
+        "team_games_affected": 10
+      }
+    }
+  },
+  "sackConvention": {
+    "net_pass_yards": {
+      "scores": {
+        "sackAsPass": {
+          "matches": 78,
+          "rate": 0.11641791044776119,
+          "total": 670
+        },
+        "sackAsRush": {
+          "matches": 356,
+          "rate": 0.5313432835820896,
+          "total": 670
+        }
+      },
+      "winner": "sackAsRush"
+    },
+    "pass_attempts": {
+      "scores": {
+        "sackAsPass": {
+          "matches": 125,
+          "rate": 0.1865671641791045,
+          "total": 670
+        },
+        "sackAsRush": {
+          "matches": 280,
+          "rate": 0.417910447761194,
+          "total": 670
+        }
+      },
+      "winner": "sackAsRush"
+    },
+    "rush_attempts": {
+      "scores": {
+        "sackAsPass": {
+          "matches": 72,
+          "rate": 0.10746268656716418,
+          "total": 670
+        },
+        "sackAsRush": {
+          "matches": 352,
+          "rate": 0.5253731343283582,
+          "total": 670
+        }
+      },
+      "winner": "sackAsRush"
+    },
+    "rush_yards": {
+      "scores": {
+        "sackAsPass": {
+          "matches": 65,
+          "rate": 0.09701492537313433,
+          "total": 670
+        },
+        "sackAsRush": {
+          "matches": 257,
+          "rate": 0.3835820895522388,
+          "total": 670
+        }
+      },
+      "winner": "sackAsRush"
+    }
+  },
+  "season": 2025,
+  "statistics": {
+    "canonical": {
+      "completions": {
+        "comparisons": 670,
+        "exact_match_rate": 0.7671641791044777,
+        "exact_matches": 514,
+        "max_abs_diff": 17,
+        "mean_abs_error": 0.4835820895522388,
+        "mean_signed_error": 0.029850746268656716,
+        "median_abs_error": 0.0,
+        "mismatches": 156,
+        "p95_abs_error": 2
+      },
+      "fourth_down_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.835820895522388,
+        "exact_matches": 560,
+        "max_abs_diff": 2,
+        "mean_abs_error": 0.17761194029850746,
+        "mean_signed_error": -0.004477611940298508,
+        "median_abs_error": 0.0,
+        "mismatches": 110,
+        "p95_abs_error": 1
+      },
+      "fourth_down_conversions": {
+        "comparisons": 670,
+        "exact_match_rate": 0.9671641791044776,
+        "exact_matches": 648,
+        "max_abs_diff": 2,
+        "mean_abs_error": 0.034328358208955224,
+        "mean_signed_error": 0.0014925373134328358,
+        "median_abs_error": 0.0,
+        "mismatches": 22,
+        "p95_abs_error": 0
+      },
+      "fumbles_lost": {
+        "comparisons": 670,
+        "exact_match_rate": 0.6895522388059702,
+        "exact_matches": 462,
+        "max_abs_diff": 3,
+        "mean_abs_error": 0.3582089552238806,
+        "mean_signed_error": -0.2835820895522388,
+        "median_abs_error": 0.0,
+        "mismatches": 208,
+        "p95_abs_error": 1
+      },
+      "interceptions": {
+        "comparisons": 670,
+        "exact_match_rate": 0.755223880597015,
+        "exact_matches": 506,
+        "max_abs_diff": 4,
+        "mean_abs_error": 0.2880597014925373,
+        "mean_signed_error": -0.20746268656716418,
+        "median_abs_error": 0.0,
+        "mismatches": 164,
+        "p95_abs_error": 1
+      },
+      "net_pass_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5313432835820896,
+        "exact_matches": 356,
+        "max_abs_diff": 270.0,
+        "mean_abs_error": 9.317910447761195,
+        "mean_signed_error": 3.0223880597014925,
+        "median_abs_error": 0.0,
+        "mismatches": 314,
+        "p95_abs_error": 42.0
+      },
+      "pass_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.417910447761194,
+        "exact_matches": 280,
+        "max_abs_diff": 24,
+        "mean_abs_error": 1.2149253731343284,
+        "mean_signed_error": -0.3940298507462687,
+        "median_abs_error": 1.0,
+        "mismatches": 390,
+        "p95_abs_error": 4
+      },
+      "points": {
+        "comparisons": 670,
+        "exact_match_rate": 0.9686567164179104,
+        "exact_matches": 649,
+        "max_abs_diff": 21,
+        "mean_abs_error": 0.21044776119402986,
+        "mean_signed_error": -0.09104477611940298,
+        "median_abs_error": 0.0,
+        "mismatches": 21,
+        "p95_abs_error": 0
+      },
+      "rush_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5253731343283582,
+        "exact_matches": 352,
+        "max_abs_diff": 20,
+        "mean_abs_error": 1.0805970149253732,
+        "mean_signed_error": -0.1044776119402985,
+        "median_abs_error": 0.0,
+        "mismatches": 318,
+        "p95_abs_error": 4
+      },
+      "rush_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.3835820895522388,
+        "exact_matches": 257,
+        "max_abs_diff": 124.0,
+        "mean_abs_error": 7.877611940298507,
+        "mean_signed_error": 0.7940298507462686,
+        "median_abs_error": 2.5,
+        "mismatches": 413,
+        "p95_abs_error": 33.0
+      },
+      "third_down_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5373134328358209,
+        "exact_matches": 360,
+        "max_abs_diff": 12,
+        "mean_abs_error": 0.735820895522388,
+        "mean_signed_error": -0.34776119402985073,
+        "median_abs_error": 0.0,
+        "mismatches": 310,
+        "p95_abs_error": 3
+      },
+      "third_down_conversions": {
+        "comparisons": 670,
+        "exact_match_rate": 0.835820895522388,
+        "exact_matches": 560,
+        "max_abs_diff": 7,
+        "mean_abs_error": 0.2253731343283582,
+        "mean_signed_error": 0.058208955223880594,
+        "median_abs_error": 0.0,
+        "mismatches": 110,
+        "p95_abs_error": 1
+      },
+      "total_plays": {
+        "comparisons": 670,
+        "exact_match_rate": 0.29850746268656714,
+        "exact_matches": 200,
+        "max_abs_diff": 38,
+        "mean_abs_error": 2.1164179104477614,
+        "mean_signed_error": -0.49850746268656715,
+        "median_abs_error": 1.0,
+        "mismatches": 470,
+        "p95_abs_error": 7
+      },
+      "total_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.26865671641791045,
+        "exact_matches": 180,
+        "max_abs_diff": 321.0,
+        "mean_abs_error": 14.92089552238806,
+        "mean_signed_error": 3.819402985074627,
+        "median_abs_error": 6.0,
+        "mismatches": 490,
+        "p95_abs_error": 54.0
+      },
+      "turnovers": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5253731343283582,
+        "exact_matches": 352,
+        "max_abs_diff": 4,
+        "mean_abs_error": 0.6223880597014926,
+        "mean_signed_error": -0.491044776119403,
+        "median_abs_error": 0.0,
+        "mismatches": 318,
+        "p95_abs_error": 2
+      }
+    },
+    "raw": {
+      "completions": {
+        "comparisons": 670,
+        "exact_match_rate": 0.6835820895522388,
+        "exact_matches": 458,
+        "max_abs_diff": 17,
+        "mean_abs_error": 0.5925373134328358,
+        "mean_signed_error": -0.10298507462686567,
+        "median_abs_error": 0.0,
+        "mismatches": 212,
+        "p95_abs_error": 2
+      },
+      "fourth_down_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.835820895522388,
+        "exact_matches": 560,
+        "max_abs_diff": 2,
+        "mean_abs_error": 0.17761194029850746,
+        "mean_signed_error": -0.004477611940298508,
+        "median_abs_error": 0.0,
+        "mismatches": 110,
+        "p95_abs_error": 1
+      },
+      "fourth_down_conversions": {
+        "comparisons": 670,
+        "exact_match_rate": 0.9671641791044776,
+        "exact_matches": 648,
+        "max_abs_diff": 2,
+        "mean_abs_error": 0.034328358208955224,
+        "mean_signed_error": 0.0014925373134328358,
+        "median_abs_error": 0.0,
+        "mismatches": 22,
+        "p95_abs_error": 0
+      },
+      "fumbles_lost": {
+        "comparisons": 670,
+        "exact_match_rate": 0.7044776119402985,
+        "exact_matches": 472,
+        "max_abs_diff": 3,
+        "mean_abs_error": 0.34626865671641793,
+        "mean_signed_error": -0.32238805970149254,
+        "median_abs_error": 0.0,
+        "mismatches": 198,
+        "p95_abs_error": 1
+      },
+      "interceptions": {
+        "comparisons": 670,
+        "exact_match_rate": 0.7835820895522388,
+        "exact_matches": 525,
+        "max_abs_diff": 4,
+        "mean_abs_error": 0.25970149253731345,
+        "mean_signed_error": -0.24776119402985075,
+        "median_abs_error": 0.0,
+        "mismatches": 145,
+        "p95_abs_error": 1
+      },
+      "net_pass_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.48507462686567165,
+        "exact_matches": 325,
+        "max_abs_diff": 270.0,
+        "mean_abs_error": 10.311940298507462,
+        "mean_signed_error": 1.0791044776119403,
+        "median_abs_error": 1.5,
+        "mismatches": 345,
+        "p95_abs_error": 45.0
+      },
+      "pass_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.3925373134328358,
+        "exact_matches": 263,
+        "max_abs_diff": 24,
+        "mean_abs_error": 1.3149253731343284,
+        "mean_signed_error": -0.5268656716417911,
+        "median_abs_error": 1.0,
+        "mismatches": 407,
+        "p95_abs_error": 4
+      },
+      "points": {
+        "comparisons": 670,
+        "exact_match_rate": 0.9686567164179104,
+        "exact_matches": 649,
+        "max_abs_diff": 21,
+        "mean_abs_error": 0.21044776119402986,
+        "mean_signed_error": -0.09104477611940298,
+        "median_abs_error": 0.0,
+        "mismatches": 21,
+        "p95_abs_error": 0
+      },
+      "rush_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.3492537313432836,
+        "exact_matches": 234,
+        "max_abs_diff": 20,
+        "mean_abs_error": 1.4074626865671642,
+        "mean_signed_error": -0.5059701492537313,
+        "median_abs_error": 1.0,
+        "mismatches": 436,
+        "p95_abs_error": 4
+      },
+      "rush_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.2298507462686567,
+        "exact_matches": 154,
+        "max_abs_diff": 124.0,
+        "mean_abs_error": 9.473134328358208,
+        "mean_signed_error": 1.8492537313432835,
+        "median_abs_error": 5.0,
+        "mismatches": 516,
+        "p95_abs_error": 33.0
+      },
+      "third_down_attempts": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5373134328358209,
+        "exact_matches": 360,
+        "max_abs_diff": 12,
+        "mean_abs_error": 0.735820895522388,
+        "mean_signed_error": -0.34776119402985073,
+        "median_abs_error": 0.0,
+        "mismatches": 310,
+        "p95_abs_error": 3
+      },
+      "third_down_conversions": {
+        "comparisons": 670,
+        "exact_match_rate": 0.8343283582089552,
+        "exact_matches": 559,
+        "max_abs_diff": 7,
+        "mean_abs_error": 0.22686567164179106,
+        "mean_signed_error": 0.05970149253731343,
+        "median_abs_error": 0.0,
+        "mismatches": 111,
+        "p95_abs_error": 1
+      },
+      "total_plays": {
+        "comparisons": 670,
+        "exact_match_rate": 0.1791044776119403,
+        "exact_matches": 120,
+        "max_abs_diff": 38,
+        "mean_abs_error": 2.537313432835821,
+        "mean_signed_error": -1.0328358208955224,
+        "median_abs_error": 2.0,
+        "mismatches": 550,
+        "p95_abs_error": 7
+      },
+      "total_yards": {
+        "comparisons": 670,
+        "exact_match_rate": 0.1328358208955224,
+        "exact_matches": 89,
+        "max_abs_diff": 335.0,
+        "mean_abs_error": 17.035820895522388,
+        "mean_signed_error": 2.9313432835820894,
+        "median_abs_error": 9.0,
+        "mismatches": 581,
+        "p95_abs_error": 64.0
+      },
+      "turnovers": {
+        "comparisons": 670,
+        "exact_match_rate": 0.5522388059701493,
+        "exact_matches": 370,
+        "max_abs_diff": 4,
+        "mean_abs_error": 0.6,
+        "mean_signed_error": -0.5701492537313433,
+        "median_abs_error": 0.0,
+        "mismatches": 300,
+        "p95_abs_error": 2
+      }
+    }
+  },
+  "tag": "sanity",
+  "teamGamesTotal": 670,
+  "teamGamesWithBoxScore": 670,
+  "teamGamesWithoutBoxScore": 0,
+  "unknownRootCausePct": {
+    "canonical": 0.0,
+    "raw": 0.0
+  }
+}
