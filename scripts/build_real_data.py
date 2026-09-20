@@ -11,41 +11,128 @@ from cfb_analytics.derived.games import metric_fields_by_team_game
 
 REPO = Path(__file__).resolve().parent.parent
 
-# Strength of Record (SOR) -- "wins above an average team on this exact
-# schedule," fully decoupled from the team's own rating so it can't just
-# recreate AdjEM.
+# ============================================================================
+# LEGACY SRS-based SOS/SOR (v1) -- SUPERSEDED for the homepage Ratings page,
+# see SOS_VERSION/SOR_VERSION (v2) below. LEGACY_SOR_VERSION,
+# calibrate_fcs_baseline(), and FCS_BASELINE_MIN_GAMES are kept, unused by
+# v2, only because tests/test_publication.py exercises
+# calibrate_fcs_baseline() directly as a unit and nothing else in this
+# file's docstring/legacy-SRS surface depends on removing them.
+# `srs_ratings`/`srs_fit`/`fit_srs` themselves are NOT legacy -- they still
+# back the published `cff` and `asm` fields on the Advanced page and the
+# legacy-mode AdjNet rollback contract; only the homepage's SOS/SOR stopped
+# consuming them.
 #
-# For each game a team played, take the OPPONENT's real pregame walk-forward
-# SRS rating (homeSrs/awaySrs from the locked srs-v2 iterative model, already
-# used for SOS) and that week's SRS fit residual (srsFitRmse, already
-# computed, just not previously consumed downstream). Since SRS is literally
-# on a point-margin scale (rating(home) - rating(away) = predicted margin)
-# and is zero-centered by construction, plugging in a rating of 0 for "this
-# team" gives the probability that an exactly-average FBS team would have
-# won that specific game:
-#
-#     p_ref = ncdf(-opponent_srs / srsFitRmse)
-#
-# (home/away drops out of the formula once the team's own rating is set to
-# 0). Sum p_ref across a team's real schedule for "expected wins," sum
-# actual wins over the same games, and SOR = actual wins - expected wins.
-# Positive means the record is better than an average team would produce
-# against that schedule; negative means worse. Games before any SRS fit
-# exists (no srsFitRmse yet) are excluded from both sums, matching how
-# early-season SOS/CFF stay null.
-SOR_VERSION = "sor-v1-wins-above-average"
+# The v1 approach: for each game, take the OPPONENT's SRS rating from a
+# nearly-unregularized simultaneous least-squares fit (as many identifiable
+# team effects as games early in a season) and that week's IN-SAMPLE fit
+# RMSE as the win-probability sigma. Early in a season this SRS fit nearly
+# interpolates results (e.g. real 2026 wk-2 values like California +64.5,
+# UTEP -54.9), and dividing by an in-sample RMSE of ~5 points collapses win
+# probabilities toward 0%/100% -- producing SOS/SOR values with no
+# statistical meaning (see docs/sos_sor_v2_methodology.md for the full
+# failure-mode writeup and the audit that replaced it).
+LEGACY_SOR_VERSION = "sor-v1-wins-above-average"
 
-# Generic FCS opponent strength for SOS/SOR -- not a per-team FCS rating (no
-# FCS team ever enters the core FBS rating graph; see the metric_history/
-# srs_games_by_id guard below), just a single scalar "how good is a typical
-# FCS opponent" on the same SRS point-margin scale (0 = average FBS team).
-# Recalibrated fresh every site-week from that week's own games: solve for
-# the constant fcs_baseline such that, averaged across every FBS-vs-FCS
-# result played so far this season, "fbs_srs - fcs_baseline" reproduces the
-# FBS team's real margin. Requires at least this many graded results
-# league-wide before trusting the average -- below that, FCS games are
-# excluded from SOS/SOR exactly like any other not-enough-data-yet case.
 FCS_BASELINE_MIN_GAMES = 10
+
+# ============================================================================
+# SOS/SOR v2 -- the homepage Ratings page's production methodology.
+# Full writeup, calibration methodology, and old-vs-new audit:
+# docs/sos_sor_v2_methodology.md. Summary:
+#
+# SOS(team, week) = mean(opponent AdjNet) over every game played through
+# that site-week, using the SAME walk-forward `composite["AdjNet"]` snapshot
+# already computed for the published Off/Def/Net APR at that week (no new
+# rating system, no location adjustment -- opponent quality doesn't depend
+# on where the game was played).
+#
+# SOR(team, week) = actual_wins - sum(P(an average FBS team wins game_i))
+# where, for each game, an "average FBS team" (AdjNet = 0) faces the same
+# opponent at the same location:
+#     expected_margin_i = -opponent_AdjNet_i + SOR_HFA_POINTS * location_i
+#     P(win_i) = 1 / (1 + exp(-expected_margin_i / SOR_SCALE))
+# location_i is +1/-1/0 for home/away/neutral from the rated team's
+# perspective. Margin of victory never enters SOR -- only the win/loss
+# indicator and the opponent's AdjNet at the time of the SOS/SOR snapshot.
+#
+# SOR_SCALE and SOR_HFA_POINTS are frozen constants from
+# scripts/calibrate_sos_sor.py: a 2-parameter logistic MLE fit on real
+# 2022-2025 FBS-vs-FBS games, using each team's AdjNet from the PREVIOUS
+# site-week's walk-forward snapshot (pregame-safe -- the same-week snapshot
+# already contains that game's own result) as the predictor, validated
+# out-of-sample (fit on 2022-2024, evaluated on held-out 2025) before being
+# refit on all four seasons for the shipped constant. Re-run that script and
+# update these two constants for a deliberate, infrequent recalibration --
+# they do not refit automatically on every build.
+SOS_VERSION = "sos-v2-prime-opponent-average"
+SOR_VERSION = "sor-v2-prime-wins-above-average"
+# Fit by scripts/calibrate_sos_sor.py on real 2022-2025 FBS-vs-FBS games
+# (2,846 game-observations, both team perspectives = 5,696 training rows).
+# Out-of-sample validation (fit on 2022-2024, evaluated on held-out 2025):
+# logLoss=0.5699, Brier=0.1945, decile calibration tracked observed win rates
+# closely (e.g. predicted 0.117 vs observed 0.097; predicted 0.883 vs
+# observed 0.903 -- see data/models/sos_sor_calibration.json for the full
+# table). Refit on all four seasons combined for these shipped constants.
+SOR_SCALE = 8.7999
+SOR_HFA_POINTS = 3.0793
+
+# Generic FCS opponent strength for SOS/SOR v2, on the SAME AdjNet scale and
+# through the SAME win-probability model as SOR_SCALE/SOR_HFA_POINTS above
+# (not a raw point-margin regression against AdjNet, which would be a units
+# mismatch -- AdjNet is points per 10 resolved possessions, not a full-game
+# point margin). Calibrated once, historically, across all FBS-vs-FCS games
+# in 2022-2025 (a 1-parameter logistic MLE holding SOR_SCALE/SOR_HFA_POINTS
+# fixed -- see calibrate_sos_sor.py::fit_fcs_baseline) and frozen here rather
+# than recalibrated from the current season's still-thin FBS-vs-FCS sample,
+# which is exactly what made the v1 FCS baseline unstable early in a season.
+# 1-parameter logistic MLE (SOR_SCALE/SOR_HFA_POINTS held fixed) over 227
+# real FBS-vs-FCS games, 2022-2024 (2025 had no FBS-vs-FCS game land on a
+# resolvable pregame snapshot in this walk-forward cut). Empirical FBS win
+# rate in that sample: 93.0%.
+SOR_FCS_BASELINE = -23.7996
+
+
+def _sor_win_probability(opponent_adj_net, location):
+    """P(an exactly-average FBS team, AdjNet=0, wins this game) -- see
+    SOS/SOR v2 above. `location` is +1 home / -1 away / 0 neutral from the
+    hypothetical average team's perspective (i.e. the real team's own
+    perspective, since a neutral rating swap doesn't change which side of
+    the game they're on)."""
+    expected_margin = -opponent_adj_net + SOR_HFA_POINTS * location
+    return 1.0 / (1.0 + math.exp(-expected_margin / SOR_SCALE))
+
+
+def compute_sos_sor(games, composite):
+    """SOS/SOR v2 for one team, given its (opponent, won, is_fbs_opp,
+    location) game log and the current site-week's `composite` fit
+    ({"AdjOff": {...}, "AdjDef": {...}}). Returns (sos_raw, sor_raw,
+    sor_expected_raw), all full precision (None if no games resolved).
+
+    SOS = mean opponent AdjNet (location-blind by design -- opponent
+    quality doesn't depend on where the game was played). SOR = actual wins
+    minus the sum of P(an average FBS team wins), which DOES use location
+    via _sor_win_probability. Margin of victory never enters either --  only
+    the win/loss indicator and the opponent's AdjNet."""
+    sos_sum = sos_count = 0.0
+    sor_actual = sor_expected = sor_games = 0.0
+    for opponent, won, is_fbs_opp, location in games:
+        if is_fbs_opp:
+            opp_off, opp_def = composite["AdjOff"].get(opponent), composite["AdjDef"].get(opponent)
+            opp_adj_net = opp_off + opp_def if num(opp_off) and num(opp_def) else None
+        else:
+            opp_adj_net = SOR_FCS_BASELINE
+        if not num(opp_adj_net):
+            continue
+        sos_sum += opp_adj_net
+        sos_count += 1
+        sor_expected += _sor_win_probability(opp_adj_net, location)
+        sor_actual += 1 if won else 0
+        sor_games += 1
+    sos_raw = sos_sum / sos_count if sos_count else None
+    sor_raw = (sor_actual - sor_expected) if sor_games else None
+    sor_expected_raw = sor_expected if sor_games else None
+    return sos_raw, sor_raw, sor_expected_raw
 
 # ASM ("Adjusted Score Matrix") -- the site's own published margin-based
 # rating, run alongside AdjOff/AdjDef/AdjNet on the Advanced page. Same
@@ -519,7 +606,12 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
     # core rating graph.
     fcs_games_log = []
 
-    for wk in weeks_present:
+    import os, time as _time
+    _progress = bool(os.environ.get("BUILD_PROGRESS"))
+    _t0 = _time.time()
+    for _i, wk in enumerate(weeks_present):
+        if _progress:
+            print(f"[build_year {year}] site-week {wk} ({_i + 1}/{len(weeks_present)}) elapsed {_time.time() - _t0:.0f}s", flush=True)
         # Per-week-only (not cumulative) raw counts, so the client can sum an
         # arbitrary [start,end] range correctly. Model-based (schedule-adjusted)
         # values below are NOT summable this way -- they're single fitted
@@ -714,8 +806,12 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
                     wr["opponentSrsCount"] += 1
 
             # The ratings page's cumulative SOS/SOR are resolved below, once
-            # per site-week, against every game logged here.
-            team_game_log[name].append((row.get("opponent"), bool(row.get("win", 0)), is_fbs_opponent))
+            # per site-week, against every game logged here. `location` is
+            # from `name`'s own perspective: +1 home, -1 away, 0 neutral --
+            # SOR is location-aware (see SOR_HFA_POINTS); SOS deliberately
+            # ignores it (opponent quality doesn't depend on where they played).
+            location = 0 if row.get("neutral_site") else (1 if row.get("home_away") == "home" else -1)
+            team_game_log[name].append((row.get("opponent"), bool(row.get("win", 0)), is_fbs_opponent, location))
 
         # League-wide re-solve using every game played through this site-week
         # (see the comment above the loop). One fit_srs + one fit_all_ratings
@@ -777,18 +873,10 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
             cff = srs_ratings.get(name)
             asm = asm_ratings.get(name)
 
-            srs_sum = srs_count = 0.0
-            sor_actual = sor_expected = sor_games = 0.0
-            if well_determined:
-                for opponent, won, is_fbs_opp in team_game_log[name]:
-                    opp_srs = srs_ratings.get(opponent) if is_fbs_opp else fcs_baseline
-                    if not num(opp_srs):
-                        continue
-                    srs_sum += opp_srs
-                    srs_count += 1
-                    sor_expected += _ncdf(-opp_srs / sigma)
-                    sor_actual += 1 if won else 0
-                    sor_games += 1
+            # SOS/SOR v2 (see the SOS_VERSION/SOR_VERSION block above).
+            # `composite` is None in legacy mode (no AdjNet exists to anchor
+            # SOS/SOR to), matching adj_off/adj_def/adj_net's own None there.
+            sos_raw, sor_raw, sor_expected_raw = compute_sos_sor(team_game_log[name], composite) if composite else (None, None, None)
             # Only the blended/adjusted value is a snapshot field here -- the
             # matching raw rate is already summable client-side from wk[...]
             # (via _accumulate_epa_success_splits above), exactly like every
@@ -832,9 +920,11 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
                 "cff": round(cff, 2) if num(cff) else None,
                 "asm": round(asm, 2) if num(asm) else None,
                 "adjOff": adj_off, "adjDef": adj_def, "adjNet": adj_net,
-                "sos": round(srs_sum / srs_count, 2) if srs_count else None,
-                "sor": round(sor_actual - sor_expected, 2) if sor_games else None,
-                "sorExpectedWins": round(sor_expected, 2) if sor_games else None,
+                # Full precision -- compile_site_data.py ranks on these exact
+                # values, then rounds only when building the published rows.
+                "sos": sos_raw,
+                "sor": sor_raw,
+                "sorExpectedWins": sor_expected_raw,
                 "fieldPos": round(field_pos, 2) if num(field_pos) else None,
                 "pace": round(acc["offPlaysTotal"] / acc["gamesPlayed"], 1),
                 "off": round(off_ypp, 2) if num(off_ypp) else None,

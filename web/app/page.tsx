@@ -27,8 +27,8 @@ const COLUMNS: Column[] = [
   { key: "adjEM", label: "Net APR", numeric: true, defaultDir: "desc", primary: true, tooltip: "Overall opponent-adjusted possession-efficiency rating. Net APR = Off APR + Def APR, expressed as points per 10 resolved possessions above or below the FBS average." },
   { key: "adjO", label: "Off APR", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive points per resolved possession, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
   { key: "adjD", label: "Def APR", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted points per resolved possession prevented, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
-  { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Strength of schedule: average SRS strength of opponents played through the selected week." },
-  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Strength of record: wins above what an exactly-average FBS team would be expected to get on this same schedule. A résumé measure (won/lost), not a performance measure like Net APR. Higher is better." },
+  { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Average PRIME rating (Net APR) of opponents played through the selected week. Higher means a tougher schedule." },
+  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Wins above what an average FBS team would be expected to achieve against the same opponents and game locations. A résumé measure (won/lost), not a performance measure like Net APR. Higher is better." },
 ];
 
 function na(v: unknown): v is null | undefined {
@@ -346,8 +346,8 @@ export default function RatingsPage() {
           <div><strong>Off APR</strong><span>Opponent-adjusted offensive points per resolved possession, expressed per 10 resolved possessions above or below FBS average.</span></div>
           <div><strong>Def APR</strong><span>Opponent-adjusted points prevented per resolved possession, expressed per 10 resolved possessions above or below FBS average. Higher is better.</span></div>
           <div><strong>Resolved possession</strong><span>A possession with a usable offensive scoring outcome in the rating model. APR uses offensive drive points rather than defensive or special-teams scores.</span></div>
-          <div><strong>SOS</strong><span>Strength of Schedule — the strength of opponents played through the selected snapshot.</span></div>
-          <div><strong>SOR</strong><span>Strength of Record — wins above what an average FBS team would be expected to earn against the same schedule.</span></div>
+          <div><strong>SOS</strong><span>Strength of Schedule — average PRIME rating of opponents played through the selected week. Higher means a tougher schedule.</span></div>
+          <div><strong>SOR</strong><span>Strength of Record — wins above what an average FBS team would be expected to achieve against the same opponents and game locations.</span></div>
         </div>
         <Link className="utility-link" href="/methodology">Full methodology ↗</Link>
       </section>

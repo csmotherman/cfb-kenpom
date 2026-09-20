@@ -100,8 +100,15 @@ def build_season_payload(year, rating_model):
         assign_rank(rows, source["adjEM"], "rank")
         assign_rank(rows, source["adjO"], "adjORank")
         assign_rank(rows, source["adjD"], "adjDRank", reverse=True)
+        # SOS/SOR v2: build_year() emits these full precision specifically so
+        # ranking happens before rounding (v1's bug: many teams rounded to an
+        # identical 0.00 SOR still received different ranks from array
+        # order). Round only below, once ranks are already fixed.
         assign_rank(rows, "sos", "sosRank")
         assign_rank(rows, "sor", "sorRank")
+        for r in rows:
+            r["sos"] = round(r["sos"], 2) if r["sos"] is not None else None
+            r["sor"] = round(r["sor"], 2) if r["sor"] is not None else None
 
         main_rows = []
         adv_rows = []
