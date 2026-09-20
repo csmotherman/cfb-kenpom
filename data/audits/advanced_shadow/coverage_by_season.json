@@ -1,0 +1,211 @@
+{
+ "2014": {
+  "games": 868,
+  "teamGames": 1736,
+  "boxAvailable": 1734,
+  "advancedStatsAvailable": 1698,
+  "boxAndAdvanced": 1698,
+  "missingField": {
+   "plays": 38,
+   "drives": 38,
+   "successfulPlays": 38,
+   "epaSum": 38,
+   "rushPlays": 45,
+   "passPlays": 45,
+   "totalYards": 2,
+   "turnovers": 2,
+   "lineYardsTotal": 38,
+   "havocProxyEvents": 1736
+  }
+ },
+ "2015": {
+  "games": 870,
+  "teamGames": 1740,
+  "boxAvailable": 1740,
+  "advancedStatsAvailable": 1726,
+  "boxAndAdvanced": 1726,
+  "missingField": {
+   "plays": 14,
+   "drives": 14,
+   "successfulPlays": 14,
+   "epaSum": 14,
+   "rushPlays": 21,
+   "passPlays": 21,
+   "totalYards": 0,
+   "turnovers": 0,
+   "lineYardsTotal": 14,
+   "havocProxyEvents": 1740
+  }
+ },
+ "2016": {
+  "games": 873,
+  "teamGames": 1746,
+  "boxAvailable": 1744,
+  "advancedStatsAvailable": 1714,
+  "boxAndAdvanced": 1714,
+  "missingField": {
+   "plays": 32,
+   "drives": 32,
+   "successfulPlays": 32,
+   "epaSum": 32,
+   "rushPlays": 40,
+   "passPlays": 40,
+   "totalYards": 2,
+   "turnovers": 2,
+   "lineYardsTotal": 32,
+   "havocProxyEvents": 3
+  }
+ },
+ "2017": {
+  "games": 874,
+  "teamGames": 1748,
+  "boxAvailable": 1748,
+  "advancedStatsAvailable": 1738,
+  "boxAndAdvanced": 1738,
+  "missingField": {
+   "plays": 10,
+   "drives": 10,
+   "successfulPlays": 10,
+   "epaSum": 10,
+   "rushPlays": 12,
+   "passPlays": 12,
+   "totalYards": 0,
+   "turnovers": 0,
+   "lineYardsTotal": 10,
+   "havocProxyEvents": 11
+  }
+ },
+ "2018": {
+  "games": 884,
+  "teamGames": 1768,
+  "boxAvailable": 1768,
+  "advancedStatsAvailable": 1762,
+  "boxAndAdvanced": 1762,
+  "missingField": {
+   "plays": 6,
+   "drives": 6,
+   "successfulPlays": 6,
+   "epaSum": 6,
+   "rushPlays": 13,
+   "passPlays": 13,
+   "totalYards": 0,
+   "turnovers": 0,
+   "lineYardsTotal": 6,
+   "havocProxyEvents": 52
+  }
+ },
+ "2019": {
+  "games": 888,
+  "teamGames": 1776,
+  "boxAvailable": 1776,
+  "advancedStatsAvailable": 1774,
+  "boxAndAdvanced": 1774,
+  "missingField": {
+   "plays": 2,
+   "drives": 2,
+   "successfulPlays": 2,
+   "epaSum": 2,
+   "rushPlays": 8,
+   "passPlays": 8,
+   "totalYards": 0,
+   "turnovers": 0,
+   "lineYardsTotal": 2,
+   "havocProxyEvents": 0
+  }
+ },
+ "2021": {
+  "games": 887,
+  "teamGames": 1774,
+  "boxAvailable": 1774,
+  "advancedStatsAvailable": 1774,
+  "boxAndAdvanced": 1774,
+  "missingField": {
+   "plays": 0,
+   "drives": 0,
+   "successfulPlays": 0,
+   "epaSum": 0,
+   "rushPlays": 5,
+   "passPlays": 5,
+   "totalYards": 0,
+   "turnovers": 0,
+   "lineYardsTotal": 0,
+   "havocProxyEvents": 4
+  }
+ },
+ "2022": {
+  "games": 896,
+  "teamGames": 1792,
+  "boxAvailable": 1792,
+  "advancedStatsAvailable": 1792,
+  "boxAndAdvanced": 1792,
+  "missingField": {
+   "plays": 0,
+   "drives": 0,
+   "successfulPlays": 0,
+   "epaSum": 0,
+   "rushPlays": 2,
+   "passPlays": 2,
+   "totalYards": 2,
+   "turnovers": 2,
+   "lineYardsTotal": 0,
+   "havocProxyEvents": 27
+  }
+ },
+ "2023": {
+  "games": 910,
+  "teamGames": 1820,
+  "boxAvailable": 1820,
+  "advancedStatsAvailable": 1820,
+  "boxAndAdvanced": 1820,
+  "missingField": {
+   "plays": 0,
+   "drives": 0,
+   "successfulPlays": 0,
+   "epaSum": 0,
+   "rushPlays": 7,
+   "passPlays": 7,
+   "totalYards": 0,
+   "turnovers": 0,
+   "lineYardsTotal": 0,
+   "havocProxyEvents": 40
+  }
+ },
+ "2024": {
+  "games": 919,
+  "teamGames": 1838,
+  "boxAvailable": 1838,
+  "advancedStatsAvailable": 1830,
+  "boxAndAdvanced": 1830,
+  "missingField": {
+   "plays": 8,
+   "drives": 8,
+   "successfulPlays": 8,
+   "epaSum": 8,
+   "rushPlays": 16,
+   "passPlays": 16,
+   "totalYards": 0,
+   "turnovers": 0,
+   "lineYardsTotal": 8,
+   "havocProxyEvents": 11
+  }
+ },
+ "2025": {
+  "games": 808,
+  "teamGames": 1616,
+  "boxAvailable": 1616,
+  "advancedStatsAvailable": 1616,
+  "boxAndAdvanced": 1616,
+  "missingField": {
+   "plays": 0,
+   "drives": 0,
+   "successfulPlays": 0,
+   "epaSum": 0,
+   "rushPlays": 6,
+   "passPlays": 6,
+   "totalYards": 0,
+   "turnovers": 0,
+   "lineYardsTotal": 0,
+   "havocProxyEvents": 0
+  }
+ }
+}

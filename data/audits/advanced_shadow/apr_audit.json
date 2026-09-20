@@ -1,0 +1,794 @@
+{
+ "reconciliation": [
+  {
+   "season": 2022,
+   "teamGames": 1792,
+   "resolvedPossessionsEqualsCfbdDrives": 0.8180803571428571,
+   "possessionCountMAE": 0.234375,
+   "possessionCountCorr": 0.9546789259246036,
+   "offensivePointsEqualsOfficialPoints": 0.7371651785714286,
+   "officialPointsMAEvsOffensiveDrivePoints": 2.2879464285714284,
+   "estOffensivePointsExactShare": 0.7957589285714286,
+   "estOffensivePointsMAE": 1.6077008928571428,
+   "estOffensivePointsMaxErr": 66.0,
+   "meanStartYardsToGoal": {
+    "n": 50,
+    "corr": 0.8527563450578821,
+    "mae": 4.234080754213108
+   }
+  },
+  {
+   "season": 2023,
+   "teamGames": 1820,
+   "resolvedPossessionsEqualsCfbdDrives": 0.8543956043956044,
+   "possessionCountMAE": 0.17252747252747253,
+   "possessionCountCorr": 0.961945384004909,
+   "offensivePointsEqualsOfficialPoints": 0.778021978021978,
+   "officialPointsMAEvsOffensiveDrivePoints": 1.7884615384615385,
+   "estOffensivePointsExactShare": 0.8434065934065934,
+   "estOffensivePointsMAE": 1.1131868131868132,
+   "estOffensivePointsMaxErr": 56.0,
+   "meanStartYardsToGoal": {
+    "n": 1820,
+    "corr": 0.6988765854561468,
+    "mae": 5.005106966906502
+   }
+  },
+  {
+   "season": 2024,
+   "teamGames": 1830,
+   "resolvedPossessionsEqualsCfbdDrives": 0.8010928961748633,
+   "possessionCountMAE": 0.24043715846994534,
+   "possessionCountCorr": 0.9547616156828427,
+   "offensivePointsEqualsOfficialPoints": 0.7693989071038252,
+   "officialPointsMAEvsOffensiveDrivePoints": 1.7814207650273224,
+   "estOffensivePointsExactShare": 0.8519125683060109,
+   "estOffensivePointsMAE": 0.9262295081967213,
+   "estOffensivePointsMaxErr": 50.0,
+   "meanStartYardsToGoal": {
+    "n": 1830,
+    "corr": 0.6344574014551665,
+    "mae": 5.264845900019479
+   }
+  },
+  {
+   "season": 2025,
+   "teamGames": 1616,
+   "resolvedPossessionsEqualsCfbdDrives": 0.7871287128712872,
+   "possessionCountMAE": 0.3162128712871287,
+   "possessionCountCorr": 0.8950451258116091,
+   "offensivePointsEqualsOfficialPoints": 0.6633663366336634,
+   "officialPointsMAEvsOffensiveDrivePoints": 3.8409653465346536,
+   "estOffensivePointsExactShare": 0.7283415841584159,
+   "estOffensivePointsMAE": 2.9381188118811883,
+   "estOffensivePointsMaxErr": 49.0,
+   "meanStartYardsToGoal": {
+    "n": 1616,
+    "corr": 0.8038982361980856,
+    "mae": 4.584639867257168
+   }
+  }
+ ],
+ "reconstruction": {
+  "2022": {
+   "AprPoints": {
+    "teams": 131,
+    "corrNet": 0.9917708235192291,
+    "rawMAE": 1.0192674294521131,
+    "affineMAE": 0.8971242216935899,
+    "affineMaxErr": 3.217832838808027,
+    "affineSlope": 0.9370712890177186,
+    "meanAbsRankChange": 3.801526717557252,
+    "maxRankChange": 13,
+    "top10Overlap": 9,
+    "top25Overlap": 24
+   },
+   "AprPpa": {
+    "teams": 131,
+    "corrNet": 0.9717438456823903,
+    "rawMAE": 1.965390992622125,
+    "affineMAE": 1.6469394336172716,
+    "affineMaxErr": 5.474762104332016,
+    "affineSlope": 0.8693511198615825,
+    "meanAbsRankChange": 6.687022900763359,
+    "maxRankChange": 37,
+    "top10Overlap": 8,
+    "top25Overlap": 24
+   },
+   "AprLatent": {
+    "teams": 131,
+    "corrNet": 0.9918781514643958,
+    "rawMAE": 0.9006984782917766,
+    "affineMAE": 0.9002524225512303,
+    "affineMaxErr": 2.7763361564680595,
+    "affineSlope": 1.0030410528050504,
+    "meanAbsRankChange": 3.5877862595419847,
+    "maxRankChange": 21,
+    "top10Overlap": 9,
+    "top25Overlap": 24
+   }
+  },
+  "2023": {
+   "AprPoints": {
+    "teams": 133,
+    "corrNet": 0.9896151312844789,
+    "rawMAE": 1.3594149433346192,
+    "affineMAE": 0.9577122002631999,
+    "affineMaxErr": 3.3008985621246767,
+    "affineSlope": 0.8843659685869474,
+    "meanAbsRankChange": 4.481203007518797,
+    "maxRankChange": 23,
+    "top10Overlap": 8,
+    "top25Overlap": 22
+   },
+   "AprPpa": {
+    "teams": 133,
+    "corrNet": 0.979779489717455,
+    "rawMAE": 1.8534949949833892,
+    "affineMAE": 1.3569492619649286,
+    "affineMaxErr": 5.751344970412075,
+    "affineSlope": 0.8376003766979601,
+    "meanAbsRankChange": 6.315789473684211,
+    "maxRankChange": 35,
+    "top10Overlap": 8,
+    "top25Overlap": 22
+   },
+   "AprLatent": {
+    "teams": 133,
+    "corrNet": 0.991362409880025,
+    "rawMAE": 0.9537028189061723,
+    "affineMAE": 0.913894031843644,
+    "affineMaxErr": 2.750146099770557,
+    "affineSlope": 0.9586445748038029,
+    "meanAbsRankChange": 4.165413533834586,
+    "maxRankChange": 23,
+    "top10Overlap": 8,
+    "top25Overlap": 24
+   },
+   "AprLinField": {
+    "teams": 133,
+    "corrNet": 0.9860636350766797,
+    "rawMAE": 1.1198092089246199,
+    "affineMAE": 1.0936324002417932,
+    "affineMaxErr": 5.848892716520691,
+    "affineSlope": 1.0186366817785497,
+    "meanAbsRankChange": 5.112781954887218,
+    "maxRankChange": 29,
+    "top10Overlap": 8,
+    "top25Overlap": 24
+   }
+  },
+  "2024": {
+   "AprPoints": {
+    "teams": 134,
+    "corrNet": 0.9916148448284967,
+    "rawMAE": 1.0700894095812277,
+    "affineMAE": 0.8965289295573301,
+    "affineMaxErr": 4.193402858067061,
+    "affineSlope": 0.927764364740962,
+    "meanAbsRankChange": 3.791044776119403,
+    "maxRankChange": 18,
+    "top10Overlap": 9,
+    "top25Overlap": 23
+   },
+   "AprPpa": {
+    "teams": 134,
+    "corrNet": 0.9733052782164783,
+    "rawMAE": 2.1534625627921593,
+    "affineMAE": 1.7383233447916577,
+    "affineMaxErr": 6.404799064740566,
+    "affineSlope": 0.8443751747377782,
+    "meanAbsRankChange": 7.2388059701492535,
+    "maxRankChange": 33,
+    "top10Overlap": 9,
+    "top25Overlap": 21
+   },
+   "AprLatent": {
+    "teams": 134,
+    "corrNet": 0.9931984594690338,
+    "rawMAE": 0.8223222706888508,
+    "affineMAE": 0.8196206856562119,
+    "affineMaxErr": 3.6104643402565246,
+    "affineSlope": 0.9942581542257007,
+    "meanAbsRankChange": 3.791044776119403,
+    "maxRankChange": 16,
+    "top10Overlap": 10,
+    "top25Overlap": 23
+   },
+   "AprLinField": {
+    "teams": 134,
+    "corrNet": 0.9892289399259291,
+    "rawMAE": 1.0222526768637175,
+    "affineMAE": 0.9724179707259929,
+    "affineMaxErr": 5.57248428934661,
+    "affineSlope": 1.0380266046488713,
+    "meanAbsRankChange": 4.343283582089552,
+    "maxRankChange": 30,
+    "top10Overlap": 10,
+    "top25Overlap": 23
+   }
+  },
+  "2025": {
+   "AprPoints": {
+    "teams": 136,
+    "corrNet": 0.9846767691596827,
+    "rawMAE": 1.6096362017147015,
+    "affineMAE": 1.3254041526090135,
+    "affineMaxErr": 4.889137700598895,
+    "affineSlope": 0.8811517455773128,
+    "meanAbsRankChange": 5.735294117647059,
+    "maxRankChange": 23,
+    "top10Overlap": 8,
+    "top25Overlap": 22
+   },
+   "AprPpa": {
+    "teams": 136,
+    "corrNet": 0.9564390497685689,
+    "rawMAE": 2.5614320388132468,
+    "affineMAE": 2.156626917524853,
+    "affineMaxErr": 8.433697306391375,
+    "affineSlope": 0.8312604927587838,
+    "meanAbsRankChange": 9.029411764705882,
+    "maxRankChange": 38,
+    "top10Overlap": 8,
+    "top25Overlap": 22
+   },
+   "AprLatent": {
+    "teams": 136,
+    "corrNet": 0.983243503192963,
+    "rawMAE": 1.4083046082427069,
+    "affineMAE": 1.3521596142635748,
+    "affineMaxErr": 4.912568821920058,
+    "affineSlope": 0.9511293794076879,
+    "meanAbsRankChange": 5.8088235294117645,
+    "maxRankChange": 23,
+    "top10Overlap": 8,
+    "top25Overlap": 21
+   },
+   "AprLinField": {
+    "teams": 136,
+    "corrNet": 0.9761031744083992,
+    "rawMAE": 1.6600975254018284,
+    "affineMAE": 1.6117893140427204,
+    "affineMaxErr": 5.932198853880902,
+    "affineSlope": 1.0542427418057982,
+    "meanAbsRankChange": 7.073529411764706,
+    "maxRankChange": 29,
+    "top10Overlap": 9,
+    "top25Overlap": 23
+   }
+  }
+ },
+ "prediction": {
+  "n": 2305,
+  "models": {
+   "B_SAME (no APR)": {
+    "n": 2305,
+    "accuracy": 0.7036876355748373,
+    "logloss": 0.5654970091996055,
+    "brier": 0.1928888982601406,
+    "mae": 12.644880138832027,
+    "rmse": 15.887787874922264,
+    "median_ae": 10.931306365727238
+   },
+   "SRS_ONLY": {
+    "n": 2305,
+    "accuracy": 0.6993492407809111,
+    "logloss": 0.5852882672928291,
+    "brier": 0.19889374299650203,
+    "mae": 13.17707270887782,
+    "rmse": 16.69265901453249,
+    "median_ae": 10.886981130667191
+   },
+   "B_SAME + old APR": {
+    "n": 2305,
+    "accuracy": 0.70412147505423,
+    "logloss": 0.5633988132598717,
+    "brier": 0.1920602044033316,
+    "mae": 12.610103283341502,
+    "rmse": 15.853224549519943,
+    "median_ae": 10.729627398422275
+   },
+   "SRS + old APR": {
+    "n": 2305,
+    "accuracy": 0.6963123644251626,
+    "logloss": 0.5700789397026658,
+    "brier": 0.19520833846049385,
+    "mae": 12.901351425644059,
+    "rmse": 16.220227005127914,
+    "median_ae": 10.884342584533957
+   },
+   "B_SAME + AprPoints": {
+    "n": 2305,
+    "accuracy": 0.707592190889371,
+    "logloss": 0.5632329855494372,
+    "brier": 0.19200953253769737,
+    "mae": 12.612376370016882,
+    "rmse": 15.847649307576868,
+    "median_ae": 10.724257098272744
+   },
+   "SRS + AprPoints": {
+    "n": 2305,
+    "accuracy": 0.6989154013015184,
+    "logloss": 0.5691618387056432,
+    "brier": 0.1946827924313738,
+    "mae": 12.837372634946869,
+    "rmse": 16.160572565844507,
+    "median_ae": 10.797860945511669
+   },
+   "B_SAME + AprPpa": {
+    "n": 2305,
+    "accuracy": 0.7045553145336225,
+    "logloss": 0.5654047984266859,
+    "brier": 0.19283923275690468,
+    "mae": 12.644627886586177,
+    "rmse": 15.891972065897813,
+    "median_ae": 10.843094906087138
+   },
+   "SRS + AprPpa": {
+    "n": 2305,
+    "accuracy": 0.6984815618221258,
+    "logloss": 0.5715112990736715,
+    "brier": 0.19554120378307294,
+    "mae": 12.891289081592662,
+    "rmse": 16.234739153819195,
+    "median_ae": 10.955795765588608
+   },
+   "B_SAME + AprLatent": {
+    "n": 2305,
+    "accuracy": 0.7049891540130152,
+    "logloss": 0.5636964072540711,
+    "brier": 0.19211209669476081,
+    "mae": 12.61589582533446,
+    "rmse": 15.861737263783326,
+    "median_ae": 10.8354236051186
+   },
+   "SRS + AprLatent": {
+    "n": 2305,
+    "accuracy": 0.6980477223427332,
+    "logloss": 0.5675655871305285,
+    "brier": 0.19406084323461084,
+    "mae": 12.800471931689492,
+    "rmse": 16.10380782603865,
+    "median_ae": 10.756441508905787
+   }
+  },
+  "paired": {
+   "B_SAME + old APR - B_SAME (no APR)": {
+    "correct": {
+     "diff": 0.0004338394793926247,
+     "ci_lo": -0.006941431670281995,
+     "ci_hi": 0.0078091106290672455
+    },
+    "abs_err": {
+     "diff": -0.034776855490524394,
+     "ci_lo": -0.08832589260320962,
+     "ci_hi": 0.02144332146695765
+    },
+    "logloss": {
+     "diff": -0.0020981959397339176,
+     "ci_lo": -0.0046903878415584565,
+     "ci_hi": 0.0005610365776511123
+    },
+    "brier": {
+     "diff": -0.0008286938568090524,
+     "ci_lo": -0.0019077306769379983,
+     "ci_hi": 0.0002605790807079878
+    }
+   },
+   "B_SAME + AprPoints - B_SAME (no APR)": {
+    "correct": {
+     "diff": 0.0039045553145336228,
+     "ci_lo": -0.0017353579175704988,
+     "ci_hi": 0.009544468546637744
+    },
+    "abs_err": {
+     "diff": -0.03250376881514466,
+     "ci_lo": -0.06886689246057064,
+     "ci_hi": 0.0037429736354294657
+    },
+    "logloss": {
+     "diff": -0.002264023650168346,
+     "ci_lo": -0.0038722887951764145,
+     "ci_hi": -0.0005998937973476996
+    },
+    "brier": {
+     "diff": -0.0008793657224432937,
+     "ci_lo": -0.0015787275005554363,
+     "ci_hi": -0.00018018915042100967
+    }
+   },
+   "B_SAME + AprPpa - B_SAME (no APR)": {
+    "correct": {
+     "diff": 0.0008676789587852494,
+     "ci_lo": -0.0026030368763557484,
+     "ci_hi": 0.004338394793926247
+    },
+    "abs_err": {
+     "diff": -0.0002522522458520663,
+     "ci_lo": -0.013396479766953974,
+     "ci_hi": 0.01303685931894129
+    },
+    "logloss": {
+     "diff": -9.221077291973241e-05,
+     "ci_lo": -0.0006683821362159771,
+     "ci_hi": 0.000489700500504401
+    },
+    "brier": {
+     "diff": -4.96655032359614e-05,
+     "ci_lo": -0.0002876215342648569,
+     "ci_hi": 0.00018927038192444152
+    }
+   },
+   "B_SAME + AprLatent - B_SAME (no APR)": {
+    "correct": {
+     "diff": 0.0013015184381778742,
+     "ci_lo": -0.004772234273318872,
+     "ci_hi": 0.00737527114967462
+    },
+    "abs_err": {
+     "diff": -0.028984313497568706,
+     "ci_lo": -0.07244505807693516,
+     "ci_hi": 0.015450771609268306
+    },
+    "logloss": {
+     "diff": -0.0018006019455344806,
+     "ci_lo": -0.003681434762552408,
+     "ci_hi": 0.0001697197267073482
+    },
+    "brier": {
+     "diff": -0.0007768015653797949,
+     "ci_lo": -0.0015596211212043016,
+     "ci_hi": 4.903565213950926e-05
+    }
+   },
+   "SRS + old APR - SRS_ONLY": {
+    "correct": {
+     "diff": -0.003036876355748373,
+     "ci_lo": -0.01388286334056399,
+     "ci_hi": 0.00824295010845987
+    },
+    "abs_err": {
+     "diff": -0.2757212832337615,
+     "ci_lo": -0.4276128429697392,
+     "ci_hi": -0.12343544633052157
+    },
+    "logloss": {
+     "diff": -0.015209327590163604,
+     "ci_lo": -0.024134088775188106,
+     "ci_hi": -0.006801363169225641
+    },
+    "brier": {
+     "diff": -0.003685404536008206,
+     "ci_lo": -0.006337792007873952,
+     "ci_hi": -0.001051843700941417
+    }
+   },
+   "SRS + AprPoints - SRS_ONLY": {
+    "correct": {
+     "diff": -0.0004338394793926247,
+     "ci_lo": -0.010845986984815618,
+     "ci_hi": 0.009978308026030369
+    },
+    "abs_err": {
+     "diff": -0.3397000739309509,
+     "ci_lo": -0.48583644225095957,
+     "ci_hi": -0.19224870560162374
+    },
+    "logloss": {
+     "diff": -0.016126428587186034,
+     "ci_lo": -0.02404296044217109,
+     "ci_hi": -0.008305804797231565
+    },
+    "brier": {
+     "diff": -0.004210950565128231,
+     "ci_lo": -0.006655728679676751,
+     "ci_hi": -0.0016791071969818536
+    }
+   },
+   "SRS + AprPpa - SRS_ONLY": {
+    "correct": {
+     "diff": -0.0008676789587852494,
+     "ci_lo": -0.011713665943600867,
+     "ci_hi": 0.009978308026030369
+    },
+    "abs_err": {
+     "diff": -0.2857836272851569,
+     "ci_lo": -0.43494573551216603,
+     "ci_hi": -0.13102644689098777
+    },
+    "logloss": {
+     "diff": -0.01377696821915775,
+     "ci_lo": -0.021882214928148007,
+     "ci_hi": -0.005900652897342663
+    },
+    "brier": {
+     "diff": -0.0033525392134291353,
+     "ci_lo": -0.005845369268625641,
+     "ci_hi": -0.000760154597798686
+    }
+   },
+   "SRS + AprLatent - SRS_ONLY": {
+    "correct": {
+     "diff": -0.0013015184381778742,
+     "ci_lo": -0.012147505422993492,
+     "ci_hi": 0.009544468546637744
+    },
+    "abs_err": {
+     "diff": -0.37660077718832663,
+     "ci_lo": -0.5296290410072888,
+     "ci_hi": -0.2223660245940785
+    },
+    "logloss": {
+     "diff": -0.017722680162300795,
+     "ci_lo": -0.02599690952441925,
+     "ci_hi": -0.00956671714769838
+    },
+    "brier": {
+     "diff": -0.0048328997618912115,
+     "ci_lo": -0.007308861798743427,
+     "ci_hi": -0.0021852791544402085
+    }
+   },
+   "B_SAME + AprPoints - B_SAME + old APR": {
+    "correct": {
+     "diff": 0.0034707158351409977,
+     "ci_lo": -0.003036876355748373,
+     "ci_hi": 0.009978308026030369
+    },
+    "abs_err": {
+     "diff": 0.0022730866753797106,
+     "ci_lo": -0.04840658508880662,
+     "ci_hi": 0.050512595114672126
+    },
+    "logloss": {
+     "diff": -0.00016582771043442785,
+     "ci_lo": -0.0025191822780386494,
+     "ci_hi": 0.002043293211932733
+    },
+    "brier": {
+     "diff": -5.067186563424128e-05,
+     "ci_lo": -0.0010188664865090652,
+     "ci_hi": 0.0008573827907443514
+    }
+   },
+   "B_SAME + AprPpa - B_SAME + old APR": {
+    "correct": {
+     "diff": 0.0004338394793926247,
+     "ci_lo": -0.006941431670281995,
+     "ci_hi": 0.00737527114967462
+    },
+    "abs_err": {
+     "diff": 0.03452460324467232,
+     "ci_lo": -0.02214233695187259,
+     "ci_hi": 0.08941262932389361
+    },
+    "logloss": {
+     "diff": 0.0020059851668141854,
+     "ci_lo": -0.0006830528363974624,
+     "ci_hi": 0.004651796833061077
+    },
+    "brier": {
+     "diff": 0.0007790283535730911,
+     "ci_lo": -0.00034316121713425196,
+     "ci_hi": 0.00189828807774778
+    }
+   },
+   "B_SAME + AprLatent - B_SAME + old APR": {
+    "correct": {
+     "diff": 0.0008676789587852494,
+     "ci_lo": -0.005639913232104121,
+     "ci_hi": 0.00737527114967462
+    },
+    "abs_err": {
+     "diff": 0.0057925419929556795,
+     "ci_lo": -0.03832071947391754,
+     "ci_hi": 0.04884896169956951
+    },
+    "logloss": {
+     "diff": 0.00029759399419943667,
+     "ci_lo": -0.0018072126028018441,
+     "ci_hi": 0.002302160489193168
+    },
+    "brier": {
+     "diff": 5.1892291429257636e-05,
+     "ci_lo": -0.0008020432471837706,
+     "ci_hi": 0.0008840412050334551
+    }
+   }
+  },
+  "fieldPositionSubset": {
+   "testSeasons": [
+    2025
+   ],
+   "n": 541,
+   "models": {
+    "B_SAME (no APR)": {
+     "n": 541,
+     "accuracy": 0.7097966728280961,
+     "logloss": 0.5689812432723642,
+     "brier": 0.19399306970338803,
+     "mae": 12.779815014055668,
+     "rmse": 15.855729776353835,
+     "median_ae": 11.040188809223098
+    },
+    "B_SAME + old APR": {
+     "n": 541,
+     "accuracy": 0.7024029574861368,
+     "logloss": 0.5726578485861218,
+     "brier": 0.19510497365675747,
+     "mae": 12.802625819813256,
+     "rmse": 15.912423023860603,
+     "median_ae": 10.826376846194654
+    },
+    "B_SAME + AprPoints": {
+     "n": 541,
+     "accuracy": 0.711645101663586,
+     "logloss": 0.568974438114567,
+     "brier": 0.19403592664567437,
+     "mae": 12.75496489486105,
+     "rmse": 15.86443428068879,
+     "median_ae": 11.118262383670139
+    },
+    "B_SAME + AprLinField": {
+     "n": 541,
+     "accuracy": 0.7079482439926063,
+     "logloss": 0.5695428751245292,
+     "brier": 0.19433566933478383,
+     "mae": 12.777983316391236,
+     "rmse": 15.858156459506068,
+     "median_ae": 11.14765440437461
+    }
+   },
+   "paired": {
+    "B_SAME + old APR - B_SAME (no APR)": {
+     "correct": {
+      "diff": -0.0073937153419593345,
+      "ci_lo": -0.027726432532347505,
+      "ci_hi": 0.012939001848428836
+     },
+     "abs_err": {
+      "diff": 0.02281080575758816,
+      "ci_lo": -0.1317797459969466,
+      "ci_hi": 0.17260147885875735
+     },
+     "logloss": {
+      "diff": 0.003676605313757671,
+      "ci_lo": -0.0038082893343185185,
+      "ci_hi": 0.010906696120958818
+     },
+     "brier": {
+      "diff": 0.0011119039533694303,
+      "ci_lo": -0.001987858748879761,
+      "ci_hi": 0.004202840627165275
+     }
+    },
+    "B_SAME + AprPoints - B_SAME (no APR)": {
+     "correct": {
+      "diff": 0.0018484288354898336,
+      "ci_lo": -0.014787430683918669,
+      "ci_hi": 0.02033271719038817
+     },
+     "abs_err": {
+      "diff": -0.024850119194618978,
+      "ci_lo": -0.136506375675157,
+      "ci_hi": 0.0850522382567524
+     },
+     "logloss": {
+      "diff": -6.805157797151965e-06,
+      "ci_lo": -0.005654356936323925,
+      "ci_hi": 0.005385542001635035
+     },
+     "brier": {
+      "diff": 4.285694228636408e-05,
+      "ci_lo": -0.0022578740927289118,
+      "ci_hi": 0.002282733561390388
+     }
+    },
+    "B_SAME + AprLinField - B_SAME (no APR)": {
+     "correct": {
+      "diff": -0.0018484288354898336,
+      "ci_lo": -0.012939001848428836,
+      "ci_hi": 0.009242144177449169
+     },
+     "abs_err": {
+      "diff": -0.001831697664432327,
+      "ci_lo": -0.03862121966192555,
+      "ci_hi": 0.03446974640740552
+     },
+     "logloss": {
+      "diff": 0.0005616318521650048,
+      "ci_lo": -0.0011584640355763837,
+      "ci_hi": 0.00228419138917213
+     },
+     "brier": {
+      "diff": 0.00034259963139578924,
+      "ci_lo": -0.00041687100488576733,
+      "ci_hi": 0.0010960406497148361
+     }
+    },
+    "AprLinField - old APR": {
+     "correct": {
+      "diff": 0.005545286506469501,
+      "ci_lo": -0.012939001848428836,
+      "ci_hi": 0.024029574861367836
+     },
+     "abs_err": {
+      "diff": -0.02464250342202048,
+      "ci_lo": -0.15683135333966716,
+      "ci_hi": 0.11294227762522771
+     },
+     "logloss": {
+      "diff": -0.0031149734615926673,
+      "ci_lo": -0.009542807627518947,
+      "ci_hi": 0.003490317903500999
+     },
+     "brier": {
+      "diff": -0.0007693043219736407,
+      "ci_lo": -0.0034791362519094684,
+      "ci_hi": 0.001977652552899474
+     }
+    }
+   }
+  }
+ },
+ "jensenGap2025": {
+  "epCurveByStartYardsToGoal": [
+   [
+    5.0,
+    4.176
+   ],
+   [
+    15.0,
+    3.87
+   ],
+   [
+    25.0,
+    3.624
+   ],
+   [
+    35.0,
+    3.32
+   ],
+   [
+    45.0,
+    2.792
+   ],
+   [
+    55.0,
+    2.465
+   ],
+   [
+    65.0,
+    1.882
+   ],
+   [
+    75.0,
+    1.841
+   ],
+   [
+    85.0,
+    1.497
+   ],
+   [
+    95.0,
+    1.299
+   ]
+  ],
+  "teamGames": 1613,
+  "meanAbsGapPointsPerDrive": 0.07295795182563537,
+  "maxAbsGapPointsPerDrive": 0.28875483234725574,
+  "gapStdPointsPerDrive": 0.0811465239162181
+ },
+ "counterexample": {
+  "drives": 12,
+  "offensivePoints": 24.0,
+  "meanStartYardsToGoal": 50.0,
+  "teamA_starts": "6 drives from own 25, 6 from opp 25",
+  "teamB_starts": "12 drives from midfield",
+  "aprNumeratorA": -8.794,
+  "aprNumeratorB": -7.54,
+  "perDriveDifference": -0.1045,
+  "perTenPossessions": -1.045
+ }
+}
