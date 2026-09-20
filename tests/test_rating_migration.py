@@ -148,7 +148,7 @@ class PossessionEfficiencyRatingTests(unittest.TestCase):
             fits=result["fits"],
             teams=3,
         )
-        self.assertEqual(meta["modelId"], "adj-rating-possession-v4")
+        self.assertEqual(meta["modelId"], "adj-rating-possession-field-position-v5")
         self.assertEqual(meta["modelMode"], "possession_efficiency")
         self.assertEqual(meta["normalization"], "none")
         self.assertEqual(meta["ridgeEquivalentPossessions"], 10.0)
@@ -161,12 +161,16 @@ class PossessionEfficiencyRatingTests(unittest.TestCase):
         self.assertFalse(meta["hfaEnabled"])
         self.assertFalse(meta["usesPriorSeasonTeamStrength"])
         self.assertFalse(meta["usesPreseasonTeamPrior"])
-        self.assertEqual(meta["metric"], "offensive points/resolved possession")
+        self.assertEqual(
+            meta["metric"],
+            "offensive points above starting-field-position expectation/resolved possession",
+        )
         self.assertEqual(
             meta["ratingScale"],
-            "points per 10 resolved possessions above/below average FBS",
+            "field-position-adjusted points per 10 resolved possessions above/below average FBS",
         )
-        self.assertEqual(meta["inputVersion"], "validated-drive-ppd-v1")
+        self.assertEqual(meta["inputVersion"], "validated-drive-field-position-adjusted-v2")
+        self.assertEqual(meta["fieldPositionEpVersion"], "field-position-ep-v1")
 
     def test_composite_input_uses_validated_drive_points_and_ignores_conference_strength(self):
         base = synthetic_round_robin()[0]
