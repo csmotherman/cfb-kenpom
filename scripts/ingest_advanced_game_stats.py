@@ -9,8 +9,17 @@ unplayed games, and requesting them would just waste API quota). Games,
 drives, plays, and the official box score (/games/teams) are never
 touched by this script -- see src/cfb_analytics/raw/acquire.py for those.
 
+This is called from .github/workflows/refresh.yml's `refresh` job,
+immediately after the main games/drives/plays/box-score fetch step, using
+the SAME --refresh-partition list that step receives from
+detect-new-games -- so a corrected game's advanced stats get re-fetched
+exactly when its other raw sources do. Already-cached partitions are
+cheap no-ops (manifest-checked, no API call) regardless of how often this
+runs, so it is safe to call on every refresh rather than only on bootstrap.
+
 Usage:
     python scripts/ingest_advanced_game_stats.py --season 2026
+    python scripts/ingest_advanced_game_stats.py --season 2026 --refresh-partition regular:3
     python scripts/ingest_advanced_game_stats.py --season 2026 --season 2025 --skip-box-scores
 """
 from __future__ import annotations
@@ -32,14 +41,34 @@ from cfb_analytics.raw.storage import partition_dir  # noqa: E402
 from cfb_analytics.sources.cfbd.client import CfbdClient  # noqa: E402
 
 
+def parse_partition(value: str) -> tuple[str, int]:
+    season_type, separator, week_text = value.partition(":")
+    if not separator or not season_type or not week_text:
+        raise argparse.ArgumentTypeError("partition must be SEASON_TYPE:WEEK, e.g. regular:2")
+    try:
+        week = int(week_text)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("partition week must be an integer") from exc
+    return season_type.lower(), week
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--season", type=int, action="append", required=True)
-    parser.add_argument("--refresh", action="store_true")
+    parser.add_argument("--refresh", action="store_true", help="Force-refresh every partition, not only new ones")
+    parser.add_argument(
+        "--refresh-partition",
+        action="append",
+        default=[],
+        type=parse_partition,
+        metavar="SEASON_TYPE:WEEK",
+        help="force-refresh only this partition (e.g. a corrected game); may be repeated",
+    )
     parser.add_argument("--skip-game-stats", action="store_true", help="Skip /stats/game/advanced (weekly)")
     parser.add_argument("--skip-box-scores", action="store_true", help="Skip /game/box/advanced (per-game, N calls)")
     args = parser.parse_args()
 
+    force_partitions = set(args.refresh_partition)
     raw_root = REPO / "data/raw"
     with CfbdClient() as client:
         for season in args.season:
@@ -54,10 +83,11 @@ def main() -> None:
                 if not completed_ids:
                     print(f"  {season} {season_type} week {week:02d}: 0 completed games, skipping")
                     continue
+                refresh_this = args.refresh or (season_type, week) in force_partitions
 
                 if not args.skip_game_stats:
                     manifest = acquire_advanced_game_stats(
-                        client, raw_root, season, season_type, week, completed_ids, refresh=args.refresh,
+                        client, raw_root, season, season_type, week, completed_ids, refresh=refresh_this,
                     )
                     print(
                         f"  {season} {season_type} week {week:02d}: advanced_game_stats "
@@ -66,7 +96,7 @@ def main() -> None:
 
                 if not args.skip_box_scores:
                     manifest = acquire_advanced_box_scores(
-                        client, raw_root, season, season_type, week, completed_ids, refresh=args.refresh,
+                        client, raw_root, season, season_type, week, completed_ids, refresh=refresh_this,
                     )
                     print(
                         f"  {season} {season_type} week {week:02d}: advanced_box_scores "

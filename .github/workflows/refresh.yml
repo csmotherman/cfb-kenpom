@@ -200,6 +200,25 @@ jobs:
             python -m cfb_analytics.pipelines.ingest --season "$SEASON" "${args[@]}"
           fi
 
+      - name: Fetch CFBD advanced game stats (PPA, Success Rate, explosiveness, rushing efficiency, havoc, scoring opportunities, field position)
+        # Separate from the primary ingest step above by design (Tier 2
+        # source, acquire_advanced.py) but must run every refresh, not only
+        # bootstrap: already-cached partitions are free (manifest-checked,
+        # no API call), and this is what makes newly-completed weeks and
+        # corrected games actually pick up CFBD's advanced stats at all.
+        # Missing this step is exactly what left PPA/Success/Havoc/rushing
+        # efficiency permanently null in production after the CFBD-advanced
+        # migration -- the primary ingest step above has no idea these
+        # sources exist.
+        env:
+          REFRESH_PARTITIONS: ${{ needs.detect-new-games.outputs.refresh_partitions }}
+        run: |
+          args=()
+          for partition in $REFRESH_PARTITIONS; do
+            args+=(--refresh-partition "$partition")
+          done
+          python scripts/ingest_advanced_game_stats.py --season "$SEASON" "${args[@]}"
+
       - name: Clean and materialize canonical plays
         run: python -m cfb_analytics.raw.cli canonical-plays --season "$SEASON"
       - name: Materialize derived drives

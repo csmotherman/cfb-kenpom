@@ -1,18 +1,42 @@
 """Canonical parsing for CFBD's advanced game-level sources (Tier 2).
 
-Two distinct CFBD endpoints are used for two distinct, non-overlapping sets
-of concepts -- picked so no concept is ever sourced from two different CFBD
-endpoints at once (see module docstrings on each parser for why):
+Both endpoints actually publish most of these concepts (PPA, Success Rate,
+explosiveness, rushing efficiency) -- an earlier version of this module only
+parsed `/stats/game/advanced` for those and left `/game/box/advanced`'s
+`teams.ppa`/`cumulativePpa`/`successRates`/`explosiveness`/`rushing`
+sections unparsed entirely, on the assumption the two endpoints were
+disjoint. They are not: `/game/box/advanced` is the one CFBD source with NO
+substitute for havoc, scoring opportunities, and field position, but it also
+duplicates (with minor numeric differences -- different rounding/play
+population, not a bug) plays/PPA/Success Rate/explosiveness/rushing
+efficiency. Both are now parsed, so `export_team_game_advanced.py` can do a
+real CFBD -> CFBD field-level fallback (prefer `/stats/game/advanced`'s
+`offense_*`, fall back to `/game/box/advanced`'s `box_*` only if that
+specific field is null) instead of a metric going blank just because ONE of
+the two endpoints happened to be missing it for one team in one game.
 
 - `/stats/game/advanced` (`advanced_game_stats.json`, one call per
   season/week -- cheap, so this is backfillable for every historical
   season): plays, drives, PPA, success rate, explosiveness, rushing
   efficiency (stuff rate, power success, line/second-level/open-field
   yards). Canonical source version: CFBD_STATS_GAME_ADVANCED_VERSION.
+  Fields prefixed `offense_`/`defense_`.
 - `/game/box/advanced` (`advanced_box_scores.json`, one call per game --
   the only CFBD source for havoc, scoring opportunities, and field
-  position; not backfillable at the same low cost). Canonical source
-  version: CFBD_GAME_BOX_ADVANCED_VERSION.
+  position; not backfillable at the same low cost). Also carries PPA/
+  Success Rate/explosiveness/rushing efficiency as a fallback source.
+  Canonical source version: CFBD_GAME_BOX_ADVANCED_VERSION. Fields
+  prefixed `box_` (except havoc/scoringOpportunities/fieldPosition, which
+  predate this prefix convention and have no `/stats/game/advanced`
+  equivalent to fall back from anyway).
+
+`teams.ppa[].overall/passing/rushing.total` is the PER-PLAY average PPA;
+`teams.cumulativePpa[]`'s equivalent field is the TOTAL/sum. This is not
+obvious from the field names alone and was validated against a real payload
+(2026 wk2, game 401856674, Alabama): `teams.ppa` overall.total=0.1359 lines
+up with `/stats/game/advanced`'s per-play `offense.ppa`=0.1317; `teams.
+cumulativePpa` overall.total=8 lines up with the summed `offense.
+totalPPA`=8.296. Do not swap these.
 
 Every row keeps a `sourceVersion` and `sourceEndpoint` field so a value's
 provenance is never ambiguous. Raw responses are never modified in place;
@@ -126,8 +150,23 @@ def _normalize_game_box_advanced(game_id: str, payload: dict[str, Any]) -> dict[
     havoc_by_team = {r.get("team"): r for r in (teams.get("havoc") or [])}
     scoring_by_team = {r.get("team"): r for r in (teams.get("scoringOpportunities") or [])}
     field_pos_by_team = {r.get("team"): r for r in (teams.get("fieldPosition") or [])}
+    # ppa[].overall/passing/rushing.total is the PER-PLAY average; cumulativePpa's
+    # equivalent field is the TOTAL/sum. Validated against a real payload (2026
+    # wk2, game 401856674): teams.ppa Alabama overall.total=0.1359 versus
+    # /stats/game/advanced offense.ppa=0.1317 (per-play, close); teams.cumulativePpa
+    # Alabama overall.total=8 versus offense.totalPPA=8.296 (sum, close). Do not
+    # swap these -- the field names alone do not make this obvious.
+    ppa_by_team = {r.get("team"): r for r in (teams.get("ppa") or [])}
+    cumulative_ppa_by_team = {r.get("team"): r for r in (teams.get("cumulativePpa") or [])}
+    success_by_team = {r.get("team"): r for r in (teams.get("successRates") or [])}
+    explosiveness_by_team = {r.get("team"): r for r in (teams.get("explosiveness") or [])}
+    rushing_by_team = {r.get("team"): r for r in (teams.get("rushing") or [])}
 
-    team_names = set(havoc_by_team) | set(scoring_by_team) | set(field_pos_by_team)
+    team_names = (
+        set(havoc_by_team) | set(scoring_by_team) | set(field_pos_by_team)
+        | set(ppa_by_team) | set(cumulative_ppa_by_team) | set(success_by_team)
+        | set(explosiveness_by_team) | set(rushing_by_team)
+    )
     out: dict[tuple[str, str], dict[str, Any]] = {}
     for team in team_names:
         opponent = next((t for t in team_names if t != team), None)
@@ -135,6 +174,20 @@ def _normalize_game_box_advanced(game_id: str, payload: dict[str, Any]) -> dict[
         opp_havoc = havoc_by_team.get(opponent) or {} if opponent else {}
         scoring = scoring_by_team.get(team) or {}
         field_pos = field_pos_by_team.get(team) or {}
+        ppa = ppa_by_team.get(team) or {}
+        cum_ppa = cumulative_ppa_by_team.get(team) or {}
+        success = success_by_team.get(team) or {}
+        explosiveness = (explosiveness_by_team.get(team) or {}).get("overall") or {}
+        rushing = rushing_by_team.get(team) or {}
+        ppa_overall = ppa.get("overall") or {}
+        ppa_passing = ppa.get("passing") or {}
+        ppa_rushing = ppa.get("rushing") or {}
+        cum_overall = cum_ppa.get("overall") or {}
+        cum_passing = cum_ppa.get("passing") or {}
+        cum_rushing = cum_ppa.get("rushing") or {}
+        success_overall = success.get("overall") or {}
+        success_standard = success.get("standardDowns") or {}
+        success_passing = success.get("passingDowns") or {}
         out[(game_id, team)] = {
             "gameId": game_id,
             "team": team,
@@ -152,6 +205,28 @@ def _normalize_game_box_advanced(game_id: str, payload: dict[str, Any]) -> dict[
             "points_per_scoring_opportunity": _n(scoring.get("pointsPerOpportunity")),
             "average_start_yards_to_goal": _n(field_pos.get("averageStart")),
             "average_starting_predicted_points": _n(field_pos.get("averageStartingPredictedPoints")),
+            # box_ prefix marks these as sourced from /game/box/advanced, for
+            # the CFBD -> CFBD field-level fallback in export_team_game_advanced.py
+            # (prefer /stats/game/advanced's offense_* equivalent; use these
+            # only when that is null).
+            "box_ppa_per_play": _n(ppa_overall.get("total")),
+            "box_total_ppa": _n(cum_overall.get("total")),
+            "box_passing_ppa_per_play": _n(ppa_passing.get("total")),
+            "box_passing_total_ppa": _n(cum_passing.get("total")),
+            "box_rushing_ppa_per_play": _n(ppa_rushing.get("total")),
+            "box_rushing_total_ppa": _n(cum_rushing.get("total")),
+            "box_success_rate": _n(success_overall.get("total")),
+            "box_standard_downs_success_rate": _n(success_standard.get("total")),
+            "box_passing_downs_success_rate": _n(success_passing.get("total")),
+            "box_explosiveness": _n(explosiveness.get("total")),
+            "box_stuff_rate": _n(rushing.get("stuffRate")),
+            "box_power_success": _n(rushing.get("powerSuccess")),
+            "box_line_yards_total": _n(rushing.get("lineYards")),
+            "box_line_yards_per_play": _n(rushing.get("lineYardsAverage")),
+            "box_second_level_yards_total": _n(rushing.get("secondLevelYards")),
+            "box_second_level_yards_per_play": _n(rushing.get("secondLevelYardsAverage")),
+            "box_open_field_yards_total": _n(rushing.get("openFieldYards")),
+            "box_open_field_yards_per_play": _n(rushing.get("openFieldYardsAverage")),
         }
     return out
 

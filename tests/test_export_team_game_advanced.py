@@ -20,6 +20,7 @@ from scripts.export_team_game_advanced import (
     GAME_BOX_ADVANCED_SEASONS_WIRED,
     TEAM_GAME_ADVANCED_VERSION,
     _advanced_data_pending,
+    _cfbd_fallback,
     _normalize_box_team,
     build_row,
 )
@@ -352,6 +353,68 @@ class AdvancedDataReadinessTests(unittest.TestCase):
         self.assertEqual(row["box_turnovers"], 3)
         self.assertIsNone(row["turnover_epa_lost"])
         self.assertFalse(_advanced_data_pending(row))
+
+
+class CfbdFallbackTests(unittest.TestCase):
+    """CFBD -> CFBD field-level fallback (never PBP). This is the fix for
+    the production bug where PPA/stuff-rate/etc. rendered as an em dash for
+    game 401856674 even though CFBD publishes them -- see
+    tests/test_game_401856674_regression.py."""
+
+    def test_prefers_stats_game_advanced_when_present(self):
+        availability = {}
+        value = _cfbd_fallback(
+            "ppa_per_play",
+            {"offense_ppa_per_play": 0.5}, {"box_ppa_per_play": 9.9},
+            "offense_ppa_per_play", "box_ppa_per_play", availability, True,
+        )
+        self.assertEqual(value, 0.5)
+        self.assertEqual(availability, {})
+
+    def test_falls_back_to_game_box_advanced_when_stats_game_advanced_is_null(self):
+        availability = {}
+        value = _cfbd_fallback(
+            "ppa_per_play",
+            {"offense_ppa_per_play": None}, {"box_ppa_per_play": 0.5},
+            "offense_ppa_per_play", "box_ppa_per_play", availability, True,
+        )
+        self.assertEqual(value, 0.5)
+        self.assertEqual(availability, {})
+
+    def test_marks_advanced_game_stats_missing_when_stats_source_never_ingested(self):
+        availability = {}
+        value = _cfbd_fallback(
+            "ppa_per_play", {}, {"box_ppa_per_play": None},
+            "offense_ppa_per_play", "box_ppa_per_play", availability, True,
+        )
+        self.assertIsNone(value)
+        self.assertEqual(availability["ppa_per_play"], "advanced_game_stats_missing")
+
+    def test_marks_advanced_box_not_ingested_when_box_source_never_ingested_and_wired(self):
+        availability = {}
+        value = _cfbd_fallback(
+            "stuff_rate", {"offense_stuff_rate": None}, {},
+            "offense_stuff_rate", "box_stuff_rate", availability, True,
+        )
+        self.assertIsNone(value)
+        self.assertEqual(availability["stuff_rate"], "advanced_box_not_ingested")
+
+    def test_marks_cfbd_source_missing_when_both_ingested_but_concept_genuinely_null(self):
+        availability = {}
+        value = _cfbd_fallback(
+            "stuff_rate", {"offense_stuff_rate": None}, {"box_stuff_rate": None},
+            "offense_stuff_rate", "box_stuff_rate", availability, True,
+        )
+        self.assertIsNone(value)
+        self.assertEqual(availability["stuff_rate"], "cfbd_source_missing")
+
+    def test_build_row_uses_game_box_advanced_when_stats_game_advanced_field_is_null(self):
+        stats = cfbd_stats_row(offense_ppa_per_play=None, offense_stuff_rate=None)
+        box = cfbd_box_row(**{"box_ppa_per_play": 0.42, "box_stuff_rate": 0.21})
+        row = build_row(2026, canon_row(), exp_row(), box_row(), stats, box)
+        self.assertEqual(row["ppa_per_play"], 0.42)
+        self.assertEqual(row["stuff_rate"], 0.21)
+        self.assertNotIn("field_availability", row)
 
 
 if __name__ == "__main__":

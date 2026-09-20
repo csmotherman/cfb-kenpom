@@ -1,5 +1,17 @@
 # CFBD advanced-stats migration (standard box score + standard advanced stats)
 
+> **2026-09-20 addendum: production blanks incident and fix.** See
+> "Incident: production advanced data rendering blank (2026-09-20)" near the
+> end of this document for the full root-cause writeup. One-line summary:
+> the CI refresh pipeline never called the ingestion this migration added,
+> so production's raw corpus never had CFBD's advanced sources at all. The
+> export/canonical code itself was already correct. Fixed by wiring
+> `scripts/ingest_advanced_game_stats.py` into `.github/workflows/refresh.yml`.
+> Also: `/game/box/advanced`'s `teams.ppa`/`cumulativePpa`/`successRates`/
+> `explosiveness`/`rushing` sections are now parsed too, enabling a real
+> CFBD -> CFBD field-level fallback; and PPA is now displayed as "EPA" on
+> the site (a branding decision) while staying named `ppa_*` internally.
+
 Migrates PRIME's Results/Matchup "Efficiency" and "Game Shape" display data
 away from PBP-derived reconstructions and onto CFBD's own authoritative
 advanced endpoints, wherever CFBD already publishes the concept. Ratings,
@@ -231,3 +243,138 @@ rating computation, so there are no new ranks to compare (see below).
    source value.
 3. Historical `/game/box/advanced` backfill (havoc, scoring opportunities,
    field position for 2014-2024) remains a scoped, not-yet-done follow-up.
+
+## Incident: production advanced data rendering blank (2026-09-20)
+
+**Report:** `https://www.primecfb.com/matchup/2026/401856674` (Alabama 45,
+Kentucky 17) showed Success Rate, Havoc, drives, and field position
+populated, but PPA/Play, Total PPA, passing/rushing PPA, Stuff Rate, Power
+Success, all three rushing-efficiency yardage rows, CFBD Explosiveness,
+every by-down PPA row, and PPA w/o Explosives as an em dash for both teams.
+
+### Investigation
+
+Inspected the real stored raw payload for game `401856674` directly (both
+`/stats/game/advanced` and `/game/box/advanced`, `data/raw/cfbd/season=2026/
+season_type=regular/week=02/`). Both endpoints had **complete, non-null**
+data for both teams for every field the user listed as blank. Ran the
+current `export_team_game_advanced.py` against that raw data locally: every
+field the user listed as blank was already populated -- `ppa_per_play`,
+`total_ppa`, `stuff_rate`, `power_success`, `line_yards_per_play`,
+`cfbd_explosiveness`, `down1_ppa_per_play` (and pass/rush splits),
+`ppa_per_play_without_explosives` all had real values for both Alabama and
+Kentucky in a fresh local build.
+
+This means the specific hypotheses in the original bug report --
+`_normalize_game_box_advanced()` missing sections, a by-down PPA field-name
+mismatch, `exp.get("nonExplosiveEpaPerPlay")` being the wrong producer field
+-- **did not reproduce** against the current code and current raw data.
+`ppa`/`cumulativePpa` semantics were still validated and are documented
+below since that groundwork is valuable regardless, and the missing
+`/game/box/advanced` sections were still added (a real gap, just not what
+was causing this specific incident) so the same class of bug can't recur
+for a field that's only in one of the two endpoints.
+
+### Root cause (confirmed)
+
+`.github/workflows/refresh.yml` -- the actual production refresh pipeline --
+never called `scripts/ingest_advanced_game_stats.py`. Its ingestion step
+runs only `python -m cfb_analytics.pipelines.ingest --season "$SEASON"`
+(`src/cfb_analytics/pipelines/ingest.py`), which calls `raw/acquire.py`'s
+`acquire_season`/`acquire_week` for games, drives, plays, and the official
+box score -- and nothing else. The prior migration built
+`raw/acquire_advanced.py` and `scripts/ingest_advanced_game_stats.py` as a
+standalone script and ran it manually once, locally. It was never wired into
+the automated pipeline, so production's `data/raw` (restored via
+`actions/cache@v4` between runs) never had `advanced_game_stats.json` or
+`advanced_box_scores.json` at all -- CFBD's advanced sources were never
+acquired in production, ever, regardless of how many times the scheduled
+refresh ran. `export_team_game_advanced.py` running in CI against that
+corpus would correctly find no CFBD advanced data and export nulls for
+every field sourced from it.
+
+(Success Rate/drives/havoc/field position appearing populated on the live
+site is consistent with production currently serving a build from before
+this gap existed, or a mix of old and new field names across a stale
+publish -- not independently verified against live CI run history, which
+this environment cannot access. The concrete, fixable defect, regardless of
+that ambiguity, is #1 below.)
+
+**Fix:** added a step to `.github/workflows/refresh.yml`, right after the
+existing games/drives/plays/box-score fetch step, that runs
+`python scripts/ingest_advanced_game_stats.py --season "$SEASON"` with the
+same `--refresh-partition` list `detect-new-games` already resolves for the
+primary ingestion step. Already-cached partitions are free (manifest-checked,
+no API call), so this is safe to run on every refresh, not just bootstrap.
+Also extended `scripts/ingest_advanced_game_stats.py` with `--refresh-partition`
+support (previously only had a blanket `--refresh`) to match.
+
+### Other things fixed while investigating (real, but not this incident's cause)
+
+1. **`_normalize_game_box_advanced()` now parses `teams.ppa`, `teams.
+   cumulativePpa`, `teams.successRates`, `teams.explosiveness`, and `teams.
+   rushing`** (previously only `havoc`/`scoringOpportunities`/`fieldPosition`).
+   Validated against game 401856674's real payload that `ppa[].overall.
+   total` is the per-play average and `cumulativePpa[]`'s equivalent is the
+   total/sum (not guessed from field names -- cross-checked against
+   `/stats/game/advanced`'s independently-computed `offense.ppa`/
+   `offense.totalPPA` for the same team-game: 0.1359 vs 0.1317 per-play,
+   8 vs 8.296 total). This enables a genuine CFBD -> CFBD field-level
+   fallback in `export_team_game_advanced.py`'s new `_cfbd_fallback()`:
+   prefer `/stats/game/advanced`, use `/game/box/advanced`'s equivalent only
+   if that specific field is null there. Never falls back to PRIME PBP.
+2. **Reconciled the two endpoints** across all 372 real 2026 team-games with
+   both sources present (`scripts/audit_cfbd_advanced_coverage.py`):
+   coverage is 372/372 (100%) on both sides for every dual-source concept
+   checked (PPA/play, total PPA, passing/rushing PPA, Success Rate,
+   Explosiveness, Stuff Rate, Power Success, and all three rushing-yardage
+   splits) -- neither endpoint has a coverage edge over the other in this
+   corpus. Numeric agreement is close but not exact (e.g. mean |diff| on
+   Total PPA is 3.71, on PPA/play is 0.06) -- a real, minor definitional/
+   rounding difference between CFBD's two endpoints, not a bug in either
+   parser. `/stats/game/advanced` stays primary (it's the cheap, fully-
+   backfilled-historically source); `/game/box/advanced` is fallback only.
+3. **Full coverage audit, all 448 2026 team-games, 30 displayed advanced
+   fields:** total pipeline loss = **0**. Every field where CFBD (or PRIME,
+   for the 10 genuinely-proprietary fields) has a value, the site export has
+   it too. 76 team-games are source-null across the board (CFBD-advanced
+   fields) -- these are the same pre-existing, unrelated 58-of-372
+   missing-official-box-score team-games documented in the original
+   migration's report, plus a handful with no PBP graded yet. Full table:
+   `data/audits/cfbd_advanced_coverage/2026_summary.json`.
+4. **`field_availability` now distinguishes** `advanced_game_stats_missing`
+   (the whole `/stats/game/advanced` partition was never ingested for this
+   game), `advanced_box_not_ingested` (same, for `/game/box/advanced`, when
+   the season is otherwise wired), `cfbd_source_missing` (both endpoints
+   were ingested but genuinely lack this specific concept for this
+   team-game), and `prime_pbp_missing` (a PRIME-only field with no CFBD
+   equivalent, and PRIME's own pipeline has nothing for this team-game) --
+   replacing a single generic `cfbd_source_missing`-only reason and an
+   entirely untracked category for the PRIME-only fields.
+5. **PPA is now displayed as "EPA"** on the Results/Matchup page (a
+   PRIME branding decision, not a claim that PRIME fits its own model).
+   `web/lib/team-game-advanced.ts`'s `label` strings changed ("PPA / Play" ->
+   "EPA / Play", etc.); the underlying export field names stay `ppa_per_play`/
+   `total_ppa`/etc. -- deliberately not renamed back to `epa_*`, so the
+   honest internal provenance from the original migration (PPA is CFBD's own
+   model output, not one PRIME fits) is never lost. Every tooltip touched by
+   this change says explicitly that CFBD's PPA is the underlying source.
+6. **`by-down PPA` and `PPA w/o Explosives` were investigated and found
+   already correct** -- `canon.get("passDown1EpaPerPlay")` etc. and
+   `exp.get("nonExplosiveEpaPerPlay")` both resolve to real values for game
+   401856674 in the current canonical/exploratory corpus. No code change was
+   needed for these two; `field_availability` tracking was added for them
+   regardless (item 4) so a genuine future regression would be visible
+   rather than a silent null.
+
+### Regression coverage
+
+`tests/test_game_401856674_regression.py` reads the real raw corpus for
+this exact game and asserts every field the bug report listed as blank is
+non-null for both teams, that `field_availability` is empty for this game,
+and that the `ppa`/`cumulativePpa` per-play-vs-total semantics hold against
+an independent source. `tests/test_cfbd_advanced.py` gained coverage for
+the five newly-parsed `/game/box/advanced` sections using this game's real
+magnitudes. `tests/test_export_team_game_advanced.py` gained a
+`CfbdFallbackTests` class covering `_cfbd_fallback()`'s four outcomes
+(stats-preferred, box-fallback, and both missing-reason branches).

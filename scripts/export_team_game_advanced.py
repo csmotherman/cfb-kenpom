@@ -60,6 +60,30 @@ FIELD_AVAILABILITY_REASONS = {
         "as of this export -- not a processing gap, a scoped historical-backfill boundary. "
         "See scripts/ingest_advanced_game_stats.py to extend coverage."
     ),
+    "advanced_game_stats_missing": (
+        "CFBD's /stats/game/advanced was never ingested for this game's raw partition "
+        "(data/raw/.../advanced_game_stats.json missing or has no row for this team) -- "
+        "run scripts/ingest_advanced_game_stats.py for this season/week."
+    ),
+    "advanced_box_not_ingested": (
+        "CFBD's /game/box/advanced was never ingested for this game "
+        "(data/raw/.../advanced_box_scores.json missing or has no row for this team), "
+        "even though this season is within GAME_BOX_ADVANCED_SEASONS_WIRED -- a genuine "
+        "per-game ingestion gap, not a scoped historical-backfill boundary. "
+        "Run scripts/ingest_advanced_game_stats.py for this season/week."
+    ),
+    "cfbd_source_missing": (
+        "Neither CFBD advanced endpoint (/stats/game/advanced or /game/box/advanced) "
+        "publishes this specific value for this team-game, even though at least one of "
+        "those sources was ingested for this game -- a genuine CFBD source gap, not a "
+        "pipeline bug. Never filled from PRIME's PBP reconstruction."
+    ),
+    "prime_pbp_missing": (
+        "This is a PRIME-only metric with no CFBD equivalent (genuinely requires "
+        "play-by-play), and PRIME's own canonical/exploratory pipeline has no value "
+        "for this team-game -- check canonical-plays/derived-drives/propagation CLI "
+        "coverage for this partition."
+    ),
 }
 
 READINESS_MANIFEST_PATH = REPO / "data/canonical/advanced_data_readiness.json"
@@ -124,6 +148,30 @@ def _num(v):
 def _rate(num, den):
     n, d = _num(num), _num(den)
     return n / d if (n is not None and d and d > 0) else None
+
+
+def _cfbd_fallback(field, cfbd_stats, cfbd_box, stats_key, box_key, field_availability, game_box_wired):
+    """CFBD -> CFBD field-level fallback (never PBP). Prefer
+    /stats/game/advanced (cheap, backfilled for every season); if that
+    specific field is null, try /game/box/advanced's equivalent -- both
+    endpoints publish PPA/Success Rate/explosiveness/rushing efficiency,
+    just with minor definitional differences (see canonical/cfbd_advanced.py).
+    Distinguishes "the whole source was never ingested" from "both sources
+    were ingested but genuinely lack this specific value" so
+    field_availability never shows an unexplained null."""
+    stats_value = (cfbd_stats or {}).get(stats_key)
+    if stats_value is not None:
+        return stats_value
+    box_value = (cfbd_box or {}).get(box_key)
+    if box_value is not None:
+        return box_value
+    if not cfbd_stats:
+        field_availability[field] = "advanced_game_stats_missing"
+    elif game_box_wired and not cfbd_box:
+        field_availability[field] = "advanced_box_not_ingested"
+    else:
+        field_availability[field] = "cfbd_source_missing"
+    return None
 
 
 def _parse_int(value):
@@ -321,6 +369,45 @@ def build_row(
         else None
     )
 
+    # CFBD -> CFBD field-level fallback for every concept both advanced
+    # endpoints publish. Never falls back to PRIME PBP. See _cfbd_fallback
+    # and canonical/cfbd_advanced.py's module docstring for why both
+    # endpoints need parsing at all.
+    fb = lambda field, stats_key, box_key: _cfbd_fallback(  # noqa: E731
+        field, cfbd_stats, cfbd_box, stats_key, box_key, field_availability, game_box_wired
+    )
+    ppa_per_play = fb("ppa_per_play", "offense_ppa_per_play", "box_ppa_per_play")
+    total_ppa = fb("total_ppa", "offense_total_ppa", "box_total_ppa")
+    success_rate = fb("success_rate", "offense_success_rate", "box_success_rate")
+    passing_total_ppa = fb("passing_total_ppa", "offense_passing_total_ppa", "box_passing_total_ppa")
+    passing_ppa_per_play = fb("passing_ppa_per_play", "offense_passing_ppa_per_play", "box_passing_ppa_per_play")
+    rushing_total_ppa = fb("rushing_total_ppa", "offense_rushing_total_ppa", "box_rushing_total_ppa")
+    rushing_ppa_per_play = fb("rushing_ppa_per_play", "offense_rushing_ppa_per_play", "box_rushing_ppa_per_play")
+    standard_downs_success_rate = fb("standard_downs_success_rate", "offense_standard_downs_success_rate", "box_standard_downs_success_rate")
+    passing_downs_success_rate = fb("passing_downs_success_rate", "offense_passing_downs_success_rate", "box_passing_downs_success_rate")
+    stuff_rate = fb("stuff_rate", "offense_stuff_rate", "box_stuff_rate")
+    power_success = fb("power_success", "offense_power_success", "box_power_success")
+    line_yards_per_play = fb("line_yards_per_play", "offense_line_yards_per_play", "box_line_yards_per_play")
+    line_yards_total = fb("line_yards_total", "offense_line_yards_total", "box_line_yards_total")
+    second_level_yards_per_play = fb("second_level_yards_per_play", "offense_second_level_yards_per_play", "box_second_level_yards_per_play")
+    second_level_yards_total = fb("second_level_yards_total", "offense_second_level_yards_total", "box_second_level_yards_total")
+    open_field_yards_per_play = fb("open_field_yards_per_play", "offense_open_field_yards_per_play", "box_open_field_yards_per_play")
+    open_field_yards_total = fb("open_field_yards_total", "offense_open_field_yards_total", "box_open_field_yards_total")
+    cfbd_explosiveness = fb("cfbd_explosiveness", "offense_explosiveness", "box_explosiveness")
+    # Passing/rushing explosiveness and standard/passing-downs PPA have no
+    # /game/box/advanced equivalent (that endpoint's explosiveness/ppa
+    # sections don't split the same way) -- /stats/game/advanced only, no
+    # fallback possible.
+    cfbd_rushing_explosiveness = cfbd_stats.get("offense_rushing_explosiveness")
+    cfbd_passing_explosiveness = cfbd_stats.get("offense_passing_explosiveness")
+    standard_downs_ppa = cfbd_stats.get("offense_standard_downs_ppa")
+    passing_downs_ppa = cfbd_stats.get("offense_passing_downs_ppa")
+    # pass_success_rate/rush_success_rate split by PLAY TYPE (CFBD's
+    # passingPlays/rushingPlays); box_standard/passing_downs_success_rate
+    # split by DOWN TYPE -- not the same concept, so no fallback between them.
+    pass_success_rate = cfbd_stats.get("offense_passing_success_rate")
+    rush_success_rate = cfbd_stats.get("offense_rushing_success_rate")
+
     row = {
         "season": season,
         "week": canon.get("week"),
@@ -378,9 +465,9 @@ def build_row(
         # Populations differ slightly from the old PBP-derived numbers (see
         # audit README) -- this is CFBD's own play population, not PRIME's
         # classifier population.
-        "ppa_per_play": cfbd_stats.get("offense_ppa_per_play"),
-        "total_ppa": cfbd_stats.get("offense_total_ppa"),
-        "success_rate": cfbd_stats.get("offense_success_rate"),
+        "ppa_per_play": ppa_per_play,
+        "total_ppa": total_ppa,
+        "success_rate": success_rate,
         "offense_plays": cfbd_stats.get("offense_plays"),
         # PRIME's own graded-scrimmage-play count (not an official play
         # count -- see box_total_plays / offense_plays for those). Retained
@@ -389,36 +476,38 @@ def build_row(
         # from "no PBP exists for this game at all."
         "prime_pbp_graded_plays": canon.get("epaPlays"),
 
-        "passing_total_ppa": cfbd_stats.get("offense_passing_total_ppa"),
-        "passing_ppa_per_play": cfbd_stats.get("offense_passing_ppa_per_play"),
-        "pass_success_rate": cfbd_stats.get("offense_passing_success_rate"),
+        "passing_total_ppa": passing_total_ppa,
+        "passing_ppa_per_play": passing_ppa_per_play,
+        "pass_success_rate": pass_success_rate,
 
-        "rushing_total_ppa": cfbd_stats.get("offense_rushing_total_ppa"),
-        "rushing_ppa_per_play": cfbd_stats.get("offense_rushing_ppa_per_play"),
-        "rush_success_rate": cfbd_stats.get("offense_rushing_success_rate"),
+        "rushing_total_ppa": rushing_total_ppa,
+        "rushing_ppa_per_play": rushing_ppa_per_play,
+        "rush_success_rate": rush_success_rate,
 
-        "standard_downs_ppa": cfbd_stats.get("offense_standard_downs_ppa"),
-        "standard_downs_success_rate": cfbd_stats.get("offense_standard_downs_success_rate"),
-        "passing_downs_ppa": cfbd_stats.get("offense_passing_downs_ppa"),
-        "passing_downs_success_rate": cfbd_stats.get("offense_passing_downs_success_rate"),
+        "standard_downs_ppa": standard_downs_ppa,
+        "standard_downs_success_rate": standard_downs_success_rate,
+        "passing_downs_ppa": passing_downs_ppa,
+        "passing_downs_success_rate": passing_downs_success_rate,
 
-        # Rushing efficiency (Tier 2, CFBD /stats/game/advanced).
-        "stuff_rate": cfbd_stats.get("offense_stuff_rate"),
-        "power_success": cfbd_stats.get("offense_power_success"),
-        "line_yards_per_play": cfbd_stats.get("offense_line_yards_per_play"),
-        "line_yards_total": cfbd_stats.get("offense_line_yards_total"),
-        "second_level_yards_per_play": cfbd_stats.get("offense_second_level_yards_per_play"),
-        "second_level_yards_total": cfbd_stats.get("offense_second_level_yards_total"),
-        "open_field_yards_per_play": cfbd_stats.get("offense_open_field_yards_per_play"),
-        "open_field_yards_total": cfbd_stats.get("offense_open_field_yards_total"),
+        # Rushing efficiency. CFBD -> CFBD fallback: /stats/game/advanced
+        # preferred, /game/box/advanced's teams.rushing used if that specific
+        # field is null there.
+        "stuff_rate": stuff_rate,
+        "power_success": power_success,
+        "line_yards_per_play": line_yards_per_play,
+        "line_yards_total": line_yards_total,
+        "second_level_yards_per_play": second_level_yards_per_play,
+        "second_level_yards_total": second_level_yards_total,
+        "open_field_yards_per_play": open_field_yards_per_play,
+        "open_field_yards_total": open_field_yards_total,
 
         # CFBD's own "explosiveness" is average PPA on explosive plays only
         # (a magnitude), NOT the same concept as PRIME's explosive_play_rate
         # below (a frequency/share of plays) -- kept as a separate field
         # rather than conflated under one name. See README naming note.
-        "cfbd_explosiveness": cfbd_stats.get("offense_explosiveness"),
-        "cfbd_rushing_explosiveness": cfbd_stats.get("offense_rushing_explosiveness"),
-        "cfbd_passing_explosiveness": cfbd_stats.get("offense_passing_explosiveness"),
+        "cfbd_explosiveness": cfbd_explosiveness,
+        "cfbd_rushing_explosiveness": cfbd_rushing_explosiveness,
+        "cfbd_passing_explosiveness": cfbd_passing_explosiveness,
 
         # PRIME's own down-specific split of CFBD's per-play PPA (CFBD's
         # advanced endpoints only split by standard/passing down, not by
@@ -508,6 +597,23 @@ def build_row(
         "penalties_per_drive": _rate(exp.get("offensivePenalties"), cfbd_offensive_drives),
         "penalty_yards_per_drive": _rate(exp.get("offensivePenaltyYards"), cfbd_offensive_drives),
     }
+
+    # PRIME-only fields (no CFBD equivalent, genuinely require PBP): mark
+    # prime_pbp_missing rather than leaving an unexplained null when the
+    # underlying canonical/exploratory pipeline has no value for this
+    # team-game. Does not include fields already covered by
+    # EXPLORATORY_READINESS_FIELDS/_advanced_data_pending()'s own tracking.
+    for key in (
+        "down1_ppa_per_play", "down1_ppa_per_play_pass", "down1_ppa_per_play_rush",
+        "down2_ppa_per_play", "down2_ppa_per_play_pass", "down2_ppa_per_play_rush",
+        "down3_ppa_per_play", "down3_ppa_per_play_pass", "down3_ppa_per_play_rush",
+        "ppa_per_play_without_explosives", "explosive_dependency",
+        "series_conversion_rate", "recovery_rate", "third_long_exposure",
+        "clean_drive_rate", "drive_killer_rate", "failure_rate",
+    ):
+        if row.get(key) is None and key not in field_availability:
+            field_availability[key] = "prime_pbp_missing"
+
     if field_availability:
         row["field_availability"] = field_availability
     return row

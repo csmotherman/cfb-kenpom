@@ -64,6 +64,31 @@ def game_box_advanced_payload():
                 {"team": "North Carolina", "averageStart": 73.3, "averageStartingPredictedPoints": 1.2},
                 {"team": "TCU", "averageStart": 64.8, "averageStartingPredictedPoints": 1.67},
             ],
+            # Magnitudes below are real values from game 401856674 (Alabama @
+            # Kentucky, 2026 wk2, which surfaced the missing-sections bug),
+            # relabeled onto this fixture's TCU/North Carolina teams so this
+            # payload keeps exactly two teams throughout (a real single-game
+            # payload never has more than two).
+            "ppa": [
+                {"team": "TCU", "plays": 59, "overall": {"total": 0.1359}, "passing": {"total": 0.125}, "rushing": {"total": 0.26}},
+                {"team": "North Carolina", "plays": 64, "overall": {"total": -0.3492}, "passing": {"total": -0.195}, "rushing": {"total": -0.535}},
+            ],
+            "cumulativePpa": [
+                {"team": "TCU", "plays": 59, "overall": {"total": 8}, "passing": {"total": 3.1}, "rushing": {"total": 8.3}},
+                {"team": "North Carolina", "plays": 64, "overall": {"total": -22.3}, "passing": {"total": -6.4}, "rushing": {"total": -14.5}},
+            ],
+            "successRates": [
+                {"team": "TCU", "overall": {"total": 0.475}, "standardDowns": {"total": 0.542}, "passingDowns": {"total": 0.182}},
+                {"team": "North Carolina", "overall": {"total": 0.313}, "standardDowns": {"total": 0.4}, "passingDowns": {"total": 0.167}},
+            ],
+            "explosiveness": [
+                {"team": "TCU", "overall": {"total": 1.15}},
+                {"team": "North Carolina", "overall": {"total": 1.0}},
+            ],
+            "rushing": [
+                {"team": "TCU", "powerSuccess": 0.6, "stuffRate": 0.219, "lineYards": 93, "lineYardsAverage": 2.9, "secondLevelYards": 32, "secondLevelYardsAverage": 1.0, "openFieldYards": 43, "openFieldYardsAverage": 1.3},
+                {"team": "North Carolina", "powerSuccess": 0.5, "stuffRate": 0.222, "lineYards": 47, "lineYardsAverage": 1.7, "secondLevelYards": 17, "secondLevelYardsAverage": 0.6, "openFieldYards": 2, "openFieldYardsAverage": 0.1},
+            ],
         },
     }
 
@@ -147,6 +172,50 @@ class GameBoxAdvancedTests(unittest.TestCase):
         for row in rows.values():
             self.assertEqual(row["sourceVersion"], CFBD_GAME_BOX_ADVANCED_VERSION)
             self.assertEqual(row["sourceEndpoint"], "/game/box/advanced")
+
+    def test_ppa_is_per_play_average_not_a_sum(self):
+        # Previously unparsed section (the bug this fixture was built to
+        # catch): teams.ppa[].overall.total is the PER-PLAY average, not a
+        # sum -- confirmed against /stats/game/advanced's per-play
+        # offense.ppa for the same real game in
+        # StatsGameAdvancedTests / test_game_401856674_regression.py.
+        rows = _normalize_game_box_advanced("401856766", game_box_advanced_payload())
+        tcu = rows[("401856766", "TCU")]
+        self.assertAlmostEqual(tcu["box_ppa_per_play"], 0.1359)
+        self.assertAlmostEqual(tcu["box_passing_ppa_per_play"], 0.125)
+        self.assertAlmostEqual(tcu["box_rushing_ppa_per_play"], 0.26)
+
+    def test_cumulative_ppa_is_the_total_not_a_second_average(self):
+        rows = _normalize_game_box_advanced("401856766", game_box_advanced_payload())
+        tcu = rows[("401856766", "TCU")]
+        self.assertAlmostEqual(tcu["box_total_ppa"], 8)
+        self.assertAlmostEqual(tcu["box_passing_total_ppa"], 3.1)
+        self.assertAlmostEqual(tcu["box_rushing_total_ppa"], 8.3)
+        # A total should not equal the per-play average for a multi-play game.
+        self.assertNotAlmostEqual(tcu["box_total_ppa"], tcu["box_ppa_per_play"], places=1)
+
+    def test_success_rates_and_explosiveness_parsed(self):
+        rows = _normalize_game_box_advanced("401856766", game_box_advanced_payload())
+        tcu = rows[("401856766", "TCU")]
+        self.assertAlmostEqual(tcu["box_success_rate"], 0.475)
+        self.assertAlmostEqual(tcu["box_standard_downs_success_rate"], 0.542)
+        self.assertAlmostEqual(tcu["box_passing_downs_success_rate"], 0.182)
+        self.assertAlmostEqual(tcu["box_explosiveness"], 1.15)
+
+    def test_rushing_totals_vs_averages_are_not_swapped(self):
+        # /game/box/advanced names the TOTAL "lineYards" and the per-carry
+        # average "lineYardsAverage" -- the OPPOSITE of /stats/game/advanced's
+        # naming (see test_line_yards_per_play_vs_total_are_not_swapped).
+        rows = _normalize_game_box_advanced("401856766", game_box_advanced_payload())
+        tcu = rows[("401856766", "TCU")]
+        self.assertEqual(tcu["box_line_yards_total"], 93)
+        self.assertAlmostEqual(tcu["box_line_yards_per_play"], 2.9)
+        self.assertEqual(tcu["box_second_level_yards_total"], 32)
+        self.assertAlmostEqual(tcu["box_second_level_yards_per_play"], 1.0)
+        self.assertEqual(tcu["box_open_field_yards_total"], 43)
+        self.assertAlmostEqual(tcu["box_open_field_yards_per_play"], 1.3)
+        self.assertAlmostEqual(tcu["box_stuff_rate"], 0.219)
+        self.assertAlmostEqual(tcu["box_power_success"], 0.6)
 
     def test_load_game_box_advanced_season_reads_partitions(self):
         with TemporaryDirectory() as tmp:

@@ -1,0 +1,315 @@
+{
+  "endpointReconciliation": {
+    "2nd-Level Yards/play": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": 1.018918918918919,
+      "mean_abs_diff": 0.1320571715509282,
+      "mean_signed_diff": 0.014075249908113725,
+      "stats_game_advanced_coverage": 372
+    },
+    "Explosiveness": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": -1.3671598449248688,
+      "mean_abs_diff": 0.08869566061906764,
+      "mean_signed_diff": 0.035144770659734884,
+      "stats_game_advanced_coverage": 372
+    },
+    "Line Yards/play": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": -2.4033333333333333,
+      "mean_abs_diff": 0.26601651508958957,
+      "mean_signed_diff": -0.012417877573369282,
+      "stats_game_advanced_coverage": 372
+    },
+    "Open-Field Yards/play": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": 3.6378378378378375,
+      "mean_abs_diff": 0.3061105168424988,
+      "mean_signed_diff": 0.0643848019714359,
+      "stats_game_advanced_coverage": 372
+    },
+    "PPA/play": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": 0.6144748269525087,
+      "mean_abs_diff": 0.06006885565990218,
+      "mean_signed_diff": 0.011292919481634875,
+      "stats_game_advanced_coverage": 372
+    },
+    "Passing PPA (total)": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": -17.11137284560836,
+      "mean_abs_diff": 2.1525632324521156,
+      "mean_signed_diff": -0.7026728104087904,
+      "stats_game_advanced_coverage": 372
+    },
+    "Power Success": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": -1.0,
+      "mean_abs_diff": 0.0853515594322046,
+      "mean_signed_diff": -0.03903440943763524,
+      "stats_game_advanced_coverage": 372
+    },
+    "Rushing PPA (total)": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": -21.399991303066162,
+      "mean_abs_diff": 2.1992079123726422,
+      "mean_signed_diff": -0.5175236874998335,
+      "stats_game_advanced_coverage": 372
+    },
+    "Stuff Rate": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": 0.2857142857142857,
+      "mean_abs_diff": 0.03126694419956293,
+      "mean_signed_diff": 0.0026662057223780953,
+      "stats_game_advanced_coverage": 372
+    },
+    "Success Rate": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": 0.2326666666666667,
+      "mean_abs_diff": 0.025802405769083513,
+      "mean_signed_diff": 0.0014221976841542953,
+      "stats_game_advanced_coverage": 372
+    },
+    "Total PPA": {
+      "both_present": 372,
+      "game_box_advanced_coverage": 372,
+      "max_abs_diff": -30.499832522140803,
+      "mean_abs_diff": 3.7104153499988763,
+      "mean_signed_diff": -0.986485809969866,
+      "stats_game_advanced_coverage": 372
+    }
+  },
+  "fieldCoverage": {
+    "avg_start_yards_to_goal": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "cfbd_explosiveness": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "clean_drive_rate": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "down1_ppa_per_play": {
+      "cfbd_populated": 448,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 448,
+      "source_null": 0
+    },
+    "down2_ppa_per_play": {
+      "cfbd_populated": 448,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 448,
+      "source_null": 0
+    },
+    "down3_ppa_per_play": {
+      "cfbd_populated": 448,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 448,
+      "source_null": 0
+    },
+    "drive_killer_rate": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "explosive_dependency": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "failure_rate": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "havoc_allowed": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "havoc_forced": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "line_yards_per_play": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "offensive_drives": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "open_field_yards_per_play": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "pass_success_rate": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "passing_ppa_per_play": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "passing_total_ppa": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "points_per_opportunity": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "power_success": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "ppa_per_play": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "ppa_per_play_without_explosives": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "recovery_rate": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "rush_success_rate": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "rushing_ppa_per_play": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "rushing_total_ppa": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "scoring_opportunities": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "second_level_yards_per_play": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "series_conversion_rate": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "stuff_rate": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "success_rate": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    },
+    "total_ppa": {
+      "cfbd_populated": 372,
+      "eligible": 448,
+      "pipeline_loss": 0,
+      "site_populated": 372,
+      "source_null": 76
+    }
+  },
+  "pipelineLossExamples": {},
+  "season": 2026,
+  "teamGames": 448,
+  "totalPipelineLoss": 0
+}
