@@ -1,0 +1,390 @@
+{
+ "2014": {
+  "teamGames": 1488,
+  "possessionCountEqualShare": 0.894489247311828,
+  "offensivePointsEqualShare": 0.8467741935483871,
+  "offensivePointsMAE": 1.2600806451612903,
+  "finalRegularSeason": {
+   "teams": 128,
+   "maxAbsDiff": 4.626879901828598,
+   "meanAbsDiff": 1.2052538586345354,
+   "corr": 0.9845728200388684,
+   "meanAbsRankChange": 5.0625,
+   "maxRankChange": 23,
+   "top25Overlap": 23
+  },
+  "week3": {
+   "teams": 127,
+   "maxAbsDiff": 8.506058928859892,
+   "meanAbsDiff": 1.4591234444014867,
+   "corr": 0.961955415416424,
+   "meanAbsRankChange": 6.9921259842519685,
+   "maxRankChange": 42,
+   "top25Overlap": 22
+  },
+  "week6": {
+   "teams": 128,
+   "maxAbsDiff": 6.564372531673184,
+   "meanAbsDiff": 1.3373961608911946,
+   "corr": 0.9789501351573359,
+   "meanAbsRankChange": 5.578125,
+   "maxRankChange": 26,
+   "top25Overlap": 22
+  }
+ },
+ "2015": {
+  "teamGames": 1516,
+  "possessionCountEqualShare": 0.8766490765171504,
+  "offensivePointsEqualShare": 0.854221635883905,
+  "offensivePointsMAE": 1.1682058047493404,
+  "finalRegularSeason": {
+   "teams": 128,
+   "maxAbsDiff": 4.521430351116896,
+   "meanAbsDiff": 1.0504166937675328,
+   "corr": 0.9887677344021487,
+   "meanAbsRankChange": 4.84375,
+   "maxRankChange": 18,
+   "top25Overlap": 21
+  },
+  "week3": {
+   "teams": 128,
+   "maxAbsDiff": 11.401293245636746,
+   "meanAbsDiff": 1.3356180279302685,
+   "corr": 0.9675388460400868,
+   "meanAbsRankChange": 6.203125,
+   "maxRankChange": 43,
+   "top25Overlap": 22
+  },
+  "week6": {
+   "teams": 128,
+   "maxAbsDiff": 8.564394674867724,
+   "meanAbsDiff": 1.1520120911002674,
+   "corr": 0.9833195780289556,
+   "meanAbsRankChange": 4.875,
+   "maxRankChange": 24,
+   "top25Overlap": 23
+  }
+ },
+ "2016": {
+  "teamGames": 1494,
+  "possessionCountEqualShare": 0.8681392235609103,
+  "offensivePointsEqualShare": 0.8467202141900937,
+  "offensivePointsMAE": 1.21619812583668,
+  "finalRegularSeason": {
+   "teams": 128,
+   "maxAbsDiff": 4.540218656021851,
+   "meanAbsDiff": 1.0898712045401777,
+   "corr": 0.9874810027659745,
+   "meanAbsRankChange": 5.0,
+   "maxRankChange": 23,
+   "top25Overlap": 23
+  },
+  "week3": {
+   "teams": 128,
+   "maxAbsDiff": 4.839158161754943,
+   "meanAbsDiff": 1.3758691306726891,
+   "corr": 0.9733246867943367,
+   "meanAbsRankChange": 6.40625,
+   "maxRankChange": 33,
+   "top25Overlap": 22
+  },
+  "week6": {
+   "teams": 128,
+   "maxAbsDiff": 4.6518039758783605,
+   "meanAbsDiff": 1.237866809795133,
+   "corr": 0.9830216110105146,
+   "meanAbsRankChange": 5.75,
+   "maxRankChange": 27,
+   "top25Overlap": 24
+  }
+ },
+ "2017": {
+  "teamGames": 1544,
+  "possessionCountEqualShare": 0.883419689119171,
+  "offensivePointsEqualShare": 0.8652849740932642,
+  "offensivePointsMAE": 1.0563471502590673,
+  "finalRegularSeason": {
+   "teams": 130,
+   "maxAbsDiff": 4.98557428654836,
+   "meanAbsDiff": 1.053123034140173,
+   "corr": 0.9877576763511152,
+   "meanAbsRankChange": 4.969230769230769,
+   "maxRankChange": 30,
+   "top25Overlap": 22
+  },
+  "week3": {
+   "teams": 129,
+   "maxAbsDiff": 5.860649254531075,
+   "meanAbsDiff": 1.1230366859795422,
+   "corr": 0.9811786946426165,
+   "meanAbsRankChange": 5.286821705426356,
+   "maxRankChange": 33,
+   "top25Overlap": 24
+  },
+  "week6": {
+   "teams": 130,
+   "maxAbsDiff": 5.637640886102308,
+   "meanAbsDiff": 1.1156095545260487,
+   "corr": 0.9850932139510382,
+   "meanAbsRankChange": 5.030769230769231,
+   "maxRankChange": 30,
+   "top25Overlap": 21
+  }
+ },
+ "2018": {
+  "teamGames": 1540,
+  "possessionCountEqualShare": 0.7876623376623376,
+  "offensivePointsEqualShare": 0.8655844155844156,
+  "offensivePointsMAE": 0.9831168831168832,
+  "finalRegularSeason": {
+   "teams": 130,
+   "maxAbsDiff": 4.2492195426515735,
+   "meanAbsDiff": 0.8660769418651656,
+   "corr": 0.9908568204158401,
+   "meanAbsRankChange": 3.3230769230769233,
+   "maxRankChange": 18,
+   "top25Overlap": 25
+  },
+  "week3": {
+   "teams": 130,
+   "maxAbsDiff": 3.76082648246859,
+   "meanAbsDiff": 1.1014999328989818,
+   "corr": 0.9854730578731284,
+   "meanAbsRankChange": 5.430769230769231,
+   "maxRankChange": 27,
+   "top25Overlap": 23
+  },
+  "week6": {
+   "teams": 130,
+   "maxAbsDiff": 4.413153081595599,
+   "meanAbsDiff": 1.08028484392195,
+   "corr": 0.9877242908100157,
+   "meanAbsRankChange": 4.369230769230769,
+   "maxRankChange": 29,
+   "top25Overlap": 25
+  }
+ },
+ "2019": {
+  "teamGames": 1546,
+  "possessionCountEqualShare": 0.8680465717981889,
+  "offensivePointsEqualShare": 0.8680465717981889,
+  "offensivePointsMAE": 1.000646830530401,
+  "finalRegularSeason": {
+   "teams": 130,
+   "maxAbsDiff": 3.7749621320353466,
+   "meanAbsDiff": 1.0407574937786526,
+   "corr": 0.9911290955899069,
+   "meanAbsRankChange": 4.569230769230769,
+   "maxRankChange": 21,
+   "top25Overlap": 24
+  },
+  "week3": {
+   "teams": 130,
+   "maxAbsDiff": 4.296490763826302,
+   "meanAbsDiff": 1.1034631590065378,
+   "corr": 0.9839606996108293,
+   "meanAbsRankChange": 5.2615384615384615,
+   "maxRankChange": 27,
+   "top25Overlap": 25
+  },
+  "week6": {
+   "teams": 130,
+   "maxAbsDiff": 5.776700829375031,
+   "meanAbsDiff": 1.2712885352882846,
+   "corr": 0.9853944421274434,
+   "meanAbsRankChange": 5.046153846153846,
+   "maxRankChange": 22,
+   "top25Overlap": 22
+  }
+ },
+ "2021": {
+  "teamGames": 1540,
+  "possessionCountEqualShare": 0.7487012987012988,
+  "offensivePointsEqualShare": 0.8168831168831169,
+  "offensivePointsMAE": 1.5512987012987014,
+  "finalRegularSeason": {
+   "teams": 130,
+   "maxAbsDiff": 10.335820180400871,
+   "meanAbsDiff": 1.4171369018553646,
+   "corr": 0.9740207789662657,
+   "meanAbsRankChange": 6.0,
+   "maxRankChange": 35,
+   "top25Overlap": 20
+  },
+  "week3": {
+   "teams": 130,
+   "maxAbsDiff": 18.225171377230907,
+   "meanAbsDiff": 1.8151773817407812,
+   "corr": 0.927210933318586,
+   "meanAbsRankChange": 8.63076923076923,
+   "maxRankChange": 71,
+   "top25Overlap": 18
+  },
+  "week6": {
+   "teams": 130,
+   "maxAbsDiff": 11.95321511116302,
+   "meanAbsDiff": 1.7068899211885162,
+   "corr": 0.9591294679290877,
+   "meanAbsRankChange": 6.938461538461539,
+   "maxRankChange": 39,
+   "top25Overlap": 23
+  }
+ },
+ "2022": {
+  "teamGames": 1552,
+  "possessionCountEqualShare": 0.8002577319587629,
+  "offensivePointsEqualShare": 0.8305412371134021,
+  "offensivePointsMAE": 1.753221649484536,
+  "finalRegularSeason": {
+   "teams": 131,
+   "maxAbsDiff": 9.900975175075551,
+   "meanAbsDiff": 1.8407400516120178,
+   "corr": 0.9580157836053435,
+   "meanAbsRankChange": 8.549618320610687,
+   "maxRankChange": 55,
+   "top25Overlap": 18
+  },
+  "week3": {
+   "teams": 131,
+   "maxAbsDiff": 16.568188561461866,
+   "meanAbsDiff": 3.015145381284477,
+   "corr": 0.8818122003771474,
+   "meanAbsRankChange": 13.572519083969466,
+   "maxRankChange": 80,
+   "top25Overlap": 19
+  },
+  "week6": {
+   "teams": 131,
+   "maxAbsDiff": 10.586729150356415,
+   "meanAbsDiff": 2.2105278713961125,
+   "corr": 0.9460340863103804,
+   "meanAbsRankChange": 9.709923664122137,
+   "maxRankChange": 62,
+   "top25Overlap": 19
+  }
+ },
+ "2023": {
+  "teamGames": 1584,
+  "possessionCountEqualShare": 0.8345959595959596,
+  "offensivePointsEqualShare": 0.8529040404040404,
+  "offensivePointsMAE": 1.0233585858585859,
+  "finalRegularSeason": {
+   "teams": 133,
+   "maxAbsDiff": 5.264350958456132,
+   "meanAbsDiff": 1.171562960534769,
+   "corr": 0.9861033397524449,
+   "meanAbsRankChange": 5.022556390977444,
+   "maxRankChange": 23,
+   "top25Overlap": 23
+  },
+  "week3": {
+   "teams": 133,
+   "maxAbsDiff": 7.292675047860037,
+   "meanAbsDiff": 1.4816874092224293,
+   "corr": 0.967241973778482,
+   "meanAbsRankChange": 6.481203007518797,
+   "maxRankChange": 31,
+   "top25Overlap": 24
+  },
+  "week6": {
+   "teams": 133,
+   "maxAbsDiff": 6.815132563338352,
+   "meanAbsDiff": 1.321808929596003,
+   "corr": 0.9779633776502269,
+   "meanAbsRankChange": 6.120300751879699,
+   "maxRankChange": 32,
+   "top25Overlap": 24
+  }
+ },
+ "2024": {
+  "teamGames": 1594,
+  "possessionCountEqualShare": 0.8914680050188206,
+  "offensivePointsEqualShare": 0.8431618569636136,
+  "offensivePointsMAE": 1.1442910915934756,
+  "finalRegularSeason": {
+   "teams": 134,
+   "maxAbsDiff": 6.802814948072307,
+   "meanAbsDiff": 1.199290232913779,
+   "corr": 0.9841733536155196,
+   "meanAbsRankChange": 4.537313432835821,
+   "maxRankChange": 20,
+   "top25Overlap": 24
+  },
+  "week3": {
+   "teams": 134,
+   "maxAbsDiff": 7.1406269113715535,
+   "meanAbsDiff": 1.258955155290528,
+   "corr": 0.9764463646186919,
+   "meanAbsRankChange": 5.850746268656716,
+   "maxRankChange": 46,
+   "top25Overlap": 23
+  },
+  "week6": {
+   "teams": 134,
+   "maxAbsDiff": 5.85437161650238,
+   "meanAbsDiff": 1.377042969969169,
+   "corr": 0.9816296871641922,
+   "meanAbsRankChange": 5.8059701492537314,
+   "maxRankChange": 31,
+   "top25Overlap": 21
+  }
+ },
+ "2025": {
+  "teamGames": 1616,
+  "possessionCountEqualShare": 0.8224009900990099,
+  "offensivePointsEqualShare": 0.7264851485148515,
+  "offensivePointsMAE": 3.8465346534653464,
+  "finalRegularSeason": {
+   "teams": 136,
+   "maxAbsDiff": 12.150651432367054,
+   "meanAbsDiff": 2.3878863628762637,
+   "corr": 0.9421425019418811,
+   "meanAbsRankChange": 10.073529411764707,
+   "maxRankChange": 61,
+   "top25Overlap": 21
+  },
+  "week3": {
+   "teams": 136,
+   "maxAbsDiff": 18.726670982019744,
+   "meanAbsDiff": 2.286109253097942,
+   "corr": 0.9187911253819189,
+   "meanAbsRankChange": 9.426470588235293,
+   "maxRankChange": 91,
+   "top25Overlap": 21
+  },
+  "week6": {
+   "teams": 136,
+   "maxAbsDiff": 13.94431786778942,
+   "meanAbsDiff": 2.314050177724557,
+   "corr": 0.9429792458150248,
+   "meanAbsRankChange": 8.470588235294118,
+   "maxRankChange": 69,
+   "top25Overlap": 20
+  }
+ },
+ "2026": {
+  "teamGames": 314,
+  "possessionCountEqualShare": 0.8248407643312102,
+  "offensivePointsEqualShare": 0.7229299363057324,
+  "offensivePointsMAE": 2.6496815286624202,
+  "finalRegularSeason": {
+   "teams": 138,
+   "maxAbsDiff": 14.604658444654607,
+   "meanAbsDiff": 2.3154299498861888,
+   "corr": 0.9300658872054569,
+   "meanAbsRankChange": 10.391304347826088,
+   "maxRankChange": 62,
+   "top25Overlap": 22
+  },
+  "week3": {
+   "teams": 138,
+   "maxAbsDiff": 14.604658444654607,
+   "meanAbsDiff": 2.3154299498861888,
+   "corr": 0.9300658872054569,
+   "meanAbsRankChange": 10.391304347826088,
+   "maxRankChange": 62,
+   "top25Overlap": 22
+  },
+  "week6": null
+ }
+}
