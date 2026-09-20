@@ -227,10 +227,12 @@ jobs:
       - name: Recompute 2026 ratings
         run: python -m cfb_analytics.pipelines.calculate_ratings --season "$SEASON"
       - name: Compile 2026 recursive possession-efficiency ratings and Advanced metrics
-        # The historical CLI route name is retained for build compatibility;
-        # rating_model.py publishes current-season points-per-possession only,
-        # recursively opponent-adjusted with no prior or conference strength.
-        # Drive scoring is sourced from validated derived drives + canonical plays.
+        # The historical CLI route name is retained for build compatibility.
+        # rating_model.py publishes starting-field-position-adjusted points above
+        # expectation per resolved possession, recursively opponent-adjusted.
+        # Early opponent baselines use the documented weeks 1-3 prior-season taper;
+        # no conference-strength term enters the published rating. Drive scoring is
+        # sourced from validated derived drives + canonical plays.
         run: python scripts/compile_site_data.py --season "$SEASON" --rating-model hierarchical_hfa
 
       - name: Score weekly predictions
