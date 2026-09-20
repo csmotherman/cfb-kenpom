@@ -216,6 +216,44 @@ class CfbdClient:
             },
         )
 
+    def advanced_box_score(self, game_id: int | str) -> CfbdResponse:
+        """Return CFBD's per-game advanced box score (/game/box/advanced).
+
+        One call per game (no week-batch form exists for this endpoint,
+        unlike /stats/game/advanced). This is the only CFBD source for
+        field position, scoring opportunities, and havoc at the team-game
+        grain -- /stats/game/advanced does not carry those concepts.
+        """
+        return self.get_json("/game/box/advanced", {"id": game_id})
+
+    def game_advanced_stats(
+        self,
+        season: int,
+        *,
+        week: int | None = None,
+        season_type: str = "regular",
+        team: str | None = None,
+        exclude_garbage_time: bool = False,
+    ) -> CfbdResponse:
+        """Return CFBD's per-game advanced offense/defense metrics (/stats/game/advanced).
+
+        This is an analytics-definition source (PPA, success rate, line yards,
+        drive counts, ...), never the official traditional box score -- see
+        scripts/export_team_game_advanced.py for that source. Defaults to
+        excludeGarbageTime=False so results are directly comparable to the
+        official box score and full play-by-play population.
+        """
+        return self.get_json(
+            "/stats/game/advanced",
+            {
+                "year": season,
+                "week": week,
+                "seasonType": season_type,
+                "team": team,
+                "excludeGarbageTime": exclude_garbage_time,
+            },
+        )
+
     def team_season_advanced_stats(
         self,
         season: int,

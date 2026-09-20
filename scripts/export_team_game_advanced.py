@@ -19,11 +19,30 @@ import json
 import re
 from pathlib import Path
 
+import sys
+
 from cfb_analytics.raw.audit import discover_partitions
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+from cfb_analytics.canonical.cfbd_advanced import (  # noqa: E402
+    CFBD_GAME_BOX_ADVANCED_VERSION,
+    CFBD_STATS_GAME_ADVANCED_VERSION,
+    load_game_box_advanced_season,
+    load_stats_game_advanced_season,
+)
+
 REPO = Path(__file__).resolve().parent.parent
-TEAM_GAME_ADVANCED_VERSION = "team-game-advanced-v3-official-box-score"
+TEAM_GAME_ADVANCED_VERSION = "team-game-advanced-v4-cfbd-advanced-source"
 BOX_SCORE_VERSION = "cfbd-games-teams-v1"
+
+# Standard advanced stats (Success Rate, PPA, rushing efficiency, drives) come
+# from CFBD's /stats/game/advanced, which is cheap enough (one call per
+# season/week) to be backfilled for every historical season -- see
+# scripts/ingest_advanced_game_stats.py. Havoc, scoring opportunities, and
+# field position come from /game/box/advanced, which costs one call PER GAME
+# and has only been backfilled for these seasons so far; older seasons
+# legitimately have no value here (not a processing bug) until backfilled.
+GAME_BOX_ADVANCED_SEASONS_WIRED = {2025, 2026}
 
 CURRENT_SEASON_FIELDS_WIRED = {2025, 2026}
 
@@ -34,6 +53,12 @@ FIELD_AVAILABILITY_REASONS = {
     ),
     "box_score_not_ingested": (
         "Official CFBD /games/teams box score was not ingested for this game."
+    ),
+    "game_box_advanced_not_backfilled": (
+        "CFBD's /game/box/advanced (havoc, scoring opportunities, field position) costs one API "
+        f"call per game and has only been backfilled for {sorted(GAME_BOX_ADVANCED_SEASONS_WIRED)} "
+        "as of this export -- not a processing gap, a scoped historical-backfill boundary. "
+        "See scripts/ingest_advanced_game_stats.py to extend coverage."
     ),
 }
 
@@ -60,7 +85,7 @@ EXPLORATORY_READINESS_FIELDS = (
     "avg_failure_damage",
     "failure_burden",
     "failure_pressure",
-    "epa_without_explosives",
+    "ppa_per_play_without_explosives",
     "explosive_dependency",
 )
 
@@ -69,11 +94,12 @@ def _advanced_data_pending(row: dict) -> bool:
     """True when canonical PBP was graded for this team-game (proof CFBD's
     play-by-play was available) but LEILA's drive-dependent Exploratory
     metrics never came through -- a processing gap worth retrying, not a
-    legitimate absence. A game with no PBP at all (epa_plays null/zero) is
-    NOT pending: there is nothing to retry until CFBD publishes plays, and
-    flagging it would retry forever for a game that will never have PBP."""
-    epa_plays = row.get("epa_plays")
-    if not isinstance(epa_plays, (int, float)) or isinstance(epa_plays, bool) or epa_plays <= 0:
+    legitimate absence. A game with no PBP at all (prime_pbp_graded_plays
+    null/zero) is NOT pending: there is nothing to retry until CFBD
+    publishes plays, and flagging it would retry forever for a game that
+    will never have PBP."""
+    graded_plays = row.get("prime_pbp_graded_plays")
+    if not isinstance(graded_plays, (int, float)) or isinstance(graded_plays, bool) or graded_plays <= 0:
         return False
     if any(row.get(key) is None for key in EXPLORATORY_READINESS_FIELDS):
         return True
@@ -257,26 +283,41 @@ def load_exploratory_season(season: int) -> dict[tuple[str, str], dict]:
     return out
 
 
-def build_row(season: int, canon: dict, exp: dict | None, box: dict | None = None) -> dict:
+def build_row(
+    season: int,
+    canon: dict,
+    exp: dict | None,
+    box: dict | None = None,
+    cfbd_stats: dict | None = None,
+    cfbd_box: dict | None = None,
+) -> dict:
     exp = exp or {}
     box = box or {}
+    cfbd_stats = cfbd_stats or {}
+    cfbd_box = cfbd_box or {}
     wired = season in CURRENT_SEASON_FIELDS_WIRED
+    game_box_wired = season in GAME_BOX_ADVANCED_SEASONS_WIRED
     field_availability: dict[str, str] = {}
 
     def current_only(value):
         return value if wired else None
 
     if not wired:
-        for key in ("havoc_allowed", "havoc_forced", "sacks_taken"):
-            field_availability[key] = "not_backfilled"
+        field_availability["sacks_taken"] = "not_backfilled"
     if not box:
         field_availability["official_box_score"] = "box_score_not_ingested"
+    if not game_box_wired:
+        for key in ("havoc_allowed", "havoc_forced", "scoring_opportunities", "points_per_opportunity", "avg_start_yards_to_goal"):
+            field_availability[key] = "game_box_advanced_not_backfilled"
 
-    offensive_drives = exp.get("offensiveDrives")
-    opponent_drives = exp.get("opponentDrives")
-    drive_denominator = (
-        offensive_drives + opponent_drives
-        if _num(offensive_drives) is not None and _num(opponent_drives) is not None
+    # CFBD's own drive count for both sides of THIS team's game -- offense and
+    # defense come from the same /stats/game/advanced row, so drive_share is
+    # internally consistent instead of mixing two different drive pipelines.
+    cfbd_offensive_drives = cfbd_stats.get("offense_drives")
+    cfbd_defense_drives = cfbd_stats.get("defense_drives")
+    cfbd_drive_denominator = (
+        cfbd_offensive_drives + cfbd_defense_drives
+        if _num(cfbd_offensive_drives) is not None and _num(cfbd_defense_drives) is not None
         else None
     )
 
@@ -328,63 +369,94 @@ def build_row(season: int, canon: dict, exp: dict | None, box: dict | None = Non
         "box_possession_seconds": box.get("possession_seconds"),
         "box_possession_share": box.get("possession_share"),
 
-        # LEILA efficiency populations. Counts are named for the actual
-        # classifier population instead of pretending to be official plays.
-        "epa_plays": canon.get("epaPlays"),
-        "epa_per_play": canon.get("epaPerPlay"),
-        "total_epa": canon.get("epaSum"),
-        "success_plays": canon.get("successEligiblePlays"),
-        "success_rate": canon.get("successRate"),
+        # Standard advanced stats: CFBD /stats/game/advanced is authoritative
+        # here (Tier 2). "PPA" is CFBD's own field name -- this used to be
+        # exported as "epa_*" even though PRIME never fits an independent
+        # expected-points model; analytics/epa.py's own docstring confirms
+        # "ppa is CFBD's own play-level model output, not one this repo
+        # fits." Renamed here to stop presenting CFBD's PPA as PRIME's EPA.
+        # Populations differ slightly from the old PBP-derived numbers (see
+        # audit README) -- this is CFBD's own play population, not PRIME's
+        # classifier population.
+        "ppa_per_play": cfbd_stats.get("offense_ppa_per_play"),
+        "total_ppa": cfbd_stats.get("offense_total_ppa"),
+        "success_rate": cfbd_stats.get("offense_success_rate"),
+        "offense_plays": cfbd_stats.get("offense_plays"),
+        # PRIME's own graded-scrimmage-play count (not an official play
+        # count -- see box_total_plays / offense_plays for those). Retained
+        # only so _advanced_data_pending() can tell "PBP exists but PRIME's
+        # drive-dependent Exploratory metrics haven't propagated yet" apart
+        # from "no PBP exists for this game at all."
+        "prime_pbp_graded_plays": canon.get("epaPlays"),
 
-        # Passing / rushing analytics. These counts are LEILA classifier
-        # populations, not the official attempts displayed in the box score.
-        "dropbacks": canon.get("dropbacks"),
-        "pass_epa_plays": canon.get("passEpaPlays"),
-        "passing_epa": canon.get("passEpaSum"),
-        "epa_per_dropback": _rate(canon.get("passEpaSum"), canon.get("dropbacks")),
-        "epa_per_pass_play": canon.get("passEpaPerPlay"),
-        "pass_success_plays": canon.get("passSuccessEligiblePlays"),
-        "pass_success_rate": canon.get("passSuccessRate"),
-        "yards_per_dropback": canon.get("netPassYardsPerDropback") or canon.get("yardsPerDropback"),
-        "graded_rush_plays": canon.get("rushSuccessEligiblePlays"),
-        "rush_epa_plays": canon.get("rushEpaPlays"),
-        "rushing_epa": canon.get("rushEpaSum"),
-        "epa_per_rush": canon.get("rushEpaPerPlay"),
-        "epa_per_rush_play": canon.get("rushEpaPerPlay"),
-        "rush_success_plays": canon.get("rushSuccessEligiblePlays"),
-        "rush_success_rate": canon.get("rushSuccessRate"),
-        "yards_per_rush": canon.get("rushYardsPerAttempt"),
+        "passing_total_ppa": cfbd_stats.get("offense_passing_total_ppa"),
+        "passing_ppa_per_play": cfbd_stats.get("offense_passing_ppa_per_play"),
+        "pass_success_rate": cfbd_stats.get("offense_passing_success_rate"),
 
-        # By down.
-        "down1_epa_pass": canon.get("passDown1EpaPerPlay"),
-        "down1_epa_rush": canon.get("rushDown1EpaPerPlay"),
-        "down2_epa_pass": canon.get("passDown2EpaPerPlay"),
-        "down2_epa_rush": canon.get("rushDown2EpaPerPlay"),
-        "down3_epa_pass": canon.get("passDown3EpaPerPlay"),
-        "down3_epa_rush": canon.get("rushDown3EpaPerPlay"),
-        "down1_epa": _rate(
+        "rushing_total_ppa": cfbd_stats.get("offense_rushing_total_ppa"),
+        "rushing_ppa_per_play": cfbd_stats.get("offense_rushing_ppa_per_play"),
+        "rush_success_rate": cfbd_stats.get("offense_rushing_success_rate"),
+
+        "standard_downs_ppa": cfbd_stats.get("offense_standard_downs_ppa"),
+        "standard_downs_success_rate": cfbd_stats.get("offense_standard_downs_success_rate"),
+        "passing_downs_ppa": cfbd_stats.get("offense_passing_downs_ppa"),
+        "passing_downs_success_rate": cfbd_stats.get("offense_passing_downs_success_rate"),
+
+        # Rushing efficiency (Tier 2, CFBD /stats/game/advanced).
+        "stuff_rate": cfbd_stats.get("offense_stuff_rate"),
+        "power_success": cfbd_stats.get("offense_power_success"),
+        "line_yards_per_play": cfbd_stats.get("offense_line_yards_per_play"),
+        "line_yards_total": cfbd_stats.get("offense_line_yards_total"),
+        "second_level_yards_per_play": cfbd_stats.get("offense_second_level_yards_per_play"),
+        "second_level_yards_total": cfbd_stats.get("offense_second_level_yards_total"),
+        "open_field_yards_per_play": cfbd_stats.get("offense_open_field_yards_per_play"),
+        "open_field_yards_total": cfbd_stats.get("offense_open_field_yards_total"),
+
+        # CFBD's own "explosiveness" is average PPA on explosive plays only
+        # (a magnitude), NOT the same concept as PRIME's explosive_play_rate
+        # below (a frequency/share of plays) -- kept as a separate field
+        # rather than conflated under one name. See README naming note.
+        "cfbd_explosiveness": cfbd_stats.get("offense_explosiveness"),
+        "cfbd_rushing_explosiveness": cfbd_stats.get("offense_rushing_explosiveness"),
+        "cfbd_passing_explosiveness": cfbd_stats.get("offense_passing_explosiveness"),
+
+        # PRIME's own down-specific split of CFBD's per-play PPA (CFBD's
+        # advanced endpoints only split by standard/passing down, not by
+        # exact down number) -- genuinely requires PBP, kept as Tier 4.
+        # Named "ppa" (not "epa") for the same reason as above: this sums
+        # CFBD's own ppa field play-by-play, it does not fit anything.
+        "down1_ppa_per_play_pass": canon.get("passDown1EpaPerPlay"),
+        "down1_ppa_per_play_rush": canon.get("rushDown1EpaPerPlay"),
+        "down2_ppa_per_play_pass": canon.get("passDown2EpaPerPlay"),
+        "down2_ppa_per_play_rush": canon.get("rushDown2EpaPerPlay"),
+        "down3_ppa_per_play_pass": canon.get("passDown3EpaPerPlay"),
+        "down3_ppa_per_play_rush": canon.get("rushDown3EpaPerPlay"),
+        "down1_ppa_per_play": _rate(
             (canon.get("passDown1EpaSum") or 0) + (canon.get("rushDown1EpaSum") or 0),
             (canon.get("passDown1EpaPlays") or 0) + (canon.get("rushDown1EpaPlays") or 0),
         ),
-        "down2_epa": _rate(
+        "down2_ppa_per_play": _rate(
             (canon.get("passDown2EpaSum") or 0) + (canon.get("rushDown2EpaSum") or 0),
             (canon.get("passDown2EpaPlays") or 0) + (canon.get("rushDown2EpaPlays") or 0),
         ),
-        "down3_epa": _rate(
+        "down3_ppa_per_play": _rate(
             (canon.get("passDown3EpaSum") or 0) + (canon.get("rushDown3EpaSum") or 0),
             (canon.get("passDown3EpaPlays") or 0) + (canon.get("rushDown3EpaPlays") or 0),
         ),
 
-        # Drive / field-position analytics.
-        "offensive_drives": canon.get("validatedPossessions"),
-        "yards_per_drive": canon.get("yardsPerPossession"),
-        "avg_start_yards_to_goal": canon.get("averageStartYardsToGoal"),
-        "scoring_opportunities": canon.get("scoringOpportunities"),
-        "points_per_opportunity": canon.get("pointsPerOpportunity"),
-        "drive_share": _rate(offensive_drives, drive_denominator),
-        "scoring_opportunity_touchdown_rate": _rate(
-            exp.get("scoringOpportunityTouchdowns"), exp.get("scoringOpportunities")
-        ),
+        # Drive / field-position analytics. Drive counts are CFBD's own
+        # (Tier 3, /stats/game/advanced); yards/drive combines two
+        # authoritative CFBD facts (official box-score yards over CFBD's own
+        # drive count) instead of PRIME's PBP yardage over PRIME's own
+        # drive-validation count. Field position and scoring opportunities
+        # are CFBD /game/box/advanced (Tier 2; see GAME_BOX_ADVANCED_SEASONS_WIRED).
+        "offensive_drives": cfbd_offensive_drives,
+        "yards_per_drive": _rate(box.get("total_yards"), cfbd_offensive_drives),
+        "avg_start_yards_to_goal": cfbd_box.get("average_start_yards_to_goal") if game_box_wired else None,
+        "avg_starting_predicted_points": cfbd_box.get("average_starting_predicted_points") if game_box_wired else None,
+        "scoring_opportunities": cfbd_box.get("scoring_opportunities") if game_box_wired else None,
+        "points_per_opportunity": cfbd_box.get("points_per_scoring_opportunity") if game_box_wired else None,
+        "drive_share": _rate(cfbd_offensive_drives, cfbd_drive_denominator),
 
         # LEILA late-down success remains available as a research metric but is
         # not used as the official 3rd/4th-down box-score display.
@@ -400,11 +472,14 @@ def build_row(season: int, canon: dict, exp: dict | None, box: dict | None = Non
         "recovery_rate": exp.get("recoveryRate"),
         "third_long_exposure": exp.get("longDownRate"),
 
-        # Explosiveness.
+        # Explosiveness. PRIME's own frequency-based definition (share of
+        # plays gaining 15+/10+ yards) has no CFBD game-level equivalent --
+        # CFBD's "explosiveness" (above, cfbd_explosiveness) is a different,
+        # magnitude-based concept. Kept as Tier 4.
         "explosive_play_rate": canon.get("explosivePlayRate"),
         "explosive_pass_rate": canon.get("passExplosivePlayRate"),
         "explosive_rush_rate": canon.get("rushExplosivePlayRate"),
-        "epa_without_explosives": exp.get("nonExplosiveEpaPerPlay"),
+        "ppa_per_play_without_explosives": exp.get("nonExplosiveEpaPerPlay"),
         "explosive_dependency": exp.get("explosiveDependency"),
 
         # Possession quality.
@@ -415,37 +490,45 @@ def build_row(season: int, canon: dict, exp: dict | None, box: dict | None = Non
         "failure_burden": exp.get("failureBurden"),
         "failure_pressure": exp.get("failurePressure"),
 
-        # Disruption.
-        "havoc_allowed": current_only(canon.get("havocRateAllowed")),
-        "havoc_forced": current_only(canon.get("havocRate")),
+        # Disruption. Havoc is now CFBD /game/box/advanced (Tier 2) instead
+        # of PRIME's PBP classifier -- same historical availability window
+        # (2025+) as before, so this is a same-coverage accuracy upgrade,
+        # not a coverage regression. Sacks/TFLs allowed have no CFBD
+        # game-level count field and stay Tier 4 (PRIME PBP).
+        "havoc_allowed": cfbd_box.get("havoc_allowed") if game_box_wired else None,
+        "havoc_forced": cfbd_box.get("havoc_forced") if game_box_wired else None,
         "sacks_taken": current_only(canon.get("sacksAllowed")),
         "tfls_taken": canon.get("tacklesForLossAllowed"),
 
         # Exploratory turnover / penalty impact. Official counts live above.
-        "turnovers_per_drive": _rate(exp.get("turnovers"), offensive_drives),
+        "turnovers_per_drive": _rate(exp.get("turnovers"), cfbd_offensive_drives),
         "turnover_epa_lost": exp.get("turnoverEpaSum"),
         "offensive_penalties": exp.get("offensivePenalties"),
         "offensive_penalty_yards": exp.get("offensivePenaltyYards"),
-        "penalties_per_drive": _rate(exp.get("offensivePenalties"), offensive_drives),
-        "penalty_yards_per_drive": _rate(exp.get("offensivePenaltyYards"), offensive_drives),
+        "penalties_per_drive": _rate(exp.get("offensivePenalties"), cfbd_offensive_drives),
+        "penalty_yards_per_drive": _rate(exp.get("offensivePenaltyYards"), cfbd_offensive_drives),
     }
     if field_availability:
         row["field_availability"] = field_availability
     return row
 
 
-def season_source_versions(season: int, canon: dict, exp: dict, box: dict) -> dict:
+def season_source_versions(season: int, canon: dict, exp: dict, box: dict, cfbd_stats: dict, cfbd_box: dict) -> dict:
     wired = season in CURRENT_SEASON_FIELDS_WIRED
+    game_box_wired = season in GAME_BOX_ADVANCED_SEASONS_WIRED
     any_canon = next(iter(canon.values()), {})
     any_exp = next(iter(exp.values()), {})
     return {
         "officialBoxScore": BOX_SCORE_VERSION if box else None,
-        "epa": any_canon.get("epaDefinitionVersion"),
-        "success": any_canon.get("successDefinitionVersion"),
-        "explosiveness": any_canon.get("explosivenessDefinitionVersion"),
-        "havoc": any_canon.get("havocDefinitionVersion") if wired else None,
+        "standardAdvanced": CFBD_STATS_GAME_ADVANCED_VERSION if cfbd_stats else None,
+        "gameBoxAdvanced": CFBD_GAME_BOX_ADVANCED_VERSION if (cfbd_box and game_box_wired) else None,
+        # "ppaByDown" is PRIME's own down-specific aggregation of CFBD's
+        # per-play ppa field -- kept distinct from the game-level PPA source
+        # version above, which is CFBD's own aggregation, not PRIME's.
+        "ppaByDown": any_canon.get("epaDefinitionVersion"),
+        "explosivePlayRate": any_canon.get("explosivenessDefinitionVersion"),
         "finishingDrives": any_canon.get("finishingDrivesDefinitionVersion"),
-        "fieldPosition": any_canon.get("fieldPositionDefinitionVersion"),
+        "fieldPositionLegacy": any_canon.get("fieldPositionDefinitionVersion"),
         "tfl": any_canon.get("tflDefinitionVersion"),
         "series": any_exp.get("seriesDefinitionVersion") or any_exp.get("seriesMetricsVersion"),
         "drivesRisk": any_exp.get("exploratoryDrivesRiskVersion"),
@@ -459,15 +542,17 @@ def build_season(season: int) -> dict:
     canon = load_canonical_season(season)
     exp = load_exploratory_season(season)
     box = load_box_score_season(season)
+    cfbd_stats = load_stats_game_advanced_season(REPO / "data/raw", season)
+    cfbd_box = load_game_box_advanced_season(REPO / "data/raw", season)
     rows = [
-        build_row(season, canon_row, exp.get(key), box.get(key))
+        build_row(season, canon_row, exp.get(key), box.get(key), cfbd_stats.get(key), cfbd_box.get(key))
         for key, canon_row in canon.items()
     ]
     rows.sort(key=lambda r: (r["game_id"], r["team"]))
     return {
         "version": TEAM_GAME_ADVANCED_VERSION,
         "season": season,
-        "sourceVersions": season_source_versions(season, canon, exp, box),
+        "sourceVersions": season_source_versions(season, canon, exp, box, cfbd_stats, cfbd_box),
         "fieldAvailabilityReasons": FIELD_AVAILABILITY_REASONS,
         "rows": rows,
     }

@@ -197,74 +197,83 @@ const BOX_SCORE: [string, Spec[]][] = [
   ]],
 ];
 
-const EPA_PLAY_TIP = "Expected Points Added per play, from PRIME's play-by-play model. Positive means the offense gained expected points on average; negative means it lost them. Higher is better. PRIME-derived, not an official box-score stat.";
-const SUCCESS_RATE_TIP = "Share of plays that gained a positive share of the expected points needed to keep a drive on schedule (roughly 50% of yards to go on 1st down, 70% on 2nd, 100% on 3rd/4th). Higher is better. PRIME-derived.";
+const PPA_PLAY_TIP = "Predicted Points Added per play, CFBD's own play-level model output. Positive means the offense gained expected points on average; negative means it lost them. Higher is better. Sourced from CFBD's /stats/game/advanced, not an official box-score stat, and not a PRIME-fitted model.";
+const SUCCESS_RATE_TIP = "Share of plays that gained a positive share of the expected points needed to keep a drive on schedule (roughly 50% of yards to go on 1st down, 70% on 2nd, 100% on 3rd/4th). Higher is better. Sourced from CFBD's /stats/game/advanced.";
+const PRIME_PPA_BY_DOWN_TIP = "PRIME's own aggregation of CFBD's per-play PPA, split by the exact down number -- CFBD's own advanced endpoints only split by standard-down/passing-down category, not by down number, so this one slice genuinely requires PRIME's play-by-play pipeline.";
 
 const EFFICIENCY: [string, Spec[]][] = [
   ["Overall", [
-    { label: "EPA / Play", key: "epa_per_play", fmt: (v) => signed(v, 3), tip: EPA_PLAY_TIP },
-    { label: "Total EPA", key: "total_epa", fmt: (v) => signed(v, 1), tip: "Sum of Expected Points Added across every offensive play in the game. Higher is better. PRIME-derived." },
+    { label: "PPA / Play", key: "ppa_per_play", baselineKey: "epa_per_play", fmt: (v) => signed(v, 3), tip: PPA_PLAY_TIP },
+    { label: "Total PPA", key: "total_ppa", baselineKey: "total_epa", fmt: (v) => signed(v, 1), tip: "Sum of Predicted Points Added across every offensive play in the game. Higher is better. CFBD-sourced." },
     { label: "Success Rate", key: "success_rate", fmt: pct, tip: SUCCESS_RATE_TIP },
   ]],
   ["Passing", [
-    { label: "Passing EPA", key: "passing_epa", fmt: (v) => signed(v, 1), tip: "Sum of Expected Points Added on dropbacks (pass attempts plus sacks). Higher is better. PRIME-derived." },
-    { label: "EPA / Dropback", key: "epa_per_dropback", fmt: (v) => signed(v, 2), indent: 1, tip: EPA_PLAY_TIP + " Limited to dropbacks." },
-    { label: "Success Rate", key: "pass_success_rate", fmt: pct, indent: 1, tip: SUCCESS_RATE_TIP + " Limited to dropbacks." },
+    { label: "Passing PPA", key: "passing_total_ppa", baselineKey: "passing_epa", fmt: (v) => signed(v, 1), tip: "Sum of Predicted Points Added on CFBD's own passing-play population for this game. Higher is better. CFBD-sourced; this population may differ slightly from PRIME's own dropback definition (which also includes sacks)." },
+    { label: "PPA / Pass Play", key: "passing_ppa_per_play", baselineKey: "epa_per_dropback", fmt: (v) => signed(v, 2), indent: 1, tip: PPA_PLAY_TIP + " Limited to CFBD's passing-play population." },
+    { label: "Success Rate", key: "pass_success_rate", fmt: pct, indent: 1, tip: SUCCESS_RATE_TIP + " Limited to CFBD's passing-play population." },
   ]],
   ["Rushing", [
-    { label: "Rushing EPA", key: "rushing_epa", fmt: (v) => signed(v, 1), tip: "Sum of Expected Points Added on rush attempts. Higher is better. PRIME-derived." },
-    { label: "EPA / Rush", key: "epa_per_rush", fmt: (v) => signed(v, 2), indent: 1, tip: EPA_PLAY_TIP + " Limited to rush attempts." },
+    { label: "Rushing PPA", key: "rushing_total_ppa", baselineKey: "rushing_epa", fmt: (v) => signed(v, 1), tip: "Sum of Predicted Points Added on rush attempts. Higher is better. CFBD-sourced." },
+    { label: "PPA / Rush", key: "rushing_ppa_per_play", baselineKey: "epa_per_rush", fmt: (v) => signed(v, 2), indent: 1, tip: PPA_PLAY_TIP + " Limited to rush attempts." },
     { label: "Success Rate", key: "rush_success_rate", fmt: pct, indent: 1, tip: SUCCESS_RATE_TIP + " Limited to rush attempts." },
   ]],
-  ["By Down", [
-    { label: "1st Down EPA / Play", key: "down1_epa", fmt: (v) => signed(v, 2), tip: EPA_PLAY_TIP + " Limited to 1st-down plays (pass and rush combined)." },
-    { label: "Pass EPA / Play", key: "down1_epa_pass", fmt: (v) => signed(v, 2), indent: 1, tip: EPA_PLAY_TIP + " Limited to 1st-down dropbacks." },
-    { label: "Rush EPA / Play", key: "down1_epa_rush", fmt: (v) => signed(v, 2), indent: 1, tip: EPA_PLAY_TIP + " Limited to 1st-down rush attempts." },
-    { label: "2nd Down EPA / Play", key: "down2_epa", fmt: (v) => signed(v, 2), tip: EPA_PLAY_TIP + " Limited to 2nd-down plays (pass and rush combined)." },
-    { label: "Pass EPA / Play", key: "down2_epa_pass", fmt: (v) => signed(v, 2), indent: 1, tip: EPA_PLAY_TIP + " Limited to 2nd-down dropbacks." },
-    { label: "Rush EPA / Play", key: "down2_epa_rush", fmt: (v) => signed(v, 2), indent: 1, tip: EPA_PLAY_TIP + " Limited to 2nd-down rush attempts." },
-    { label: "3rd Down EPA / Play", key: "down3_epa", fmt: (v) => signed(v, 2), tip: EPA_PLAY_TIP + " Limited to 3rd-down plays (pass and rush combined)." },
-    { label: "Pass EPA / Play", key: "down3_epa_pass", fmt: (v) => signed(v, 2), indent: 1, tip: EPA_PLAY_TIP + " Limited to 3rd-down dropbacks." },
-    { label: "Rush EPA / Play", key: "down3_epa_rush", fmt: (v) => signed(v, 2), indent: 1, tip: EPA_PLAY_TIP + " Limited to 3rd-down rush attempts." },
+  ["Rushing Efficiency", [
+    { label: "Stuff Rate", key: "stuff_rate", fmt: pct, neutral: true, indent: 1, tip: "Share of rush attempts stopped at or behind the line of scrimmage. Lower is better. CFBD-sourced; new field, not yet conditionally colored (no historical baseline built)." },
+    { label: "Power Success", key: "power_success", fmt: pct, neutral: true, indent: 1, tip: "Conversion rate on power-run situations (short-yardage, goal-to-go). Higher is better. CFBD-sourced; new field, not yet conditionally colored." },
+    { label: "Line Yards / Carry", key: "line_yards_per_play", fmt: (v) => plain(v, 2), neutral: true, indent: 1, tip: "Yards attributed to the offensive line on a per-carry basis (a weighted share of the first several yards of each run). Higher is better. CFBD-sourced; new field, not yet conditionally colored." },
+    { label: "2nd-Level Yards / Carry", key: "second_level_yards_per_play", fmt: (v) => plain(v, 2), neutral: true, indent: 1, tip: "Yards gained 5-10 yards past the line of scrimmage, per carry. Higher is better. CFBD-sourced; new field, not yet conditionally colored." },
+    { label: "Open-Field Yards / Carry", key: "open_field_yards_per_play", fmt: (v) => plain(v, 2), neutral: true, indent: 1, tip: "Yards gained beyond 10 yards past the line of scrimmage, per carry. Higher is better. CFBD-sourced; new field, not yet conditionally colored." },
+  ]],
+  ["By Down (PRIME)", [
+    { label: "1st Down PPA / Play", key: "down1_ppa_per_play", baselineKey: "down1_epa", fmt: (v) => signed(v, 2), tip: PRIME_PPA_BY_DOWN_TIP + " 1st-down plays (pass and rush combined)." },
+    { label: "Pass PPA / Play", key: "down1_ppa_per_play_pass", baselineKey: "down1_epa_pass", fmt: (v) => signed(v, 2), indent: 1, tip: PRIME_PPA_BY_DOWN_TIP + " 1st-down dropbacks." },
+    { label: "Rush PPA / Play", key: "down1_ppa_per_play_rush", baselineKey: "down1_epa_rush", fmt: (v) => signed(v, 2), indent: 1, tip: PRIME_PPA_BY_DOWN_TIP + " 1st-down rush attempts." },
+    { label: "2nd Down PPA / Play", key: "down2_ppa_per_play", baselineKey: "down2_epa", fmt: (v) => signed(v, 2), tip: PRIME_PPA_BY_DOWN_TIP + " 2nd-down plays (pass and rush combined)." },
+    { label: "Pass PPA / Play", key: "down2_ppa_per_play_pass", baselineKey: "down2_epa_pass", fmt: (v) => signed(v, 2), indent: 1, tip: PRIME_PPA_BY_DOWN_TIP + " 2nd-down dropbacks." },
+    { label: "Rush PPA / Play", key: "down2_ppa_per_play_rush", baselineKey: "down2_epa_rush", fmt: (v) => signed(v, 2), indent: 1, tip: PRIME_PPA_BY_DOWN_TIP + " 2nd-down rush attempts." },
+    { label: "3rd Down PPA / Play", key: "down3_ppa_per_play", baselineKey: "down3_epa", fmt: (v) => signed(v, 2), tip: PRIME_PPA_BY_DOWN_TIP + " 3rd-down plays (pass and rush combined)." },
+    { label: "Pass PPA / Play", key: "down3_ppa_per_play_pass", baselineKey: "down3_epa_pass", fmt: (v) => signed(v, 2), indent: 1, tip: PRIME_PPA_BY_DOWN_TIP + " 3rd-down dropbacks." },
+    { label: "Rush PPA / Play", key: "down3_ppa_per_play_rush", baselineKey: "down3_epa_rush", fmt: (v) => signed(v, 2), indent: 1, tip: PRIME_PPA_BY_DOWN_TIP + " 3rd-down rush attempts." },
   ]],
 ];
 
 const GAME_SHAPE: [string, Spec[]][] = [
   ["Drives", [
-    { label: "Validated Offensive Drives", key: "offensive_drives", fmt: count, neutral: true, tip: "Offensive possessions PRIME's drive pipeline could fully validate for this game. The denominator behind the other Drives-section rates." },
-    { label: "Yards / Drive", key: "yards_per_drive", fmt: (v) => plain(v, 1), tip: "Offensive yards gained per validated drive. Higher is better. PRIME-derived." },
-    { label: "Avg Starting Field Position", key: "avg_start_yards_to_goal", fmt: fieldPosition, neutral: true, tip: "Average distance to the end zone where this offense's drives began. Shown as a yard line; not conditionally colored." },
-    { label: "Scoring Opportunities", key: "scoring_opportunities", fmt: count, neutral: true, tip: "Drives where PRIME's pipeline marked the offense inside the opponent's 40-yard line. The denominator for Points / Opportunity." },
-    { label: "Points / Opportunity", key: "points_per_opportunity", fmt: (v) => plain(v, 2), indent: 1, tip: "Points scored per scoring opportunity (a drive reaching the opponent's 40). Higher is better -- a finishing-drives measure. PRIME-derived." },
-    { label: "Drive Share", key: "drive_share", fmt: pct, neutral: true, tip: "This team's share of the game's total validated drives (both teams combined). Descriptive; not conditionally colored." },
+    { label: "Offensive Drives", key: "offensive_drives", fmt: count, neutral: true, tip: "This offense's drive count for the game. CFBD-sourced (/stats/game/advanced), not PRIME's own drive-validation pipeline." },
+    { label: "Yards / Drive", key: "yards_per_drive", fmt: (v) => plain(v, 1), tip: "Official total offensive yards divided by CFBD's own drive count. Higher is better. Both halves of this ratio are CFBD-sourced." },
+    { label: "Avg Starting Field Position", key: "avg_start_yards_to_goal", fmt: fieldPosition, neutral: true, tip: "Average distance to the end zone where this offense's drives began. CFBD-sourced (/game/box/advanced); shown as a yard line, not conditionally colored." },
+    { label: "Scoring Opportunities", key: "scoring_opportunities", fmt: count, neutral: true, tip: "CFBD's own count of drives that reached scoring range for this offense. CFBD-sourced (/game/box/advanced). The denominator for Points / Opportunity." },
+    { label: "Points / Opportunity", key: "points_per_opportunity", fmt: (v) => plain(v, 2), indent: 1, tip: "Points scored per scoring opportunity. Higher is better -- a finishing-drives measure. CFBD-sourced." },
+    { label: "Drive Share", key: "drive_share", fmt: pct, neutral: true, tip: "This team's share of the game's total drives (both teams combined), from CFBD's own drive counts for each side. Descriptive; not conditionally colored." },
   ]],
-  ["Series Control", [
-    { label: "Series Conversion", key: "series_conversion_rate", fmt: pct, tip: "Share of 1st-down series (a set of downs, not an individual play) that earned a new first down or a touchdown. Higher is better. PRIME-derived." },
-    { label: "Recovery Rate", key: "recovery_rate", fmt: pct, indent: 1, tip: "Share of series that fell behind schedule (e.g. a negative or short-gain play) but still converted. Higher is better. PRIME-derived." },
-    { label: "3rd & Long Exposure", key: "third_long_exposure", fmt: pct, indent: 1, tip: "Share of series that reached a 3rd (or 4th) down needing 7 or more yards. Lower is better -- it means the offense stayed ahead of schedule. PRIME-derived." },
+  ["Series Control (PRIME)", [
+    { label: "Series Conversion", key: "series_conversion_rate", fmt: pct, tip: "Share of 1st-down series (a set of downs, not an individual play) that earned a new first down or a touchdown. Higher is better. Genuinely sequence-level; no CFBD game-level equivalent, so this stays PRIME's own play-by-play pipeline." },
+    { label: "Recovery Rate", key: "recovery_rate", fmt: pct, indent: 1, tip: "Share of series that fell behind schedule (e.g. a negative or short-gain play) but still converted. Higher is better. PRIME-derived (sequence-level, no CFBD equivalent)." },
+    { label: "3rd & Long Exposure", key: "third_long_exposure", fmt: pct, indent: 1, tip: "Share of series that reached a 3rd (or 4th) down needing 7 or more yards. Lower is better -- it means the offense stayed ahead of schedule. PRIME-derived (sequence-level, no CFBD equivalent)." },
   ]],
   ["Explosiveness", [
-    { label: "Explosive Play Rate", key: "explosive_play_rate", fmt: pct, tip: "Share of offensive plays gaining 15+ yards through the air or 10+ on the ground. Higher is better. PRIME-derived." },
+    { label: "Explosive Play Rate", key: "explosive_play_rate", fmt: pct, tip: "Share of offensive plays gaining 15+ yards through the air or 10+ on the ground. Higher is better. PRIME-derived -- this is a frequency, a different concept from CFBD's own \"explosiveness\" below (an average magnitude), so it is not replaced by it." },
     { label: "Explosive Pass Rate", key: "explosive_pass_rate", fmt: pct, indent: 1, tip: "Explosive Play Rate limited to dropbacks. Higher is better. PRIME-derived." },
     { label: "Explosive Rush Rate", key: "explosive_rush_rate", fmt: pct, indent: 1, tip: "Explosive Play Rate limited to rush attempts. Higher is better. PRIME-derived." },
-    { label: "EPA / Play w/o Explosives", key: "epa_without_explosives", fmt: (v) => signed(v, 2), tip: EPA_PLAY_TIP + " Explosive plays removed, to show how the offense performed on its ordinary snaps." },
-    { label: "Explosive Dependency", key: "explosive_dependency", fmt: pct, neutral: true, tip: "Share of this offense's positive EPA that came from explosive plays alone. Descriptive, not conditionally colored -- a high number isn't necessarily bad, it just means the offense leaned on big plays rather than sustained drives." },
+    { label: "CFBD Explosiveness", key: "cfbd_explosiveness", fmt: (v) => plain(v, 2), neutral: true, tip: "CFBD's own explosiveness metric: average Predicted Points Added on this offense's successful plays only. This is a magnitude (how big are the good plays), not a rate -- do not compare directly to Explosive Play Rate above. CFBD-sourced; new field, not yet conditionally colored." },
+    { label: "PPA / Play w/o Explosives", key: "ppa_per_play_without_explosives", baselineKey: "epa_without_explosives", fmt: (v) => signed(v, 2), tip: PPA_PLAY_TIP + " Explosive plays removed, to show how the offense performed on its ordinary snaps. Uses PRIME's own explosive-play definition, so this stays PRIME-derived even though the underlying per-play value is CFBD's ppa." },
+    { label: "Explosive Dependency", key: "explosive_dependency", fmt: pct, neutral: true, tip: "Share of this offense's positive PPA that came from explosive plays alone. Descriptive, not conditionally colored -- a high number isn't necessarily bad, it just means the offense leaned on big plays rather than sustained drives. PRIME-derived." },
   ]],
-  ["Possession Quality", [
-    { label: "Clean Drive Rate", key: "clean_drive_rate", fmt: pct, tip: "Share of drives with no turnover, sack, TFL, or backward-progress accepted penalty. Higher is better. PRIME-derived." },
-    { label: "Drive Killer Rate", key: "drive_killer_rate", fmt: pct, tip: "Share of drives where a negative event (turnover, sack, TFL, failed 4th down, etc.) ended the drive rather than being overcome. Lower is better. PRIME-derived." },
-    { label: "Failure Rate", key: "failure_rate", fmt: pct, indent: 1, tip: "Share of offensive plays with negative EPA. Lower is better. PRIME-derived." },
-    { label: "Avg Failure Damage", key: "avg_failure_damage", fmt: (v) => plain(v, 2), indent: 1, tip: "Average EPA lost on plays that had negative EPA. Lower (more negative) is worse; closer to zero is better. PRIME-derived." },
-    { label: "Failure Burden", key: "failure_burden", fmt: (v) => plain(v, 3), indent: 1, tip: "Total negative EPA from failed plays spread across every eligible play this offense ran. Lower (more negative) is worse; closer to zero is better. PRIME-derived." },
+  ["Possession Quality (PRIME)", [
+    { label: "Clean Drive Rate", key: "clean_drive_rate", fmt: pct, tip: "Share of drives with no turnover, sack, TFL, or backward-progress accepted penalty. Higher is better. PRIME-derived (sequence-level, no CFBD equivalent)." },
+    { label: "Drive Killer Rate", key: "drive_killer_rate", fmt: pct, tip: "Share of drives where a negative event (turnover, sack, TFL, failed 4th down, etc.) ended the drive rather than being overcome. Lower is better. PRIME-derived (sequence-level, no CFBD equivalent)." },
+    { label: "Failure Rate", key: "failure_rate", fmt: pct, indent: 1, tip: "Share of offensive plays with negative PPA. Lower is better. PRIME-derived." },
+    { label: "Avg Failure Damage", key: "avg_failure_damage", fmt: (v) => plain(v, 2), indent: 1, tip: "Average PPA lost on plays that had negative PPA. Lower (more negative) is worse; closer to zero is better. PRIME-derived." },
+    { label: "Failure Burden", key: "failure_burden", fmt: (v) => plain(v, 3), indent: 1, tip: "Total negative PPA from failed plays spread across every eligible play this offense ran. Lower (more negative) is worse; closer to zero is better. PRIME-derived." },
     { label: "Failure Pressure", key: "failure_pressure", fmt: (v) => plain(v, 3), indent: 1, tip: "Failure Burden inflicted on the opponent's offense by this team's defense. Higher is better -- more pressure created. PRIME-derived." },
   ]],
   ["Disruption", [
-    { label: "Havoc Allowed", key: "havoc_allowed", fmt: pct, tip: "Share of this offense's plays that resulted in a TFL, sack, or turnover against it. Lower is better. PRIME-derived; current-season coverage only." },
-    { label: "Sacks Taken", key: "sacks_taken", fmt: count, neutral: true, indent: 1, tip: "Sacks this team's offense allowed, from PRIME's play-by-play classifier. Descriptive; not conditionally colored. Current-season coverage only." },
+    { label: "Havoc Allowed", key: "havoc_allowed", fmt: pct, tip: "Share of this offense's plays that resulted in a TFL, sack, or turnover against it. Lower is better. CFBD-sourced (/game/box/advanced); 2025+ coverage only (this endpoint has not yet been backfilled for older seasons)." },
+    { label: "Sacks Taken", key: "sacks_taken", fmt: count, neutral: true, indent: 1, tip: "Sacks this team's offense allowed, from PRIME's play-by-play classifier. Descriptive; not conditionally colored. No CFBD game-level sack count exists, so this stays PRIME-derived; current-season coverage only." },
     { label: "TFLs Taken", key: "tfls_taken", fmt: count, neutral: true, indent: 1, tip: "Tackles for loss this team's offense allowed, from PRIME's play-by-play classifier. Descriptive; not conditionally colored." },
   ]],
-  ["Turnover Impact", [
-    { label: "Turnover EPA Lost", key: "turnover_epa_lost", fmt: (v) => plain(v, 1), tip: "Total Expected Points this offense's turnovers cost it, from PRIME's play-by-play model. Stored as a negative number; closer to zero (e.g. -3 vs -15) is better. PRIME-derived." },
+  ["Turnover Impact (PRIME)", [
+    { label: "Turnover EPA Lost", key: "turnover_epa_lost", fmt: (v) => plain(v, 1), tip: "Total Predicted Points this offense's turnovers cost it, from PRIME's play-by-play model. Stored as a negative number; closer to zero (e.g. -3 vs -15) is better. PRIME-derived (a modeled value, not a raw CFBD field)." },
   ]],
 ];
 

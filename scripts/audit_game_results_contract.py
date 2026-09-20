@@ -20,7 +20,9 @@ FRONTEND = REPO / "web/lib/team-game-advanced.ts"
 RESULTS_SHEET = REPO / "web/components/GameResultsSheet.tsx"
 PUBLIC_DIR = REPO / "web/public/data/team-game-advanced"
 
-VERSION = "team-game-advanced-v3-official-box-score"
+VERSION = "team-game-advanced-v4-cfbd-advanced-source"
+CFBD_CLIENT = REPO / "src/cfb_analytics/sources/cfbd/client.py"
+CFBD_CANONICAL = REPO / "src/cfb_analytics/canonical/cfbd_advanced.py"
 
 BOX_KEYS = {
     "box_score_available",
@@ -52,17 +54,32 @@ BOX_KEYS = {
 }
 
 ADVANCED_KEYS = {
-    "epa_per_play",
-    "total_epa",
+    "ppa_per_play",
+    "total_ppa",
     "success_rate",
-    "passing_epa",
-    "epa_per_dropback",
+    "passing_total_ppa",
+    "passing_ppa_per_play",
     "pass_success_rate",
-    "rushing_epa",
-    "epa_per_rush",
+    "rushing_total_ppa",
+    "rushing_ppa_per_play",
     "rush_success_rate",
     "series_conversion_rate",
     "turnover_epa_lost",
+}
+
+# Fields that must never be present under their old, pre-migration names --
+# these were literally CFBD's own PPA/game facts mislabeled as a PRIME EPA
+# model or a PRIME-reconstructed drive/field-position fact. Their presence
+# would mean the migration to CFBD's advanced endpoints regressed.
+FORBIDDEN_LEGACY_KEYS = {
+    "epa_per_play",
+    "total_epa",
+    "passing_epa",
+    "epa_per_dropback",
+    "rushing_epa",
+    "epa_per_rush",
+    "epa_plays",
+    "epa_without_explosives",
 }
 
 # Confirmed directly against a fresh, uncached CFBD /games/teams call (not a
@@ -98,17 +115,29 @@ def audit_source() -> None:
     exporter = EXPORTER.read_text(encoding="utf-8")
     frontend = FRONTEND.read_text(encoding="utf-8")
     results_sheet = RESULTS_SHEET.read_text(encoding="utf-8")
+    cfbd_canonical = CFBD_CANONICAL.read_text(encoding="utf-8")
 
     require(client, "def game_team_stats_week", str(CLIENT))
     require(client, '"/games/teams"', str(CLIENT))
+    require(client, "def game_advanced_stats", str(CLIENT))
+    require(client, '"/stats/game/advanced"', str(CLIENT))
+    require(client, "def advanced_box_score", str(CLIENT))
+    require(client, '"/game/box/advanced"', str(CLIENT))
     require(acquire, 'BOX_SCORE_ENTITY = "game_team_stats"', str(ACQUIRE))
     require(acquire, "client.game_team_stats_week", str(ACQUIRE))
+
+    require(cfbd_canonical, "CFBD_STATS_GAME_ADVANCED_VERSION", str(CFBD_CANONICAL))
+    require(cfbd_canonical, "CFBD_GAME_BOX_ADVANCED_VERSION", str(CFBD_CANONICAL))
 
     require(exporter, f'TEAM_GAME_ADVANCED_VERSION = "{VERSION}"', str(EXPORTER))
     require(exporter, "def load_box_score_season", str(EXPORTER))
     require(exporter, "def _normalize_box_team", str(EXPORTER))
+    require(exporter, "load_stats_game_advanced_season", str(EXPORTER))
+    require(exporter, "load_game_box_advanced_season", str(EXPORTER))
     for key in BOX_KEYS | ADVANCED_KEYS:
         require(exporter, f'"{key}":', str(EXPORTER))
+    for key in FORBIDDEN_LEGACY_KEYS:
+        forbid(exporter, f'"{key}":', str(EXPORTER))
 
     # Official display rows must point only at box_* fields.
     require(frontend, 'column("Official Box Score", BOX_SCORE)', str(FRONTEND))
@@ -165,6 +194,9 @@ def audit_published_v3() -> int:
             missing = (BOX_KEYS | ADVANCED_KEYS).difference(row)
             if missing:
                 fail(f"{path} row {index} missing contract keys: {sorted(missing)}")
+            legacy = FORBIDDEN_LEGACY_KEYS.intersection(row)
+            if legacy:
+                fail(f"{path} row {index} carries forbidden pre-migration keys: {sorted(legacy)}")
 
             game_id = str(row.get("game_id"))
             by_game[game_id].append(row)
@@ -235,12 +267,58 @@ def audit_published_v3() -> int:
     return checked
 
 
+RAW_ROOT = REPO / "data/raw/cfbd"
+
+
+def audit_cfbd_advanced_cross_check() -> int:
+    """Spot-check exported CFBD-sourced fields directly against the raw
+    /stats/game/advanced response (Phase 12: SOURCE RAW VALUE -> SITE EXPORT
+    VALUE must be an explicit, tested chain for CFBD-sourced fields)."""
+    checked = 0
+    if not PUBLIC_DIR.exists():
+        return checked
+    for path in sorted(PUBLIC_DIR.glob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if payload.get("version") != VERSION:
+            continue
+        season = payload.get("season")
+        raw_by_game_team: dict[tuple[str, str], dict] = {}
+        for raw_path in sorted(RAW_ROOT.glob(f"season={season}/season_type=*/week=*/advanced_game_stats.json")):
+            for row in json.loads(raw_path.read_text(encoding="utf-8")):
+                raw_by_game_team[(str(row.get("gameId")), row.get("team"))] = row
+        if not raw_by_game_team:
+            continue
+        for row in payload.get("rows", []):
+            key = (str(row.get("game_id")), row.get("team"))
+            raw = raw_by_game_team.get(key)
+            if raw is None:
+                continue
+            checked += 1
+            raw_success = (raw.get("offense") or {}).get("successRate")
+            if raw_success is not None and row.get("success_rate") is not None:
+                if not close(raw_success, row["success_rate"], 1e-9):
+                    fail(
+                        f"{path} success_rate for {key} does not match raw advanced_game_stats.json "
+                        f"({row['success_rate']} vs {raw_success})"
+                    )
+            raw_ppa = (raw.get("offense") or {}).get("totalPPA")
+            if raw_ppa is not None and row.get("total_ppa") is not None:
+                if not close(raw_ppa, row["total_ppa"], 1e-9):
+                    fail(
+                        f"{path} total_ppa for {key} does not match raw advanced_game_stats.json "
+                        f"({row['total_ppa']} vs {raw_ppa})"
+                    )
+    return checked
+
+
 def main() -> None:
     audit_source()
     checked = audit_published_v3()
+    cross_checked = audit_cfbd_advanced_cross_check()
     print(
-        "GAME RESULTS CONTRACT AUDIT PASS: official box-score/LEILA boundary guarded; "
-        f"validated {checked} published v3 season artifact(s)."
+        "GAME RESULTS CONTRACT AUDIT PASS: official box-score/CFBD-advanced/PRIME boundary guarded; "
+        f"validated {checked} published v4 season artifact(s), cross-checked {cross_checked} "
+        "CFBD-sourced team-game rows directly against raw advanced_game_stats.json."
     )
 
 
