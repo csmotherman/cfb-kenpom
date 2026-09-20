@@ -1,0 +1,332 @@
+{
+  "asOf": "2026-09-20T13:44:38.987950+00:00",
+  "freezeVersion": "early-season-blend-2026-v1",
+  "predictions": [
+    {
+      "confidence": 0.561,
+      "gameId": "401856696",
+      "predictedMargin": 3.1,
+      "predictedWinner": "Alabama"
+    },
+    {
+      "confidence": 0.877,
+      "gameId": "401856697",
+      "predictedMargin": -20.3,
+      "predictedWinner": "Tulsa"
+    },
+    {
+      "confidence": 0.572,
+      "gameId": "401856698",
+      "predictedMargin": 3.6,
+      "predictedWinner": "Auburn"
+    },
+    {
+      "confidence": 0.794,
+      "gameId": "401856699",
+      "predictedMargin": 14.8,
+      "predictedWinner": "Florida"
+    },
+    {
+      "confidence": 0.919,
+      "gameId": "401856700",
+      "predictedMargin": 26.2,
+      "predictedWinner": "Georgia"
+    },
+    {
+      "confidence": 0.512,
+      "gameId": "401856702",
+      "predictedMargin": -0.0,
+      "predictedWinner": "Texas A&M"
+    },
+    {
+      "confidence": 0.592,
+      "gameId": "401856703",
+      "predictedMargin": 4.5,
+      "predictedWinner": "Mississippi State"
+    },
+    {
+      "confidence": 0.639,
+      "gameId": "401856704",
+      "predictedMargin": 6.5,
+      "predictedWinner": "Tennessee"
+    },
+    {
+      "confidence": 0.736,
+      "gameId": "401856804",
+      "predictedMargin": -10.3,
+      "predictedWinner": "Arizona"
+    },
+    {
+      "confidence": 0.669,
+      "gameId": "401856805",
+      "predictedMargin": 8.0,
+      "predictedWinner": "Texas Tech"
+    },
+    {
+      "confidence": 0.861,
+      "gameId": "401856806",
+      "predictedMargin": -18.8,
+      "predictedWinner": "Houston"
+    },
+    {
+      "confidence": 0.84,
+      "gameId": "401856813",
+      "predictedMargin": 18.0,
+      "predictedWinner": "Baylor"
+    },
+    {
+      "confidence": 0.677,
+      "gameId": "401856814",
+      "predictedMargin": -7.3,
+      "predictedWinner": "Kansas State"
+    },
+    {
+      "confidence": 0.514,
+      "gameId": "401856815",
+      "predictedMargin": 1.1,
+      "predictedWinner": "UCF"
+    },
+    {
+      "confidence": 0.749,
+      "gameId": "401856816",
+      "predictedMargin": -11.0,
+      "predictedWinner": "Utah"
+    },
+    {
+      "confidence": 0.667,
+      "gameId": "401856881",
+      "predictedMargin": 7.9,
+      "predictedWinner": "West Virginia"
+    },
+    {
+      "confidence": 0.733,
+      "gameId": "401858234",
+      "predictedMargin": 11.2,
+      "predictedWinner": "California"
+    },
+    {
+      "confidence": 0.986,
+      "gameId": "401858238",
+      "predictedMargin": 45.4,
+      "predictedWinner": "Miami"
+    },
+    {
+      "confidence": 0.827,
+      "gameId": "401858240",
+      "predictedMargin": -16.0,
+      "predictedWinner": "Georgia Tech"
+    },
+    {
+      "confidence": 0.924,
+      "gameId": "401858242",
+      "predictedMargin": -25.9,
+      "predictedWinner": "Virginia Tech"
+    },
+    {
+      "confidence": 0.787,
+      "gameId": "401858243",
+      "predictedMargin": 14.3,
+      "predictedWinner": "Louisville"
+    },
+    {
+      "confidence": 0.859,
+      "gameId": "401858461",
+      "predictedMargin": 19.6,
+      "predictedWinner": "Indiana"
+    },
+    {
+      "confidence": 0.706,
+      "gameId": "401858462",
+      "predictedMargin": 9.8,
+      "predictedWinner": "Maryland"
+    },
+    {
+      "confidence": 0.7,
+      "gameId": "401858463",
+      "predictedMargin": -8.5,
+      "predictedWinner": "Iowa"
+    },
+    {
+      "confidence": 0.867,
+      "gameId": "401858464",
+      "predictedMargin": -19.3,
+      "predictedWinner": "Nebraska"
+    },
+    {
+      "confidence": 0.889,
+      "gameId": "401858465",
+      "predictedMargin": 22.6,
+      "predictedWinner": "Ohio State"
+    },
+    {
+      "confidence": 0.869,
+      "gameId": "401858466",
+      "predictedMargin": 20.5,
+      "predictedWinner": "Penn State"
+    },
+    {
+      "confidence": 0.925,
+      "gameId": "401858467",
+      "predictedMargin": -26.1,
+      "predictedWinner": "Notre Dame"
+    },
+    {
+      "confidence": 0.621,
+      "gameId": "401858469",
+      "predictedMargin": -4.7,
+      "predictedWinner": "Oregon"
+    },
+    {
+      "confidence": 0.527,
+      "gameId": "401858470",
+      "predictedMargin": 1.7,
+      "predictedWinner": "Washington"
+    },
+    {
+      "confidence": 0.844,
+      "gameId": "401860891",
+      "predictedMargin": 18.4,
+      "predictedWinner": "Fresno State"
+    },
+    {
+      "confidence": 0.757,
+      "gameId": "401860893",
+      "predictedMargin": 12.5,
+      "predictedWinner": "Toledo"
+    },
+    {
+      "confidence": 0.759,
+      "gameId": "401860894",
+      "predictedMargin": -11.6,
+      "predictedWinner": "Troy"
+    },
+    {
+      "confidence": 0.795,
+      "gameId": "401860895",
+      "predictedMargin": -13.8,
+      "predictedWinner": "Oregon State"
+    },
+    {
+      "confidence": 0.565,
+      "gameId": "401860896",
+      "predictedMargin": -2.3,
+      "predictedWinner": "Colorado State"
+    },
+    {
+      "confidence": 0.592,
+      "gameId": "401860897",
+      "predictedMargin": 4.5,
+      "predictedWinner": "Western Michigan"
+    },
+    {
+      "confidence": 0.774,
+      "gameId": "401861970",
+      "predictedMargin": -12.5,
+      "predictedWinner": "UConn"
+    },
+    {
+      "confidence": 0.651,
+      "gameId": "401862778",
+      "predictedMargin": -6.1,
+      "predictedWinner": "Navy"
+    },
+    {
+      "confidence": 0.715,
+      "gameId": "401862779",
+      "predictedMargin": -9.2,
+      "predictedWinner": "Army"
+    },
+    {
+      "confidence": 0.796,
+      "gameId": "401862780",
+      "predictedMargin": -13.9,
+      "predictedWinner": "Louisiana"
+    },
+    {
+      "confidence": 0.639,
+      "gameId": "401862782",
+      "predictedMargin": -5.5,
+      "predictedWinner": "Florida Atlantic"
+    },
+    {
+      "confidence": 0.603,
+      "gameId": "401862784",
+      "predictedMargin": 4.9,
+      "predictedWinner": "Tulane"
+    },
+    {
+      "confidence": 0.98,
+      "gameId": "401862785",
+      "predictedMargin": -40.5,
+      "predictedWinner": "South Florida"
+    },
+    {
+      "confidence": 0.517,
+      "gameId": "401864509",
+      "predictedMargin": 1.2,
+      "predictedWinner": "Nevada"
+    },
+    {
+      "confidence": 0.548,
+      "gameId": "401864510",
+      "predictedMargin": -1.5,
+      "predictedWinner": "Hawai'i"
+    },
+    {
+      "confidence": 0.949,
+      "gameId": "401864511",
+      "predictedMargin": 31.5,
+      "predictedWinner": "Georgia State"
+    },
+    {
+      "confidence": 0.501,
+      "gameId": "401864512",
+      "predictedMargin": 0.5,
+      "predictedWinner": "Akron"
+    },
+    {
+      "confidence": 0.578,
+      "gameId": "401864572",
+      "predictedMargin": 3.9,
+      "predictedWinner": "NC State"
+    },
+    {
+      "confidence": 0.546,
+      "gameId": "401864576",
+      "predictedMargin": 2.5,
+      "predictedWinner": "Kentucky"
+    },
+    {
+      "confidence": 0.857,
+      "gameId": "401864579",
+      "predictedMargin": -18.4,
+      "predictedWinner": "New Mexico"
+    },
+    {
+      "confidence": 0.579,
+      "gameId": "401866425",
+      "predictedMargin": -2.9,
+      "predictedWinner": "Ball State"
+    },
+    {
+      "confidence": 0.524,
+      "gameId": "401869941",
+      "predictedMargin": -0.5,
+      "predictedWinner": "Liberty"
+    },
+    {
+      "confidence": 0.922,
+      "gameId": "401869961",
+      "predictedMargin": -25.6,
+      "predictedWinner": "James Madison"
+    },
+    {
+      "confidence": 0.513,
+      "gameId": "401871048",
+      "predictedMargin": 1.0,
+      "predictedWinner": "Jacksonville State"
+    }
+  ],
+  "season": 2026,
+  "week": 4
+}
