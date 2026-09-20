@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Iterable
 
 from cfb_analytics.raw.storage import partition_dir, store_response, verify_manifest
-from cfb_analytics.sources.cfbd.client import CfbdClient, CfbdResponse
+from cfb_analytics.sources.cfbd.client import CfbdClient, CfbdError, CfbdResponse
 
 ADVANCED_GAME_STATS_ENTITY = "advanced_game_stats"
 ADVANCED_BOX_SCORES_ENTITY = "advanced_box_scores"
@@ -97,7 +97,14 @@ def acquire_advanced_box_scores(
     last_response: CfbdResponse | None = None
     manifest: dict | None = None
     for gid in missing:
-        resp = client.advanced_box_score(gid)
+        try:
+            resp = client.advanced_box_score(gid)
+        except CfbdError as exc:
+            # /game/box/advanced is an optional enrichment source and CFBD returns persistent 5xx for some games.
+            # Skip it (it is retried on the next refresh because the partition stays incomplete) instead of failing
+            # the whole refresh; downstream fields fall back to /stats/game/advanced or stay null.
+            print(f"::warning::/game/box/advanced unavailable for game {gid} ({season} {season_type} week {week}): {str(exc)[:160]}")
+            continue
         last_response = resp
         row = dict(resp.payload) if isinstance(resp.payload, dict) else {"raw": resp.payload}
         row["gameId"] = gid

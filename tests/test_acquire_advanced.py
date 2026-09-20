@@ -9,7 +9,7 @@ from cfb_analytics.raw.acquire_advanced import (
     acquire_advanced_box_scores,
     acquire_advanced_game_stats,
 )
-from cfb_analytics.sources.cfbd.client import CfbdResponse
+from cfb_analytics.sources.cfbd.client import CfbdError, CfbdResponse
 
 
 class FakeClient:
@@ -24,6 +24,8 @@ class FakeClient:
 
     def advanced_box_score(self, game_id):
         self.box_calls.append(str(game_id))
+        if str(game_id) in getattr(self, "failing", ()):
+            raise CfbdError("500 Internal Server Error")
         payload = self.box_payloads.get(str(game_id), {"teams": {}})
         raw = json.dumps(payload).encode()
         return CfbdResponse(url="fake", status_code=200, payload=payload, raw_bytes=raw, headers={})
@@ -119,6 +121,21 @@ class AcquireAdvancedBoxScoresTests(unittest.TestCase):
             client = FakeClient()
             manifest = acquire_advanced_box_scores(client, root, 2026, "regular", 1, set())
             self.assertEqual(manifest["record_count"], 0)
+
+
+class BoxScoreServerErrorTests(unittest.TestCase):
+    def test_persistent_5xx_for_one_game_does_not_fail_the_refresh_and_is_retried_next_time(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            client = FakeClient(box_payloads={"1": {"teams": {"x": 1}}, "3": {"teams": {"x": 3}}})
+            client.failing = {"2"}
+            acquire_advanced_box_scores(client, root, 2026, "regular", 1, {"1", "2", "3"})
+            stored = json.loads((root / "cfbd/season=2026/season_type=regular/week=01/advanced_box_scores.json").read_text())
+            self.assertEqual(sorted(r["gameId"] for r in stored), ["1", "3"])
+            client.failing = set()
+            client.box_calls.clear()
+            acquire_advanced_box_scores(client, root, 2026, "regular", 1, {"1", "2", "3"})
+            self.assertEqual(client.box_calls, ["2"])
 
 
 if __name__ == "__main__":
