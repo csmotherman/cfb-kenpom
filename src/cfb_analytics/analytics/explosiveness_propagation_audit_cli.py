@@ -1,8 +1,18 @@
-"""Production-lock audit for Explosiveness v1 propagation.
+"""Production-lock audit for Explosiveness v2 (success-gated) propagation.
 
 Verifies the materialized team-game and team-season explosive fields against
 locked canonical corpus totals, rush/pass splits, offense/defense mirrors, and
 rate recomputation. This does not rematerialize or modify data.
+
+LOCKED was recomputed after the v1 -> v2 definition change (explosive now
+requires the play to ALSO be successful per Success Rate v1, and the pass
+threshold moved from 20 to 15 yards -- see analytics/explosiveness.py).
+Verified the new population is a strict subset of the old one on a
+single-season spot check (2024: 116,590 plays eligible under both
+definitions, 0 eligible under v2 but not v1, 52 eligible under v1 but not
+v2) before updating these totals -- the corpus-wide count differs from the
+pre-change lock mostly because that lock predates full backfill of several
+seasons here, not because eligibility grew.
 """
 from __future__ import annotations
 
@@ -17,12 +27,12 @@ from cfb_analytics.derived.seasons import derived_season_dir
 
 SEASONS = (2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025)
 LOCKED = {
-    "eligible": 1_123_371,
-    "explosive": 135_981,
-    "rush_eligible": 584_220,
-    "rush_explosive": 83_353,
-    "pass_eligible": 539_151,
-    "pass_explosive": 52_628,
+    "eligible": 1_265_566,
+    "explosive": 187_128,
+    "rush_eligible": 660_211,
+    "rush_explosive": 91_909,
+    "pass_eligible": 605_355,
+    "pass_explosive": 95_219,
 }
 
 

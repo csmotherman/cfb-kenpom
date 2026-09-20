@@ -131,8 +131,8 @@ const STYLE_RISK: ExpColumn[] = [
   {
     key: "explosiveDependency", label: "Explosive Dependency %",
     num: "explosivePositiveEpa", den: "positiveEpa",
-    tooltip: "Share of the offense's positive EPA that comes from explosive plays. Explosives are rushes of 10+ yards or passes of 20+ yards. This describes style, not quality.",
-    profileNote: "Percentage of positive offensive EPA coming from explosive plays (10+ yard runs, 20+ yard passes).",
+    tooltip: "Share of the offense's positive EPA that comes from explosive plays. An explosive play is a successful play (Success Rate's own down/distance standard) that also gains 10+ yards on a run or 15+ yards on a pass. This describes style, not quality.",
+    profileNote: "Percentage of positive offensive EPA coming from successful explosive plays (10+ yard successful runs, 15+ yard successful passes).",
     profileFormula: "Explosive positive EPA ÷ all positive EPA",
     denLabel: "Positive EPA",
     noHeatmap: true,

@@ -1,11 +1,20 @@
 """Deterministic explosiveness metrics for canonical offensive plays.
 
-v1 deliberately separates two concepts:
-* explosive-play rate: frequency of big gains (rush >=10, pass >=20)
-* yards per successful play: magnitude on plays that satisfy Success Rate v1
+v2 defines an explosive play as a big gain that is ALSO a successful play
+(Success Rate v1: >=50% of distance on 1st down, >=70% on 2nd, 100% on
+3rd/4th) -- not big-gain alone:
+* Explosive Pass = pass gain >= 15 AND play is successful
+* Explosive Rush = rush gain >= 10 AND play is successful
+* Explosive Rate = successful explosive plays / eligible offensive plays
 
-Only clean offensive scrimmage plays with usable analytics yardage are eligible.
-Modified/no-play contexts are excluded rather than guessed.
+Eligibility is therefore the INTERSECTION of Success Rate v1's eligibility
+(clean offensive scrimmage snap, valid down 1-4, valid distance, valid
+yardage) and explosiveness' own family/yardage requirement (a rush or pass
+play with usable analytics yardage) -- a play the eligibility gate can't
+resolve is excluded rather than guessed, exactly as before.
+
+v1 (rush >=10 / pass >=20, no success requirement) is superseded; see git
+history for that definition if needed for comparison.
 """
 from __future__ import annotations
 import json
@@ -15,9 +24,9 @@ from cfb_analytics.raw.audit import discover_partitions
 from cfb_analytics.canonical.materialize import canonical_partition_dir
 from cfb_analytics.analytics.success import classify_success
 
-EXPLOSIVENESS_VERSION="explosiveness-v1"
+EXPLOSIVENESS_VERSION="explosiveness-v2-success-gated"
 RUSH_EXPLOSIVE_YARDS=10
-PASS_EXPLOSIVE_YARDS=20
+PASS_EXPLOSIVE_YARDS=15
 
 def _family(play):
  subtype=str(play.get("eventSubtype") or "").lower()
@@ -26,14 +35,15 @@ def _family(play):
  return None
 
 def classify_explosive(play):
- if not play.get("isScrimmagePlay") or not play.get("isOffensivePlay"): return None
- if play.get("hasStateTransitionModifier") or play.get("hasNoPlayContext"): return None
+ success=classify_success(play)
+ if success is None: return None
  yards=play.get("analyticsYardsGained")
  if not isinstance(yards,(int,float)) or isinstance(yards,bool): return None
  family=_family(play)
- if family=="RUSH": return yards>=RUSH_EXPLOSIVE_YARDS
- if family=="PASS": return yards>=PASS_EXPLOSIVE_YARDS
- return None
+ if family=="RUSH": threshold=RUSH_EXPLOSIVE_YARDS
+ elif family=="PASS": threshold=PASS_EXPLOSIVE_YARDS
+ else: return None
+ return bool(yards>=threshold and success)
 
 def explosiveness_audit(raw_root:Path,processed_root:Path,seasons):
  c=Counter(); by_family=defaultdict(Counter); by_season=defaultdict(Counter); total=0
@@ -54,9 +64,9 @@ def explosiveness_audit(raw_root:Path,processed_root:Path,seasons):
  return {"plays_scanned":total,"eligible":c["eligible"],"explosive":c["explosive"],"explosive_rate":c["explosive"]/c["eligible"] if c["eligible"] else None,"successful_plays":c["successful_plays"],"successful_yards":c["successful_yards"],"yards_per_successful_play":c["successful_yards"]/c["successful_plays"] if c["successful_plays"] else None,"by_family":{k:dict(v) for k,v in sorted(by_family.items())},"by_season":{str(k):dict(v) for k,v in sorted(by_season.items())},"version":EXPLOSIVENESS_VERSION}
 
 def concise_explosiveness_audit(r):
- lines=["CANONICAL EXPLOSIVENESS AUDIT (v1)",f"Plays scanned: {r['plays_scanned']:,}",f"Explosive-eligible rush/pass plays: {r['eligible']:,}",f"Explosive plays: {r['explosive']:,}",f"Explosive-play rate: {r['explosive_rate']:.2%}" if r['explosive_rate'] is not None else "Explosive-play rate: N/A",f"Successful plays: {r['successful_plays']:,}",f"Yards on successful plays: {r['successful_yards']:,.0f}",f"Yards per successful play: {r['yards_per_successful_play']:.2f}" if r['yards_per_successful_play'] is not None else "Yards per successful play: N/A","","By play family:"]
+ lines=["CANONICAL EXPLOSIVENESS AUDIT (v2, success-gated)",f"Plays scanned: {r['plays_scanned']:,}",f"Explosive-eligible rush/pass plays: {r['eligible']:,}",f"Explosive plays: {r['explosive']:,}",f"Explosive-play rate: {r['explosive_rate']:.2%}" if r['explosive_rate'] is not None else "Explosive-play rate: N/A",f"Successful plays: {r['successful_plays']:,}",f"Yards on successful plays: {r['successful_yards']:,.0f}",f"Yards per successful play: {r['yards_per_successful_play']:.2f}" if r['yards_per_successful_play'] is not None else "Yards per successful play: N/A","","By play family:"]
  for fam,c in r['by_family'].items():
   rate=c.get('explosive',0)/c.get('eligible',1); yps=c.get('successful_yards',0)/c.get('successful_plays',1)
   lines.append(f"{fam}: explosive {c.get('explosive',0):,}/{c.get('eligible',0):,} = {rate:.2%}; successful-play YPP = {yps:.2f}")
- lines += ["",f"Definition: rush >= {RUSH_EXPLOSIVE_YARDS} yards; pass >= {PASS_EXPLOSIVE_YARDS} yards.","Yards per successful play uses the locked Success Rate v1 eligibility/classification.","Modified/no-play contexts are excluded. No data is modified."]
+ lines += ["",f"Definition: rush >= {RUSH_EXPLOSIVE_YARDS} yards AND successful; pass >= {PASS_EXPLOSIVE_YARDS} yards AND successful.","Eligibility requires both Success Rate v1 eligibility (valid down/distance) and a resolvable rush/pass yardage.","Modified/no-play contexts are excluded. No data is modified."]
  return "\n".join(lines)

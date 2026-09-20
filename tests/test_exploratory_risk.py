@@ -8,13 +8,24 @@ from cfb_analytics.analytics.exploratory.risk import team_risk_counts, finish_ri
 
 
 def play(ppa, yards, event_subtype="RUSH", is_scrimmage=True, is_offensive=True,
-         has_state_transition=False, has_no_play=False, offense="Home", defense="Away"):
+         has_state_transition=False, has_no_play=False, offense="Home", defense="Away",
+         down=1, distance=10):
+    # down=1, distance=10 (a 50% success threshold of 5 yards) is chosen so
+    # existing fixtures below keep their original explosive/non-explosive
+    # outcome under the v2 (success-gated) definition: 15-yard gains clear
+    # both the yardage threshold and the 5-yard success bar; the 4-yard gain
+    # in test_non_explosive_positive_epa_contributes_denominator_only clears
+    # neither, so it stays classified explosive=False either way. classify_
+    # explosive() now requires classify_success() to resolve (needs a valid
+    # down/distance), so omitting these would silently make every play here
+    # explosive-ineligible (None) instead of the intended True/False.
     return {
         "ppa": ppa, "analyticsYardsGained": yards, "eventSubtype": event_subtype,
         "eventCategory": "SCRIMMAGE" if event_subtype != "SACK" else "SCRIMMAGE",
         "isScrimmagePlay": is_scrimmage, "isOffensivePlay": is_offensive,
         "hasStateTransitionModifier": has_state_transition, "hasNoPlayContext": has_no_play,
         "offense": offense, "defense": defense, "isTurnover": False,
+        "down": down, "distance": distance,
     }
 
 
