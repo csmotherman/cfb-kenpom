@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { isEarlyBetaActive } from "@/lib/earlyBeta";
 
 const LINKS = [
-  { href: "/", label: "Ratings" },
+  { href: "/", label: "Home" },
+  { href: "/ratings", label: "Ratings" },
+  { href: "/rankings", label: "Rankings" },
   { href: "/predictions", label: "Predictions", premium: true },
   { href: "/game-history", label: "Game History" },
   { href: "/advanced", label: "Advanced", premium: true },
