@@ -27,7 +27,7 @@ export default function SiteNav() {
   const [index, setIndex] = useState<SearchIndexEntry[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);\n  const linksRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getSearchIndex().then(setIndex).catch(() => {});
@@ -44,6 +44,16 @@ export default function SiteNav() {
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
+
+  // Keep the active primary tab visible inside the mobile horizontal strip.
+  // Do this without scrollIntoView so route changes never move the document itself.
+  useEffect(() => {
+    const strip = linksRef.current;
+    const active = strip?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!strip || !active) return;
+    const left = Math.max(0, active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2);
+    strip.scrollTo({ left, behavior: "auto" });
+  }, [pathname]);
 
   const q = query.trim().toLowerCase();
   const matches = q
@@ -97,7 +107,8 @@ export default function SiteNav() {
   }
 
   return (
-    <nav className="site-nav site-nav--unified" aria-label="Primary navigation">
+    <>
+      <nav className="site-nav site-nav--unified" aria-label="Primary navigation">
       <div className="container site-nav__inner">
         <Link
           href="/"
@@ -109,7 +120,7 @@ export default function SiteNav() {
           <Image src="/brand/prime-header.png" alt="PRIME" width={2172} height={724} priority />
         </Link>
 
-        <div className="site-nav__links">
+        <div className="site-nav__links" ref={linksRef}>
           {LINKS.map((link) => {
             const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
             return (
@@ -192,6 +203,8 @@ export default function SiteNav() {
           </div>
         </div>
       </div>
-    </nav>
+      </nav>
+      <div className="site-nav__mobile-spacer" aria-hidden="true" />
+    </>
   );
 }
