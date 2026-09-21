@@ -27,7 +27,8 @@ export default function SiteNav() {
   const [index, setIndex] = useState<SearchIndexEntry[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);\n  const linksRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const linksRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getSearchIndex().then(setIndex).catch(() => {});
