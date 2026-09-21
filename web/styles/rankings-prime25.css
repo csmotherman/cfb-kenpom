@@ -436,7 +436,7 @@ body:has(.prime25-page) .site-nav a {
 
 /* Full all-team PRIME ranking table under the featured Top 25 card. */
 .prime25-full-rankings {
-  width: min(1320px, calc(100vw - 110px));
+  width: min(980px, calc(100vw - 110px));
   margin: 18px auto 0;
   overflow: hidden;
   border: 1px solid rgba(125, 111, 83, .34);
@@ -514,18 +514,18 @@ body:has(.prime25-page) .site-nav a {
 .prime25-full-table__head,
 .prime25-full-table__row {
   display: grid;
-  grid-template-columns: 58px minmax(0,1fr) 72px 96px 72px;
+  grid-template-columns: 54px minmax(260px, 1fr) 62px 92px 64px;
   align-items: center;
 }
 
 .prime25-full-table__head {
-  min-height: 34px;
-  padding: 0 18px;
+  min-height: 38px;
+  padding: 0 14px;
   background: #132a45;
   color: #eef1f4;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 900;
-  letter-spacing: .09em;
+  letter-spacing: .075em;
   text-transform: uppercase;
 }
 
@@ -534,8 +534,8 @@ body:has(.prime25-page) .site-nav a {
 }
 
 .prime25-full-table__row {
-  min-height: 50px;
-  padding: 0 18px;
+  min-height: 48px;
+  padding: 0 14px;
   border-top: 1px solid #e6e0d6;
   background: #fffefa;
   transition: background-color .12s ease;
@@ -639,9 +639,12 @@ body:has(.prime25-page) .site-footer {
 }
 
 @media (max-width: 1100px) {
-  .prime25-stage,
-  .prime25-full-rankings {
+  .prime25-stage {
     width: calc(100vw - 44px);
+  }
+
+  .prime25-full-rankings {
+    width: min(940px, calc(100vw - 44px));
   }
 }
 
