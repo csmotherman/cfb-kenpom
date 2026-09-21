@@ -37,7 +37,7 @@ const FORMATTERS: Record<string, (v: number | null) => string> = {
 
 type ColKind = "snapshot" | "rate" | "split";
 type Perspective = "offense" | "defense" | "margin" | "both";
-type TabKey = "general" | "offense" | "defense" | "epa" | "successRate" | "mistakes";
+type TabKey = "core" | "general" | "offense" | "defense" | "epa" | "successRate" | "mistakes";
 
 type AdvColumn = {
   key: string;
@@ -316,6 +316,32 @@ const ALL_COLUMNS: AdvColumn[] = [
   ...SUCCESS_ALL_COLUMNS,
 ];
 
+// Default "Core" view: ratings plus the headline efficiency measures, built from the existing column definitions so every
+// number matches its counterpart in the full tables. "All metrics" opens the complete research tabs.
+const CORE_COLUMN_BY_KEY = new Map(ALL_COLUMNS.map((column) => [column.key, column]));
+function coreColumn(key: string, label: string, tip?: string): AdvColumn {
+  const base = CORE_COLUMN_BY_KEY.get(key);
+  if (!base) throw new Error(`Core column ${key} is not defined`);
+  return { ...base, label, primary: key === "adjEM", tooltip: tip ?? base.tooltip };
+}
+const CORE_SECTIONS: AdvSection[] = [
+  { title: "Rating", columns: [coreColumn("adjEM", "Net APR"), coreColumn("adjO", "Off APR"), coreColumn("adjD", "Def APR")] },
+  {
+    title: "Efficiency",
+    columns: [
+      coreColumn("epaAdj", "Off EPA/Play", "Opponent-adjusted offensive EPA per play (CFBD's PPA model). Higher is better."),
+      coreColumn("offSuccess", "Off Success"),
+      coreColumn("offYpp", "Off YPP"),
+      coreColumn("offExpRaw", "Off Expl %"),
+    ],
+  },
+  { title: "Havoc & finishing", columns: [coreColumn("defHavocRaw", "Def Havoc"), coreColumn("offFinRaw", "Off Pts/Opp")] },
+];
+const CORE_TAB: Tab = {
+  label: "Core", primaryKey: "adjEM", sections: CORE_SECTIONS, columns: CORE_SECTIONS.flatMap((section) => section.columns),
+  note: "Core metrics: the ratings plus the headline efficiency measures. Off = offense, Def = defense. Open All metrics for every family.",
+};
+
 function sumField(wk: Record<string, number>, fields: string[]): number {
   let total = 0;
   fields.forEach((field) => { if (wk[field] !== undefined) total += wk[field]; });
@@ -346,14 +372,15 @@ export default function AdvancedPage() {
   const [year, setYear] = useState<string>("");
   const [startWeek, setStartWeek] = useState<number | null>(null);
   const [endWeek, setEndWeek] = useState<number | null>(null);
-  const [tab, setTab] = useState<TabKey>("general");
+  const [tab, setTab] = useState<TabKey>("core");
+  const [lastAllTab, setLastAllTab] = useState<TabKey>("general");
   const [perspective, setPerspective] = useState<Perspective>("offense");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filter, setFilter] = useState("");
   const [conference, setConference] = useState("");
   const [gameLogTarget, setGameLogTarget] = useState<{ team: Aggregated; column: AdvColumn } | null>(null);
-  const [showAllColumns, setShowAllColumns] = useState(false);
+  const [showAllColumns, setShowAllColumns] = useState(true);
   const [showDrillDownTip, setShowDrillDownTip] = useState(false);
   /* eslint-disable react-hooks/set-state-in-effect -- one-time client-only
      localStorage read on mount (matches the query-string-read pattern in
@@ -486,6 +513,7 @@ export default function AdvancedPage() {
   const tabDef = useMemo<Tab>(() => {
     if (tab === "mistakes") return buildMistakesTab(perspective) as Tab;
     if (tab === "epa" || tab === "successRate") return specialTab(tab, perspective);
+    if (tab === "core") return CORE_TAB;
     return STATIC_TABS[tab];
   }, [tab, perspective]);
 
@@ -540,7 +568,7 @@ export default function AdvancedPage() {
   }, [teams, tabDef]);
 
   const sectionStartKeys = useMemo(() => new Set(tabDef.sections.map((section) => section.columns[0]?.key).filter(Boolean)), [tabDef]);
-  const specialColumnsTab = tab === "epa" || tab === "successRate" || tab === "mistakes";
+  const specialColumnsTab = tab === "core" || tab === "epa" || tab === "successRate" || tab === "mistakes";
   const visibleSections = showAllColumns ? tabDef.sections : tabDef.sections.slice(0, 1);
   const visibleColumns = useMemo(() => visibleSections.flatMap((section) => section.columns), [visibleSections]);
   const conferences = useMemo(() => [...new Set(teams.map((team) => team.conf))].filter(Boolean).sort(), [teams]);
@@ -558,9 +586,10 @@ export default function AdvancedPage() {
 
   function selectTab(nextTab: TabKey) {
     setTab(nextTab);
+    if (nextTab !== "core") setLastAllTab(nextTab);
     setSortKey(null);
     setSortDir("asc");
-    setShowAllColumns(nextTab === "epa" || nextTab === "successRate" || nextTab === "mistakes");
+    setShowAllColumns(nextTab === "core" || nextTab === "epa" || nextTab === "successRate" || nextTab === "mistakes");
   }
 
   function selectPerspective(nextPerspective: Perspective) {
@@ -637,11 +666,17 @@ export default function AdvancedPage() {
           </div>
 
           <div className="container tab-bar advanced-tab-bar">
-            <nav className="tab-nav" aria-label="Analytics category">
-              {TAB_LABELS.map(({ key, label }) => (
-                <button key={key} type="button" className={tab === key ? "active" : undefined} aria-pressed={tab === key} onClick={() => selectTab(key)}>{label}</button>
-              ))}
-            </nav>
+            <div className="advanced-view-toggle" role="group" aria-label="Metric set">
+              <button type="button" className={tab === "core" ? "active" : undefined} aria-pressed={tab === "core"} onClick={() => selectTab("core")}>Core</button>
+              <button type="button" className={tab !== "core" ? "active" : undefined} aria-pressed={tab !== "core"} onClick={() => selectTab(lastAllTab)}>All metrics</button>
+            </div>
+            {tab !== "core" ? (
+              <nav className="tab-nav" aria-label="Analytics category">
+                {TAB_LABELS.map(({ key, label }) => (
+                  <button key={key} type="button" className={tab === key ? "active" : undefined} aria-pressed={tab === key} onClick={() => selectTab(key)}>{label}</button>
+                ))}
+              </nav>
+            ) : null}
 
             {tabDef.supportsPerspective ? (
               <div className="advanced-perspective" role="group" aria-label={`${tabDef.label} perspective`}>

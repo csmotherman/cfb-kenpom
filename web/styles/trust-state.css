@@ -39,3 +39,9 @@
   background-image: none;
 }
 #ratingsTable td.secondary-col .rank-sub { opacity: .8; }
+
+/* Advanced: Core / All metrics switch */
+.advanced-view-toggle { display: inline-flex; border: 1px solid var(--color-hairline-strong); margin: 0 12px 0 0; }
+.advanced-view-toggle button { padding: 6px 14px; border: 0; background: transparent; color: var(--color-ink-secondary); font: inherit; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; cursor: pointer; }
+.advanced-view-toggle button.active { background: var(--color-navy); color: #fff; }
+.advanced-view-toggle button:focus-visible { outline: 2px solid var(--color-gold-dark); outline-offset: -2px; }

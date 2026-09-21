@@ -42,7 +42,7 @@ full historical rebuild, and would be renamed unless it measures materially the 
 - PRIME vs market benchmark (SU, margin MAE, calibration, model-market disagreement, not only ATS): **next**
 - Expanded Model Performance (SU, margin MAE, market MAE, weekly, conference, calibration, disagreement, history, prospective): **next**
 - Secondary Projection (prior-informed, labelled differently from the Rating, visually secondary): **done** (`analytics/projection.py`, `pipelines/publish_projection.py`, muted `Proj` column on Ratings for seasons that have it; weeks 1-3 of 2026 published)
-- Advanced default core view (Net/Off/Def APR, EPA/play, success, YPP, explosive rate; optionally havoc, points/opportunity; SOS/SOR stay on Ratings and team pages): **next**
+- Advanced default core view (Net/Off/Def APR, EPA/play, success, YPP, explosive rate, plus havoc and points/opportunity; SOS/SOR stay on Ratings and team pages): **done** (Core is the default; the All metrics switch opens the existing research tabs)
 - Standard Advanced concepts move to CFBD aggregates where not already: **ongoing**
 
 ## Next product
