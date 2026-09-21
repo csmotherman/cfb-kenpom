@@ -1367,3 +1367,313 @@ body:has(.prime25-page) .site-footer {
   }
 }
 
+/* PRIME 25 composition v3 — screenshot-first 16:9 board */
+@media (min-width: 1000px) {
+  .prime25-stage {
+    box-sizing: border-box;
+    width: min(1280px, calc(100vw - 120px));
+    aspect-ratio: 16 / 9;
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 18px 12px;
+  }
+
+  .prime25-hero {
+    min-height: 86px;
+    align-items: center;
+    gap: 20px;
+    padding: 0 4px 7px;
+  }
+
+  .prime25-hero__copy {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 20px;
+  }
+
+  .prime25-hero__title {
+    flex: 0 0 auto;
+  }
+
+  .prime25-hero__eyebrow {
+    margin-bottom: 2px;
+    font-size: 8px;
+    letter-spacing: .24em;
+  }
+
+  .prime25-hero__eyebrow::before {
+    width: 28px;
+  }
+
+  .prime25-hero h1 {
+    gap: 6px;
+    font-size: clamp(44px, 3.8vw, 58px);
+    line-height: .82;
+  }
+
+  .prime25-hero__intro {
+    min-width: 0;
+    max-width: 560px;
+    padding-left: 20px;
+    border-left: 1px solid #d9cfbd;
+  }
+
+  .prime25-hero__copy .prime25-hero__intro p {
+    max-width: none;
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .prime25-hero__copy .prime25-hero__intro .prime25-hero__trust {
+    margin-top: 5px !important;
+    font-size: 9.5px !important;
+    line-height: 1.35;
+  }
+
+  .prime25-hero__meta {
+    gap: 8px;
+  }
+
+  .prime25-meta-card {
+    min-width: 104px;
+    padding: 7px 10px;
+  }
+
+  .prime25-meta-card--wide {
+    min-width: 205px;
+  }
+
+  .prime25-meta-card:first-child strong {
+    font-size: 29px;
+  }
+
+  .prime25-divider {
+    margin-bottom: 6px;
+  }
+
+  .prime25-section-label {
+    min-height: 18px;
+    padding-bottom: 4px;
+  }
+
+  .prime25-section-label strong {
+    font-size: 18px;
+  }
+
+  .prime25-section-label span {
+    font-size: 6.5px;
+  }
+
+  .prime25-top-five__grid {
+    gap: 12px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured {
+    height: 200px;
+    padding: 45px 12px 24px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured .prime25-tile__rank {
+    width: 50px;
+    height: 40px;
+    font-size: 25px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured .prime25-tile__body {
+    gap: 7px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured .prime25-tile__body img {
+    width: 62px;
+    height: 62px;
+    flex-basis: 62px;
+    margin-top: 1px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured .prime25-tile__copy strong {
+    font-size: 17px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured .prime25-tile__copy small {
+    margin-top: 5px;
+    font-size: 8px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured .prime25-tile__record {
+    bottom: 9px;
+    font-size: 9.5px;
+  }
+
+  .prime25-rest {
+    margin-top: 8px;
+  }
+
+  .prime25-grid {
+    gap: 7px 9px;
+  }
+
+  .prime25-grid .prime25-tile {
+    min-height: 64px;
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .prime25-grid .prime25-tile__rank {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .prime25-grid .prime25-tile__body {
+    gap: 9px;
+    padding: 7px 34px 7px 1px;
+  }
+
+  .prime25-grid .prime25-tile__body img {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  .prime25-grid .prime25-tile__copy strong {
+    font-size: 11.5px;
+  }
+
+  .prime25-grid .prime25-tile__copy small {
+    margin-top: 3px;
+    font-size: 7px;
+  }
+
+  .prime25-stage__footer {
+    min-height: 32px;
+    margin-top: auto;
+    padding-top: 7px;
+  }
+}
+
+@media (min-width: 1000px) and (max-height: 850px) {
+  .prime25-stage {
+    width: min(1120px, calc(100vw - 120px));
+    aspect-ratio: 16 / 9;
+    padding: 11px 16px 9px;
+  }
+
+  .prime25-hero {
+    min-height: 74px;
+    gap: 16px;
+    padding-bottom: 5px;
+  }
+
+  .prime25-hero__copy {
+    gap: 16px;
+  }
+
+  .prime25-hero h1 {
+    font-size: clamp(38px, 3.6vw, 48px);
+  }
+
+  .prime25-hero__intro {
+    max-width: 470px;
+    padding-left: 16px;
+  }
+
+  .prime25-hero__copy .prime25-hero__intro p {
+    font-size: 9.8px;
+  }
+
+  .prime25-hero__copy .prime25-hero__intro .prime25-hero__trust {
+    margin-top: 3px !important;
+    font-size: 8.5px !important;
+  }
+
+  .prime25-meta-card {
+    padding: 5px 8px;
+  }
+
+  .prime25-meta-card--wide {
+    min-width: 180px;
+  }
+
+  .prime25-meta-card:first-child strong {
+    font-size: 25px;
+  }
+
+  .prime25-section-label {
+    min-height: 16px;
+    padding-bottom: 3px;
+  }
+
+  .prime25-section-label strong {
+    font-size: 16px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured {
+    height: 170px;
+    padding: 39px 10px 21px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured .prime25-tile__rank {
+    width: 44px;
+    height: 34px;
+    font-size: 22px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured .prime25-tile__body img {
+    width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured .prime25-tile__copy strong {
+    font-size: 14.5px;
+  }
+
+  .prime25-top-five__grid .prime25-tile--featured .prime25-tile__record {
+    bottom: 7px;
+    font-size: 8.5px;
+  }
+
+  .prime25-rest {
+    margin-top: 6px;
+  }
+
+  .prime25-grid {
+    gap: 6px 8px;
+  }
+
+  .prime25-grid .prime25-tile {
+    min-height: 56px;
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .prime25-grid .prime25-tile__rank {
+    width: 33px;
+    height: 33px;
+    font-size: 16px;
+  }
+
+  .prime25-grid .prime25-tile__body {
+    gap: 8px;
+    padding: 6px 30px 6px 0;
+  }
+
+  .prime25-grid .prime25-tile__body img {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  .prime25-grid .prime25-tile__copy strong {
+    font-size: 10.5px;
+  }
+
+  .prime25-stage__footer {
+    min-height: 28px;
+    padding-top: 5px;
+  }
+}
+
