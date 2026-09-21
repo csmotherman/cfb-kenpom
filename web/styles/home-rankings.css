@@ -750,3 +750,419 @@
     font-size: 9px;
   }
 }
+
+/* PRIME homepage viewport-fit desktop composition */
+@media (min-width: 1181px) {
+  body:has(.prime-home-v2) {
+    overflow-y: hidden;
+  }
+
+  body:has(.prime-home-v2) .site-footer {
+    display: none;
+  }
+
+  .prime-home-v2 {
+    box-sizing: border-box;
+    height: calc(100vh - 58px);
+    min-height: 0;
+    overflow: hidden;
+    padding-bottom: 6px;
+  }
+
+  .prime-home-v2__hero {
+    min-height: 92px;
+    height: 92px;
+  }
+
+  .prime-home-v2__hero-inner {
+    grid-template-columns: minmax(0,1fr) 150px;
+    min-height: 92px;
+    height: 92px;
+    gap: 20px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .prime-home-v2__eyebrow {
+    margin-bottom: 3px;
+    font-size: 7px;
+    letter-spacing: .24em;
+  }
+
+  .prime-home-v2__hero h1 {
+    max-width: none;
+    font-size: clamp(29px, 2.55vw, 39px);
+    line-height: .92;
+    letter-spacing: -.018em;
+    white-space: nowrap;
+  }
+
+  .prime-home-v2__hero h1 span {
+    display: inline;
+    margin-top: 0;
+    margin-left: .16em;
+  }
+
+  .prime-home-v2__hero p {
+    max-width: none;
+    margin-top: 5px;
+    font-size: 9.5px;
+    line-height: 1.25;
+  }
+
+  .prime-home-v2__hero-meta {
+    width: 140px;
+    padding-left: 16px;
+  }
+
+  .prime-home-v2__hero-meta span,
+  .prime-home-v2__hero-meta small {
+    font-size: 6.5px;
+    line-height: 1.35;
+  }
+
+  .prime-home-v2__hero-meta strong {
+    margin-top: 2px;
+    font-size: 22px;
+  }
+
+  .prime-home-v2__hero-meta i {
+    width: 28px;
+    margin: 7px 0;
+  }
+
+  .prime-home-v2__dashboard {
+    grid-template-columns: minmax(0,.92fr) minmax(330px,1.08fr) minmax(0,.92fr);
+    gap: 9px;
+    margin-top: 7px;
+  }
+
+  .prime-home-panel,
+  .prime-home-matchup {
+    height: 286px;
+  }
+
+  .prime-home-panel__head {
+    min-height: 62px;
+    padding: 6px 9px 5px;
+  }
+
+  .prime-home-panel__head span {
+    font-size: 6px;
+  }
+
+  .prime-home-panel__head h2 {
+    margin-top: 1px;
+    font-size: 20px;
+  }
+
+  .prime-home-panel__head p {
+    margin-top: 2px;
+    font-size: 7.5px;
+    line-height: 1.2;
+  }
+
+  .prime-home-panel__head > a {
+    margin-top: 2px;
+    font-size: 6.5px;
+  }
+
+  .prime-home-v2-table__head {
+    min-height: 23px;
+    padding: 0 7px;
+    font-size: 6px;
+  }
+
+  .prime-home-v2-table__row {
+    min-height: 39px;
+    padding: 0 7px;
+    font-size: 8px;
+  }
+
+  .prime-home-v2-table__rank {
+    font-size: 14px;
+  }
+
+  .prime-home-v2-table__team {
+    gap: 6px;
+  }
+
+  .prime-home-v2-table__team img {
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+  }
+
+  .prime-home-v2-table__team b {
+    font-size: 9.5px;
+  }
+
+  .prime-home-matchup {
+    position: relative;
+    isolation: isolate;
+    min-height: 0;
+    padding: 0 12px 9px;
+    border-color: rgba(197,154,67,.5);
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(240,198,102,.2), transparent 38%),
+      radial-gradient(circle at 14% 54%, rgba(52,93,136,.22), transparent 33%),
+      radial-gradient(circle at 86% 54%, rgba(184,138,42,.17), transparent 34%),
+      linear-gradient(180deg, rgba(8,24,42,.98), rgba(11,31,52,.98));
+    box-shadow:
+      0 9px 24px rgba(13,29,48,.16),
+      inset 0 1px 0 rgba(255,255,255,.07);
+  }
+
+  .prime-home-matchup::before {
+    content: "";
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgba(8,24,42,.82), rgba(8,24,42,.57) 50%, rgba(8,24,42,.82)),
+      url("/brand/background-rankings.png") center 43% / cover no-repeat;
+    opacity: .28;
+    filter: saturate(.75) contrast(1.08);
+  }
+
+  .prime-home-matchup::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 38px 0 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255,224,155,.14), transparent 42%),
+      repeating-linear-gradient(
+        90deg,
+        transparent 0,
+        transparent calc(10% - 1px),
+        rgba(255,255,255,.025) calc(10% - 1px),
+        rgba(255,255,255,.025) 10%
+      );
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,.85), transparent 90%);
+  }
+
+  .prime-home-matchup > header {
+    min-height: 31px;
+  }
+
+  .prime-home-matchup > header span {
+    font-size: 7.5px;
+  }
+
+  .prime-home-matchup > header b {
+    font-size: 6.5px;
+  }
+
+  .prime-home-matchup__teams {
+    gap: 5px;
+    padding: 4px 0 0;
+  }
+
+  .prime-home-matchup__team img {
+    width: 58px;
+    height: 58px;
+    margin-bottom: 0;
+    filter:
+      drop-shadow(0 7px 14px rgba(0,0,0,.34))
+      drop-shadow(0 0 12px rgba(255,255,255,.06));
+  }
+
+  .prime-home-matchup__team span {
+    font-size: 13px;
+  }
+
+  .prime-home-matchup__team strong {
+    margin-top: 2px;
+    font-size: 17px;
+  }
+
+  .prime-home-matchup__team small {
+    margin-top: 1px;
+    font-size: 7px;
+  }
+
+  .prime-home-matchup__vs {
+    font-size: 18px;
+    text-shadow: 0 2px 12px rgba(225,178,74,.25);
+  }
+
+  .prime-home-matchup__kickoff {
+    padding: 3px 0 5px;
+    font-size: 6.5px;
+  }
+
+  .prime-home-matchup__edge {
+    min-height: 34px;
+    padding: 5px 8px;
+    border-color: rgba(225,178,74,.42);
+    background:
+      linear-gradient(90deg, rgba(184,138,42,.08), rgba(255,255,255,.045), rgba(184,138,42,.08));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+
+  .prime-home-matchup__edge span {
+    font-size: 6px;
+  }
+
+  .prime-home-matchup__edge strong {
+    font-size: 8.5px;
+  }
+
+  .prime-home-matchup__cta {
+    min-height: 24px;
+    margin-top: 5px;
+    font-size: 6.8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.18);
+  }
+
+  .prime-home-v2__insights {
+    gap: 8px;
+    margin-top: 7px;
+  }
+
+  .prime-home-insight {
+    min-height: 68px;
+    height: 68px;
+    padding: 7px 9px;
+  }
+
+  .prime-home-insight > span {
+    font-size: 6.5px;
+  }
+
+  .prime-home-insight > div {
+    gap: 7px;
+    margin-top: 3px;
+  }
+
+  .prime-home-insight img {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+
+  .prime-home-insight strong {
+    font-size: 14px;
+  }
+
+  .prime-home-insight p {
+    margin-top: 2px;
+    font-size: 7.5px;
+  }
+
+  .prime-home-v2__explore {
+    margin-top: 6px;
+  }
+
+  .prime-home-v2__explore h2 {
+    margin-bottom: 3px;
+    font-size: 11px;
+  }
+
+  .prime-home-v2__explore-grid {
+    gap: 8px;
+  }
+
+  .prime-home-v2__explore-grid > a {
+    grid-template-columns: 28px minmax(0,1fr) 12px;
+    min-height: 48px;
+    height: 48px;
+    gap: 6px;
+    padding: 5px 7px;
+  }
+
+  .prime-home-v2__explore-icon {
+    width: 26px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .prime-home-v2__explore-grid strong {
+    font-size: 8px;
+  }
+
+  .prime-home-v2__explore-grid small {
+    margin-top: 1px;
+    font-size: 6.3px;
+    line-height: 1.18;
+  }
+
+  .prime-home-v2__explore-grid b {
+    font-size: 11px;
+  }
+
+  .prime-home-v2__definition {
+    min-height: 24px;
+    height: 24px;
+    margin-top: 6px;
+    gap: 14px;
+    font-size: 6.7px;
+  }
+
+  .prime-home-v2__definition i {
+    height: 11px;
+  }
+}
+
+/* Short laptop displays still keep the entire dashboard above the fold. */
+@media (min-width: 1181px) and (max-height: 760px) {
+  .prime-home-v2__hero,
+  .prime-home-v2__hero-inner {
+    min-height: 78px;
+    height: 78px;
+  }
+
+  .prime-home-v2__hero h1 {
+    font-size: clamp(27px, 2.3vw, 34px);
+  }
+
+  .prime-home-v2__hero p {
+    margin-top: 3px;
+    font-size: 8.5px;
+  }
+
+  .prime-home-v2__hero-meta small,
+  .prime-home-v2__hero-meta i {
+    display: none;
+  }
+
+  .prime-home-panel,
+  .prime-home-matchup {
+    height: 272px;
+  }
+
+  .prime-home-panel__head {
+    min-height: 56px;
+  }
+
+  .prime-home-v2-table__row {
+    min-height: 37px;
+  }
+
+  .prime-home-v2__insights {
+    margin-top: 5px;
+  }
+
+  .prime-home-insight {
+    min-height: 62px;
+    height: 62px;
+  }
+
+  .prime-home-v2__explore {
+    margin-top: 4px;
+  }
+
+  .prime-home-v2__explore-grid > a {
+    min-height: 44px;
+    height: 44px;
+  }
+
+  .prime-home-v2__definition {
+    margin-top: 4px;
+    min-height: 22px;
+    height: 22px;
+  }
+}
+
