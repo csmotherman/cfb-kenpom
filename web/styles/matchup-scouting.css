@@ -429,3 +429,101 @@
     font-size: 8px;
   }
 }
+
+
+/* Mobile matchup polish — keep the scouting sheet dense and visually aligned
+   with the desktop PRIME treatment instead of inflating every row/card. */
+@media (max-width: 700px) {
+  .matchup-v2-main.container {
+    width: calc(100% - 16px);
+    padding-bottom: 12px;
+  }
+
+  .matchup-v2-grid--scouting {
+    gap: 10px;
+    padding-top: 10px;
+  }
+
+  .matchup-v2-side {
+    padding-bottom: 6px;
+    border-color: var(--color-hairline-strong);
+    background: var(--color-paper);
+  }
+
+  .matchup-v2-side__head,
+  .matchup-v2-side--home .matchup-v2-side__head {
+    min-height: 50px;
+    padding: 6px 8px 7px;
+  }
+
+  .matchup-v2-side__head img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .matchup-v2-side__head strong {
+    font-size: 16px;
+  }
+
+  .matchup-v2-side__head small {
+    margin-top: 2px;
+    font-size: 9px;
+  }
+
+  .matchup-v2-team-section {
+    margin-top: 8px;
+  }
+
+  .matchup-v2-team-section + .matchup-v2-team-section {
+    margin-top: 10px;
+  }
+
+  .matchup-v2-team-section__title {
+    padding: 0 8px 5px;
+    font-size: 11px;
+  }
+
+  .matchup-v2-team-section__row {
+    grid-template-columns: minmax(0, 1fr) 104px;
+    min-height: 34px;
+    padding: 0 8px;
+    gap: 8px;
+  }
+
+  .matchup-v2-team-section__row > span:first-child {
+    font-size: 11px;
+  }
+
+  .matchup-v2-stat--compact {
+    width: 104px;
+    min-height: 25px;
+    grid-template-columns: minmax(0, 1fr) 37px;
+  }
+
+  .matchup-v2-stat--compact > strong {
+    padding-right: 5px;
+    font-size: 10px;
+  }
+
+  .matchup-v2-stat--compact .matchup-v2-rank {
+    min-width: 37px;
+    font-size: 8.5px;
+  }
+
+  .matchup-v2-side__link {
+    margin: 8px 8px 2px;
+    font-size: 10px;
+  }
+
+  .matchup-v2-comparison--headline .matchup-v2-comparison__head {
+    min-height: 54px;
+  }
+
+  .matchup-v2-table-row {
+    min-height: 30px;
+  }
+
+  .matchup-v2-table-row__metric {
+    font-size: 8px;
+  }
+}
