@@ -77,14 +77,18 @@ export default function RankingsPage() {
           <section className="prime25-stage">
             <header className="prime25-hero">
               <div className="prime25-hero__copy">
-                <span className="prime25-hero__eyebrow">PRIME Rankings</span>
-                <h1>
-                  <span>The</span>
-                  <span className="prime25-hero__gold">PRIME</span>
-                  <span>25</span>
-                </h1>
-                <p>Who has earned a spot among the nation&apos;s best?</p>
-                <p className="prime25-hero__trust">Built from current-season performance and strength of record. No preseason rankings, brand reputation, or voter input.</p>
+                <div className="prime25-hero__title">
+                  <span className="prime25-hero__eyebrow">PRIME Rankings</span>
+                  <h1>
+                    <span>The</span>
+                    <span className="prime25-hero__gold">PRIME</span>
+                    <span>25</span>
+                  </h1>
+                </div>
+                <div className="prime25-hero__intro">
+                  <p>Who has earned a spot among the nation&apos;s best?</p>
+                  <p className="prime25-hero__trust">Built from current-season performance and strength of record. No preseason rankings, brand reputation, or voter input.</p>
+                </div>
               </div>
 
               <div className="prime25-hero__meta">
