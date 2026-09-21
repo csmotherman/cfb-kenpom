@@ -82,6 +82,7 @@ export default function RankingsPage() {
                   <span>25</span>
                 </h1>
                 <p>Who has earned a spot among the nation&apos;s best?</p>
+                <p className="prime25-hero__trust">Built from current-season performance and strength of record. No preseason rankings, brand reputation, or voter input.</p>
               </div>
 
               <div className="prime25-hero__meta">
