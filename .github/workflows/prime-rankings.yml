@@ -1,0 +1,78 @@
+name: Publish PRIME rankings
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run at both possible UTC equivalents of noon Eastern; the gate below
+    # keeps only the one that is actually 12 PM America/New_York (DST-safe).
+    - cron: "0 16,17 * * 0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prime-rankings-release
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Sunday noon ET release window
+        id: gate
+        shell: python
+        run: |
+          import os
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          event = os.environ["GITHUB_EVENT_NAME"]
+          now = datetime.now(ZoneInfo("America/New_York"))
+          allowed = event == "workflow_dispatch" or (now.weekday() == 6 and now.hour == 12)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"allowed={'true' if allowed else 'false'}\n")
+          print(f"Eastern time: {now.isoformat()} | publish={allowed}")
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.allowed == 'true'
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.allowed == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Build PRIME rankings from live ratings
+        if: steps.gate.outputs.allowed == 'true'
+        run: python scripts/build_prime_rankings.py --season 2026
+
+      - name: Validate PRIME rankings snapshot
+        if: steps.gate.outputs.allowed == 'true'
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+          p = json.loads(Path("web/public/data/prime-rankings/2026.json").read_text())
+          assert len(p["teams"]) == 25
+          assert len(p["allTeams"]) >= 130
+          assert [r["rank"] for r in p["allTeams"]] == list(range(1, len(p["allTeams"]) + 1))
+          assert p["teams"] == p["allTeams"][:25]
+          assert p["methodology"] == "equal-standardized-performance-and-strength-of-record"
+          print(f"PASS: Week {p['throughWeek']} PRIME 25, {len(p['allTeams'])} ranked teams")
+
+      - name: Commit PRIME rankings release
+        if: steps.gate.outputs.allowed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data/prime-rankings/2026.json
+          if git diff --staged --quiet; then
+            echo "PRIME rankings are already current." >> "$GITHUB_STEP_SUMMARY"
+          else
+            git commit -m "Publish 2026 PRIME rankings"
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+            echo "Published PRIME rankings from the latest live Performance + SOR data." >> "$GITHUB_STEP_SUMMARY"
+          fi
