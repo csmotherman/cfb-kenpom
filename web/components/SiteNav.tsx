@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -105,7 +106,7 @@ export default function SiteNav() {
           className="site-nav__brand"
           aria-label="PRIME Football home"
         >
-          PRIME
+          <Image src="/brand/prime-logo.png" alt="PRIME" width={84} height={84} priority />
         </Link>
 
         <div className="site-nav__links">
