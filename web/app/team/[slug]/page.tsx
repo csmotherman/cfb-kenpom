@@ -69,6 +69,16 @@ function pregameRatingWeek(rankings: RankingsSeason, gameWeek: number): number |
   return prior.length ? prior[prior.length - 1] : null;
 }
 
+async function getPrimeRankingsSeason(year: number): Promise<PrimeRankingSnapshot | null> {
+  const response = await fetch(`/data/prime-rankings/${year}.json`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(20000),
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Failed to load PRIME rankings: ${response.status}`);
+  return response.json() as Promise<PrimeRankingSnapshot>;
+}
+
 async function getTeamAdvancedSeason(year: number): Promise<AdvancedSeason | null> {
   const response = await fetch(`/api/matchup-advanced/${year}`, {
     cache: "no-store",
@@ -80,6 +90,23 @@ async function getTeamAdvancedSeason(year: number): Promise<AdvancedSeason | nul
 }
 
 type SeasonRow = RankingsRow & { year: number; finalWeek: number; finalWeekLabel: string };
+type PrimeRankingTeam = {
+  rank: number;
+  team: string;
+  slug: string;
+  teamId: number;
+  conf: string;
+  record: string;
+  ratingRank: number;
+  sorRank: number;
+  primeScore?: number;
+};
+type PrimeRankingSnapshot = {
+  season: number;
+  throughWeek: number;
+  teams: PrimeRankingTeam[];
+  allTeams?: PrimeRankingTeam[];
+};
 type TeamTab = "overview" | "offense" | "defense" | "epa" | "success" | "schedule";
 
 type StatDatum = {
@@ -119,10 +146,10 @@ const TABS: { key: TeamTab; label: string }[] = [
 ];
 
 const HISTORY_METRICS = [
-  ["adjEM", "Overall rating (Net APR)"],
-  ["rank", "Overall rank"],
-  ["adjO", "Offense (Off APR)"],
-  ["adjD", "Defense (Def APR)"],
+  ["adjEM", "Overall performance rating"],
+  ["rank", "Performance rank"],
+  ["adjO", "Offense rating"],
+  ["adjD", "Defense rating"],
   ["sos", "Strength of schedule"],
 ] as const;
 
@@ -231,6 +258,7 @@ function TeamProfile({ slug }: { slug: string }) {
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [seasons, setSeasons] = useState<SeasonRow[] | null>(null);
   const [latestRankings, setLatestRankings] = useState<RankingsSeason | null>(null);
+  const [primeRankings, setPrimeRankings] = useState<PrimeRankingSnapshot | null>(null);
   const [latestYear, setLatestYear] = useState<number | null>(null);
   const [teamStats, setTeamStats] = useState<TeamStatsRow | null | undefined>(undefined);
   const [teamStatsLabel, setTeamStatsLabel] = useState<string | null>(null);
@@ -246,11 +274,12 @@ function TeamProfile({ slug }: { slug: string }) {
       if (cancelled) return;
       prefetchAllRankings(sortedYears);
       const latest = sortedYears[0];
-      const [allSeasons, publicStats, scheduleData, advancedData] = await Promise.all([
+      const [allSeasons, publicStats, scheduleData, advancedData, primeData] = await Promise.all([
         Promise.all(sortedYears.map((year) => getRankingsSeason(year))),
         latest ? getTeamStatsSeason(latest) : Promise.resolve(null),
         latest ? getScheduleSeason(latest) : Promise.resolve(null),
         latest ? getTeamAdvancedSeason(latest) : Promise.resolve(null),
+        latest ? getPrimeRankingsSeason(latest) : Promise.resolve(null),
       ]);
       if (cancelled) return;
 
@@ -266,6 +295,7 @@ function TeamProfile({ slug }: { slug: string }) {
 
       setSeasons(results);
       setLatestRankings(allSeasons[0] ?? null);
+      setPrimeRankings(primeData);
       setLatestYear(latest ?? null);
       setTeamStats(publicStats?.teams.find((row) => row.slug === slug) ?? null);
       setTeamStatsLabel(publicStats?.weekLabel ?? null);
@@ -313,6 +343,11 @@ function TeamProfile({ slug }: { slug: string }) {
     [advancedRows, slug],
   );
 
+  const primeRank = useMemo(() => {
+    if (!primeRankings) return null;
+    return (primeRankings.allTeams ?? primeRankings.teams).find((row) => row.slug === slug) ?? null;
+  }, [primeRankings, slug]);
+
   const totalRated = latestRankings && latest
     ? (latestRankings.byWeek[String(latest.finalWeek)] || []).filter((row) => row.rank !== null).length
     : 0;
@@ -327,7 +362,7 @@ function TeamProfile({ slug }: { slug: string }) {
   if (seasons === null) {
     return (
       <>
-        <SiteHeader tagline="Opponent-Adjusted College Football Ratings" />
+        <SiteHeader tagline="College Football Team Analytics" />
         <SiteNav />
         <main className="container weekly-state">Loading team profile…</main>
       </>
@@ -337,7 +372,7 @@ function TeamProfile({ slug }: { slug: string }) {
   if (!latest) {
     return (
       <>
-        <SiteHeader tagline="Opponent-Adjusted College Football Ratings" />
+        <SiteHeader tagline="College Football Team Analytics" />
         <SiteNav />
         <main className="container weekly-state">
           Team not found. <Link href="/">Back to ratings →</Link>
@@ -347,9 +382,9 @@ function TeamProfile({ slug }: { slug: string }) {
   }
 
   const headline = [
-    { label: "Overall", short: "Net APR", value: signed(latest.adjEM, 1), rank: latest.rank },
-    { label: "Offense", short: "Off APR", value: signed(latest.adjO, 2), rank: latest.adjORank },
-    { label: "Defense", short: "Def APR", value: signed(latest.adjD, 2), rank: latest.adjDRank },
+    { label: "Overall", short: "Overall Rating", value: signed(latest.adjEM, 1), rank: latest.rank },
+    { label: "Offense", short: "Off Rating", value: signed(latest.adjO, 2), rank: latest.adjORank },
+    { label: "Defense", short: "Def Rating", value: signed(latest.adjD, 2), rank: latest.adjDRank },
     { label: "Schedule", short: "SOS", value: signed(latest.sos, 1), rank: latest.sosRank },
     { label: "Résumé", short: "SOR", value: signed(latest.sor, 1), rank: latest.sorRank },
   ];
@@ -357,7 +392,7 @@ function TeamProfile({ slug }: { slug: string }) {
   return (
     <>
       <a className="skip-link" href="#teamContent">Skip to team profile</a>
-      <SiteHeader tagline="Opponent-Adjusted College Football Ratings" />
+      <SiteHeader tagline="College Football Team Analytics" />
       <SiteNav />
 
       <main id="teamContent" className="container team-v2-main" aria-live="polite">
@@ -368,7 +403,13 @@ function TeamProfile({ slug }: { slug: string }) {
             <div>
               <span>{latest.conf} · {latest.year} through {latest.finalWeekLabel}</span>
               <h1>{latest.team}</h1>
-              <p><strong>{latest.record}</strong> · {latest.rank ? `#${latest.rank}` : "Unranked"}</p>
+              <p>
+                <strong>{latest.record}</strong>
+                {" · "}
+                {primeRank ? `PRIME #${primeRank.rank}` : "PRIME —"}
+                {" · "}
+                {latest.rank ? `Performance #${latest.rank}` : "Performance unranked"}
+              </p>
             </div>
           </div>
           <div className="team-v2-masthead__note">Value · national rank</div>
@@ -484,9 +525,9 @@ function TeamProfile({ slug }: { slug: string }) {
                   <th scope="col" className="conf-cell">Conf</th>
                   <th scope="col" className="num record-cell">W-L</th>
                   <th scope="col" className={historyMetric === "rank" ? "num history-rank-cell mobile-selected-history-metric" : "num history-rank-cell"}>Rk</th>
-                  <th scope="col" className={historyMetric === "adjEM" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Net APR</th>
-                  <th scope="col" className={historyMetric === "adjO" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Off APR</th>
-                  <th scope="col" className={historyMetric === "adjD" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Def APR</th>
+                  <th scope="col" className={historyMetric === "adjEM" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Overall</th>
+                  <th scope="col" className={historyMetric === "adjO" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Off</th>
+                  <th scope="col" className={historyMetric === "adjD" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Def</th>
                   <th scope="col" className={historyMetric === "sos" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>SOS</th>
                 </tr>
               </thead>
@@ -509,7 +550,7 @@ function TeamProfile({ slug }: { slug: string }) {
         </section>
       </main>
 
-      <SiteFooter note="Team profiles use PRIME's latest published season snapshot. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Def APR. Schedule links open the corresponding pregame matchup page." />
+      <SiteFooter note="Team profiles use PRIME's latest published season snapshot. PRIME rank is the résumé ranking built from equal-standardized Performance + SOR; Performance rank is the team's overall model rating rank. Current 2026 Overall/Offense/Defense ratings use PRIME v6's field-position-adjusted possession APR plus opponent-adjusted Success Rate and Explosiveness. Schedule links use the corresponding pregame performance snapshot." />
     </>
   );
 }
@@ -607,8 +648,8 @@ function OverviewTab({
       </div>
 
       <div className="team-v2-overview-grid">
-        <MiniProfile title="Offense" subtitle={`#${latest.adjORank ?? "—"} Off APR`} metrics={offense} />
-        <MiniProfile title="Defense" subtitle={`#${latest.adjDRank ?? "—"} Def APR`} metrics={defense} />
+        <MiniProfile title="Offense" subtitle={`#${latest.adjORank ?? "—"} Off Rating`} metrics={offense} />
+        <MiniProfile title="Defense" subtitle={`#${latest.adjDRank ?? "—"} Def Rating`} metrics={defense} />
       </div>
 
       <div className="team-v2-context-strip">
@@ -708,7 +749,7 @@ function offenseGroups(
     {
       title: "Overall",
       metrics: [
-        { label: "Off APR", value: signed(latest.adjO, 2), rank: latest.adjORank, totalTeams: totalRated },
+        { label: "Off Rating", value: signed(latest.adjO, 2), rank: latest.adjORank, totalTeams: totalRated },
         { label: "EPA / Play", value: signed(advanced?.epaAdj, 3), rank: epa.rank, totalTeams: epa.total },
         { label: "Yards / Play", value: plain(stats.yardsPerPlay, 2), rank: stats.yardsPerPlayRank, totalTeams: totalStatted },
         { label: "Success Rate", value: pct(stats.successRate), rank: stats.successRateRank, totalTeams: totalStatted },
@@ -770,7 +811,7 @@ function defenseGroups(
     {
       title: "Overall",
       metrics: [
-        { label: "Def APR", value: signed(latest.adjD, 2), rank: latest.adjDRank, totalTeams: totalRated },
+        { label: "Def Rating", value: signed(latest.adjD, 2), rank: latest.adjDRank, totalTeams: totalRated },
         { label: "EPA / Play Allowed", value: signed(advanced?.epaAdjAllowed, 3), rank: epa.rank, totalTeams: epa.total },
         { label: "YPP Allowed", value: plain(stats.yardsPerPlayAllowed, 2), rank: stats.yardsPerPlayAllowedRank, totalTeams: totalStatted },
         { label: "Success Allowed", value: pct(stats.successRateAllowed), rank: stats.successRateAllowedRank, totalTeams: totalStatted },
@@ -908,7 +949,7 @@ function ScheduleTab({
               <th scope="col">Week</th>
               <th scope="col">Opponent</th>
               <th scope="col">Result</th>
-              <th scope="col" className="num">Opp Net APR<TipTrigger text="The opponent's Net APR from the week strictly before this game." /></th>
+              <th scope="col" className="num">Opp Rating<TipTrigger text="The opponent's published overall performance rating from the week strictly before this game." /></th>
               <th scope="col" className="team-v2-schedule__action">Matchup</th>
             </tr>
           </thead>
@@ -959,7 +1000,7 @@ function ScheduleTab({
           </tbody>
         </table>
       </div>
-      <p className="team-v2-method-note">Opponent Net APR is frozen to the snapshot strictly before each game. Matchup pages use the same pregame-only logic.</p>
+      <p className="team-v2-method-note">Opponent Rating is frozen to the published performance snapshot strictly before each game. Matchup pages use the same pregame-only logic.</p>
     </div>
   );
 }
