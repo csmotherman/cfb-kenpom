@@ -538,3 +538,32 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
     color: #cbd2dc !important;
   }
 }
+
+
+/* Structural header split: desktop branding can never leak into mobile. */
+.logotype__desktop-branding {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+}
+@media (max-width: 760px) {
+  .site-header {
+    min-height: 0 !important;
+    height: 64px !important;
+  }
+  .site-header__inner {
+    min-height: 64px !important;
+    height: 64px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  .logotype__desktop-branding,
+  .site-header__tagline {
+    display: none !important;
+  }
+  .logotype__logo {
+    display: block !important;
+    width: 122px !important;
+    max-height: 42px !important;
+  }
+}
