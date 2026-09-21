@@ -162,9 +162,9 @@ export async function PredictionsSeoContent() {
       ) : null}
       <nav aria-label="Weekly schedules and results">
         <p>
-          <Link href={`/week/${s.week}`}>Every {s.label} game with PRIME rating ranks</Link>. Weekly schedules and results:{" "}
+          <Link href={`/predictions?week=${s.week}`}>Every {s.label} game with PRIME rating ranks</Link>. Weekly schedules and results:{" "}
           {hubWeeks.weeks.map((w, i) => (
-            <span key={w.week}>{i ? " · " : ""}{w.week === s.week ? <b>{w.label}</b> : <Link href={`/week/${w.week}`}>{w.label}</Link>}</span>
+            <span key={w.week}>{i ? " · " : ""}{w.week === s.week ? <b>{w.label}</b> : <Link href={`/predictions?week=${w.week}`}>{w.label}</Link>}</span>
           ))}
           .
         </p>
@@ -194,7 +194,7 @@ export async function HomeSeoContent() {
         </p>
       ) : null}
       <p>
-        {s ? <>Browse <Link href={`/week/${s.week}`}>all {s.label} games</Link>. </> : null}Explore the <Link href="/ratings">college football ratings</Link>, the <Link href="/rankings">PRIME 25</Link>, <Link href="/predictions">weekly predictions</Link>,
+        {s ? <>Browse <Link href={`/predictions?week=${s.week}`}>all {s.label} games</Link>. </> : null}Explore the <Link href="/ratings">college football ratings</Link>, the <Link href="/rankings">PRIME 25</Link>, <Link href="/predictions">weekly predictions</Link>,
         the <Link href="/teams">team directory</Link>, <Link href="/predictions/performance">how past predictions performed</Link>, or read <Link href="/methodology">how it all works</Link>.
       </p>
     </section>
