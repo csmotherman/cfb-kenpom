@@ -93,7 +93,7 @@ function Facts({ ctx }: { ctx: GameContext }) {
         <ul>
           <li><TeamLink side={ctx.away} /></li>
           <li><TeamLink side={ctx.home} /></li>
-          {ctx.currentSeason ? <li><Link href={`/week/${ctx.game.week}`}>All {ctx.weekLabel} college football games</Link></li> : null}
+          {ctx.currentSeason ? <li><Link href={`/predictions?week=${ctx.game.week}`}>All {ctx.weekLabel} college football games</Link></li> : null}
           <li><Link href="/predictions">Weekly college football predictions</Link></li>
           <li><Link href="/ratings">PRIME college football ratings</Link></li>
           <li><Link href="/rankings">The PRIME 25 rankings</Link></li>
