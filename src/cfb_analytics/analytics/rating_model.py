@@ -1,17 +1,22 @@
-"""Live opponent-adjusted possession-efficiency model for AdjOff/AdjDef/AdjNet.
+"""Live PRIME opponent-adjusted composite model for AdjOff/AdjDef/AdjNet.
 
-APR treats a possession as the fundamental unit of football efficiency. Raw
-drive points are first adjusted for the possession's starting field position:
+PRIME keeps possession APR as the backbone, then adds the two play-level
+components that improved 2014-2025 leakage-safe walk-forward validation:
+Success Rate and Explosiveness. EPA was tested and intentionally excluded once
+those two components were present because its incremental signal was negligible.
+
+The possession component first adjusts raw drive points for starting field position:
 
     drive value = actual offensive points - expected points(starting field position)
 
-and then the opponent-adjusted model solves:
+and then solves possession APR, Success Rate, and Explosiveness independently
+against the same FBS-vs-FBS opponent graph. Their offense/defense effects are
+combined with frozen post-validation weights:
 
-    drive value / resolved possession
-        = national mean + offense(team) - defense(opponent) + error
+    PRIME side = APR + 4.2650878043 * Success + 3.1236689801 * Explosiveness
 
 Every completed FBS-vs-FBS team-game from the current season is solved
-simultaneously. The resulting offense and defense effects therefore recurse
+simultaneously. The resulting component effects therefore recurse
 through the entire schedule graph, in the same spirit that SRS recursively
 adjusts scoring margin for opponent strength.
 
@@ -804,7 +809,12 @@ def fit_publication_composite(
     prior_defense=None,
     prior_weight=0.0,
 ):
-    """Fit current-season recursive possession offense and defense.
+    """Fit current-season recursive PRIME offense and defense.
+
+    The live output combines field-position-adjusted possession APR with
+    opponent-adjusted Success Rate and Explosiveness using the frozen
+    walk-forward-validated weights above. EPA is carried for audit compatibility
+    but does not enter the live rating.
 
     `prior_offense`/`prior_defense` are the PRIOR season's final AdjOff/AdjDef
     (already divided back down by RATING_SCALE, i.e. in this function's own
