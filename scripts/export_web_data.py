@@ -158,6 +158,57 @@ def _load_backtest(year):
     return json.loads(path.read_text()) if path.exists() else None
 
 
+def _load_market_benchmark_backtest(year):
+    path = PROSPECTIVE_ROOT / str(year) / "market-benchmark-backtest.json"
+    return json.loads(path.read_text()) if path.exists() else None
+
+
+def _load_market_games(year):
+    path = WEB_DATA / "market-lines" / f"{year}.json"
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text()).get("games") or None
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def market_comparison(graded_rows, market_games):
+    """Live PRIME-vs-market comparison on the graded picks that have a numeric spread. Market home margin = -spread.
+
+    Small samples are expected early in a season; the counts are published with every figure so nothing reads as more certain
+    than it is. Returns None when no graded pick has a line."""
+    pairs = []
+    for row in graded_rows:
+        line = (market_games.get(str(row["gameId"])) or {}).get("primary") or {}
+        spread = line.get("spread")
+        if isinstance(spread, bool) or not isinstance(spread, (int, float)):
+            continue
+        pairs.append((row["predicted"], -float(spread), row["actual"]))
+    if not pairs:
+        return None
+    n = len(pairs)
+    pred_su = sum((p > 0) == (a > 0) for p, _, a in pairs) / n
+    fav = [(m, a) for _, m, a in pairs if m != 0]
+    market_su = (sum((m > 0) == (a > 0) for m, a in fav) / len(fav)) if fav else None
+    buckets = []
+    for label, lower, upper in (("0-3 pts", 0.0, 3.0), ("3-6 pts", 3.0, 6.0), ("6+ pts", 6.0, float("inf"))):
+        sel = [(p, m, a) for p, m, a in pairs if lower <= abs(p - m) < upper]
+        sides = [((a - m) * (1 if p - m > 0 else -1)) for p, m, a in sel if p != m]
+        decided = [x for x in sides if x != 0]
+        buckets.append({
+            "label": label, "games": len(sel),
+            "primeSideCoverRate": round(sum(x > 0 for x in decided) / len(decided), 4) if decided else None,
+            "graded": len(decided),
+        })
+    return {
+        "games": n, "primeSU": round(pred_su, 4), "marketSU": round(market_su, 4) if market_su is not None else None,
+        "primeMAE": round(sum(abs(p - a) for p, _, a in pairs) / n, 2), "marketMAE": round(sum(abs(m - a) for _, m, a in pairs) / n, 2),
+        "disagreementBuckets": buckets,
+        "note": "Market lines are CFBD's last quote per game (treated as closing). Samples are small early in a season.",
+    }
+
+
 def _load_prediction_snapshots(year):
     """Immutable frozen-model prediction snapshots for one season, one file
     per scored week (written by cfb_analytics.pipelines.weekly_predictions).
@@ -227,7 +278,7 @@ def build_predictions_week_payloads(year, schedule_payload, snapshots):
     return payloads
 
 
-def build_prediction_track_record_payload(year, schedule_payload, snapshots):
+def build_prediction_track_record_payload(year, schedule_payload, snapshots, market_games=None):
     """Public, ungated prediction-performance record.
 
     Grades only immutable pregame prediction snapshots against final scores
@@ -297,6 +348,7 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots):
 
     conference_stats = {}
     model_stats = {}
+    graded_rows = []
     confidence_defs = [
         ("50-59%", 0.50, 0.60),
         ("60-69%", 0.60, 0.70),
@@ -376,6 +428,7 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots):
             correct = row.get("predictedWinner") == actual_winner
             abs_error = abs(predicted_home_margin - actual_home_margin)
 
+            graded_rows.append({"gameId": row["gameId"], "predicted": predicted_home_margin, "actual": float(actual_home_margin)})
             stats["graded"] += 1
             stats["correct"] += int(correct)
             stats["abs_errors"].append(abs_error)
@@ -455,6 +508,8 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots):
             for version in model_versions
         ],
         "backtest": _load_backtest(year),
+        "market": market_comparison(graded_rows, market_games) if market_games else None,
+        "marketBacktest": _load_market_benchmark_backtest(year),
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "weeks": week_records,
         "conferences": conferences,
@@ -710,7 +765,7 @@ def main():
         if prediction_snapshots and schedule is not None:
             for suffix, payload in build_predictions_week_payloads(year, schedule, prediction_snapshots).items():
                 outputs[f"predictions/{suffix}.json"] = encode(payload)
-            track_record = build_prediction_track_record_payload(year, schedule, prediction_snapshots)
+            track_record = build_prediction_track_record_payload(year, schedule, prediction_snapshots, _load_market_games(year))
             if track_record is not None:
                 outputs[f"prediction-track-record/{key}.json"] = encode(track_record)
                 prediction_years.append(year)

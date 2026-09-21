@@ -218,6 +218,51 @@ export default function PredictionPerformancePage() {
               />
             ) : null}
 
+            {active.market || active.marketBacktest ? (
+              <>
+                {active.market ? (
+                  <PerformanceTable
+                    title={`Against the market, ${active.season} so far`}
+                    eyebrow="Live picks vs the betting line"
+                    note={`${active.market.note} ${active.market.games} graded picks have a line, so treat these figures as early and noisy.`}
+                    headers={["Measure", "PRIME", "Market"]}
+                    rows={[
+                      ["Winner accuracy", pct(active.market.primeSU), pct(active.market.marketSU)],
+                      ["Margin MAE", points(active.market.primeMAE), points(active.market.marketMAE)],
+                    ]}
+                  />
+                ) : null}
+                {active.marketBacktest ? (
+                  <>
+                    <PerformanceTable
+                      title="Against the market, historical backtest"
+                      eyebrow={`Walk-forward, ${active.marketBacktest.seasons[0]}–${active.marketBacktest.seasons[active.marketBacktest.seasons.length - 1]}, ${active.marketBacktest.games.toLocaleString()} games`}
+                      note={`${active.marketBacktest.method} The closing line was more accurate than PRIME on every measure here; the differences are statistically clear (95% intervals exclude zero for accuracy, margin error and log loss).`}
+                      headers={["Measure", "PRIME", "Market", "PRIME minus market (95% range)"]}
+                      rows={[
+                        ["Winner accuracy", pct(active.marketBacktest.suPrime), pct(active.marketBacktest.suMarket), `${(active.marketBacktest.suDiff.diff * 100).toFixed(1)} pp (${(active.marketBacktest.suDiff.ci_lo * 100).toFixed(1)} to ${(active.marketBacktest.suDiff.ci_hi * 100).toFixed(1)})`],
+                        ["Margin MAE", points(active.marketBacktest.maePrime), points(active.marketBacktest.maeMarket), `${active.marketBacktest.maeDiff.diff.toFixed(2)} (${active.marketBacktest.maeDiff.ci_lo.toFixed(2)} to ${active.marketBacktest.maeDiff.ci_hi.toFixed(2)})`],
+                        ["Margin RMSE", points(active.marketBacktest.rmsePrime), points(active.marketBacktest.rmseMarket), "—"],
+                        ...(active.marketBacktest.probability ? [["Log loss (win probability)", active.marketBacktest.probability.loglossPrime.toFixed(3), active.marketBacktest.probability.loglossMarket.toFixed(3), `${active.marketBacktest.probability.loglossDiff.diff.toFixed(3)} (${active.marketBacktest.probability.loglossDiff.ci_lo.toFixed(3)} to ${active.marketBacktest.probability.loglossDiff.ci_hi.toFixed(3)})`]] : []),
+                      ]}
+                    />
+                    <PerformanceTable
+                      title="When PRIME disagrees with the line"
+                      eyebrow="Model-market disagreement, historical"
+                      note={`If disagreements carried signal, PRIME's side would cover well above 50% as the gap grows. It does not: cover rates stay near 50%, and the slope of actual-minus-line on PRIME-minus-line is ${active.marketBacktest.disagreementSlope.beta.toFixed(2)} (95% range ${active.marketBacktest.disagreementSlope.ci_lo.toFixed(2)} to ${active.marketBacktest.disagreementSlope.ci_hi.toFixed(2)}; 0 means no signal, 1 means PRIME fully right). Against the spread is shown only as a diagnostic, not as the measure of model quality.`}
+                      headers={["PRIME vs line", "Games", "PRIME side covers", "95% range"]}
+                      rows={active.marketBacktest.disagreementBuckets.map((bucket) => [
+                        bucket.disagreement,
+                        String(bucket.games),
+                        pct(bucket.primeSideCoverRate),
+                        `${pct(bucket.ci95[0])} to ${pct(bucket.ci95[1])}`,
+                      ])}
+                    />
+                  </>
+                ) : null}
+              </>
+            ) : null}
+
             {active.backtest ? (
               <>
                 <PerformanceTable
@@ -256,10 +301,9 @@ export default function PredictionPerformancePage() {
             <p className="prediction-performance-page__method-note">
               Straight-up winner accuracy is not against the spread. Margin MAE is the mean absolute
               difference between PRIME’s predicted home margin and the final home margin. Ties and games
-              without verifiable final scores are excluded from grading. A comparison against the betting market
-              (closing-line favorite accuracy, margin error against the closing spread, and how PRIME performs when it
-              disagrees with the line) will be added once closing lines for completed games are collected; nothing is claimed
-              about the market yet.
+              without verifiable final scores are excluded from grading. The betting market is treated as the benchmark:
+              it is itself a predictive model, and PRIME is judged against it on winner accuracy, margin error and probability quality,
+              not only on cover records.
             </p>
           </>
         )}

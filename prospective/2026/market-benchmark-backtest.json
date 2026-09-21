@@ -1,0 +1,131 @@
+{
+ "kind": "market-benchmark-backtest",
+ "seasons": [
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "method": "Walk-forward out-of-sample PRIME margins versus CFBD closing-style spreads (market home margin = -spread), on identical FBS-vs-FBS games (both teams at least 3 games). CFBD does not label a quote 'closing'; the last quote it holds is used.",
+ "games": 2481,
+ "suPrime": 0.6976,
+ "suMarket": 0.7177,
+ "suDiff": {
+  "diff": -0.0202,
+  "ci_lo": -0.0339,
+  "ci_hi": -0.0056
+ },
+ "maePrime": 12.616,
+ "maeMarket": 11.996,
+ "maeDiff": {
+  "diff": 0.6194,
+  "ci_lo": 0.4421,
+  "ci_hi": 0.8052
+ },
+ "rmsePrime": 15.863,
+ "rmseMarket": 15.236,
+ "medianAePrime": 10.803,
+ "medianAeMarket": 10.0,
+ "probability": {
+  "games": 1849,
+  "loglossPrime": 0.5721,
+  "loglossMarket": 0.5444,
+  "brierPrime": 0.1957,
+  "brierMarket": 0.1838,
+  "loglossDiff": {
+   "diff": 0.0277,
+   "ci_lo": 0.0168,
+   "ci_hi": 0.0379
+  }
+ },
+ "disagreementSlope": {
+  "beta": 0.099,
+  "ci_lo": -0.023,
+  "ci_hi": 0.222,
+  "note": "actual-minus-market regressed on PRIME-minus-market through the origin; 0 = no signal, 1 = PRIME fully right, <0 = market better"
+ },
+ "disagreementBuckets": [
+  {
+   "disagreement": "0-2 pts",
+   "games": 878,
+   "primeSideCoverRate": 0.4936,
+   "ci95": [
+    0.4611,
+    0.5273
+   ],
+   "avgPointsVsMarketOnPrimeSide": 0.524,
+   "maePrime": 11.941,
+   "maeMarket": 11.847
+  },
+  {
+   "disagreement": "2-4 pts",
+   "games": 695,
+   "primeSideCoverRate": 0.5139,
+   "ci95": [
+    0.4758,
+    0.552
+   ],
+   "avgPointsVsMarketOnPrimeSide": 0.313,
+   "maePrime": 12.757,
+   "maeMarket": 12.581
+  },
+  {
+   "disagreement": "4-6 pts",
+   "games": 436,
+   "primeSideCoverRate": 0.4732,
+   "ci95": [
+    0.4266,
+    0.5199
+   ],
+   "avgPointsVsMarketOnPrimeSide": 0.351,
+   "maePrime": 13.068,
+   "maeMarket": 12.401
+  },
+  {
+   "disagreement": "6-9 pts",
+   "games": 282,
+   "primeSideCoverRate": 0.524,
+   "ci95": [
+    0.4649,
+    0.583
+   ],
+   "avgPointsVsMarketOnPrimeSide": 0.484,
+   "maePrime": 12.602,
+   "maeMarket": 11.254
+  },
+  {
+   "disagreement": "9-+ pts",
+   "games": 190,
+   "primeSideCoverRate": 0.5163,
+   "ci95": [
+    0.4457,
+    0.587
+   ],
+   "avgPointsVsMarketOnPrimeSide": 1.495,
+   "maePrime": 14.197,
+   "maeMarket": 10.721
+  }
+ ],
+ "bySeason": {
+  "2022": {
+   "games": 620,
+   "maePrime": 12.583,
+   "maeMarket": 11.986
+  },
+  "2023": {
+   "games": 636,
+   "maePrime": 12.899,
+   "maeMarket": 12.291
+  },
+  "2024": {
+   "games": 638,
+   "maePrime": 12.563,
+   "maeMarket": 11.838
+  },
+  "2025": {
+   "games": 587,
+   "maePrime": 12.4,
+   "maeMarket": 11.86
+  }
+ }
+}

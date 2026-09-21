@@ -158,6 +158,26 @@ class ByModelAndRmseTests(unittest.TestCase):
     def test_backtest_is_null_when_no_backtest_file_exists(self):
         self.assertIsNone(export._load_backtest(2099))
 
+class MarketComparisonTests(unittest.TestCase):
+    def test_market_margin_is_negative_spread_and_disagreement_sides_are_scored(self):
+        # spread -7 = home favored by 7 -> market home margin +7.
+        rows = [
+            {"gameId": "1", "predicted": 14.0, "actual": 10.0},   # PRIME likes home more than line (7): home margin 10 > 7 -> PRIME side covers
+            {"gameId": "2", "predicted": -1.0, "actual": -3.0},   # PRIME -1 vs market +7: likes away more; actual -3 < 7 -> PRIME side covers
+            {"gameId": "3", "predicted": 3.0, "actual": -10.0},   # no line -> excluded
+        ]
+        market = {"1": {"primary": {"spread": -7}}, "2": {"primary": {"spread": -7}}}
+        out = export.market_comparison(rows, market)
+        self.assertEqual(out["games"], 2)
+        self.assertEqual(out["primeSU"], 1.0)          # both winners picked correctly
+        self.assertAlmostEqual(out["primeMAE"], (4.0 + 2.0) / 2)
+        self.assertAlmostEqual(out["marketMAE"], (3.0 + 10.0) / 2)
+        covered = [b for b in out["disagreementBuckets"] if b["graded"]]
+        self.assertTrue(all(b["primeSideCoverRate"] == 1.0 for b in covered))
+
+    def test_none_when_no_pick_has_a_line(self):
+        self.assertIsNone(export.market_comparison([{"gameId": "9", "predicted": 1.0, "actual": 2.0}], {}))
+
 
 
 if __name__ == "__main__":

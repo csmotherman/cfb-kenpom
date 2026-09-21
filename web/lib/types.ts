@@ -459,6 +459,36 @@ export type PredictionRecordStats = {
 
 export type PredictionWeekRecord = PredictionRecordStats & { week: number };
 
+export type PredictionMarketLive = {
+  games: number;
+  primeSU: number;
+  marketSU: number | null;
+  primeMAE: number;
+  marketMAE: number;
+  disagreementBuckets: { label: string; games: number; primeSideCoverRate: number | null; graded: number }[];
+  note: string;
+};
+
+type BootDiff = { diff: number; ci_lo: number; ci_hi: number };
+
+export type PredictionMarketBacktest = {
+  kind: "market-benchmark-backtest";
+  seasons: number[];
+  method: string;
+  games: number;
+  suPrime: number;
+  suMarket: number;
+  suDiff: BootDiff;
+  maePrime: number;
+  maeMarket: number;
+  maeDiff: BootDiff;
+  rmsePrime: number;
+  rmseMarket: number;
+  probability?: { games: number; loglossPrime: number; loglossMarket: number; loglossDiff: BootDiff };
+  disagreementSlope: { beta: number; ci_lo: number; ci_hi: number };
+  disagreementBuckets: { disagreement: string; games: number; primeSideCoverRate: number; ci95: [number, number]; avgPointsVsMarketOnPrimeSide: number }[];
+};
+
 export type PredictionModelRecord = PredictionRecordStats & { modelVersion: string; weeks: [number, number] };
 
 export type PredictionBacktestSeason = {
@@ -512,6 +542,8 @@ export type PredictionsTrackRecord = {
   modelVersions?: string[];
   models?: PredictionModelRecord[];
   backtest?: PredictionBacktest | null;
+  market?: PredictionMarketLive | null;
+  marketBacktest?: PredictionMarketBacktest | null;
   generatedAt: string;
   weeks: PredictionWeekRecord[];
   conferences?: PredictionConferenceRecord[];
