@@ -9,6 +9,8 @@ const LINKS = [
   { href: "/predictions", label: "Predictions", premium: true },
   { href: "/game-history", label: "Game History" },
   { href: "/advanced", label: "Advanced", premium: true },
+  { href: "/teams", label: "Teams" },
+  { href: "/learn", label: "Learn" },
 ];
 
 export default function SiteNav() {

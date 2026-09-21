@@ -316,3 +316,53 @@ game was dropped and every gap is listed in `coverage_by_season.json`.
 - Historical Net APR published for 2014-2025 is the pre-v5 model; the APR audit recomputes the current code.
 
 Field-position APR candidate in the prediction test (2025 only, n = 541; slope from the prior season): MAE vs B -0.002 [-0.039, +0.034]; versus old APR -0.025 [-0.157, +0.113]. No signal beyond B.
+
+## 10. Production decision (Option A) and feature selection
+
+**Decision.** Current APR stays exactly as it is, on plays + drives: same methodology, version, historical values and rankings. It is not
+migrated to drives-only. Everything else that can be PBP-free moves to CFBD aggregate sources.
+
+**Why APR stays on plays + drives.** Rebuilding APR from `/drives` alone with the unchanged production fit does not reproduce it
+(`data/audits/advanced_shadow/apr_drives_only.json`, `scripts/audit_apr_drives_only.py`, 2014-2026): the average team moves 0.9-2.4 APR
+points, correlation is 0.93-0.99, the average rank shift is about 3 places in the best season and about 10 in 2025-26, and individual
+shifts reach roughly 20-60 places. Two source limitations cause it: CFBD drive score fields are sometimes stale or not updated, and
+`/drives` cannot tell an offensive turnover from a special-teams one, while production uses plays to decide possession eligibility and
+to attribute touchdown points (extra point, two-point try, missed). The earlier "reproduces for all 138 teams" audit
+(section 5) used the production code, which reads plays; it proves the published numbers are correct, not that drives suffice.
+A future no-PBP possession rating would be a separate project, paired with a full historical rebuild, and would take a new name unless
+it measures materially the same concept.
+
+**The live production migration is scores-only -> aggregate model**, not PBP -> aggregate: the 55-feature PBP model (Prediction v2) is
+not publishing. The published early-season blend covers weeks 1-5; the aggregate model covers weeks 6+.
+
+**Feature selection** (`scripts/run_aggregate_feature_selection.py`, `feature_selection.json`; identical walk-forward populations, test
+2022-2025, train strictly earlier seasons, ridge chosen on the last training season only):
+
+| Candidate (main population, n = 2,481) | k | SU | MAE | RMSE | Log loss | Brier | Max calibration gap | MAE vs best [95% CI] |
+|---|---|---|---|---|---|---|---|---|
+| lean-9 (SRS, EPA, success, YPP, 2 volume) | 9 | 69.13% | 12.677 | 15.95 | 0.5735 | 0.1965 | 1.5 pp | +0.095 [+0.022, +0.170] |
+| S19 (source-parity set) | 19 | 69.33% | 12.683 | 15.94 | 0.5733 | 0.1963 | 0.7 pp | +0.101 [+0.034, +0.170] |
+| **S19 + game shape (selected)** | 25 | 69.57% | 12.615 | 15.86 | 0.5709 | 0.1954 | 1.1 pp | +0.033 [-0.004, +0.070] |
+| S19 + shape + havoc proxy | 27 | 69.45% | 12.599 | 15.86 | 0.5708 | 0.1954 | 1.9 pp | +0.017 [-0.014, +0.049] |
+| S19 + shape + explosiveness | 27 | 69.49% | 12.616 | 15.86 | 0.5710 | 0.1955 | 1.3 pp | +0.034 [-0.000, +0.070] |
+| S19 + shape + rushing | 35 | 69.77% | 12.587 | 15.85 | 0.5711 | 0.1953 | 1.3 pp | +0.005 [-0.007, +0.019] |
+| S19 + all four groups (best MAE) | 39 | 69.65% | 12.582 | 15.83 | 0.5708 | 0.1952 | 0.9 pp | reference |
+
+Early-season stress (min 1 game, n = 2,939) ranks the candidates the same way. Game shape and the larger sets **reduce** MAE (improvements,
+about 0.07 for shape and 0.10 for everything versus S19). The selection rule was changed after the first run and that change is recorded
+in the script: the first rule (within one paired standard error of the best) picked 39 features in the main population and 27 in the
+early-season one, because near-identical models have tiny paired standard errors. The rule used is "the simplest candidate whose paired
+MAE difference to the best is statistically indistinguishable from zero, with calibration within 3 pp and MAE no worse than S19 in
+every test season," which selects **S19 + game shape (25 features)** in both populations. It captures about 70% of the gain from the
+full set, uses only official box + `/stats/game/advanced` (no `/game/box/advanced`, no rush-play reconstruction), and was better than
+S19 in each of 2022, 2023, 2024 and 2025. APR is not a model input.
+
+**Frozen model.** `prospective/2026/aggregate-model-frozen.json` (version `aggregate-advanced-2026-v1`): feature contract hash, training
+cutoff (through 2025, 6,754 games), ridge 10, coefficients and standardization, logistic calibration fit on walk-forward
+out-of-sample predictions 2018-2025 (4,325 games; every confidence bucket within about 2 pp), and the walk-forward backtest of the frozen
+configuration (2022-2025: 69.7% SU, MAE 12.62, log loss 0.570). Weekly snapshots are exclusive-create and start at week 6.
+
+**Source-failure contract.** Failed `/game/box/advanced` requests and non-object responses are never stored (they are skipped and
+retried); an HTTP-success empty answer is stored with `sourceStatus: "empty_response"`. The shadow loader reports invalid, empty and
+absent games instead of reading them as null statistics. The scratch 2022-2024 box backfill used a local wrapper that stored empty
+placeholders; the 4 affected 2024 games are now reported as `invalid_payload` (results were unchanged, and that data is not evidence).

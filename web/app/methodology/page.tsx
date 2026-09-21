@@ -94,6 +94,19 @@ export default function MethodologyPage() {
           </div>
         </section>
 
+        <section className="methodology-section" id="metric-versions">
+          <div className="methodology-section__heading">
+            <span className="eyebrow">Historical comparability</span>
+            <h2>Metric versions by era</h2>
+          </div>
+          <div className="methodology-rules">
+            <p><strong>What this means.</strong> Some definitions changed during the 2026 season build, and history has not been rebuilt on them yet. Values are consistent within an era but are not directly comparable across eras, so treat comparisons such as a 2026 team against a 2021 team as approximate.</p>
+            <p><strong>APR (Net, Off, Def).</strong> 2014&ndash;2025 are as originally published (possession-efficiency model v4). 2026 uses the current model (v5, drive value adjusted for starting field position). The two differ by about 0.8 rating points on average, and by more for some teams.</p>
+            <p><strong>SOS and SOR.</strong> 2014&ndash;2025 use the original schedule-strength and record measures (v1). 2026 uses v2: SOS is the average Net APR of opponents, and SOR is wins above what an average FBS team would expect against the same schedule.</p>
+            <p><strong>Explosive rate.</strong> 2014&ndash;2025 use the original definition. 2026 counts a play as explosive when it is successful and gains at least 15 yards on a pass or 10 on a rush, so levels are not comparable across the boundary.</p>
+          </div>
+        </section>
+
         <section className="methodology-section">
           <div className="methodology-section__heading">
             <span className="eyebrow">Model Research</span>

@@ -10,6 +10,7 @@ import { getMeta, useCfpResultsSeason, useRankingsSeason } from "@/lib/data";
 import { buildCfpStatusMap } from "@/lib/cfp";
 import { columnRange, heatBackground } from "@/lib/heatmap";
 import Link from "next/link";
+import { ratingsTrustState } from "@/lib/trustState";
 
 type Column = {
   key: "rank" | "team" | "adjEM" | "adjO" | "adjD" | "sos" | "sor";
@@ -183,6 +184,7 @@ export default function RatingsPage() {
     }
   }
 
+  const trust = season && week ? ratingsTrustState(Number(week), Boolean(season.weekLabels?.[week])) : null;
   const total = rows.length;
   const isFiltered = !!filter.trim() || !!conference;
 
@@ -273,6 +275,19 @@ export default function RatingsPage() {
           </span>
         </div>
       </section>
+
+      <div className="container">
+      {trust ? (
+        <div className={`trust-state trust-state--${trust.level}`} role="note">
+          <span className="trust-state__label">{weekLabel(Number(week), true)} · {trust.label}</span>
+          <span>{trust.detail}</span>
+          <span className="trust-state__links">
+            <Link href="/article/waitingonranks">Why early ranks move</Link> · <Link href="/methodology">Methodology</Link>
+          </span>
+        </div>
+      ) : null}
+      </div>
+
 
       <main id="mainContent" className="table-main container">
         <div className="table-scroll" role="region" aria-label="College football overall ratings table" tabIndex={0}>
