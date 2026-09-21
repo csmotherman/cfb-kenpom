@@ -1,0 +1,146 @@
+[
+ {
+  "step": "07 canonical-plays",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "Output: data/processed/canonical"
+ },
+ {
+  "step": "08 derived-drives",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "Output: data/processed/derived/drives"
+ },
+ {
+  "step": "10 calculate_metrics",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "{'entity': 'team_seasons', 'layer': 'derived', 'season': 2026, 'record_count': 0, 'team_game_count': 0, 'review_record_count': 0, 'input_sha256': 'e3b0c44298fc1"
+ },
+ {
+  "step": "11 dropback",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "Team-season rows updated: 0"
+ },
+ {
+  "step": "12 yardage",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "Team-season rows updated: 0"
+ },
+ {
+  "step": "13 havoc",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "Team-season rows updated: 0"
+ },
+ {
+  "step": "14 expl-series",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "Total series reconstructed: 0"
+ },
+ {
+  "step": "15 expl-drives-risk",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "Team-game rows updated: 0"
+ },
+ {
+  "step": "16 expl-turnovers",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "Team-game rows updated: 0"
+ },
+ {
+  "step": "17 expl-penalties",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "Team-game rows updated: 0"
+ },
+ {
+  "step": "18 build_canonical",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "}"
+ },
+ {
+  "step": "19 calculate_ratings",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "{'status': 'PASS', 'season': 2026, 'rating_snapshot_rows': 0, 'model_rows': 0, 'eligible_min3': 0, 'eligible_min4': 0, 'srs_available_rows': 0, 'srs_max_normal_"
+ },
+ {
+  "step": "20 compile_site_data",
+  "rc": 1,
+  "sec": 35.8,
+  "lastLine": "cfb_analytics.analytics.rating_model.RatingModelError: Season 2026: the hierarchical rating model requires canonical plays at data/processed/canonical/season=20"
+ },
+ {
+  "step": "21 weekly_predictions(v2)",
+  "rc": 0,
+  "sec": 0.6,
+  "lastLine": "All weeks 1-4 already scored; nothing to do."
+ },
+ {
+  "step": "22 early_season_predictions",
+  "rc": 0,
+  "sec": 4.1,
+  "lastLine": "}"
+ },
+ {
+  "step": "23 aggregate_predictions",
+  "rc": 0,
+  "sec": 0.3,
+  "lastLine": "}"
+ },
+ {
+  "step": "24 export_web_data",
+  "rc": 1,
+  "sec": 0.4,
+  "lastLine": "ValueError: Season catalogs differ"
+ },
+ {
+  "step": "26 export_cfp_results",
+  "rc": 0,
+  "sec": 0.1,
+  "lastLine": ""
+ },
+ {
+  "step": "27 normalize_calendar",
+  "rc": 0,
+  "sec": 0.1,
+  "lastLine": "Schedule calendar normalization: UNCHANGED (season 2026)"
+ },
+ {
+  "step": "28 export_exploratory",
+  "rc": 0,
+  "sec": 0.3,
+  "lastLine": ""
+ },
+ {
+  "step": "30 export_team_game_advanced",
+  "rc": 0,
+  "sec": 0.2,
+  "lastLine": "season 2026: 0 team-game rows (0 FBS-vs-FBS; 0 official box-score rows) -> /private/tmp/pbp_audit/web/public/data/team-game-advanced/2026.json"
+ },
+ {
+  "step": "31 build_game_logs",
+  "rc": 0,
+  "sec": 0.3,
+  "lastLine": "season 2026: 138 teams, 417 team-games -> /private/tmp/pbp_audit/web/public/data/gamelogs/2026.json"
+ },
+ {
+  "step": "32 audit_game_results",
+  "rc": 0,
+  "sec": 0.1,
+  "lastLine": "GAME RESULTS CONTRACT AUDIT PASS: official box-score/CFBD-advanced/PRIME boundary guarded; validated 1 published v4 season artifact(s), cross-checked 0 CFBD-sou"
+ },
+ {
+  "step": "36 validate_site_data",
+  "rc": 0,
+  "sec": 0.6,
+  "lastLine": "}"
+ }
+]

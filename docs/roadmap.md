@@ -33,7 +33,7 @@ full historical rebuild, and would be renamed unless it measures materially the 
 - Replace the scores-only mature-season path: **in progress**. Weeks 1-5 stay on the early-season blend; week 6 is the first
   aggregate snapshot and needs week 5 complete.
 - Remove dormant Prediction v2: **next**, after the first prospective aggregate snapshot exists. Its own commit.
-- Whole-site core-no-PBP mode (standard Advanced data and Ratings render without `/plays`): **next**
+- Whole-site degraded-mode audit: **done** (`docs/degraded_mode_audit.md`); found and fixed a hidden PBP dependency in the early-season blend. Restructuring the refresh into a core (aggregate) stage and a play-level stage: **next**
 - APR stays on plays + drives: **unchanged**
 
 ## Trust / beta

@@ -282,7 +282,7 @@ export default function RatingsPage() {
           <span className="trust-state__label">{weekLabel(Number(week), true)} · {trust.label}</span>
           <span>{trust.detail}</span>
           <span className="trust-state__links">
-            <Link href="/article/waitingonranks">Why early ranks move</Link> · <Link href="/methodology">Methodology</Link>
+            <Link href="/network">Why early ranks move</Link> · <Link href="/methodology">Methodology</Link>
           </span>
         </div>
       ) : null}

@@ -248,7 +248,7 @@ class ProductionWithoutPbpTests(unittest.TestCase):
 
         def guarded(self, *a, **k):
             opened.append(str(self))
-            if self.name in FORBIDDEN_FILES - {"team_games.json"}:
+            if self.name in FORBIDDEN_FILES:
                 raise AssertionError(f"production prediction read PBP file {self}")
             return original(self, *a, **k)
 
@@ -258,37 +258,33 @@ class ProductionWithoutPbpTests(unittest.TestCase):
         finally:
             Path.read_text = original
         self.assertGreater(len(result["games"]), 0)
-        self.assertFalse([p for p in opened if p.endswith(("plays.json", "drives.json"))])
+        self.assertFalse([p for p in opened if p.endswith(("plays.json", "drives.json", "team_games.json"))])
 
     def test_production_modules_do_not_reference_pbp_layers(self):
         for rel in ("src/cfb_analytics/pipelines/early_season_predictions.py",
                     "src/cfb_analytics/analytics/preseason_power/early_season_blend.py"):
-            text = (REPO / rel).read_text()
-            for token in ("plays.json", "drives.json", "derived/drives", "canonical/plays"):
-                self.assertNotIn(token, text, f"{rel} references {token}")
+            tree = ast.parse((REPO / rel).read_text())
+            literals = {n.value for n in ast.walk(tree) if isinstance(n, ast.Constant) and isinstance(n.value, str)}
+            self.assertFalse(literals & {"plays.json", "drives.json", "team_games.json", "derived", "plays"}, rel)
 
-
-class RealDataParityTests(unittest.TestCase):
-    def test_success_and_ppa_track_pbp_derived_values_but_are_not_identical(self):
-        canon = REPO / "data/canonical/season=2024/team_games.json"
-        if not canon.exists() or not (REPO / "data/raw/cfbd/season=2024").exists():
-            self.skipTest("2024 canonical/raw data not present")
-        team_rows, _ = sh.load_aggregate_games(REPO / "data/raw", 2024)
-        agg = {(r["gameId"], str(r["team"])): r for r in team_rows}
-        a_sr, c_sr, a_ppa, c_ppa = [], [], [], []
-        for t in json.loads(canon.read_text()):
-            r = agg.get((str(t.get("gameId")), str(t.get("team"))))
-            if not r or not r.get("plays") or not t.get("successEligiblePlays") or not t.get("epaPlays"):
-                continue
-            a_sr.append(r["successfulPlays"] / r["plays"])
-            c_sr.append(t["successfulPlays"] / t["successEligiblePlays"])
-            a_ppa.append(r["epaSum"] / r["plays"])
-            c_ppa.append(t["epaSum"] / t["epaPlays"])
-        self.assertGreater(len(a_sr), 1000)
-        self.assertGreater(np.corrcoef(a_sr, c_sr)[0, 1], 0.98)
-        self.assertGreater(np.corrcoef(a_ppa, c_ppa)[0, 1], 0.90)
-        # definitions differ (CFBD play population, turnover handling): parity is high, not exact
-        self.assertLess(np.mean(np.abs(np.array(a_sr) - np.array(c_sr)) < 1e-9), 0.5)
+    def test_live_blend_results_match_canonical_team_games_exactly(self):
+        # results now come from raw games.json (no play-derived layer); prove they equal what canonical team_games gave
+        from cfb_analytics.pipelines import early_season_predictions as esp
+        from cfb_analytics.analytics.preseason_power.early_season_blend import raw_margin_through_week
+        canon = REPO / "data/canonical/season=2026/team_games.json"
+        if not canon.exists() or not (REPO / "data/raw/cfbd/season=2026").exists():
+            self.skipTest("2026 canonical/raw data not present")
+        old: dict = {}
+        for r in json.loads(canon.read_text()):
+            if r.get("season_type") == "regular":
+                old.setdefault(str(r["team"]), []).append(r)
+        new = esp._results_by_team(esp.RAW_ROOT)
+        for team in old:
+            for wk in range(1, 6):
+                a, b = raw_margin_through_week(old, team, wk), raw_margin_through_week(new, team, wk)
+                self.assertEqual(a[1], b[1], (team, wk))
+                if a[0] is not None:
+                    self.assertAlmostEqual(a[0], b[0], places=9)
 
 
 class EvalTests(unittest.TestCase):

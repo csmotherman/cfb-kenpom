@@ -170,7 +170,25 @@ def load_frozen() -> dict:
     return payload
 
 
-def score_week(week: int, *, canonical_root: Path | None = None) -> dict:
+def _results_by_team(raw_root: Path) -> dict[str, list[dict]]:
+    """Each team's completed regular-season results, straight from the raw schedule/scores (games.json).
+
+    Deliberately NOT canonical team_games.json: that file is built from the play-derived layer, so a plays outage could
+    silently drop a completed week from the margins this model uses. Scores are all it needs."""
+    out: dict[str, list[dict]] = {}
+    base = raw_root / "cfbd" / f"season={TARGET_SEASON}" / "season_type=regular"
+    for path in sorted(base.glob("week=*/games.json")):
+        for g in json.loads(path.read_text()):
+            hp, ap = g.get("homePoints"), g.get("awayPoints")
+            if not g.get("completed") or hp is None or ap is None or not g.get("homeTeam") or not g.get("awayTeam"):
+                continue
+            week = int(g.get("week") if g.get("week") is not None else path.parent.name.split("=")[1])
+            for team, pf, pa in ((g["homeTeam"], hp, ap), (g["awayTeam"], ap, hp)):
+                out.setdefault(str(team), []).append({"team": team, "season_type": "regular", "week": week, "points_for": pf, "points_against": pa})
+    return out
+
+
+def score_week(week: int, *, raw_root: Path | None = None) -> dict:
     """Score every scheduled game in `week` for TARGET_SEASON using the
     frozen preseason ratings blended with real results through week - 1.
     Returns the same shape regardless of whether any game qualifies --
@@ -181,22 +199,15 @@ def score_week(week: int, *, canonical_root: Path | None = None) -> dict:
     coef = frozen["coefficients"]
     calib = frozen["calibration"]
 
-    canonical_root = canonical_root or (Path(__file__).resolve().parents[3] / "data" / "canonical" / f"season={TARGET_SEASON}")
-    team_games_path = canonical_root / "team_games.json"
-    rows = json.loads(team_games_path.read_text()) if team_games_path.exists() else []
-    rows_by_team: dict[str, list[dict]] = {}
-    for r in rows:
-        if r.get("season_type") != "regular":
-            continue
-        rows_by_team.setdefault(str(r["team"]), []).append(r)
+    rows_by_team = _results_by_team(raw_root or RAW_ROOT)
 
     # The game LIST for `week` has to come from the raw schedule, not
     # team_games.json -- canonical/team_games.py only ever materializes a
     # row for a game once it's completed, so an upcoming week (exactly what
     # needs predicting) would never appear there. Raw-margin-through-week
     # below still reads rows_by_team, which is correctly completed-only.
-    raw_root = Path(__file__).resolve().parents[3] / "data" / "raw" / "cfbd" / f"season={TARGET_SEASON}" / "season_type=regular" / f"week={week:02d}" / "games.json"
-    schedule_games = json.loads(raw_root.read_text()) if raw_root.exists() else []
+    schedule_path = (raw_root or RAW_ROOT) / "cfbd" / f"season={TARGET_SEASON}" / "season_type=regular" / f"week={week:02d}" / "games.json"
+    schedule_games = json.loads(schedule_path.read_text()) if schedule_path.exists() else []
 
     games = []
     for game in schedule_games:

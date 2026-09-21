@@ -12,8 +12,6 @@ const ITEMS = [
   { href: "/methodology", title: "Methodology", text: "What APR, SOS, SOR and the advanced metrics mean, and how they are built." },
   { href: "/predictions/performance", title: "Model performance", text: "Every published pick graded, including the misses." },
   { href: "/network", title: "Schedule network", text: "How connected the season's schedule is, and why early ratings are less certain." },
-  { href: "/article/waitingonranks", title: "Nobody knows who's good yet", text: "Why rankings become much more useful around Week 4." },
-  { href: "/article/rk-analysis", title: "What turnovers actually cost", text: "PPA per play before and after a turnover." },
 ];
 
 export default function LearnPage() {
