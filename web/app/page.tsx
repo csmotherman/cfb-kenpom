@@ -305,7 +305,10 @@ export default function HomePage() {
           <article className="prime-home-insight prime-home-insight--offense">
             <span>Best Offense</span>
             <div>
-              {bestOffense ? <img src={logoUrl(bestOffense.teamId, 96)} alt="" /> : null}
+              {bestOffense ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={logoUrl(bestOffense.teamId, 96)} alt="" />
+              ) : null}
               <strong>{bestOffense?.team ?? "—"}</strong>
             </div>
             <p>{bestOffense?.adjO === null || !bestOffense ? "Loading" : `${bestOffense.adjO.toFixed(1)} Off APR`}</p>
@@ -314,7 +317,10 @@ export default function HomePage() {
           <article className="prime-home-insight prime-home-insight--riser">
             <span>Biggest Riser</span>
             <div>
-              {biggestRiser ? <img src={logoUrl(biggestRiser.teamId, 96)} alt="" /> : null}
+              {biggestRiser ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={logoUrl(biggestRiser.teamId, 96)} alt="" />
+              ) : null}
               <strong>{biggestRiser?.team ?? "—"}</strong>
             </div>
             <p>{biggestRiser?.rankChange ? `▲ ${biggestRiser.rankChange} spots` : "No major move yet"}</p>
@@ -323,7 +329,10 @@ export default function HomePage() {
           <article className="prime-home-insight prime-home-insight--schedule">
             <span>Toughest Schedule</span>
             <div>
-              {toughestSchedule ? <img src={logoUrl(toughestSchedule.teamId, 96)} alt="" /> : null}
+              {toughestSchedule ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={logoUrl(toughestSchedule.teamId, 96)} alt="" />
+              ) : null}
               <strong>{toughestSchedule?.team ?? "—"}</strong>
             </div>
             <p>{toughestSchedule?.sosRank ? `#${toughestSchedule.sosRank} SOS` : "Loading"}</p>
@@ -332,7 +341,10 @@ export default function HomePage() {
           <article className="prime-home-insight prime-home-insight--defense">
             <span>Best Defense</span>
             <div>
-              {bestDefense ? <img src={logoUrl(bestDefense.teamId, 96)} alt="" /> : null}
+              {bestDefense ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={logoUrl(bestDefense.teamId, 96)} alt="" />
+              ) : null}
               <strong>{bestDefense?.team ?? "—"}</strong>
             </div>
             <p>{bestDefense?.adjD === null || !bestDefense ? "Loading" : `${bestDefense.adjD.toFixed(1)} Def APR`}</p>
