@@ -320,7 +320,7 @@ export default function PredictionsPage() {
   return (
     <>
       <a className="skip-link" href="#predictionsContent">Skip to predictions</a>
-      <SiteHeader tagline="Weekly Game Predictions" />
+      <SiteHeader tagline="Weekly Predictions" />
       <SiteNav />
 
       <main id="predictionsContent" className="container predictions-main predictions-main--compact">
