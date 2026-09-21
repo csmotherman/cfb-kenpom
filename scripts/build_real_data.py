@@ -65,7 +65,7 @@ FCS_BASELINE_MIN_GAMES = 10
 # refit on all four seasons for the shipped constant. Re-run that script and
 # update these two constants for a deliberate, infrequent recalibration --
 # they do not refit automatically on every build.
-SOS_VERSION = "sos-v2-prime-opponent-average"
+SOS_VERSION = "sos-v3-average-team-equivalent-difficulty"
 SOR_VERSION = "sor-v2-prime-wins-above-average"
 # Fit by scripts/calibrate_sos_sor.py on real 2022-2025 FBS-vs-FBS games
 # (2,846 game-observations, both team perspectives = 5,696 training rows).
@@ -104,35 +104,47 @@ def _sor_win_probability(opponent_adj_net, location):
 
 
 def compute_sos_sor(games, composite):
-    """SOS/SOR v2 for one team, given its (opponent, won, is_fbs_opp,
-    location) game log and the current site-week's `composite` fit
-    ({"AdjOff": {...}, "AdjDef": {...}}). Returns (sos_raw, sor_raw,
-    sor_expected_raw), all full precision (None if no games resolved).
+    """SOS/SOR from (opponent, won, is_fbs_opp, location).
 
-    SOS = mean opponent AdjNet (location-blind by design -- opponent
-    quality doesn't depend on where the game was played). SOR = actual wins
-    minus the sum of P(an average FBS team wins), which DOES use location
-    via _sor_win_probability. Margin of victory never enters either --  only
-    the win/loss indicator and the opponent's AdjNet."""
-    sos_sum = sos_count = 0.0
-    sor_actual = sor_expected = sor_games = 0.0
+    SOS v3 measures schedule difficulty for an average FBS team. Each game's
+    opponent PRIME AdjNet and venue are converted to the calibrated win
+    probability for an average FBS team. Those probabilities are averaged,
+    then converted back to a neutral-site AdjNet-equivalent difficulty.
+    Positive SOS is harder; negative SOS is easier.
+
+    SOR remains actual wins minus expected wins for an average FBS team.
+    Margin of victory does not enter either metric.
+    """
+    expected_wins = 0.0
+    actual_wins = 0.0
+    resolved_games = 0
+
     for opponent, won, is_fbs_opp, location in games:
         if is_fbs_opp:
-            opp_off, opp_def = composite["AdjOff"].get(opponent), composite["AdjDef"].get(opponent)
+            opp_off = composite["AdjOff"].get(opponent)
+            opp_def = composite["AdjDef"].get(opponent)
             opp_adj_net = opp_off + opp_def if num(opp_off) and num(opp_def) else None
         else:
             opp_adj_net = SOR_FCS_BASELINE
+
         if not num(opp_adj_net):
             continue
-        sos_sum += opp_adj_net
-        sos_count += 1
-        sor_expected += _sor_win_probability(opp_adj_net, location)
-        sor_actual += 1 if won else 0
-        sor_games += 1
-    sos_raw = sos_sum / sos_count if sos_count else None
-    sor_raw = (sor_actual - sor_expected) if sor_games else None
-    sor_expected_raw = sor_expected if sor_games else None
-    return sos_raw, sor_raw, sor_expected_raw
+
+        expected_wins += _sor_win_probability(opp_adj_net, location)
+        actual_wins += 1 if won else 0
+        resolved_games += 1
+
+    if not resolved_games:
+        return None, None, None
+
+    avg_p_win = expected_wins / resolved_games
+    eps = 1e-12
+    avg_p_win = max(eps, min(1.0 - eps, avg_p_win))
+
+    # p = sigmoid(-SOS / scale), so SOS = -scale * logit(p).
+    sos_raw = -SOR_SCALE * math.log(avg_p_win / (1.0 - avg_p_win))
+    sor_raw = actual_wins - expected_wins
+    return sos_raw, sor_raw, expected_wins
 
 # ASM ("Adjusted Score Matrix") -- the site's own published margin-based
 # rating, run alongside AdjOff/AdjDef/AdjNet on the Advanced page. Same
