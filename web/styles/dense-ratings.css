@@ -1,14 +1,7 @@
 /* Editorial ratings treatment, layered after the shared main-branch styles. */
 body:has(#ratingsTable, #advancedTable, #predictionsContent) { background: #f2efe7; }
 body:has(#ratingsTable, #advancedTable, #predictionsContent) .container,
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner,
 body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar__inner { max-width: 1440px; margin-inline: auto; padding-inline: 24px; }
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header { position: static; background: #f8f6f0; border-bottom: 1px solid #d9d3c2; }
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner { min-height: 48px; padding-block: 6px; }
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .logotype { font-size: 26px; }
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__tagline { font-size: 9px; letter-spacing: .12em; color: #66665f; }
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__input { width: 175px; min-height: 30px; height: 30px; font-size: 11px; background: #fffdf7; border-color: #cbc6b9; }
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a { min-height: 34px; font-size: 10px; }
 body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero { padding-block: 12px 10px; gap: 16px; }
 body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero .eyebrow { font-size: 9px; }
 body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero h1 { font-size: 34px; line-height: 1; margin-top: 3px; }
@@ -54,7 +47,6 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .table-scroll { max
 body:has(#ratingsTable, #advancedTable, #predictionsContent) .premium-teaser { margin-top: 12px; padding-block: 12px; box-shadow: none; border-radius: 0; }
 #methodology { scroll-margin-top: 40px; }
 @media (max-width: 1050px) {
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__tagline { display: none; }
   body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__meta { white-space: normal; }
   body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-help { margin-left: 0; }
   :is(#ratingsTable, .adv-table) th, :is(#ratingsTable, .adv-table) td { padding-inline: 6px; }
@@ -62,19 +54,7 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .premium-teaser { m
 }
 @media (max-width: 640px) {
   body:has(#ratingsTable, #advancedTable, #predictionsContent) .container,
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner,
   body:has(#ratingsTable, #advancedTable, #predictionsContent) .control-bar__inner { padding-inline: 10px; }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner { gap: 8px; }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .logotype { font-size: 20px; }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__right { flex: 1; }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search { width: 100%; max-width: 145px; }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__box { display: flex; position: static; padding: 0; background: none; }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__input { width: 100%; min-width: 0; font-size: 16px; }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__toggle,
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__close { display: none; }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-search__results { position: absolute; top: 36px; right: 0; left: auto; width: min(340px, 95vw); }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav .container { gap: 22px; }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a { flex: none; font-size: 10px; }
   body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero { padding-block: 10px 8px; }
   body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero h1 { font-size: 29px; }
   body:has(#ratingsTable, #advancedTable, #predictionsContent) .ratings-hero__description { font-size: 11px; }
@@ -123,8 +103,6 @@ body:has(#advancedTable) .adv-note { padding: 5px 0; margin-left: auto; font-siz
 :is(#ratingsTable, .adv-table) td { vertical-align: middle; }
 
 @media (max-width: 640px) {
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav .container { gap: 14px; }
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a { min-height: 42px; font-size: 9px; letter-spacing: .025em; }
   .site-nav a[href="/predictions"] { flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; }
   .nav-coming { margin-left: 0; font-size: 7px; }
   body:has(#advancedTable) .week-range { flex: 1; }
