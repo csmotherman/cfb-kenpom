@@ -18,8 +18,9 @@ import {
 import { buildGameResultsColumns } from "@/lib/team-game-advanced";
 import { logoUrl } from "@/lib/teamCode";
 import type {
-  AdvancedRow,
-  AdvancedSeason,
+  PublicMatchupAdvanced,
+  PublicMatchupAdvancedMetricKey,
+  PublicMatchupAdvancedTeam,
   RankingsRow,
   RankingsSeason,
   ScheduleGame,
@@ -89,14 +90,14 @@ function gameTime(game: ScheduleGame): string {
   });
 }
 
-async function getMatchupAdvancedSeason(year: number): Promise<AdvancedSeason | null> {
-  const response = await fetch(`/api/matchup-advanced/${year}`, {
-    cache: "no-store",
+async function getPublicMatchupAdvanced(year: number, gameId: string): Promise<PublicMatchupAdvanced | null> {
+  const response = await fetch(`/api/matchup-advanced/${year}/${encodeURIComponent(gameId)}`, {
+    cache: "default",
     signal: AbortSignal.timeout(20000),
   });
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Failed to load matchup analytics: ${response.status}`);
-  return response.json() as Promise<AdvancedSeason>;
+  return response.json() as Promise<PublicMatchupAdvanced>;
 }
 
 // Only fetched/used for completed games (see MatchupPage below) -- the
@@ -111,28 +112,6 @@ async function getMatchupTeamGameAdvancedSeason(year: number): Promise<TeamGameA
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Failed to load completed-game analytics: ${response.status}`);
   return response.json() as Promise<TeamGameAdvancedSeason>;
-}
-
-function advancedNumber(row: AdvancedRow | undefined, key: keyof AdvancedRow): number | null {
-  if (!row) return null;
-  const value = row[key];
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
-type RankInfo = { rank: number | null; total: number };
-
-function advancedRankInfo(
-  rows: AdvancedRow[],
-  slug: string,
-  key: keyof AdvancedRow,
-  lowerBetter = false,
-): RankInfo {
-  const ranked = rows
-    .map((row) => ({ slug: row.slug, value: advancedNumber(row, key) }))
-    .filter((row): row is { slug: string; value: number } => row.value !== null)
-    .sort((a, b) => lowerBetter ? a.value - b.value : b.value - a.value);
-  const index = ranked.findIndex((row) => row.slug === slug);
-  return { rank: index >= 0 ? index + 1 : null, total: ranked.length };
 }
 
 type StatDatum = {
@@ -159,7 +138,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
   const [schedule, setSchedule] = useState<ScheduleSeason | null | undefined>(undefined);
   const [rankings, setRankings] = useState<RankingsSeason | null>(null);
   const [teamStatsWeekly, setTeamStatsWeekly] = useState<TeamStatsWeeklySeason | null>(null);
-  const [advanced, setAdvanced] = useState<AdvancedSeason | null>(null);
+  const [matchupAdvanced, setMatchupAdvanced] = useState<PublicMatchupAdvanced | null>(null);
   const [teamGameAdvanced, setTeamGameAdvanced] = useState<TeamGameAdvancedSeason | null>(null);
 
   useEffect(() => {
@@ -177,7 +156,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
       getScheduleSeason(season),
       getRankingsSeason(season),
       getTeamStatsWeeklySeason(season),
-      getMatchupAdvancedSeason(season),
+      getPublicMatchupAdvanced(season, gameId),
       getMatchupTeamGameAdvancedSeason(season),
     ])
       .then(([scheduleData, rankingData, teamStatsData, advancedData, teamGameAdvancedData]) => {
@@ -185,7 +164,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
         setSchedule(scheduleData);
         setRankings(rankingData);
         setTeamStatsWeekly(teamStatsData);
-        setAdvanced(advancedData);
+        setMatchupAdvanced(advancedData);
         setTeamGameAdvanced(teamGameAdvancedData);
       })
       .catch((error: Error) => {
@@ -195,7 +174,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
     return () => {
       cancelled = true;
     };
-  }, [season]);
+  }, [season, gameId]);
 
   const game = useMemo(() => (schedule ? findGame(schedule, gameId) : null), [schedule, gameId]);
   const ratingWeek = useMemo(() => {
@@ -221,18 +200,13 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
     };
   }, [teamStatsWeekly, ratingWeek, game]);
 
-  const advancedRows = useMemo(() => {
-    if (!advanced || ratingWeek === null) return [];
-    return advanced.byWeek[String(ratingWeek)] || [];
-  }, [advanced, ratingWeek]);
-
   const advancedTeams = useMemo(() => {
-    if (!game) return { away: undefined, home: undefined };
+    if (!game || !matchupAdvanced) return { away: undefined, home: undefined };
     return {
-      away: advancedRows.find((row) => row.slug === game.awaySlug),
-      home: advancedRows.find((row) => row.slug === game.homeSlug),
+      away: matchupAdvanced.teams[game.awaySlug],
+      home: matchupAdvanced.teams[game.homeSlug],
     };
-  }, [advancedRows, game]);
+  }, [matchupAdvanced, game]);
 
   const gameResultRows = useMemo(() => {
     if (!teamGameAdvanced || !game) return { away: undefined, home: undefined };
@@ -286,13 +260,9 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
 
   const awaySideRows = teamSideRows({
     advanced: advancedTeams.away,
-    advancedRows,
-    slug: game.awaySlug,
   });
   const homeSideRows = teamSideRows({
     advanced: advancedTeams.home,
-    advancedRows,
-    slug: game.homeSlug,
   });
   const headlineRows = headlineComparisonRows({
     awayRating: ratings.away,
@@ -301,9 +271,6 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
     homeStats: teamStats.home,
     awayAdvanced: advancedTeams.away,
     homeAdvanced: advancedTeams.home,
-    advancedRows,
-    awaySlug: game.awaySlug,
-    homeSlug: game.homeSlug,
     totalRated,
     totalStatted,
   });
@@ -548,40 +515,33 @@ function StatCell({
   );
 }
 
-function advancedDatum(
-  row: AdvancedRow | undefined,
-  rows: AdvancedRow[],
-  slug: string,
-  key: keyof AdvancedRow,
-  lowerBetter: boolean,
+function publicAdvancedDatum(
+  team: PublicMatchupAdvancedTeam | undefined,
+  key: PublicMatchupAdvancedMetricKey,
   formatter: (value: number | null) => string,
 ): StatDatum {
-  const info = advancedRankInfo(rows, slug, key, lowerBetter);
+  const metric = team?.metrics[key];
   return {
-    value: formatter(advancedNumber(row, key)),
-    rank: info.rank,
-    totalTeams: info.total,
+    value: formatter(metric?.value ?? null),
+    rank: metric?.rank ?? null,
+    totalTeams: metric?.total ?? 0,
   };
 }
 
 function teamSideRows({
   advanced,
-  advancedRows,
-  slug,
 }: {
-  advanced: AdvancedRow | undefined;
-  advancedRows: AdvancedRow[];
-  slug: string;
+  advanced: PublicMatchupAdvancedTeam | undefined;
 }): SideRow[] {
   const makeRow = (
     label: string,
-    offenseKey: keyof AdvancedRow,
-    defenseKey: keyof AdvancedRow,
+    offenseKey: PublicMatchupAdvancedMetricKey,
+    defenseKey: PublicMatchupAdvancedMetricKey,
     formatter: (value: number | null) => string = (value) => signed(value, 3),
   ): SideRow => ({
     label,
-    offense: advancedDatum(advanced, advancedRows, slug, offenseKey, false, formatter),
-    defense: advancedDatum(advanced, advancedRows, slug, defenseKey, false, formatter),
+    offense: publicAdvancedDatum(advanced, offenseKey, formatter),
+    defense: publicAdvancedDatum(advanced, defenseKey, formatter),
   });
 
   return [
@@ -599,9 +559,6 @@ function headlineComparisonRows({
   homeStats,
   awayAdvanced,
   homeAdvanced,
-  advancedRows,
-  awaySlug,
-  homeSlug,
   totalRated,
   totalStatted,
 }: {
@@ -609,18 +566,15 @@ function headlineComparisonRows({
   homeRating: RankingsRow | undefined;
   awayStats: TeamStatsRow | undefined;
   homeStats: TeamStatsRow | undefined;
-  awayAdvanced: AdvancedRow | undefined;
-  homeAdvanced: AdvancedRow | undefined;
-  advancedRows: AdvancedRow[];
-  awaySlug: string;
-  homeSlug: string;
+  awayAdvanced: PublicMatchupAdvancedTeam | undefined;
+  homeAdvanced: PublicMatchupAdvancedTeam | undefined;
   totalRated: number;
   totalStatted: number;
 }): HeadlineRow[] {
-  const awayEpaOff = advancedDatum(awayAdvanced, advancedRows, awaySlug, "epaAdj", false, (value) => signed(value, 3));
-  const homeEpaOff = advancedDatum(homeAdvanced, advancedRows, homeSlug, "epaAdj", false, (value) => signed(value, 3));
-  const awayEpaDef = advancedDatum(awayAdvanced, advancedRows, awaySlug, "epaAdjAllowed", false, (value) => signed(value, 3));
-  const homeEpaDef = advancedDatum(homeAdvanced, advancedRows, homeSlug, "epaAdjAllowed", false, (value) => signed(value, 3));
+  const awayEpaOff = publicAdvancedDatum(awayAdvanced, "epaAdj", (value) => signed(value, 3));
+  const homeEpaOff = publicAdvancedDatum(homeAdvanced, "epaAdj", (value) => signed(value, 3));
+  const awayEpaDef = publicAdvancedDatum(awayAdvanced, "epaAdjAllowed", (value) => signed(value, 3));
+  const homeEpaDef = publicAdvancedDatum(homeAdvanced, "epaAdjAllowed", (value) => signed(value, 3));
 
   return [
     {
