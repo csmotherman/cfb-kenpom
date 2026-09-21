@@ -97,3 +97,116 @@ Not created: `/college-football-ratings`, `-strength-of-schedule`, `-strength-of
 ## Social images
 
 `/og` is cached `public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800`. Data ships with each deployment, so the CDN cache is replaced on deploy; cards contain only public data. Platforms cache images by URL on their own schedule.
+
+## Internal link graph (`npm run seo:links`)
+
+`scripts/link-graph.mjs` crawls the server-rendered HTML (no JavaScript) from `/` and reports inbound links, click depth, orphans, dead ends, link-heavy pages and query-string links. Run it against a production build.
+
+| Measure (sitemap URLs) | Before hub pages | After |
+| --- | --- | --- |
+| Orphans / deeper than 3 clicks | 0 / 0 | 0 / 0 |
+| Team pages, inbound links (min/median/max) | 22 / 24 / 28 | 23 / 25 / 29 |
+| Matchup pages, inbound links (min/median/max) | 2 / 2 / 4 | 3 / 3 / 6 |
+| Matchups at depth 2 (Home > hub > game) | 61 | 105 |
+| URLs with two or fewer inbound links | 751 | 1 (`/network`) |
+
+Authority tiers: Tier 1 (`/`, `/ratings`, `/rankings`, `/predictions`, `/teams`) is linked from the nav and footer on every page. Tier 2 (top-ranked teams, current-week matchups) is linked from Home, `/predictions`, `/rankings`, week hubs and conference hubs. Tier 3 (completed and lower-interest matchups) is linked from both teams' schedule tables, the week hub for its week, and the game's own recent-form context; it is never dumped on one page. The busiest outbound page is `/teams` (about 160 links, one per team, which is the directory's job). Every page has a real next step; there are no dead ends.
+
+## Hub pages
+
+- **`/week/[n]`** (current season, weeks with at least 10 rated FBS-vs-FBS games; smaller weeks are `noindex, follow` and not in the sitemap). One URL per week, never per filter, so there is no crawl space. It lists the week's games ordered by PRIME rating, kickoff times or final scores, and links every game. Justification: it is the only crawlable archive of all games in a week, it gives upcoming and completed matchups a second, shallower inbound link, and it answers "college football schedule week N" with PRIME ranks attached, which `/predictions` (client-rendered, one week at a time) does not.
+- **`/conference/[slug]`** (SEC, Big Ten, ACC, Big 12, Sun Belt, American Athletic, Mid-American, Mountain West, Conference USA, Pac-12; independents excluded). Unique data beyond a `/ratings` filter: conference average rating and its rank among conferences, non-conference record against rated FBS teams, best offense and defense in the conference, and the next slate of conference games. It also replaces the client-only `/ratings?conf=` state with a crawlable URL. `/teams#conf-*` anchors remain as the directory grouping.
+- Breadcrumbs are visible (Home > Teams > Team, Home > Predictions > Matchup, Home > Predictions > Week, Home > Teams > Conference) and generated from the same array as the BreadcrumbList JSON-LD; `seo:audit` fails if they drift. Top-level pages (`/ratings`, `/rankings`) keep their hero designs and rely on JSON-LD only.
+- Rejected: per-season archives beyond the current season (older matchups stay reachable through team pages and are not in the sitemap), team-by-team archives, and any filter URLs.
+
+## Crawl-trap audit
+
+No internal link generates a query string except the auth flows (`/login`, `/signup`, `/upgrade?...`, disallowed or noindex). Table state (sort, filter, week, season, conference) lives in React state; `/ratings` reads `?q=` and `?conf=` on the client only and nothing links to them. Every page canonicalizes to its clean path, so `?week=`, `?season=`, `?sort=`, `?utm_*` all return 200 with the clean canonical (verified). Trailing-slash URLs 308 to the clean URL in one hop; `www` 308s to the apex in one hop. `/team/[slug]` uses `dynamicParams = false`, so unknown slugs (and wrong-case slugs) are true 404s. Unknown matchups, other seasons' unknown games and `/week/99` are 404s; `/advanced` is an intentional 307 to `/upgrade` and is not in the sitemap. No redirect chains were found.
+
+## Search-intent map
+
+| Intent | Page | Status |
+| --- | --- | --- |
+| college football ratings | `/ratings` | satisfied (server intro, leaders, glossary, back to 2014) |
+| college football rankings / top 25 | `/rankings` | satisfied (résumé-based, no preseason bias) |
+| college football predictions | `/predictions` | satisfied (interactive; slate and week links in HTML) |
+| {team} football analytics / stats / ranking | `/team/{slug}` | satisfied for all rated teams |
+| {A} vs {B} prediction / preview | `/matchup/{season}/{id}` | satisfied for FBS-vs-FBS games |
+| college football schedule week N | `/week/{n}` | satisfied |
+| {conference} football rankings / ratings | `/conference/{slug}` | satisfied |
+| strength of schedule / strength of record | `/ratings` (columns), team and conference pages | partial: no standalone ranked view |
+| offensive / defensive efficiency rankings | `/ratings` (Off/Def columns), conference leaders | partial |
+| how accurate are college football predictions | `/predictions/performance` | satisfied |
+| how PRIME ratings work | `/methodology` | satisfied |
+| head-to-head history | `/game-history` (noindex) | tool only |
+| most improved / biggest movers | none | gap |
+
+## Content gaps (recommend only with unique data)
+
+- **Strength-of-schedule and strength-of-record leaderboards**: worth a page only as analysis ("Who has played the hardest schedule?") published weekly with the movement and the reason, not as a re-sort of `/ratings`.
+- **Weekly movers**: `rankChange` is published per team per week, so a "Biggest movers" view is real data PRIME has and `/ratings` does not foreground. Best as a recurring dated post (see `docs/SEO-GROWTH.md`), not an evergreen URL.
+- **Rating vs résumé gap ("overrated / underrated")**: PRIME uniquely has both a performance rating and SOR; the gap between them is a distinct, linkable data product. Best as a recurring dated post.
+- **Team trends over the season**: the data exists per week; needs a chart component and a server-rendered summary before it is worth a page.
+- Do not create pages for offensive/defensive efficiency or SOS/SOR as evergreen URLs: they would be filters of `/ratings`.
+
+## Link-worthy data (why each is distinct)
+
+- **PRIME Ratings**: one simultaneous, opponent-adjusted solve for offense and defense per week, built from field-position-adjusted possession efficiency plus play-level success rate and explosiveness, with garbage-time plays excluded and no preseason or prior-season team strength in the 2026 ratings. Weekly history back to 2014 (2020 not published).
+- **The PRIME 25**: equal-weighted standardized rating and strength of record; no preseason poll, brand or voter input. That makes it a genuine résumé-vs-performance contrast with the AP Poll.
+- **Strength of record / schedule**: SOR is wins above an average FBS team on the same schedule and locations; SOS is average opponent rating. Both are published with national ranks for every team every week.
+- **Public prediction track record**: picks are frozen before kickoff and graded in public, including the market benchmark. The published walk-forward backtest (2,481 games) has PRIME slightly behind closing lines, and saying so is what makes the data credible and citable.
+- **Team and matchup pages**: stable URLs with ratings, ranks and results in the initial HTML, so they can be cited or embedded in a thread without a login.
+
+## Shareability
+
+Every page has a stable canonical URL and a 1200x630 card (`/og`): team and matchup cards show ratings, ranks and the matchup; hubs reuse the ratings/predictions card. Page titles read as complete headlines when pasted. No share buttons or popups were added; the highest-leverage next step is a "copy this ranking as an image" export on The PRIME 25, tracked in `docs/SEO-GROWTH.md`.
+
+## Titles and descriptions (CTR review)
+
+Titles lead with the search intent and keep the brand only as the `| PRIME` suffix: "College Football Rankings: The PRIME 25", "College Football Ratings: Opponent-Adjusted Team Ratings", "How Accurate Are PRIME's College Football Predictions?", "{Team} Football Analytics", "{Away} vs {Home} Prediction & Analytics", "Week N College Football Schedule & Matchup Analytics", "{Conference} Football Ratings & Team Analytics". Titles never contain changing ranks; numbers live in descriptions. All are unique and under the audit's length limit.
+
+## Feeds (decision: not now)
+
+An Atom feed is only worthwhile if entries are stable, dated, and accumulate. PRIME publishes one PRIME 25 file that is overwritten weekly and no archived releases, so a feed would carry a single constantly-changing entry with no history and no way to give each week a stable ID. Ratings and predictions change continuously, which feeds handle poorly. Revisit if weekly PRIME 25 releases are archived, or when dated analysis posts exist (each post gets an entry).
+
+## IndexNow (decision: supported as an opt-in script)
+
+IndexNow is honored by Bing, Yandex, Naver and Seznam (not Google). PRIME's ratings, rankings, predictions and upcoming-game pages change every week, so push notification is useful for Bing. `npm run indexnow` diffs the live sitemap's `lastmod` values against a local `.indexnow-state.json` and submits only new or newer canonical URLs; the first run refuses to submit the whole site without `--initial`, and `--dry-run` shows the list. It is deliberately not wired into the deploy so it cannot fire on every deployment. Setup: create a key, add `web/public/<key>.txt` containing the key, set `INDEXNOW_KEY`, run after a data refresh once the deploy is live. A weekly refit legitimately changes every team page, so a weekly run of a few hundred URLs is expected.
+
+## Core Web Vitals check (lab, Chrome, 4x CPU throttle for mobile)
+
+Compared with the pre-SEO build (`f0d4a87`): server sections do not change the LCP element on desktop (LCP 0.4-1.0 s) and add 6-45 KB of HTML per page. The new sections sit below the loading state, so they started to cause layout shift when tables filled in; this is fixed by reserving viewport height while data loads (`.seo-reserve` and friends). Mobile CLS: `/ratings` 0.79 (before) to 0.11, `/predictions` 0.23-0.30 to 0.19; `/` (0.20) and `/rankings` (0.68) are unchanged and were already high before any SEO work, caused by client-loaded content in their own layouts. Mobile throttled LCP on `/ratings` measures about 3 s because the largest element is now the real table arriving from a client fetch (before, an early placeholder counted). Recommended follow-up, not done here: fetch the ratings and rankings JSON in the server component and pass it as initial props so the table is in the initial HTML (best LCP and SEO gain, larger refactor). No OG or extra image assets render on pages.
+
+## Indexing-mode verification (re-run)
+
+Built and checked under three configurations: production (`VERCEL_ENV=production`) gives `index, follow`, no `X-Robots-Tag`, robots.txt with `Allow: /` and the sitemap; preview (`VERCEL_ENV=preview`) and local (no env) give `noindex, nofollow`, `X-Robots-Tag: noindex, nofollow` and `Disallow: /`. Canonicals are `https://primecfb.com/...` in all three, and `www` redirects to the apex in one hop.
+
+## Google Search Console launch checklist (manual)
+
+1. Add the **Domain** property `primecfb.com` and verify with the DNS TXT record (covers www and http/https). If using a URL-prefix property instead, set `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` and redeploy.
+2. Sitemaps > submit `https://primecfb.com/sitemap.xml`; confirm status "Success" and the discovered-URL count matches `npm run seo:audit`'s sitemap count.
+3. URL Inspection > inspect `/`, `/ratings`, `/rankings`, `/predictions`, `/teams`, one team, one matchup, one week hub, one conference hub. Use "Test live URL" > "View tested page" to confirm the rendered HTML has the summary text and that Google-selected canonical equals the user-declared one. Request indexing for the five Tier 1 URLs only.
+4. Pages (page indexing) report: review "Not indexed" reasons. Expected: `noindex` for login/signup/account, FCS matchups, unrated teams, `/learn`, `/game-history`. Investigate "Discovered - currently not indexed" and "Crawled - currently not indexed" on team and matchup pages.
+5. Core Web Vitals report: expect no data for a few weeks; check field data afterwards for `/ratings`, `/rankings`, `/`.
+6. Settings > Crawl stats: confirm 200s dominate and no spike of 404s or redirects.
+
+## Bing Webmaster Tools checklist (manual)
+
+1. Add the site (import from Search Console, or verify with `NEXT_PUBLIC_BING_SITE_VERIFICATION` or DNS).
+2. Sitemaps > submit `https://primecfb.com/sitemap.xml`.
+3. URL Inspection on the same nine URLs as above; submit the Tier 1 URLs.
+4. Enable IndexNow (see above) and check Site Explorer for excluded URLs.
+
+## Indexing monitoring plan
+
+Record these in a sheet at each checkpoint (from Search Console Pages and Sitemaps reports, Bing Site Explorer, and the Performance report): discovered URLs, crawled URLs, indexed URLs, excluded URLs by reason, impressions, clicks, queries, and which page types (home, ratings, rankings, teams, matchups, week and conference hubs) receive impressions. No target counts are assumed; the trend and the reasons for exclusion are the signal.
+
+| Checkpoint | Check |
+| --- | --- |
+| 24 hours | Sitemap read successfully; Tier 1 URLs inspected and indexable; no robots or noindex surprises |
+| 3 days | Crawl stats show Googlebot fetching team and week/conference hubs; first "Discovered" counts by type |
+| 7 days | Indexed count for hubs and Tier 1; first impressions; compare live-inspected canonical vs declared |
+| 14 days | Team pages: indexed vs "crawled, not indexed"; if many matchups are excluded as low value, review with `seo:links` and page content, not more pages |
+| 30 days | Queries and pages with impressions; which intents in the intent map actually surface; decide on new formats from `docs/SEO-GROWTH.md` |
+
+Re-run `npm run seo:audit` and `npm run seo:links` after every structural change and after each new season starts.

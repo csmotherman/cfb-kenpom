@@ -319,7 +319,7 @@ export default function PredictionsClient({ seo }: { seo?: { lede: ReactNode; co
       <SiteHeader tagline="Weekly Predictions" />
       <SiteNav />
 
-      <main id="predictionsContent" className="container predictions-main predictions-main--compact">
+      <main id="predictionsContent" className={"container predictions-main predictions-main--compact" + (schedule === undefined ? " seo-reserve" : "")}>
         <PredictionsPerformanceSummary />
         {schedule === undefined ? (
           <>

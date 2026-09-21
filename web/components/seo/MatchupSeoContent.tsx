@@ -2,13 +2,22 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { GameContext, MatchupSide } from "@/lib/seoData";
 import { matchupBasisNote, matchupCompareRows, matchupSummary, teamResultText } from "@/lib/seoContent";
-import { matchupHeading } from "@/lib/seoPages";
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
+import { matchupHeading, matchupPath } from "@/lib/seoPages";
 
 export type MatchupSeoParts = { loading: ReactNode; lede: ReactNode; facts: ReactNode };
+
+/** Shared by the visible breadcrumbs and the BreadcrumbList JSON-LD. */
+export const matchupCrumbs = (ctx: GameContext) => [
+  { name: "Home", path: "/" },
+  { name: "Predictions", path: "/predictions" },
+  { name: `${ctx.away.name} vs ${ctx.home.name}`, path: matchupPath(ctx.season, String(ctx.game.gameId)) },
+];
 
 function Lede({ ctx }: { ctx: GameContext }) {
   return (
     <section className="seo-lede" aria-labelledby="matchup-heading">
+      <Breadcrumbs items={matchupCrumbs(ctx)} />
       <h1 id="matchup-heading">{matchupHeading(ctx)}</h1>
       <p>{matchupSummary(ctx)}</p>
     </section>
@@ -84,6 +93,7 @@ function Facts({ ctx }: { ctx: GameContext }) {
         <ul>
           <li><TeamLink side={ctx.away} /></li>
           <li><TeamLink side={ctx.home} /></li>
+          {ctx.currentSeason ? <li><Link href={`/week/${ctx.game.week}`}>All {ctx.weekLabel} college football games</Link></li> : null}
           <li><Link href="/predictions">Weekly college football predictions</Link></li>
           <li><Link href="/ratings">PRIME college football ratings</Link></li>
           <li><Link href="/rankings">The PRIME 25 rankings</Link></li>

@@ -9,6 +9,9 @@ import TeamClient from "./TeamClient";
 
 type Params = { params: Promise<{ slug: string }> };
 
+// Every team is prebuilt from the directory; anything else is a real 404 (no on-demand rendering of unknown slugs).
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   return (await getTeamDirectory()).map((team) => ({ slug: team.slug }));
 }

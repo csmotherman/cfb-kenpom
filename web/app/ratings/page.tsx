@@ -8,7 +8,7 @@ const DESCRIPTION =
   "Opponent-adjusted college football team ratings with overall, offensive and defensive performance, strength of schedule and strength of record for the current season and back to 2014.";
 
 export const metadata = pageMetadata({
-  title: "College Football Team Ratings",
+  title: "College Football Ratings: Opponent-Adjusted Team Ratings",
   description: DESCRIPTION,
   path: "/ratings",
   image: { params: { kind: "ratings" }, alt: "PRIME college football team ratings" },
@@ -20,7 +20,7 @@ export default async function RatingsPage() {
   return (
     <>
       <JsonLd data={[
-        webPageJsonLd({ path: "/ratings", name: "College Football Team Ratings", description: DESCRIPTION, dateModified: modified }),
+        webPageJsonLd({ path: "/ratings", name: "College Football Ratings: Opponent-Adjusted Team Ratings", description: DESCRIPTION, dateModified: modified }),
         datasetJsonLd({
           path: "/ratings",
           name: "PRIME opponent-adjusted college football team ratings",

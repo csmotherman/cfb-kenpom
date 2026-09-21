@@ -169,7 +169,7 @@ export default function HomeClient({ seo }: { seo?: ReactNode }) {
       <SiteHeader tagline="College Football Analytics" />
       <SiteNav />
 
-      <main className="prime-home-v2" id="homeMain">
+      <main className={"prime-home-v2" + (snapshot ? "" : " seo-reserve")} id="homeMain">
         <section className="prime-home-v2__hero">
           <div className="prime-home-v2__hero-inner container">
             <div className="prime-home-v2__hero-copy">

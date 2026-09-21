@@ -52,3 +52,19 @@ export function conferenceName(abbreviation: string | null | undefined): string 
   if (!abbreviation) return "Independent";
   return CONFERENCES[abbreviation] ?? abbreviation;
 }
+
+// Conferences that get their own hub page (enough rated teams for a meaningful ratings table). Independents do not.
+const CONFERENCE_SLUGS: Record<string, string> = {
+  SEC: "sec", B1G: "big-ten", ACC: "acc", B12: "big-12", SBC: "sun-belt", AAC: "american-athletic", MAC: "mid-american",
+  MWC: "mountain-west", CUSA: "conference-usa", PAC: "pac-12",
+};
+
+export function conferenceSlug(abbreviation: string | null | undefined): string | null {
+  return abbreviation ? CONFERENCE_SLUGS[abbreviation] ?? null : null;
+}
+
+export function conferenceFromSlug(slug: string): string | null {
+  return Object.entries(CONFERENCE_SLUGS).find(([, value]) => value === slug)?.[0] ?? null;
+}
+
+export const CONFERENCE_CODES = Object.keys(CONFERENCE_SLUGS);

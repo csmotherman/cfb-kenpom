@@ -298,7 +298,7 @@ export default function RatingsClient({ seo }: { seo?: ReactNode }) {
       </div>
 
 
-      <main id="mainContent" className="table-main container">
+      <main id="mainContent" className={"table-main container" + (loading ? " table-main--loading" : "")}>
         <div className="table-scroll" role="region" aria-label="College football overall ratings table" tabIndex={0}>
           <table id="ratingsTable" className="data-table">
             <caption className="sr-only">College football overall ratings</caption>

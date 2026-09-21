@@ -393,6 +393,7 @@ function TeamProfile({ slug, fullName, seo }: { slug: string; fullName: string; 
       <SiteNav />
 
       <main id="teamContent" className="container team-v2-main" aria-live="polite">
+        {seo?.crumbs}
         <section className="team-v2-masthead">
           <div className="team-v2-identity">
             {/* eslint-disable-next-line @next/next/no-img-element */}

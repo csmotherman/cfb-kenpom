@@ -9,7 +9,7 @@ const DESCRIPTION =
   "The PRIME 25 ranks the teams that have earned it through current-season performance, résumé strength and strength of record, updated weekly.";
 
 export const metadata = pageMetadata({
-  title: "The PRIME 25 College Football Rankings",
+  title: "College Football Rankings: The PRIME 25",
   description: DESCRIPTION,
   path: "/rankings",
   image: { params: { kind: "rankings" }, alt: "The PRIME 25 college football rankings" },
@@ -22,7 +22,7 @@ export default async function RankingsPage() {
   return (
     <>
       <JsonLd data={[
-        webPageJsonLd({ path: "/rankings", name: "The PRIME 25 College Football Rankings", description: DESCRIPTION, dateModified: snapshot?.releasedAt }),
+        webPageJsonLd({ path: "/rankings", name: "College Football Rankings: The PRIME 25", description: DESCRIPTION, dateModified: snapshot?.releasedAt }),
         ...(items.length ? [itemListJsonLd({ name: `The PRIME 25, ${snapshot!.season} through Week ${snapshot!.throughWeek}`, path: "/rankings", items })] : []),
         datasetJsonLd({
           path: "/rankings",

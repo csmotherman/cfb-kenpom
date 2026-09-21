@@ -35,3 +35,15 @@
 .site-index__grid .site-index__team a { border-bottom: 0; padding: 0; }
 .site-index__team .seo-note { white-space: nowrap; font-size: 12px; }
 .seo-list { margin: 0 0 12px; padding-left: 1.1rem; display: grid; gap: 4px; }
+
+.seo-crumbs { padding-block: 10px 0; font-size: 12px; letter-spacing: .02em; }
+.seo-crumbs ol { display: flex; flex-wrap: wrap; gap: 4px 0; margin: 0; padding: 0; list-style: none; color: var(--color-ink-secondary); }
+.seo-crumbs li + li::before { content: "/"; margin: 0 8px; opacity: .55; }
+.seo-crumbs a { color: var(--color-ink-secondary); text-decoration: none; }
+.seo-crumbs a:hover { color: var(--color-gold-dark); text-decoration: underline; }
+.seo-hub-nav { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; }
+.seo-hub-nav [aria-current="page"] { font-weight: 700; }
+
+/* While a page's data is still loading, keep its main area viewport-tall so the server-rendered sections below it start
+   off-screen and do not jump (layout shift) when the tables fill in. */
+.table-main--loading, .prime25-page--loading, .seo-reserve { min-height: 110vh; }

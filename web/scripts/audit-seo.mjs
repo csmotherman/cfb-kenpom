@@ -29,6 +29,8 @@ const PAGES = [
   ["/game-history", "/game-history", false],
   ["/upgrade", "/upgrade", true],
   ["/upgrade?feature=advanced&plan=x", "/upgrade", true],
+  ["/week/4", "/week/4", true],
+  ["/conference/sec", "/conference/sec", true],
   ["/team/michigan", "/team/michigan", true],
   ["/team/notre-dame", "/team/notre-dame", true],
 ];
@@ -157,6 +159,22 @@ await pool(contentChecks, 20, async (path) => {
   else if (/sr-only/.test(h1[0].attrs) || !h1[0].text) fail(path, "H1 is empty or visually hidden");
   if (words < 150) fail(path, `thin server-rendered page: ${words} words`);
   const links = hrefs(text);
+  // Visible breadcrumbs must match the BreadcrumbList JSON-LD (same names, real links).
+  if (/^\/(team|matchup|week|conference)\//.test(path)) {
+    const nav = (text.match(/<nav class="seo-crumbs"[\s\S]*?<\/nav>/) || [""])[0];
+    const shown = [...nav.matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => decode(m[1].replace(/<[^>]+>/g, "")).trim());
+    const ldCrumbs = [...text.matchAll(/"@type":"BreadcrumbList","itemListElement":(\[[\s\S]*?\])\}/g)].map((m) => JSON.parse(m[1]).map((i) => i.name));
+    if (!shown.length) fail(path, "no visible breadcrumbs");
+    else if (!ldCrumbs.some((names) => names.join("|") === shown.join("|"))) fail(path, `breadcrumbs ${shown.join(" > ")} do not match BreadcrumbList JSON-LD`);
+  }
+  if (path.startsWith("/week/")) {
+    if (links.filter((l) => l.startsWith("/matchup/")).length < 10) fail(path, "week hub links to fewer than 10 matchups");
+    if (!/<table/.test(text)) fail(path, "week hub has no games table");
+  }
+  if (path.startsWith("/conference/")) {
+    if (links.filter((l) => l.startsWith("/team/")).length < 8) fail(path, "conference hub links to fewer than 8 teams");
+    if (!/<th scope="row">/.test(text)) fail(path, "conference hub has no ratings table");
+  }
   if (path.startsWith("/team/")) {
     wordCounts.team.push(words);
     const summary = paragraphs(text).find((p) => /against FBS opponents|rating is not yet available/.test(p));

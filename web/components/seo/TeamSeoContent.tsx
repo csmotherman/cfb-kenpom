@@ -3,10 +3,14 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { TeamContent } from "@/lib/seoData";
 import { formatGameDate, formatKickoff, nextAndLast, signedRating, teamGameLabel, teamResultText, teamSummary } from "@/lib/seoContent";
-import { conferenceName } from "@/lib/teamMascots";
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
+import { conferenceName, conferenceSlug } from "@/lib/teamMascots";
 import { logoUrl } from "@/lib/teamCode";
 
-export type TeamSeoParts = { loading: ReactNode; summary: ReactNode; after: ReactNode };
+export type TeamSeoParts = { loading: ReactNode; crumbs: ReactNode; summary: ReactNode; after: ReactNode };
+
+/** Shared by the visible breadcrumbs and the BreadcrumbList JSON-LD so they cannot drift apart. */
+export const teamCrumbs = (fullName: string, slug: string) => [{ name: "Home", path: "/" }, { name: "Teams", path: "/teams" }, { name: fullName, path: `/team/${slug}` }];
 
 const rankText = (n: number | null | undefined) => (n ? `#${n}` : "—");
 
@@ -116,7 +120,7 @@ function After({ content }: { content: TeamContent }) {
                   );
                   return (
                     <tr key={game.gameId}>
-                      <td>{game.week}</td>
+                      <td>{year && game.week !== undefined ? <Link href={`/week/${game.week}`}>{game.week}</Link> : game.week}</td>
                       <td>{date ?? "TBA"}</td>
                       <td>{opp}</td>
                       <td>{teamResultText(row) ?? kickoff ?? (game.startTimeTBD ? "Time TBA" : "Upcoming")}</td>
@@ -137,7 +141,7 @@ function After({ content }: { content: TeamContent }) {
           <li><Link href="/rankings">{prime25Rank ? `The PRIME 25 (${entry.team} is No. ${prime25Rank})` : "The PRIME 25 rankings"}</Link></li>
           <li><Link href="/predictions">Weekly college football predictions</Link></li>
           {next ? <li><Link href={`/matchup/${year}/${next.game.gameId}`}>{teamGameLabel(next)}</Link></li> : null}
-          <li><Link href={`/teams#conf-${entry.conf.toLowerCase()}`}>All {conferenceName(entry.conf)} teams</Link></li>
+          <li><Link href={conferenceSlug(entry.conf) ? `/conference/${conferenceSlug(entry.conf)}` : `/teams#conf-${entry.conf.toLowerCase()}`}>{conferenceName(entry.conf)} football ratings</Link></li>
           <li><Link href="/methodology">How PRIME ratings are calculated</Link></li>
         </ul>
       </nav>
@@ -146,13 +150,16 @@ function After({ content }: { content: TeamContent }) {
 }
 
 export function buildTeamSeoParts(content: TeamContent): TeamSeoParts {
+  const crumbs = <Breadcrumbs items={teamCrumbs(content.snapshot.fullName, content.snapshot.entry.slug)} />;
   const summary = <Summary content={content} />;
   const after = <After content={content} />;
   return {
+    crumbs,
     summary,
     after,
     loading: (
       <main id="teamContent" className="container team-v2-main">
+        {crumbs}
         <Hero content={content} />
         {summary}
         {after}

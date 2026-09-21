@@ -4,7 +4,7 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteNav from "@/components/SiteNav";
 import { breadcrumbJsonLd, itemListJsonLd, pageMetadata, webPageJsonLd } from "@/lib/seo";
 import { getLatestSnapshot, getLatestYear, getTeamDirectory } from "@/lib/seoData";
-import { conferenceName, fullTeamName } from "@/lib/teamMascots";
+import { conferenceName, conferenceSlug, fullTeamName } from "@/lib/teamMascots";
 import TeamFilter from "./TeamFilter";
 
 const DESCRIPTION = "Every FBS college football team with PRIME ratings, offensive and defensive efficiency, schedule strength, advanced stats and game results.";
@@ -51,7 +51,7 @@ export default async function TeamsPage() {
           const best = ranked[0];
           return (
             <section key={conf} id={`conf-${conf.toLowerCase()}`} aria-labelledby={`conf-h-${conf.toLowerCase()}`} data-team-group>
-              <h2 id={`conf-h-${conf.toLowerCase()}`}>{conferenceName(conf)}</h2>
+              <h2 id={`conf-h-${conf.toLowerCase()}`}>{conferenceSlug(conf) ? <Link href={`/conference/${conferenceSlug(conf)}`}>{conferenceName(conf)}</Link> : conferenceName(conf)}</h2>
               <p className="seo-note">
                 {teams.length} {teams.length === 1 ? "team" : "teams"}
                 {best ? <>; highest rated by PRIME: <Link href={`/team/${best.slug}`}>{best.team}</Link> (No. {best.rank})</> : null}.

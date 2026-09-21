@@ -72,7 +72,7 @@ export default function RankingsClient({ seo }: { seo?: ReactNode }) {
       <SiteHeader tagline="The PRIME 25" />
       <SiteNav />
 
-      <main id="prime25" className="prime25-page">
+      <main id="prime25" className={"prime25-page" + (snapshot ? "" : " prime25-page--loading")}>
         <div className="prime25-page__veil">
           <section className="prime25-stage">
             <header className="prime25-hero">

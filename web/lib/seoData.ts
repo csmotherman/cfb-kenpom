@@ -177,6 +177,8 @@ export type GameContext = {
   ratingBasis: "pregame" | "current" | null;
   ratingWeek: number | null;
   totalRated: number;
+  /** True for the current season, whose weeks have hub pages at /week/[n]. */
+  currentSeason: boolean;
 };
 
 /** Returns null when the schedule loads but the game is not in it; undefined when the schedule itself cannot be read. */
@@ -188,7 +190,7 @@ export async function getGameContext(seasonParam: string, gameId: string): Promi
   const all = Object.values(schedule.byWeek).flat();
   const game = all.find((g) => String(g.gameId) === gameId);
   if (!game) return null;
-  const [rankings, directory, prime] = await Promise.all([getRankingsSeasonServer(season), getTeamDirectory(), getPrimeRankingsServer(season)]);
+  const [rankings, directory, prime, latestYear] = await Promise.all([getRankingsSeasonServer(season), getTeamDirectory(), getPrimeRankingsServer(season), getLatestYear()]);
   const profiles = new Set(directory.map((team) => team.slug));
   const weeks = rankings?.weeks ?? [];
   const rowsFor = (week: number | null) => (rankings && week !== null ? rankings.byWeek[String(week)] ?? [] : []);
@@ -235,8 +237,116 @@ export async function getGameContext(seasonParam: string, gameId: string): Promi
     ratingBasis,
     ratingWeek,
     totalRated: rows.filter((r) => r.rank !== null).length,
+    currentSeason: latestYear === season,
   };
 }
 
 /** A game page is indexable when both teams have profiles and ratings; FBS-vs-FCS games have no comparison to offer. */
 export const isIndexableGame = (ctx: GameContext) => ctx.away.hasProfile && ctx.home.hasProfile && !!ctx.away.row && !!ctx.home.row;
+
+// ------------------------------------------------------------------ week and conference hubs
+
+export type HubGame = { game: ScheduleGame; awayRank: number | null; homeRank: number | null; awayFull: string; homeFull: string };
+/** A week page needs at least this many rated games to be worth indexing (Week 0 and the championship week are too small). */
+export const MIN_HUB_GAMES = 10;
+
+export type WeekHub = {
+  year: number;
+  week: number;
+  label: string;
+  weeks: { week: number; label: string }[];
+  games: HubGame[];
+  played: boolean;
+  /** FBS-vs-FBS games with two rated teams; FCS games are left out (their pages are noindex). */
+  allCompleted: boolean;
+  ratingWeek: number | null;
+};
+
+const weekLabel = (schedule: ScheduleSeason, week: number) => schedule.weekLabels?.[String(week)] || `Week ${week}`;
+
+/** Current-season slate for one site week. null = no such week; undefined = data unreadable. */
+export async function getWeekHub(week: number): Promise<WeekHub | null | undefined> {
+  const year = await getLatestYear();
+  if (!year) return undefined;
+  const [schedule, snap] = await Promise.all([getScheduleServer(year), getLatestSnapshot(year)]);
+  if (!schedule) return undefined;
+  if (!schedule.weeks.includes(week)) return null;
+  const rank = new Map(snap.rows.filter((r) => r.rank !== null).map((r) => [r.slug, r.rank as number]));
+  const all = schedule.byWeek[String(week)] ?? [];
+  const games = all
+    .filter((g) => rank.has(g.awaySlug) && rank.has(g.homeSlug))
+    .map((g): HubGame => ({ game: g, awayRank: rank.get(g.awaySlug) ?? null, homeRank: rank.get(g.homeSlug) ?? null, awayFull: fullTeamName(g.awayTeam), homeFull: fullTeamName(g.homeTeam) }))
+    .sort((a, b) => (a.awayRank! + a.homeRank!) - (b.awayRank! + b.homeRank!));
+  return {
+    year, week, label: weekLabel(schedule, week),
+    weeks: schedule.weeks.map((w) => ({ week: w, label: weekLabel(schedule, w) })),
+    games, played: games.length > 0 && games.every((g) => g.game.completed), allCompleted: all.every((g) => g.completed), ratingWeek: snap.week,
+  };
+}
+
+/** Weeks that have an indexable hub page, in order. */
+export async function getHubWeeks(): Promise<{ year: number; weeks: { week: number; label: string; played: boolean }[] }> {
+  const year = await getLatestYear();
+  const schedule = year ? await getScheduleServer(year) : null;
+  if (!year || !schedule) return { year: year ?? 0, weeks: [] };
+  const hubs = await Promise.all(schedule.weeks.map((w) => getWeekHub(w)));
+  return { year, weeks: hubs.filter((h): h is WeekHub => !!h && h.games.length >= MIN_HUB_GAMES).map((h) => ({ week: h.week, label: h.label, played: h.played })) };
+}
+
+export type ConferenceHub = {
+  code: string;
+  year: number;
+  week: number | null;
+  teams: RankingsRow[];
+  avgRating: number | null;
+  /** Position among conferences (by average PRIME rating) and how many were compared. */
+  confRank: number | null;
+  confCount: number;
+  bestOffense: RankingsRow | null;
+  bestDefense: RankingsRow | null;
+  nonConf: { wins: number; losses: number } | null;
+  upcoming: HubGame[];
+  weekLabel: string | null;
+};
+
+export async function getConferenceHub(code: string): Promise<ConferenceHub | null | undefined> {
+  const year = await getLatestYear();
+  if (!year) return undefined;
+  const [snap, schedule] = await Promise.all([getLatestSnapshot(year), getScheduleServer(year)]);
+  if (!snap.rows.length) return undefined;
+  const rated = snap.rows.filter((r) => r.rank !== null && r.adjEM !== null);
+  const teams = rated.filter((r) => r.conf === code).sort((a, b) => a.rank! - b.rank!);
+  if (!teams.length) return null;
+  const avg = (rows: RankingsRow[]) => rows.reduce((sum, r) => sum + (r.adjEM as number), 0) / rows.length;
+  const byConf = new Map<string, RankingsRow[]>();
+  for (const r of rated) if (r.conf !== "IND") byConf.set(r.conf, [...(byConf.get(r.conf) ?? []), r]);
+  const ranked = [...byConf.entries()].filter(([, rows]) => rows.length >= 8).map(([c, rows]) => [c, avg(rows)] as const).sort((a, b) => b[1] - a[1]);
+  const idx = ranked.findIndex(([c]) => c === code);
+  const conf = new Set(teams.map((t) => t.slug));
+  const ratedSlugs = new Set(rated.map((r) => r.slug));
+  const games = schedule ? Object.values(schedule.byWeek).flat() : [];
+  // Non-conference record against rated FBS opponents only (the same scope as every PRIME record).
+  let wins = 0, losses = 0;
+  for (const g of games) {
+    if (!g.completed || g.conferenceGame || g.homePoints === null || g.awayPoints === null) continue;
+    if (!ratedSlugs.has(g.homeSlug) || !ratedSlugs.has(g.awaySlug)) continue;
+    const homeIn = conf.has(g.homeSlug), awayIn = conf.has(g.awaySlug);
+    if (homeIn === awayIn) continue;
+    const confWon = homeIn ? g.homePoints > g.awayPoints : g.awayPoints > g.homePoints;
+    if (g.homePoints === g.awayPoints) continue;
+    if (confWon) wins++; else losses++;
+  }
+  const rank = new Map(teams.map((t) => [t.slug, t.rank as number]));
+  const nextWeek = schedule ? [...new Set(games.filter((g) => !g.completed).map((g) => g.week))].sort((a, b) => a - b)[0] : undefined;
+  const upcoming = games
+    .filter((g) => !g.completed && g.week === nextWeek && g.conferenceGame && conf.has(g.homeSlug) && conf.has(g.awaySlug))
+    .map((g): HubGame => ({ game: g, awayRank: rank.get(g.awaySlug) ?? null, homeRank: rank.get(g.homeSlug) ?? null, awayFull: fullTeamName(g.awayTeam), homeFull: fullTeamName(g.homeTeam) }))
+    .sort((a, b) => (a.awayRank! + a.homeRank!) - (b.awayRank! + b.homeRank!));
+  const best = (key: "adjORank" | "adjDRank") => teams.filter((t) => t[key]).sort((a, b) => a[key]! - b[key]!)[0] ?? null;
+  return {
+    code, year, week: snap.week, teams, avgRating: avg(teams), confRank: idx >= 0 ? idx + 1 : null, confCount: ranked.length,
+    bestOffense: best("adjORank"), bestDefense: best("adjDRank"),
+    nonConf: wins + losses ? { wins, losses } : null,
+    upcoming, weekLabel: schedule && nextWeek !== undefined ? weekLabel(schedule, nextWeek) : null,
+  };
+}

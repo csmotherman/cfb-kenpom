@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { getLatestSnapshot, readPublicData, getLatestYear, getPrimeRankingsServer, getScheduleServer, getSiteMeta, getTeamDirectory } from "@/lib/seoData";
-import { conferenceName } from "@/lib/teamMascots";
+import { getHubWeeks, getLatestSnapshot, readPublicData, getLatestYear, getPrimeRankingsServer, getScheduleServer, getSiteMeta, getTeamDirectory } from "@/lib/seoData";
+import { CONFERENCE_CODES, conferenceName, conferenceSlug } from "@/lib/teamMascots";
 import { formatGameDate, formatKickoff, noRank, signedRating, topByMetric } from "@/lib/seoContent";
 import type { RankingsRow, ScheduleGame } from "@/lib/types";
 
@@ -58,6 +58,7 @@ export async function RatingsSeoContent() {
         Through {weekLabel}, {rated.length} teams are rated{leader ? <>, led by {teamLink(leader)} at {signedRating(leader.adjEM)}</> : null}.
         A team&rsquo;s overall rating is its offensive rating plus its defensive rating, and zero is roughly an average FBS team.
         Strength of record (SOR) measures wins above what an average team would expect against the same schedule, so it is a résumé measure separate from the overall rating.
+        Early-season ratings are provisional; the <Link href="/network">schedule network</Link> shows how connected teams&rsquo; schedules are.
         {firstYear ? <> Ratings are available back to {firstYear}; use the season selector above.</> : null}
       </p>
       <div className="seo-leaders">
@@ -72,6 +73,13 @@ export async function RatingsSeoContent() {
           </div>
         ))}
       </div>
+      <p>
+        Ratings by conference:{" "}
+        {CONFERENCE_CODES.map((code, i) => (
+          <span key={code}>{i ? " · " : ""}<Link href={`/conference/${conferenceSlug(code)}`}>{conferenceName(code)}</Link></span>
+        ))}
+        .
+      </p>
       <p>
         See <Link href="/rankings">The PRIME 25</Link> for the résumé-based ranking, <Link href="/predictions">weekly predictions</Link> for upcoming games,
         the <Link href="/teams">directory of every FBS team</Link>, or <Link href="/methodology">how the ratings are calculated</Link>.
@@ -130,6 +138,7 @@ export async function PredictionsSeoContent() {
   const s = await slate(year, rows);
   if (!s) return null;
   const show = s.featured.slice(0, 12);
+  const hubWeeks = await getHubWeeks();
   return (
     <section className="container seo-section" aria-labelledby="predictions-slate-heading">
       <h2 id="predictions-slate-heading">{s.label} Matchups to Watch</h2>
@@ -151,7 +160,16 @@ export async function PredictionsSeoContent() {
           })}
         </ul>
       ) : null}
-      <p>Ratings behind these comparisons are explained on the <Link href="/ratings">Ratings page</Link>, and every team has a <Link href="/teams">profile</Link>. See <Link href="/predictions/performance">how PRIME&rsquo;s past predictions performed</Link>.</p>
+      <nav aria-label="Weekly schedules and results">
+        <p>
+          <Link href={`/week/${s.week}`}>Every {s.label} game with PRIME rating ranks</Link>. Weekly schedules and results:{" "}
+          {hubWeeks.weeks.map((w, i) => (
+            <span key={w.week}>{i ? " · " : ""}{w.week === s.week ? <b>{w.label}</b> : <Link href={`/week/${w.week}`}>{w.label}</Link>}</span>
+          ))}
+          .
+        </p>
+      </nav>
+      <p> Ratings behind these comparisons are explained on the <Link href="/ratings">Ratings page</Link>, and every team has a <Link href="/teams">profile</Link>. See <Link href="/predictions/performance">how PRIME&rsquo;s past predictions performed</Link>.</p>
     </section>
   );
 }
@@ -176,8 +194,8 @@ export async function HomeSeoContent() {
         </p>
       ) : null}
       <p>
-        Explore the <Link href="/ratings">college football ratings</Link>, the <Link href="/rankings">PRIME 25</Link>, <Link href="/predictions">weekly predictions</Link>,
-        the <Link href="/teams">team directory</Link>, or read <Link href="/methodology">how it all works</Link>.
+        {s ? <>Browse <Link href={`/week/${s.week}`}>all {s.label} games</Link>. </> : null}Explore the <Link href="/ratings">college football ratings</Link>, the <Link href="/rankings">PRIME 25</Link>, <Link href="/predictions">weekly predictions</Link>,
+        the <Link href="/teams">team directory</Link>, <Link href="/predictions/performance">how past predictions performed</Link>, or read <Link href="/methodology">how it all works</Link>.
       </p>
     </section>
   );
