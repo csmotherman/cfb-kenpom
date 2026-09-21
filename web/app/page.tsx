@@ -64,14 +64,6 @@ export default function HomePage() {
       <SiteNav />
 
       <main className="prime-home" id="homeChoices">
-        <section className="prime-home__intro container">
-          <span className="prime-home__eyebrow">PRIME College Football</span>
-          <h1>Ratings and rankings answer different questions.</h1>
-          <p>
-            Ratings measure how well teams have played. The PRIME 25 measures what they&apos;ve earned.
-          </p>
-        </section>
-
         <section className="prime-home__cards container" aria-label="Choose Ratings or Rankings">
           <article className="prime-home-card prime-home-card--ratings">
             <header className="prime-home-card__header">
