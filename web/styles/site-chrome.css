@@ -601,8 +601,9 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
 
 /* Unified single-bar site chrome */
 .site-nav.site-nav--unified {
-  position: relative;
-  z-index: 95;
+  position: sticky !important;
+  top: 0;
+  z-index: 200;
   border-bottom: 3px solid #b8892d !important;
   background: linear-gradient(180deg, #17304f 0%, #112945 100%) !important;
   box-shadow: 0 4px 14px rgba(17, 41, 69, .14);
@@ -915,6 +916,28 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
     width: auto;
     max-height: calc(100vh - 68px);
     overflow-y: auto;
+  }
+}
+
+/* Sticky unified navigation offset */
+html {
+  scroll-padding-top: 64px;
+}
+
+.site-nav.site-nav--unified {
+  align-self: flex-start;
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  html {
+    scroll-padding-top: 58px;
+  }
+
+  .site-nav.site-nav--unified {
+    position: sticky !important;
+    top: 0;
+    z-index: 200;
   }
 }
 
