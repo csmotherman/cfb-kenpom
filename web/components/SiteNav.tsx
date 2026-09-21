@@ -106,7 +106,7 @@ export default function SiteNav() {
           className="site-nav__brand"
           aria-label="PRIME Football home"
         >
-          <Image src="/brand/prime-logo.png" alt="PRIME" width={84} height={84} priority />
+          <Image src="/brand/prime-header.png" alt="PRIME" width={2172} height={724} priority />
         </Link>
 
         <div className="site-nav__links">

@@ -1320,13 +1320,14 @@ body:has(.prime25-page)
 }
 
 
-/* Brand logo image in the nav (replaces the PRIME wordmark text) */
+/* Brand wordmark image in the nav (replaces the PRIME wordmark text) */
 html body .site-nav.site-nav--unified .site-nav__brand img {
   display: block;
-  width: 42px;
-  height: 42px;
+  width: auto;
+  height: 36px;
+  max-width: none;
   object-fit: contain;
 }
 @media (max-width: 720px) {
-  html body .site-nav.site-nav--unified .site-nav__brand img { width: 36px; height: 36px; }
+  html body .site-nav.site-nav--unified .site-nav__brand img { height: 22px; }
 }
