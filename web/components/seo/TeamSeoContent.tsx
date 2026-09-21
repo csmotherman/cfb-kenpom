@@ -120,7 +120,7 @@ function After({ content }: { content: TeamContent }) {
                   );
                   return (
                     <tr key={game.gameId}>
-                      <td>{year && game.week !== undefined ? <Link href={`/week/${game.week}`}>{game.week}</Link> : game.week}</td>
+                      <td>{year && game.week !== undefined ? <Link href={`/predictions?week=${game.week}`}>{game.week}</Link> : game.week}</td>
                       <td>{date ?? "TBA"}</td>
                       <td>{opp}</td>
                       <td>{teamResultText(row) ?? kickoff ?? (game.startTimeTBD ? "Time TBA" : "Upcoming")}</td>
