@@ -2,67 +2,7 @@
 /* CollegeFootballFocus — shared ratings/reference UI                        */
 /* ========================================================================== */
 
-/* Header */
-.site-header {
-  background: var(--color-paper);
-  border-bottom: 2px solid var(--color-navy);
-}
-.site-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 62px;
-  padding: 10px var(--space-6);
-  gap: var(--space-5);
-}
-.logotype {
-  flex: 0 0 auto;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 27px;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-  color: var(--color-ink);
-}
-.logotype span { color: var(--color-gold-dark); }
-.site-header__right {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-4);
-  min-width: 0;
-}
-
-.site-nav {
-  background: var(--color-navy);
-  border-bottom: 1px solid var(--color-navy-light);
-}
-.site-nav .container { display: flex; gap: var(--space-6); }
-.site-nav a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 43px;
-  border-bottom: 2px solid transparent;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.065em;
-  text-transform: uppercase;
-  color: #bcc5d2;
-}
-.site-nav a:hover { color: #fff; }
-.site-nav a.active { color: #fff; border-bottom-color: var(--color-gold); }
-.site-nav a[href="advanced.html"]::after {
-  content: "PRO";
-  margin-left: 7px;
-  padding: 1px 5px;
-  border: 1px solid rgba(197, 154, 67, 0.72);
-  border-radius: var(--radius-sm);
-  color: var(--color-gold);
-  font-size: 8px;
-  letter-spacing: 0.08em;
-  line-height: 1.35;
-}
+/* Global site header/navigation styles live in site-chrome.css. */
 
 /* Ratings page heading */
 .ratings-hero {
