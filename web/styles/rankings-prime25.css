@@ -130,6 +130,15 @@ body:has(.prime25-page) .site-nav a {
   color: #324259;
 }
 
+.prime25-hero__trust {
+  max-width: 720px;
+  margin-top: 5px !important;
+  font-size: 9px !important;
+  font-weight: 650 !important;
+  line-height: 1.35;
+  color: #6f7780 !important;
+}
+
 .prime25-hero__meta {
   display: flex;
   align-items: stretch;
@@ -430,6 +439,7 @@ body:has(.prime25-page) .site-footer {
   .prime25-hero { padding-bottom: 6px; }
   .prime25-hero h1 { font-size: clamp(48px, 4.8vw, 64px); }
   .prime25-hero__copy p { margin-top: 5px; font-size: 11px; }
+  .prime25-hero__trust { margin-top: 3px !important; font-size: 7.5px !important; }
   .prime25-meta-card { padding-top: 6px; padding-bottom: 6px; }
   .prime25-divider { margin-bottom: 6px; }
   .prime25-section-label { min-height: 17px; padding-bottom: 3px; }
@@ -532,6 +542,13 @@ body:has(.prime25-page) .site-footer {
     margin-top: 4px;
     max-width: 220px;
     font-size: 7.5px;
+  }
+
+  .prime25-hero__trust {
+    max-width: 260px;
+    margin-top: 3px !important;
+    font-size: 6px !important;
+    line-height: 1.25;
   }
 
   .prime25-hero__meta {
