@@ -1212,3 +1212,67 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .predictions-table-
   max-width: 100%;
 }
 
+/* Route-specific nav neutralizer
+   Older data-page selectors use IDs inside :has(), which gives them higher
+   specificity than the shared nav rules. Pin the unified bar to one exact
+   type scale and geometry on Ratings, Predictions, and Advanced. */
+@media (min-width: 1281px) {
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a.active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a[data-beta="true"],
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a[data-beta="true"].active {
+    min-height: 58px !important;
+    height: 58px !important;
+    padding: 0 18px !important;
+    font-family: var(--font-display) !important;
+    font-size: 11.5px !important;
+    font-weight: 800 !important;
+    letter-spacing: .055em !important;
+    line-height: 1 !important;
+  }
+}
+
+@media (max-width: 1280px) and (min-width: 761px) {
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a.active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a[data-beta="true"],
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a[data-beta="true"].active {
+    min-height: 58px !important;
+    height: 58px !important;
+    padding: 0 13px !important;
+    font-family: var(--font-display) !important;
+    font-size: 10.5px !important;
+    font-weight: 800 !important;
+    letter-spacing: .055em !important;
+    line-height: 1 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a.active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a[data-beta="true"],
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a[data-beta="true"].active {
+    min-height: 54px !important;
+    height: 54px !important;
+    padding: 0 10px !important;
+    font-family: var(--font-display) !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    letter-spacing: .035em !important;
+    line-height: 1 !important;
+  }
+}
+
