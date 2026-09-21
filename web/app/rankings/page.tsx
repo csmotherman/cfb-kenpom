@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -25,37 +25,6 @@ type PrimeRankingSnapshot = {
   teams: PrimeRankingTeam[];
 };
 
-function RankColumn({ teams }: { teams: PrimeRankingTeam[] }) {
-  return (
-    <div className="prime25-column">
-      <div className="prime25-column__head" aria-hidden="true">
-        <span>Rank</span>
-        <span>Team</span>
-        <span>W-L</span>
-      </div>
-
-      {teams.map((team) => (
-        <Link
-          href={`/team/${team.slug}`}
-          className={`prime25-row${team.rank === 1 ? " prime25-row--number-one" : ""}`}
-          key={team.slug}
-        >
-          <span className="prime25-row__rank">{team.rank}</span>
-          <span className="prime25-row__team">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoUrl(team.teamId, 64)} alt="" loading="lazy" decoding="async" />
-            <span className="prime25-row__team-copy">
-              <strong>{team.team}</strong>
-              <small>{team.conf}</small>
-            </span>
-          </span>
-          <span className="prime25-row__record">{team.record}</span>
-        </Link>
-      ))}
-    </div>
-  );
-}
-
 export default function RankingsPage() {
   const [snapshot, setSnapshot] = useState<PrimeRankingSnapshot | null>(null);
 
@@ -69,11 +38,6 @@ export default function RankingsPage() {
       .catch(() => setSnapshot(null));
   }, []);
 
-  const columns = useMemo(() => {
-    const teams = snapshot?.teams ?? [];
-    return [teams.slice(0, 13), teams.slice(13, 25)];
-  }, [snapshot]);
-
   return (
     <>
       <a className="skip-link" href="#prime25">Skip to rankings</a>
@@ -82,7 +46,7 @@ export default function RankingsPage() {
 
       <main id="prime25" className="prime25-page">
         <div className="prime25-page__veil">
-          <section className="prime25-shell container">
+          <section className="prime25-stage">
             <header className="prime25-hero">
               <div className="prime25-hero__copy">
                 <span className="prime25-hero__eyebrow">PRIME Rankings</span>
@@ -96,27 +60,47 @@ export default function RankingsPage() {
 
               <div className="prime25-hero__meta">
                 <div className="prime25-meta-card">
-                  <span>{snapshot ? `Week ${snapshot.throughWeek}` : "Current"}</span>
-                  <strong>{snapshot?.season ?? 2026}</strong>
+                  <span>Week</span>
+                  <strong>{snapshot?.throughWeek ?? "—"}</strong>
+                  <small>{snapshot?.season ?? 2026} season</small>
                 </div>
                 <div className="prime25-meta-card prime25-meta-card--wide">
                   <span>New Rankings</span>
                   <strong>Sunday · 12 PM ET</strong>
+                  <small>Performance + résumé</small>
                 </div>
               </div>
             </header>
 
-            <section className="prime25-board" aria-label="The PRIME 25 college football rankings">
-              <div className="prime25-board__grid">
-                <RankColumn teams={columns[0]} />
-                <RankColumn teams={columns[1]} />
-              </div>
+            <div className="prime25-divider" />
+
+            <section className="prime25-grid" aria-label="The PRIME 25 college football rankings">
+              {(snapshot?.teams ?? []).map((team) => (
+                <Link
+                  href={`/team/${team.slug}`}
+                  className={`prime25-tile${team.rank === 1 ? " prime25-tile--number-one" : ""}`}
+                  key={team.slug}
+                >
+                  <span className="prime25-tile__rank">{team.rank}</span>
+
+                  <span className="prime25-tile__body">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={logoUrl(team.teamId, 96)} alt="" loading="lazy" decoding="async" />
+                    <span className="prime25-tile__copy">
+                      <strong>{team.team}</strong>
+                      <small>{team.conf}</small>
+                    </span>
+                  </span>
+
+                  <span className="prime25-tile__record">{team.record}</span>
+                </Link>
+              ))}
             </section>
 
-            <div className="prime25-underbar">
+            <footer className="prime25-stage__footer">
               <span>Ratings measure how well teams have played. The PRIME 25 measures what they&apos;ve earned.</span>
               <Link href="/ratings">View Performance Analytics →</Link>
-            </div>
+            </footer>
           </section>
         </div>
       </main>
