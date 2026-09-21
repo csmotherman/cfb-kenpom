@@ -36,14 +36,53 @@ body:has(.prime25-page) .site-nav a {
 .prime25-page {
   position: relative;
   min-height: calc(100vh - 78px);
-  background: url("/brand/background-rankings.png") center top / cover no-repeat;
   overflow: hidden;
+  background: #e9e2d3;
+}
+
+/*
+ * Keep the branded artwork tied to the PRIME 25 area only.
+ * Its scale is now independent of the full rankings table height.
+ */
+.prime25-page::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0 0 auto;
+  height: 820px;
+  background: url("/brand/background-rankings.png") center top / cover no-repeat;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 58%,
+    rgba(0,0,0,.88) 68%,
+    rgba(0,0,0,.52) 82%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 58%,
+    rgba(0,0,0,.88) 68%,
+    rgba(0,0,0,.52) 82%,
+    transparent 100%
+  );
+  pointer-events: none;
 }
 
 .prime25-page__veil {
+  position: relative;
+  z-index: 1;
   min-height: inherit;
-  padding: 14px 24px 16px;
-  background: rgba(241, 236, 226, .16);
+  padding: 14px 24px 28px;
+  background: linear-gradient(
+    to bottom,
+    rgba(241,236,226,.15) 0,
+    rgba(241,236,226,.17) 430px,
+    rgba(233,226,211,.38) 610px,
+    rgba(233,226,211,.78) 760px,
+    #e9e2d3 930px
+  );
 }
 
 .prime25-stage {
@@ -692,8 +731,33 @@ body:has(.prime25-page) .site-footer {
     overflow: visible;
   }
 
+  .prime25-page::before {
+    height: 1120px;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 68%,
+      rgba(0,0,0,.72) 82%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 68%,
+      rgba(0,0,0,.72) 82%,
+      transparent 100%
+    );
+  }
+
   .prime25-page__veil {
-    padding: 8px 6px 12px;
+    padding: 8px 6px 18px;
+    background: linear-gradient(
+      to bottom,
+      rgba(241,236,226,.14) 0,
+      rgba(241,236,226,.17) 720px,
+      rgba(233,226,211,.48) 900px,
+      #e9e2d3 1160px
+    );
   }
 
   .prime25-stage {
