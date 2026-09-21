@@ -1,4 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
+import { extendRankingsToCurrentWeek } from "./rankingsExtend";
 import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, MarketLinesSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, ProjectionSeason, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -106,39 +107,6 @@ const cfpResultsInflight = new Map<string, Promise<CfpSeasonResult | null>>();
 let metaPromise: Promise<SiteMeta> | null = null;
 let searchIndexPromise: Promise<SearchIndexEntry[]> | null = null;
 
-/**
- * Rankings/Advanced are model snapshots, while the schedule is the calendar
- * source of truth. A new college-football week can begin before a new FBS-vs-
- * FBS result changes the rating graph. In that gap, expose the schedule's
- * current week by carrying the most recent model snapshot forward. Weekly raw
- * Advanced counts stay empty until games actually finish, so range stats never
- * double-count the previous week.
- */
-function extendRankingsToCurrentWeek(season: RankingsSeason, schedule: ScheduleSeason | null): RankingsSeason {
-  if (!schedule || season.weeks.length === 0) return season;
-  const lastPublishedWeek = season.weeks[season.weeks.length - 1];
-  const targetWeek = schedule.currentWeek;
-  if (targetWeek <= lastPublishedWeek) return season;
-
-  const byWeek = { ...season.byWeek };
-  const weeks = [...season.weeks];
-  const weekLabels = { ...season.weekLabels };
-  let previousRows = byWeek[String(lastPublishedWeek)] ?? [];
-
-  for (let week = lastPublishedWeek + 1; week <= targetWeek; week += 1) {
-    previousRows = previousRows.map((row) => ({
-      ...row,
-      rankChange: row.rank === null ? null : 0,
-    }));
-    byWeek[String(week)] = previousRows;
-    weeks.push(week);
-    const label = schedule.weekLabels?.[String(week)];
-    if (label) weekLabels[String(week)] = label;
-  }
-
-  return { ...season, weeks, weekLabels, byWeek };
-}
-
 function extendAdvancedToCurrentWeek(season: AdvancedSeason, schedule: ScheduleSeason | null): AdvancedSeason {
   if (!schedule || season.weeks.length === 0) return season;
   const lastPublishedWeek = season.weeks[season.weeks.length - 1];
@@ -164,6 +132,29 @@ function extendAdvancedToCurrentWeek(season: AdvancedSeason, schedule: ScheduleS
   }
 
   return { ...season, weeks, weekLabels, byWeek };
+}
+
+// ---- Server-provided initial data -------------------------------------------------------------------------
+// A server component that already read a public dataset passes it to the page's client component, which seeds these
+// caches (client-side only) so the first render and every later reader share that one copy and nothing is fetched
+// again. Seeding never overwrites data that is already cached, and never notifies: it happens during render.
+export function seedMeta(meta: SiteMeta) {
+  if (typeof window !== "undefined" && !metaPromise) metaPromise = Promise.resolve(meta);
+}
+export function seedRankingsSeason(year: number | string, season: RankingsSeason) {
+  if (typeof window !== "undefined" && !rankingsData.has(String(year))) rankingsData.set(String(year), season);
+}
+export function seedScheduleSeason(year: number | string, season: ScheduleSeason | null) {
+  if (typeof window !== "undefined" && !scheduleData.has(String(year))) scheduleData.set(String(year), season);
+}
+export function seedProjectionSeason(year: number | string, record: ProjectionSeason | null) {
+  if (typeof window !== "undefined" && !projectionData.has(String(year))) projectionData.set(String(year), record);
+}
+export function seedCfpResultsSeason(year: number | string, result: CfpSeasonResult | null) {
+  if (typeof window !== "undefined" && !cfpResultsData.has(String(year))) cfpResultsData.set(String(year), result);
+}
+export function seedMarketLinesSeason(year: number | string, season: MarketLinesSeason | null) {
+  if (typeof window !== "undefined" && !marketLinesData.has(String(year))) marketLinesData.set(String(year), season);
 }
 
 export function getMeta(): Promise<SiteMeta> {

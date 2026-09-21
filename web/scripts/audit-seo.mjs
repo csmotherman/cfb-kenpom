@@ -168,7 +168,7 @@ await pool(contentChecks, 20, async (path) => {
     else if (!ldCrumbs.some((names) => names.join("|") === shown.join("|"))) fail(path, `breadcrumbs ${shown.join(" > ")} do not match BreadcrumbList JSON-LD`);
   }
   if (path.startsWith("/week/")) {
-    if (links.filter((l) => l.startsWith("/matchup/")).length < 10) fail(path, "week hub links to fewer than 10 matchups");
+    if (links.filter((l) => l.startsWith("/matchup/")).length < 5) fail(path, "week hub links to fewer than 5 matchups");
     if (!/<table/.test(text)) fail(path, "week hub has no games table");
   }
   if (path.startsWith("/conference/")) {

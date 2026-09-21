@@ -3,25 +3,18 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getMeta, getPredictionsTrackRecord, getPreseasonPower } from "@/lib/data";
-
-type Summary = {
-  correct: number;
-  incorrect: number;
-  graded: number;
-  accuracy: number;
-  mae: number | null;
-  sinceYear: number | null;
-  backtestGames: number;
-};
+import { buildPerformanceSummary, type PerformanceSummary as Summary } from "@/lib/performanceSummary";
 
 function percent(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-export default function PredictionsPerformanceSummary() {
-  const [summary, setSummary] = useState<Summary | null>(null);
+/** `initial` is computed on the server; when it is provided (even as null = nothing graded yet) nothing is fetched. */
+export default function PredictionsPerformanceSummary({ initial }: { initial?: Summary | null }) {
+  const [summary, setSummary] = useState<Summary | null>(initial ?? null);
 
   useEffect(() => {
+    if (initial !== undefined) return;
     let cancelled = false;
 
     (async () => {
@@ -34,52 +27,8 @@ export default function PredictionsPerformanceSummary() {
         ),
         getPreseasonPower(latestSeason).catch(() => null),
       ]);
-
       if (cancelled) return;
-
-      let graded = records.reduce((sum, record) => sum + record.overall.graded, 0);
-      let correct = records.reduce((sum, record) => sum + record.overall.correct, 0);
-      let maeWeighted = records.reduce(
-        (sum, record) =>
-          sum +
-          (record.overall.avgAbsMarginError === null
-            ? 0
-            : record.overall.avgAbsMarginError * record.overall.graded),
-        0,
-      );
-      let maeGraded = records.reduce(
-        (sum, record) =>
-          sum + (record.overall.avgAbsMarginError === null ? 0 : record.overall.graded),
-        0,
-      );
-
-      // The graded weekly-picks product only started in 2026, so that's all
-      // `records` above can ever cover. The only pre-2026 evidence this model
-      // has is its own frozen leakage-safe Week 2 walk-forward backtest run
-      // against every earlier COMPLETE_SEASON -- narrower than a full season
-      // of live picks (Week 2 only), so it's called out by count rather than
-      // silently blended in as if it were the same kind of sample.
-      const backtest = power?.backtest ?? null;
-      const backtestGames = backtest?.n ?? 0;
-      if (backtest && backtestGames > 0) {
-        const backtestCorrect = Math.round((backtest.winnerPct / 100) * backtestGames);
-        graded += backtestGames;
-        correct += backtestCorrect;
-        maeWeighted += backtest.mae * backtestGames;
-        maeGraded += backtestGames;
-      }
-
-      if (graded === 0) return;
-
-      setSummary({
-        correct,
-        incorrect: graded - correct,
-        graded,
-        accuracy: graded ? correct / graded : 0,
-        mae: maeGraded ? maeWeighted / maeGraded : null,
-        sinceYear: backtestGames > 0 ? meta.rankingsYears[0] ?? null : null,
-        backtestGames,
-      });
+      setSummary(buildPerformanceSummary(records, power, meta.rankingsYears));
     })().catch(() => {
       if (!cancelled) setSummary(null);
     });
@@ -87,7 +36,7 @@ export default function PredictionsPerformanceSummary() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initial]);
 
   if (!summary) return null;
 

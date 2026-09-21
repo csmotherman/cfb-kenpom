@@ -1,3 +1,5 @@
+import { IBM_Plex_Mono, Public_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import type { Metadata, Viewport } from "next";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL, THEME_COLOR, TITLE_TEMPLATE, isProductionDeployment, ogImageUrl } from "@/lib/seo";
 import Script from "next/script";
@@ -116,24 +118,19 @@ export const metadata: Metadata = {
   },
 };
 
+// Self-hosted through next/font: no render-blocking request to Google Fonts, and each face gets a size-adjusted local
+// fallback so the swap to the real font does not move text (the family names are wired into --font-* in styles/theme.css).
+// Big Shoulders Display is no longer in next/font/google's catalog, so its Latin variable file (700-800, OFL) is bundled locally.
+const displayFont = localFont({ src: "./fonts/BigShouldersDisplay-latin.woff2", weight: "700 800", display: "swap", variable: "--font-display-loaded", adjustFontFallback: "Arial" });
+const bodyFont = Public_Sans({ subsets: ["latin"], display: "swap", variable: "--font-body-loaded" });
+const monoFont = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500", "600", "700"], display: "swap", variable: "--font-mono-loaded" });
+
 const analyticsInit = `window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};`;
 const speedInsightsInit = `window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments);};`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font -- this is the
-            root layout, so (unlike the Pages-Router page this rule targets) it
-            already wraps every route; styles/theme.css references these Google
-            Font family names literally, matching the existing design system */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable}`}>
       <body>
         <ExploratoryStickyTableHeader />
         <AdvancedAllColumnsPolicy />

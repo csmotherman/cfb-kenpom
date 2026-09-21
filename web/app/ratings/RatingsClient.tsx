@@ -6,7 +6,8 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import CfpTeamCell from "@/components/CfpTeamCell";
 import { TipTrigger } from "@/components/Tooltip";
-import { getMeta, useCfpResultsSeason, useProjectionSeason, useRankingsSeason } from "@/lib/data";
+import { getMeta, seedCfpResultsSeason, seedMeta, seedProjectionSeason, seedRankingsSeason, useCfpResultsSeason, useProjectionSeason, useRankingsSeason } from "@/lib/data";
+import type { RatingsInitial } from "@/lib/initialData";
 import { buildCfpStatusMap } from "@/lib/cfp";
 import { columnRange, heatBackground } from "@/lib/heatmap";
 import Link from "next/link";
@@ -75,12 +76,20 @@ function RankChangeBadge({ change }: { change: number | null | undefined }) {
   );
 }
 
-export default function RatingsClient({ seo }: { seo?: ReactNode }) {
+export default function RatingsClient({ seo, initial }: { seo?: ReactNode; initial?: RatingsInitial | null }) {
+  // The server already read the current season (see lib/initialData.ts): render it immediately and seed the shared
+  // client cache so nothing below fetches it again. Other seasons still load on demand.
+  if (initial) {
+    seedMeta({ generatedAt: initial.generatedAt ?? undefined, rankingsYears: initial.years, advancedYears: [] });
+    seedRankingsSeason(initial.year, initial.season);
+    seedProjectionSeason(initial.year, initial.projection);
+    seedCfpResultsSeason(initial.year, initial.cfp);
+  }
   const [loadError, setLoadError] = useState<Error | null>(null);
-  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
-  const [years, setYears] = useState<number[]>([]);
-  const [year, setYear] = useState<string>("");
-  const [week, setWeek] = useState<string>("");
+  const [updatedAt, setUpdatedAt] = useState<string | null>(initial?.generatedAt ?? null);
+  const [years, setYears] = useState<number[]>(initial?.years ?? []);
+  const [year, setYear] = useState<string>(initial?.year ?? "");
+  const [week, setWeek] = useState<string>(initial ? String(initial.season.weeks[initial.season.weeks.length - 1]) : "");
   const [sortKey, setSortKey] = useState<Column["key"]>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filter, setFilter] = useState("");
@@ -97,24 +106,29 @@ export default function RatingsClient({ seo }: { seo?: ReactNode }) {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
+    if (initial) return;
     getMeta().then((meta) => {
       setUpdatedAt(meta.generatedAt ?? null);
       setYears(meta.rankingsYears);
       setYear(String(meta.rankingsYears[meta.rankingsYears.length - 1]));
     }).catch(setLoadError);
-  }, []);
+  }, [initial]);
 
   // Reads the cache reactively: renders instantly (no fetch, no flicker)
   // whenever this season was already prefetched or previously viewed.
-  const season = useRankingsSeason(year || null);
+  const cachedSeason = useRankingsSeason(year || null);
+  const season = cachedSeason ?? (initial && year === initial.year ? initial.season : undefined);
   const loading = !season;
   const weeks = season?.weeks ?? [];
 
   // CFP field/champion/runner-up markers for the selected season -- null
   // (not yet fetched, or that season's CFP hasn't been decided) just means
   // no boxes render, never an error.
-  const cfpResults = useCfpResultsSeason(year || null);
-  const projection = useProjectionSeason(year || null);
+  const cachedCfp = useCfpResultsSeason(year || null);
+  const cachedProjection = useProjectionSeason(year || null);
+  const seeded = initial && year === initial.year;
+  const cfpResults = cachedCfp !== undefined ? cachedCfp : seeded ? initial.cfp : undefined;
+  const projection = cachedProjection !== undefined ? cachedProjection : seeded ? initial.projection : undefined;
   const cfpStatusByTeamId = useMemo(() => buildCfpStatusMap(cfpResults), [cfpResults]);
 
   // Postseason site-weeks are named by CFBD's own playoff round (e.g. "CFP
@@ -298,7 +312,7 @@ export default function RatingsClient({ seo }: { seo?: ReactNode }) {
       </div>
 
 
-      <main id="mainContent" className={"table-main container" + (loading ? " table-main--loading" : "")}>
+      <main id="mainContent" className="table-main container">
         <div className="table-scroll" role="region" aria-label="College football overall ratings table" tabIndex={0}>
           <table id="ratingsTable" className="data-table">
             <caption className="sr-only">College football overall ratings</caption>

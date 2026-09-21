@@ -3,6 +3,7 @@ import { breadcrumbJsonLd, datasetJsonLd, itemListJsonLd, pageMetadata, webPageJ
 import { getLatestYear, getPrimeRankingsServer } from "@/lib/seoData";
 import { fullTeamName } from "@/lib/teamMascots";
 import { RankingsSeoContent } from "@/components/seo/SectionSeo";
+import { getRankingsInitial } from "@/lib/initialData";
 import RankingsClient from "./RankingsClient";
 
 const DESCRIPTION =
@@ -18,6 +19,7 @@ export const metadata = pageMetadata({
 export default async function RankingsPage() {
   const year = await getLatestYear();
   const snapshot = year ? await getPrimeRankingsServer(year) : null;
+  const initial = await getRankingsInitial();
   const items = (snapshot?.teams ?? []).map((team) => ({ name: fullTeamName(team.team), path: `/team/${team.slug}` }));
   return (
     <>
@@ -34,7 +36,7 @@ export default async function RankingsPage() {
         }),
         breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "The PRIME 25", path: "/rankings" }]),
       ]} />
-      <RankingsClient seo={<RankingsSeoContent />} />
+      <RankingsClient seo={<RankingsSeoContent />} initial={initial} />
     </>
   );
 }

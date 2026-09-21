@@ -1,31 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { getMeta, getScheduleSeason, useRankingsSeason } from "@/lib/data";
+import type { HomeInitial } from "@/lib/initialData";
 import { logoUrl } from "@/lib/teamCode";
-import type { RankingsRow, ScheduleGame, ScheduleSeason } from "@/lib/types";
-
-type PrimeRankingTeam = {
-  rank: number;
-  team: string;
-  slug: string;
-  teamId: number;
-  conf: string;
-  record: string;
-  ratingRank: number;
-  sorRank: number;
-};
-
-type PrimeRankingSnapshot = {
-  season: number;
-  throughWeek: number;
-  releasedAt: string;
-  teams: PrimeRankingTeam[];
-};
+import type { ScheduleGame } from "@/lib/types";
 
 function kickoffLabel(game: ScheduleGame | null): string {
   if (!game) return "Schedule publishing";
@@ -44,102 +26,17 @@ function kickoffLabel(game: ScheduleGame | null): string {
   });
 }
 
-function bestByRank(rows: RankingsRow[], key: "adjORank" | "adjDRank" | "sosRank"): RankingsRow | null {
-  return rows
-    .filter((row) => row[key] !== null)
-    .sort((a, b) => (a[key] ?? 999) - (b[key] ?? 999))[0] ?? null;
-}
-
-export default function HomeClient({ seo }: { seo?: ReactNode }) {
-  const [year, setYear] = useState<string>("");
-  const [snapshot, setSnapshot] = useState<PrimeRankingSnapshot | null>(null);
-  const [schedule, setSchedule] = useState<ScheduleSeason | null>(null);
-  const season = useRankingsSeason(year || null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    getMeta()
-      .then(async (meta) => {
-        const latest = meta.rankingsYears[meta.rankingsYears.length - 1];
-        if (cancelled) return;
-        setYear(String(latest));
-
-        const [primeResponse, scheduleData] = await Promise.all([
-          fetch(`/data/prime-rankings/${latest}.json`, { cache: "no-store" }),
-          getScheduleSeason(latest),
-        ]);
-
-        if (cancelled) return;
-        setSchedule(scheduleData);
-
-        if (primeResponse.ok) {
-          setSnapshot((await primeResponse.json()) as PrimeRankingSnapshot);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setSnapshot(null);
-          setSchedule(null);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const latestWeek = season?.weeks?.[season.weeks.length - 1];
-
-  const currentRows = useMemo(() => {
-    if (!season || latestWeek === undefined) return [];
-    return season.byWeek[String(latestWeek)] ?? [];
-  }, [season, latestWeek]);
-
-  const topRatings = useMemo(
-    () =>
-      [...currentRows]
-        .filter((team) => team.rank !== null)
-        .sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999))
-        .slice(0, 5),
-    [currentRows],
-  );
-
+export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?: HomeInitial | null }) {
+  // Everything below was computed on the server (lib/initialData.ts), so the cards are in the first HTML and the
+  // browser fetches nothing for this page.
+  const year = initial?.year ?? "";
+  const snapshot = initial?.snapshot ?? null;
+  const latestWeek = initial?.latestWeek ?? undefined;
+  const topRatings = initial?.topRatings ?? [];
   const topRankings = (snapshot?.teams ?? []).slice(0, 5);
-
-  const rowsByTeamId = useMemo(() => {
-    const map = new Map<number, RankingsRow>();
-    currentRows.forEach((row) => map.set(row.teamId, row));
-    return map;
-  }, [currentRows]);
-
-  const featuredGame = useMemo(() => {
-    if (!schedule) return null;
-
-    const targetWeek =
-      schedule.weeks.find((week) =>
-        (schedule.byWeek[String(week)] ?? []).some((game) => !game.completed),
-      ) ?? schedule.currentWeek;
-
-    const candidates = (schedule.byWeek[String(targetWeek)] ?? []).filter((game) => !game.completed);
-    if (!candidates.length) return null;
-
-    return [...candidates].sort((a, b) => {
-      const aHome = rowsByTeamId.get(a.homeTeamId)?.rank ?? 200;
-      const aAway = rowsByTeamId.get(a.awayTeamId)?.rank ?? 200;
-      const bHome = rowsByTeamId.get(b.homeTeamId)?.rank ?? 200;
-      const bAway = rowsByTeamId.get(b.awayTeamId)?.rank ?? 200;
-
-      const aTop25 = Number(aHome <= 25) + Number(aAway <= 25);
-      const bTop25 = Number(bHome <= 25) + Number(bAway <= 25);
-      if (aTop25 !== bTop25) return bTop25 - aTop25;
-
-      return aHome + aAway - (bHome + bAway);
-    })[0] ?? null;
-  }, [schedule, rowsByTeamId]);
-
-  const featuredHome = featuredGame ? rowsByTeamId.get(featuredGame.homeTeamId) ?? null : null;
-  const featuredAway = featuredGame ? rowsByTeamId.get(featuredGame.awayTeamId) ?? null : null;
+  const featuredGame = initial?.featuredGame ?? null;
+  const featuredHome = initial?.featuredHome ?? null;
+  const featuredAway = initial?.featuredAway ?? null;
 
   const matchupEdge = useMemo(() => {
     if (!featuredHome || !featuredAway || featuredHome.adjEM === null || featuredAway.adjEM === null) return null;
@@ -150,18 +47,12 @@ export default function HomeClient({ seo }: { seo?: ReactNode }) {
     };
   }, [featuredHome, featuredAway]);
 
-  const bestOffense = useMemo(() => bestByRank(currentRows, "adjORank"), [currentRows]);
-  const bestDefense = useMemo(() => bestByRank(currentRows, "adjDRank"), [currentRows]);
-  const toughestSchedule = useMemo(() => bestByRank(currentRows, "sosRank"), [currentRows]);
-  const biggestRiser = useMemo(
-    () =>
-      [...currentRows]
-        .filter((row) => row.rankChange !== null && row.rankChange > 0)
-        .sort((a, b) => (b.rankChange ?? 0) - (a.rankChange ?? 0))[0] ?? null,
-    [currentRows],
-  );
+  const bestOffense = initial?.bestOffense ?? null;
+  const bestDefense = initial?.bestDefense ?? null;
+  const toughestSchedule = initial?.toughestSchedule ?? null;
+  const biggestRiser = initial?.biggestRiser ?? null;
 
-  const displayWeek = snapshot?.throughWeek ?? latestWeek ?? schedule?.currentWeek ?? null;
+  const displayWeek = snapshot?.throughWeek ?? latestWeek ?? initial?.currentWeek ?? null;
 
   return (
     <>
@@ -169,7 +60,7 @@ export default function HomeClient({ seo }: { seo?: ReactNode }) {
       <SiteHeader tagline="College Football Analytics" />
       <SiteNav />
 
-      <main className={"prime-home-v2" + (snapshot ? "" : " seo-reserve")} id="homeMain">
+      <main className="prime-home-v2" id="homeMain">
         <section className="prime-home-v2__hero">
           <div className="prime-home-v2__hero-inner container">
             <div className="prime-home-v2__hero-copy">

@@ -43,7 +43,3 @@
 .seo-crumbs a:hover { color: var(--color-gold-dark); text-decoration: underline; }
 .seo-hub-nav { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; }
 .seo-hub-nav [aria-current="page"] { font-weight: 700; }
-
-/* While a page's data is still loading, keep its main area viewport-tall so the server-rendered sections below it start
-   off-screen and do not jump (layout shift) when the tables fill in. */
-.table-main--loading, .prime25-page--loading, .seo-reserve { min-height: 110vh; }

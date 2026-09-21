@@ -2,6 +2,7 @@ import JsonLd from "@/components/JsonLd";
 import { breadcrumbJsonLd, datasetJsonLd, pageMetadata, webPageJsonLd } from "@/lib/seo";
 import { getDataTimestamp, getSiteMeta } from "@/lib/seoData";
 import { RatingsSeoContent } from "@/components/seo/SectionSeo";
+import { getRatingsInitial } from "@/lib/initialData";
 import RatingsClient from "./RatingsClient";
 
 const DESCRIPTION =
@@ -15,7 +16,7 @@ export const metadata = pageMetadata({
 });
 
 export default async function RatingsPage() {
-  const [modified, meta] = await Promise.all([getDataTimestamp(), getSiteMeta()]);
+  const [modified, meta, initial] = await Promise.all([getDataTimestamp(), getSiteMeta(), getRatingsInitial()]);
   const years = meta?.rankingsYears ?? [];
   return (
     <>
@@ -31,7 +32,7 @@ export default async function RatingsPage() {
         }),
         breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Ratings", path: "/ratings" }]),
       ]} />
-      <RatingsClient seo={<RatingsSeoContent />} />
+      <RatingsClient seo={<RatingsSeoContent />} initial={initial} />
     </>
   );
 }

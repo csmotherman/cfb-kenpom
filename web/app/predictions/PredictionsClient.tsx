@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import type { PredictionsInitial } from "@/lib/initialData";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
@@ -124,15 +125,17 @@ function pickText(winner: string, margin: number): string {
   return `${winner} to win by ${Math.abs(margin).toFixed(1)}`;
 }
 
-export default function PredictionsClient({ seo }: { seo?: { lede: ReactNode; content: ReactNode } }) {
+export default function PredictionsClient({ seo, initial }: { seo?: { lede: ReactNode; content: ReactNode }; initial?: PredictionsInitial | null }) {
   const router = useRouter();
   const [loadError, setLoadError] = useState<Error | null>(null);
-  const [season, setSeason] = useState<number | null>(null);
-  const [schedule, setSchedule] = useState<ScheduleSeason | null | undefined>(undefined);
-  const [rankings, setRankings] = useState<RankingsSeason | null>(null);
-  const [marketLines, setMarketLines] = useState<MarketLinesSeason | null>(null);
+  // With server-provided initial data (lib/initialData.ts) the current week renders in the first HTML; the full season
+  // then loads quietly after hydration so other weeks are instant.
+  const [season, setSeason] = useState<number | null>(initial?.season ?? null);
+  const [schedule, setSchedule] = useState<ScheduleSeason | null | undefined>(initial?.schedule);
+  const [rankings, setRankings] = useState<RankingsSeason | null>(initial?.rankings ?? null);
+  const [marketLines, setMarketLines] = useState<MarketLinesSeason | null>(initial?.marketLines ?? null);
   const [power, setPower] = useState<PreseasonPower | null>(null);
-  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(initial?.selectedWeek ?? null);
   const [predictionsByWeek, setPredictionsByWeek] = useState<Map<number, PredictionGame[]>>(new Map());
   const [access, setAccess] = useState<Access>("unknown");
   const [filter, setFilter] = useState<GamesFilter>("all");
@@ -143,6 +146,10 @@ export default function PredictionsClient({ seo }: { seo?: { lede: ReactNode; co
 
   useEffect(() => {
     let cancelled = false;
+    if (initial) {
+      getPreseasonPower(initial.season).then((p) => { if (!cancelled) setPower(p); }).catch(() => {});
+      return () => { cancelled = true; };
+    }
     (async () => {
       const meta = await getMeta();
       const latestSeason = meta.rankingsYears[meta.rankingsYears.length - 1];
@@ -160,7 +167,24 @@ export default function PredictionsClient({ seo }: { seo?: { lede: ReactNode; co
       getPreseasonPower(latestSeason).then((p) => { if (!cancelled) setPower(p); }).catch(() => {});
     })().catch((error: Error) => { if (!cancelled) setLoadError(error); });
     return () => { cancelled = true; };
-  }, []);
+  }, [initial]);
+
+  // The server sent only the current week's games and ratings. Browsing to another week loads the full season once
+  // (through the shared cache) and swaps it in; it is also started when the week picker gains focus.
+  const fullLoad = useRef<Promise<void> | null>(null);
+  function ensureFullSeason(): Promise<void> {
+    if (!initial) return Promise.resolve();
+    if (!fullLoad.current) {
+      fullLoad.current = Promise.all([getScheduleSeason(initial.season), getRankingsSeason(initial.season), getMarketLinesSeason(initial.season)])
+        .then(([scheduleData, rankingData, marketData]) => {
+          if (scheduleData) setSchedule(scheduleData);
+          setRankings(rankingData);
+          setMarketLines(marketData);
+        })
+        .catch(() => { fullLoad.current = null; });
+    }
+    return fullLoad.current;
+  }
 
   // Fetch each week's predictions on demand as the user browses weeks, and
   // remember a season-wide "locked" verdict the first time we see one so we
@@ -319,8 +343,8 @@ export default function PredictionsClient({ seo }: { seo?: { lede: ReactNode; co
       <SiteHeader tagline="Weekly Predictions" />
       <SiteNav />
 
-      <main id="predictionsContent" className={"container predictions-main predictions-main--compact" + (schedule === undefined ? " seo-reserve" : "")}>
-        <PredictionsPerformanceSummary />
+      <main id="predictionsContent" className="container predictions-main predictions-main--compact">
+        <PredictionsPerformanceSummary initial={initial?.performance} />
         {schedule === undefined ? (
           <>
             {seo?.lede ?? <h1 className="sr-only">College Football Predictions &amp; Matchup Analytics</h1>}
@@ -341,7 +365,12 @@ export default function PredictionsClient({ seo }: { seo?: { lede: ReactNode; co
                   <span>Week</span>
                   <select
                     value={selectedWeek ?? ""}
-                    onChange={(e) => setSelectedWeek(Number(e.target.value))}
+                    onFocus={() => void ensureFullSeason()}
+                    onPointerDown={() => void ensureFullSeason()}
+                    onChange={(e) => {
+                      const next = Number(e.target.value);
+                      void ensureFullSeason().then(() => setSelectedWeek(next));
+                    }}
                     aria-label="Prediction week"
                   >
                     {schedule.weeks.map((week) => (

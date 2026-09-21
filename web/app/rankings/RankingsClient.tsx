@@ -1,5 +1,6 @@
 "use client";
 
+import type { RankingsInitial } from "@/lib/initialData";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import SiteHeader from "@/components/SiteHeader";
@@ -48,10 +49,12 @@ function RankingTile({ team, featured = false }: { team: PrimeRankingTeam; featu
   );
 }
 
-export default function RankingsClient({ seo }: { seo?: ReactNode }) {
-  const [snapshot, setSnapshot] = useState<PrimeRankingSnapshot | null>(null);
+export default function RankingsClient({ seo, initial }: { seo?: ReactNode; initial?: RankingsInitial | null }) {
+  // The server already read the PRIME 25 snapshot; the browser only fetches when it was not provided.
+  const [snapshot, setSnapshot] = useState<PrimeRankingSnapshot | null>((initial?.snapshot as unknown as PrimeRankingSnapshot) ?? null);
 
   useEffect(() => {
+    if (initial) return;
     fetch("/data/prime-rankings/2026.json", { cache: "no-store" })
       .then((response) => {
         if (!response.ok) throw new Error("PRIME rankings unavailable");
@@ -59,7 +62,7 @@ export default function RankingsClient({ seo }: { seo?: ReactNode }) {
       })
       .then(setSnapshot)
       .catch(() => setSnapshot(null));
-  }, []);
+  }, [initial]);
 
   const teams = snapshot?.teams ?? [];
   const fullRankings = snapshot?.allTeams ?? teams;
@@ -72,7 +75,7 @@ export default function RankingsClient({ seo }: { seo?: ReactNode }) {
       <SiteHeader tagline="The PRIME 25" />
       <SiteNav />
 
-      <main id="prime25" className={"prime25-page" + (snapshot ? "" : " prime25-page--loading")}>
+      <main id="prime25" className="prime25-page">
         <div className="prime25-page__veil">
           <section className="prime25-stage">
             <header className="prime25-hero">

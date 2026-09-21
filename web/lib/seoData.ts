@@ -247,8 +247,12 @@ export const isIndexableGame = (ctx: GameContext) => ctx.away.hasProfile && ctx.
 // ------------------------------------------------------------------ week and conference hubs
 
 export type HubGame = { game: ScheduleGame; awayRank: number | null; homeRank: number | null; awayFull: string; homeFull: string };
-/** A week page needs at least this many rated games to be worth indexing (Week 0 and the championship week are too small). */
-export const MIN_HUB_GAMES = 10;
+/**
+ * A week page is worth indexing when it lists a real slate to browse, not a single game whose own matchup page already says
+ * everything. Judged per week on the 2026 schedule: Week 0 is the complete opening slate (8 games, all with results), so it
+ * is indexable; Week 14 is one game (Army-Navy), which adds nothing beyond that game's page, so it stays noindex.
+ */
+export const MIN_HUB_GAMES = 5;
 
 export type WeekHub = {
   year: number;
