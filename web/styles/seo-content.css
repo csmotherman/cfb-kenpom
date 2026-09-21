@@ -235,3 +235,69 @@
     font-size: 10px;
   }
 }
+
+
+/* Mobile matchup SEO/content blocks should read like the rest of the PRIME
+   scouting sheet, not like generic article/table chrome. */
+@media (max-width: 700px) {
+  .matchup-v2-main > .seo-section {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+
+  .matchup-v2-main > .seo-section h2 {
+    margin-bottom: 6px;
+    font-size: 13px;
+    letter-spacing: .015em;
+  }
+
+  .matchup-v2-main .seo-table-wrap {
+    border-color: var(--color-hairline-strong);
+    border-top-width: 1px;
+    background: var(--color-paper);
+  }
+
+  .matchup-v2-main .seo-table {
+    font-size: 9.5px;
+  }
+
+  .matchup-v2-main .seo-table th,
+  .matchup-v2-main .seo-table td {
+    padding: 6px 5px;
+  }
+
+  .matchup-v2-main .seo-table thead th {
+    background: var(--color-paper-soft);
+    font-size: 6.5px;
+  }
+
+  .matchup-v2-main .seo-table--compare tbody th {
+    font-size: 8.5px;
+  }
+
+  .matchup-v2-main .seo-note {
+    margin-top: 6px;
+    font-size: 8.5px;
+    line-height: 1.35;
+  }
+
+  .matchup-v2-main .seo-form {
+    gap: 6px;
+  }
+
+  .matchup-v2-main .seo-form > div {
+    padding: 7px 8px;
+    background: var(--color-paper);
+  }
+
+  .matchup-v2-main .seo-form h3 {
+    margin-bottom: 5px;
+    font-size: 10.5px;
+  }
+
+  .matchup-v2-main .seo-form li,
+  .matchup-v2-main .seo-links li {
+    font-size: 9px;
+    line-height: 1.35;
+  }
+}
