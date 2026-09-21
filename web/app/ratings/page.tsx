@@ -207,7 +207,7 @@ export default function RatingsPage() {
   return (
     <>
       <a className="skip-link" href="#mainContent">Skip to ratings</a>
-      <SiteHeader tagline="Opponent-Adjusted College Football Ratings" />
+      <SiteHeader tagline="PRIME Ratings" />
       <SiteNav />
 
       <section className="ratings-toolbar container" aria-labelledby="ratingsTitle">
