@@ -62,6 +62,21 @@ export default function SiteNav() {
     router.push(`/team/${encodeURIComponent(t.slug)}`);
   }
 
+  function onNavClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    // Disable Next's automatic route scroll targeting. The sticky navigation
+    // should remain at the very top of every primary page after navigation.
+    if (
+      e.button !== 0 ||
+      e.metaKey ||
+      e.ctrlKey ||
+      e.shiftKey ||
+      e.altKey
+    ) {
+      return;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -83,7 +98,13 @@ export default function SiteNav() {
   return (
     <nav className="site-nav site-nav--unified" aria-label="Primary navigation">
       <div className="container site-nav__inner">
-        <Link href="/" className="site-nav__brand" aria-label="PRIME Football home">
+        <Link
+          href="/"
+          scroll={false}
+          onClick={onNavClick}
+          className="site-nav__brand"
+          aria-label="PRIME Football home"
+        >
           PRIME
         </Link>
 
@@ -94,6 +115,8 @@ export default function SiteNav() {
               <Link
                 key={link.href}
                 href={link.href}
+                scroll={false}
+                onClick={onNavClick}
                 className={active ? "active" : undefined}
                 aria-current={active ? "page" : undefined}
                 data-pro={link.premium || undefined}
