@@ -16,6 +16,11 @@ function points(value: number | null | undefined): string {
   return value === null || value === undefined ? "—" : `${value.toFixed(1)}`;
 }
 
+const MODEL_NAMES: Record<string, string> = {
+  "early-season-blend-2026-v1": "Early-season blend (preseason power + this season's margins)",
+  "aggregate-advanced-2026-v1": "Aggregate advanced model (from Week 6)",
+};
+
 function record(stats: PredictionRecordStats): string {
   return `${stats.correct}–${stats.graded - stats.correct}`;
 }
@@ -118,12 +123,31 @@ export default function PredictionPerformancePage() {
               </div>
               <div className="prediction-performance-errors__grid">
                 <div><strong>{points(active.overall.medianAbsMarginError)}</strong><span>Median error</span></div>
+                <div><strong>{points(active.overall.rmse)}</strong><span>RMSE</span></div>
                 <div><strong>{pct(active.overall.within3Pct)}</strong><span>Within 3 pts</span></div>
                 <div><strong>{pct(active.overall.within7Pct)}</strong><span>Within 7 pts</span></div>
                 <div><strong>{pct(active.overall.within10Pct)}</strong><span>Within 10 pts</span></div>
                 <div><strong>{pct(active.overall.within14Pct)}</strong><span>Within 14 pts</span></div>
               </div>
             </section>
+
+            {active.models?.length ? (
+              <PerformanceTable
+                title="By model"
+                eyebrow="Live picks, split by the model that made them"
+                note="The season starts with the early-season blend, which leans on preseason information, and hands off to the aggregate model once every team has enough games. Each model is graded only on its own frozen picks."
+                headers={["Model", "Weeks", "Record", "Accuracy", "MAE", "RMSE", "Games"]}
+                rows={active.models.map((model) => [
+                  MODEL_NAMES[model.modelVersion] ?? model.modelVersion,
+                  model.weeks[0] === model.weeks[1] ? String(model.weeks[0]) : `${model.weeks[0]}–${model.weeks[1]}`,
+                  model.graded ? record(model) : "Not graded",
+                  pct(model.accuracySU),
+                  points(model.avgAbsMarginError),
+                  points(model.rmse),
+                  String(model.graded),
+                ])}
+              />
+            ) : null}
 
             <PerformanceTable
               title="By week"
@@ -194,10 +218,48 @@ export default function PredictionPerformancePage() {
               />
             ) : null}
 
+            {active.backtest ? (
+              <>
+                <PerformanceTable
+                  title="Backtest: aggregate model, historical seasons"
+                  eyebrow="Not live picks"
+                  note={active.backtest.method}
+                  headers={["Season", "Record", "Accuracy", "MAE", "RMSE", "Log loss", "Games"]}
+                  rows={[
+                    ...active.backtest.seasons.map((row) => [
+                      String(row.season),
+                      `${row.correct}–${row.games - row.correct}`,
+                      pct(row.accuracySU),
+                      points(row.mae),
+                      points(row.rmse),
+                      row.logLoss.toFixed(3),
+                      String(row.games),
+                    ]),
+                  ]}
+                />
+                <PerformanceTable
+                  title="Backtest calibration"
+                  eyebrow="Predicted probability vs. reality, historical"
+                  note="Out-of-sample: each season's probabilities use a calibration fit only on earlier seasons. The model was somewhat overconfident in the 70–80% band."
+                  headers={["Confidence", "Avg predicted", "Actual win rate", "Gap", "Games"]}
+                  rows={active.backtest.confidenceBuckets.map((bucket) => [
+                    bucket.label,
+                    pct(bucket.avgConfidence),
+                    pct(bucket.actualWinRate),
+                    `${bucket.actualWinRate - bucket.avgConfidence >= 0 ? "+" : ""}${((bucket.actualWinRate - bucket.avgConfidence) * 100).toFixed(1)} pp`,
+                    String(bucket.games),
+                  ])}
+                />
+              </>
+            ) : null}
+
             <p className="prediction-performance-page__method-note">
               Straight-up winner accuracy is not against the spread. Margin MAE is the mean absolute
               difference between PRIME’s predicted home margin and the final home margin. Ties and games
-              without verifiable final scores are excluded from grading.
+              without verifiable final scores are excluded from grading. A comparison against the betting market
+              (closing-line favorite accuracy, margin error against the closing spread, and how PRIME performs when it
+              disagrees with the line) will be added once closing lines for completed games are collected; nothing is claimed
+              about the market yet.
             </p>
           </>
         )}

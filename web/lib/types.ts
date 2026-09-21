@@ -450,6 +450,7 @@ export type PredictionRecordStats = {
   accuracySU: number | null;
   avgAbsMarginError: number | null;
   medianAbsMarginError?: number | null;
+  rmse?: number | null;
   within3Pct?: number | null;
   within7Pct?: number | null;
   within10Pct?: number | null;
@@ -457,6 +458,31 @@ export type PredictionRecordStats = {
 };
 
 export type PredictionWeekRecord = PredictionRecordStats & { week: number };
+
+export type PredictionModelRecord = PredictionRecordStats & { modelVersion: string; weeks: [number, number] };
+
+export type PredictionBacktestSeason = {
+  season: number;
+  games: number;
+  correct: number;
+  accuracySU: number;
+  mae: number;
+  medianAbsError: number;
+  rmse: number;
+  logLoss: number;
+  brier: number;
+};
+
+// Static walk-forward record of the frozen aggregate model: historical, never mixed into the live record.
+export type PredictionBacktest = {
+  kind: "backtest";
+  modelVersion: string;
+  featureCount: number;
+  method: string;
+  seasons: PredictionBacktestSeason[];
+  overall: { games: number; accuracySU: number };
+  confidenceBuckets: { label: string; games: number; avgConfidence: number; actualWinRate: number }[];
+};
 
 export type PredictionConferenceRecord = PredictionRecordStats & {
   conference: string;
@@ -484,6 +510,8 @@ export type PredictionsTrackRecord = {
   season: number;
   modelVersion: string;
   modelVersions?: string[];
+  models?: PredictionModelRecord[];
+  backtest?: PredictionBacktest | null;
   generatedAt: string;
   weeks: PredictionWeekRecord[];
   conferences?: PredictionConferenceRecord[];

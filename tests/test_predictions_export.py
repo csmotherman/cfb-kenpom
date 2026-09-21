@@ -135,6 +135,30 @@ class TrackRecordTests(unittest.TestCase):
         self.assertIsNone(export.build_prediction_track_record_payload(2026, self.schedule, []))
         self.assertIsNone(export.build_prediction_track_record_payload(2026, None, self.snapshots))
 
+class ByModelAndRmseTests(unittest.TestCase):
+    def test_per_model_records_split_the_handoff_and_rmse_is_reported(self):
+        schedule = _schedule([
+            _game("1", 5, "A", 1, "B", 2, completed=True, home_points=30, away_points=10),   # blend, correct, error 5
+            _game("2", 6, "C", 3, "D", 4, completed=True, home_points=10, away_points=13),   # aggregate, wrong pick
+        ])
+        blend, new = "early-season-blend-2026-v1", "aggregate-advanced-2026-v1"
+        snapshots = [
+            {"season": 2026, "week": 5, "freezeVersion": blend, "predictions": [_pred("1", 5, "A", "B", 15.0, "A", freeze_version=blend)]},
+            {"season": 2026, "week": 6, "freezeVersion": new, "predictions": [_pred("2", 6, "C", "D", 4.0, "C", freeze_version=new)]},
+        ]
+        record = export.build_prediction_track_record_payload(2026, schedule, snapshots)
+        models = {m["modelVersion"]: m for m in record["models"]}
+        self.assertEqual(list(models), [blend, new])
+        self.assertEqual((models[blend]["graded"], models[blend]["correct"], models[blend]["weeks"]), (1, 1, [5, 5]))
+        self.assertEqual((models[new]["graded"], models[new]["correct"], models[new]["weeks"]), (1, 0, [6, 6]))
+        self.assertAlmostEqual(models[new]["rmse"], 7.0)       # |4 - (-3)| = 7
+        self.assertAlmostEqual(record["overall"]["rmse"], ((5 ** 2 + 7 ** 2) / 2) ** 0.5, places=2)
+        self.assertEqual(record["overall"]["graded"], sum(m["graded"] for m in record["models"]))
+
+    def test_backtest_is_null_when_no_backtest_file_exists(self):
+        self.assertIsNone(export._load_backtest(2099))
+
+
 
 if __name__ == "__main__":
     unittest.main()

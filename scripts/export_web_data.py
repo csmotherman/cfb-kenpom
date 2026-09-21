@@ -152,6 +152,12 @@ def build_schedule_payload(year):
     }
 
 
+def _load_backtest(year):
+    """Historical walk-forward record of the frozen aggregate model (static; built by scripts/build_model_backtest.py)."""
+    path = PROSPECTIVE_ROOT / str(year) / "aggregate-model-backtest.json"
+    return json.loads(path.read_text()) if path.exists() else None
+
+
 def _load_prediction_snapshots(year):
     """Immutable frozen-model prediction snapshots for one season, one file
     per scored week (written by cfb_analytics.pipelines.weekly_predictions).
@@ -282,6 +288,7 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots):
             "accuracySU": round(stats["correct"] / graded, 4) if graded else None,
             "avgAbsMarginError": round(sum(errors) / len(errors), 2) if errors else None,
             "medianAbsMarginError": round(median(errors), 2) if errors else None,
+            "rmse": round((sum(error * error for error in errors) / len(errors)) ** 0.5, 2) if errors else None,
             "within3Pct": round(sum(error <= 3 for error in errors) / len(errors), 4) if errors else None,
             "within7Pct": round(sum(error <= 7 for error in errors) / len(errors), 4) if errors else None,
             "within10Pct": round(sum(error <= 10 for error in errors) / len(errors), 4) if errors else None,
@@ -289,6 +296,7 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots):
         }
 
     conference_stats = {}
+    model_stats = {}
     confidence_defs = [
         ("50-59%", 0.50, 0.60),
         ("60-69%", 0.60, 0.70),
@@ -395,6 +403,11 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots):
                 confidence_bucket["correct"] += int(correct)
 
         week_records.append({"week": week, **finalize(stats)})
+        model_acc = model_stats.setdefault(snapshot["freezeVersion"], {**empty_stats(), "weeks": []})
+        for key in ("games", "graded", "correct"):
+            model_acc[key] += stats[key]
+        model_acc["abs_errors"].extend(stats["abs_errors"])
+        model_acc["weeks"].append(week)
 
     week_records.sort(key=lambda record: record["week"])
 
@@ -437,6 +450,11 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots):
         "season": year,
         "modelVersion": model_version,
         "modelVersions": model_versions,
+        "models": [
+            {"modelVersion": version, "weeks": [min(model_stats[version]["weeks"]), max(model_stats[version]["weeks"])], **finalize(model_stats[version])}
+            for version in model_versions
+        ],
+        "backtest": _load_backtest(year),
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "weeks": week_records,
         "conferences": conferences,
