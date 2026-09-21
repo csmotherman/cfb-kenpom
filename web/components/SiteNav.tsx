@@ -28,7 +28,6 @@ export default function SiteNav() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const linksRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getSearchIndex().then(setIndex).catch(() => {});
@@ -45,16 +44,6 @@ export default function SiteNav() {
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
-
-  // Keep the active primary tab visible inside the mobile horizontal strip.
-  // Do this without scrollIntoView so route changes never move the document itself.
-  useEffect(() => {
-    const strip = linksRef.current;
-    const active = strip?.querySelector<HTMLElement>('[aria-current="page"]');
-    if (!strip || !active) return;
-    const left = Math.max(0, active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2);
-    strip.scrollTo({ left, behavior: "auto" });
-  }, [pathname]);
 
   const q = query.trim().toLowerCase();
   const matches = q
@@ -121,7 +110,7 @@ export default function SiteNav() {
           <Image src="/brand/prime-header.png" alt="PRIME" width={2172} height={724} priority />
         </Link>
 
-        <div className="site-nav__links" ref={linksRef}>
+        <div className="site-nav__links">
           {LINKS.map((link) => {
             const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
             return (
