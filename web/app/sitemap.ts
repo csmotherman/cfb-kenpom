@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/seo";
 import { CONFERENCE_CODES, conferenceSlug } from "@/lib/teamMascots";
 import { gameModified } from "@/lib/seoPages";
-import { getDataTimestamp, getLatestSnapshot, getLatestYear, getPrimeRankingsServer, getScheduleServer, getTeamDirectory, getTrackRecordTimestamp, getWeekHub, MIN_HUB_GAMES } from "@/lib/seoData";
+import { getDataTimestamp, getLatestSnapshot, getLatestYear, getPrimeRankingsServer, getScheduleServer, getTeamDirectory, getTrackRecordTimestamp } from "@/lib/seoData";
 
 type Entry = MetadataRoute.Sitemap[number];
 
@@ -40,19 +40,17 @@ async function staticEntries(generated: Stamp, year: number | null): Promise<Ent
   return pages.map(([path, changeFrequency, priority, lastModified]) => ({ url: absoluteUrl(path), changeFrequency, priority, ...(lastModified ? { lastModified } : {}) }));
 }
 
-async function hubEntries(generated: Stamp, year: number | null): Promise<Entry[]> {
-  const schedule = year ? await getScheduleServer(year) : null;
-  if (!year || !schedule) return [];
-  const weeks: Entry[] = [];
-  for (const week of schedule.weeks) {
-    const hub = await getWeekHub(week);
-    if (!hub || hub.games.length < MIN_HUB_GAMES) continue;
-    const lastKickoff = hub.games.map((g) => g.game.startDate ?? "").sort().pop() || null;
-    const lastModified = (hub.played ? gameModified({ completed: true, startDate: lastKickoff }, generated) : generated) ?? undefined;
-    weeks.push({ url: absoluteUrl(`/week/${week}`), changeFrequency: hub.played ? "yearly" : "daily", priority: hub.played ? 0.4 : 0.7, ...(lastModified ? { lastModified } : {}) });
-  }
-  const conferences = CONFERENCE_CODES.map((code): Entry => ({ url: absoluteUrl(`/conference/${conferenceSlug(code)}`), changeFrequency: "weekly", priority: 0.6, ...(generated ? { lastModified: generated } : {}) }));
-  return [...weeks, ...conferences];
+async function hubEntries(generated: Stamp): Promise<Entry[]> {
+  // Week browsing now lives inside /predictions?week=N. Those query variants
+  // canonicalize to /predictions and are intentionally excluded from the
+  // sitemap. Conference hubs remain standalone because they expose unique
+  // conference-level aggregates.
+  return CONFERENCE_CODES.map((code): Entry => ({
+    url: absoluteUrl(`/conference/${conferenceSlug(code)}`),
+    changeFrequency: "weekly",
+    priority: 0.6,
+    ...(generated ? { lastModified: generated } : {}),
+  }));
 }
 
 async function teamEntries(lastModified: Stamp, year: number | null): Promise<Entry[]> {
@@ -90,6 +88,6 @@ async function matchupEntries(generated: Stamp, year: number | null): Promise<En
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [generated, year] = await Promise.all([getDataTimestamp().then((v) => v ?? undefined), getLatestYear()]);
-  const sections = await Promise.all([staticEntries(generated, year), hubEntries(generated, year), teamEntries(generated, year), matchupEntries(generated, year)]);
+  const sections = await Promise.all([staticEntries(generated, year), hubEntries(generated), teamEntries(generated, year), matchupEntries(generated, year)]);
   return sections.flat();
 }
