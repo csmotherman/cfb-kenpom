@@ -477,9 +477,11 @@ def new_acc():
 
 
 def _prior_season_possession_baseline(year, rating_model):
-    """That team's FINAL adjOff/adjDef from year-1, in fit_publication_composite's
-    own internal units (divided back down by RATING_SCALE) -- the reference
-    point rating_model.py's early-season taper blends into the OPPONENT side
+    """That team's FINAL possession-only AdjOff/AdjDef component from year-1,
+    in fit_publication_composite's own internal units (divided by RATING_SCALE).
+    The live published AdjOff/AdjDef may also include Success/Explosiveness, but
+    the early-season opponent taper must remain in possession-APR units. This
+    reference point is what rating_model.py blends into the OPPONENT side
     of year's own opponent adjustment. use_prior_season_baseline=False here on
     purpose: this reference fit must not itself recurse into year-2's prior,
     it's a plain current-season-only fit for year-1, exactly as year-1 was
@@ -496,12 +498,12 @@ def _prior_season_possession_baseline(year, rating_model):
         return None, None
     last_wk = max(prior_weeks)
     offense = {
-        r["team"]: r["adjOff"] / rating_models.RATING_SCALE
-        for r in prior_weeks[last_wk] if r.get("adjOff") is not None
+        r["team"]: r["possessionAdjOff"] / rating_models.RATING_SCALE
+        for r in prior_weeks[last_wk] if r.get("possessionAdjOff") is not None
     }
     defense = {
-        r["team"]: r["adjDef"] / rating_models.RATING_SCALE
-        for r in prior_weeks[last_wk] if r.get("adjDef") is not None
+        r["team"]: r["possessionAdjDef"] / rating_models.RATING_SCALE
+        for r in prior_weeks[last_wk] if r.get("possessionAdjDef") is not None
     }
     return offense, defense
 
@@ -919,6 +921,8 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
             # not merely before rounding.
             adj_off = composite["AdjOff"].get(name) if composite else None
             adj_def = composite["AdjDef"].get(name) if composite else None
+            possession_adj_off = composite["PossessionAdjOff"].get(name) if composite else None
+            possession_adj_def = composite["PossessionAdjDef"].get(name) if composite else None
             if num(adj_off) and num(adj_def):
                 adj_off, adj_def = round(adj_off, 3), round(adj_def, 3)
                 adj_net = round(adj_off + adj_def, 3)
@@ -932,6 +936,10 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
                 "cff": round(cff, 2) if num(cff) else None,
                 "asm": round(asm, 2) if num(asm) else None,
                 "adjOff": adj_off, "adjDef": adj_def, "adjNet": adj_net,
+                # Internal-only, full-precision possession components used by
+                # the following season's early opponent-strength taper.
+                "possessionAdjOff": possession_adj_off,
+                "possessionAdjDef": possession_adj_def,
                 # Full precision -- compile_site_data.py ranks on these exact
                 # values, then rounds only when building the published rows.
                 "sos": sos_raw,
