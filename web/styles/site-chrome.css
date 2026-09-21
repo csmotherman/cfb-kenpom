@@ -1542,3 +1542,45 @@ html body .site-nav.site-nav--unified .site-nav__brand img {
     flex-wrap: nowrap !important;
   }
 }
+
+
+/* Final mobile nav typography lock.
+   Data-page CSS historically used ID-bearing :has() selectors and one
+   predictions-specific flex rule, so the long tabs could render smaller or
+   shift alignment after route changes. Every primary tab now uses the exact
+   Home typography/geometry on every route and in every active/beta state. */
+@media (max-width: 760px) {
+  html body .site-nav.site-nav--unified .site-nav__links > a,
+  html body .site-nav.site-nav--unified .site-nav__links > a.active,
+  html body .site-nav.site-nav--unified .site-nav__links > a[data-pro],
+  html body .site-nav.site-nav--unified .site-nav__links > a[data-beta="true"],
+  html body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a,
+  html body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a.active,
+  html body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a[data-pro],
+  html body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a[data-beta="true"],
+  html body:has(.prime25-page)
+    .site-nav.site-nav--unified .site-nav__links > a,
+  html body:has(.prime25-page)
+    .site-nav.site-nav--unified .site-nav__links > a.active {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
+    min-height: 48px !important;
+    height: 48px !important;
+    padding: 0 13px !important;
+    gap: 0 !important;
+    font-family: var(--font-display) !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: .04em !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+}
