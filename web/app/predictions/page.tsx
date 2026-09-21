@@ -15,8 +15,15 @@ export const metadata = pageMetadata({
   image: { params: { kind: "predictions" }, alt: "PRIME weekly college football predictions" },
 });
 
-export default async function PredictionsPage() {
-  const initial = await getPredictionsInitial();
+type PageProps = { searchParams: Promise<{ week?: string | string[] }> };
+
+export default async function PredictionsPage({ searchParams }: PageProps) {
+  const rawWeek = (await searchParams).week;
+  const requestedWeek = Array.isArray(rawWeek) ? rawWeek[0] : rawWeek;
+  const parsedWeek = requestedWeek && /^\d{1,2}$/.test(requestedWeek) ? Number.parseInt(requestedWeek, 10) : null;
+  const initial = parsedWeek === null
+    ? await getPredictionsInitial()
+    : await getPredictionsInitial((schedule) => schedule.weeks.includes(parsedWeek) ? parsedWeek : schedule.currentWeek);
   return (
     <>
       <JsonLd data={[
