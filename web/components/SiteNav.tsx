@@ -8,11 +8,8 @@ const LINKS = [
   { href: "/", label: "Home" },
   { href: "/ratings", label: "Ratings" },
   { href: "/rankings", label: "Rankings" },
-  { href: "/predictions", label: "Predictions", premium: true },
-  { href: "/game-history", label: "Game History" },
-  { href: "/advanced", label: "Advanced", premium: true },
-  { href: "/teams", label: "Teams" },
-  { href: "/learn", label: "Learn" },
+  { href: "/predictions", label: "Weekly Predictions", premium: true },
+  { href: "/advanced", label: "Advanced Stats", premium: true },
 ];
 
 export default function SiteNav() {
