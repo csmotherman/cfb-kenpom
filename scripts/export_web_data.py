@@ -19,6 +19,7 @@ from validate_site_data import require, validate_season
 
 WEB_DATA = REPO / "web/public/data"
 PROSPECTIVE_ROOT = REPO / "prospective"
+ALLOWED_MODEL_HANDOFFS = {("early-season-blend-2026-v1", "aggregate-advanced-2026-v1")}
 
 
 def encode(value):
@@ -238,9 +239,17 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots):
         for games in schedule_payload["byWeek"].values()
         for game in games
     }
-    freeze_versions = {snapshot.get("freezeVersion") for snapshot in snapshots}
-    require(len(freeze_versions) == 1, "Prediction snapshots span more than one frozen model version")
-    model_version = freeze_versions.pop()
+    # Every snapshot carries exactly one version. A season may span models only through a declared, ordered hand-off
+    # (early-season blend for weeks 1-5, then the aggregate model); any other mismatch is still an error.
+    ordered = sorted(snapshots, key=lambda snapshot: int(snapshot["week"]))
+    require(all(snapshot.get("freezeVersion") for snapshot in ordered), "Prediction snapshot without a frozen model version")
+    in_week_order = [snapshot["freezeVersion"] for snapshot in ordered]
+    model_versions = [v for i, v in enumerate(in_week_order) if i == 0 or v != in_week_order[i - 1]]
+    require(
+        len(model_versions) == 1 or tuple(model_versions) in ALLOWED_MODEL_HANDOFFS,
+        "Prediction snapshots span more than one frozen model version",
+    )
+    model_version = " -> ".join(model_versions)
 
     def empty_stats():
         return {"games": 0, "graded": 0, "correct": 0, "abs_errors": []}
@@ -427,6 +436,7 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots):
     return {
         "season": year,
         "modelVersion": model_version,
+        "modelVersions": model_versions,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "weeks": week_records,
         "conferences": conferences,

@@ -483,6 +483,7 @@ export type PredictionMarginBucket = PredictionRecordStats & {
 export type PredictionsTrackRecord = {
   season: number;
   modelVersion: string;
+  modelVersions?: string[];
   generatedAt: string;
   weeks: PredictionWeekRecord[];
   conferences?: PredictionConferenceRecord[];
