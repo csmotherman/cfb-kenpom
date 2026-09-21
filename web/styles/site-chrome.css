@@ -13,7 +13,7 @@
 
 .site-header__inner {
   display: grid !important;
-  grid-template-columns: minmax(330px, 1fr) auto minmax(330px, 1fr);
+  grid-template-columns: minmax(330px, 1fr) auto minmax(330px, 1fr) !important;
   align-items: center;
   width: 100%;
   min-height: 62px !important;
@@ -233,7 +233,7 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-be
 
 @media (max-width: 1080px) {
   .site-header__inner {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto !important;
     min-height: 58px !important;
   }
 
@@ -567,3 +567,35 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
     max-height: 42px !important;
   }
 }
+
+/* Shared desktop chrome lock — every route uses the Rankings header geometry. */
+@media (min-width: 1081px) {
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__inner {
+    display: grid !important;
+    grid-template-columns: minmax(330px, 1fr) auto minmax(330px, 1fr) !important;
+    align-items: center !important;
+    min-height: 76px !important;
+    padding: 0 clamp(28px, 3.2vw, 62px) !important;
+    gap: 24px !important;
+  }
+
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .logotype {
+    justify-self: start !important;
+  }
+
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__tagline {
+    display: inline-flex !important;
+    justify-self: center !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+  }
+
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-header__actions {
+    display: flex !important;
+    justify-self: end !important;
+    align-items: center !important;
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+  }
+}
+
