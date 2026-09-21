@@ -84,8 +84,10 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
             height={192}
             priority
           />
-          <span className="logotype__divider" aria-hidden="true" />
-          <span className="logotype__name">College Football Analytics</span>
+          <span className="logotype__desktop-branding" aria-hidden="true">
+            <span className="logotype__divider" />
+            <span className="logotype__name">College Football Analytics</span>
+          </span>
         </Link>
         <span className="eyebrow site-header__tagline">{tagline}</span>
         <div className="site-header__actions">
