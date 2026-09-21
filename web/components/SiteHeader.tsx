@@ -87,9 +87,8 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
           <span className="logotype__divider" aria-hidden="true" />
           <span className="logotype__name">College Football Analytics</span>
         </Link>
-        <div className="site-header__right">
-          <span className="eyebrow site-header__tagline">{tagline}</span>
-          <div className="site-header__actions">
+        <span className="eyebrow site-header__tagline">{tagline}</span>
+        <div className="site-header__actions">
             <AuthLink />
             <div className={"site-search" + (open ? " site-search--open" : "")} ref={rootRef}>
               <button
@@ -105,6 +104,10 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
                 </svg>
               </button>
               <div className="site-search__box">
+                <svg className="site-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
                 <input
                   ref={inputRef}
                   type="search"
@@ -146,7 +149,6 @@ export default function SiteHeader({ tagline }: { tagline: string }) {
                 ))}
               </div>
             </div>
-          </div>
         </div>
       </div>
     </header>
