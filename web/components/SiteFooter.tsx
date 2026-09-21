@@ -23,8 +23,12 @@ export default function SiteFooter({ note }: { note: string }) {
           <p>{brandedNote}</p>
         </div>
         <div className="site-footer__links">
-          <Link href="/methodology">Methodology</Link>
+          <Link href="/ratings">Ratings</Link>
+          <Link href="/rankings">The PRIME 25</Link>
           <Link href="/predictions">Predictions</Link>
+          <Link href="/teams">Teams</Link>
+          <Link href="/methodology">Methodology</Link>
+          <Link href="/learn">Learn</Link>
           <Link href="/upgrade">PRIME Advanced</Link>
         </div>
       </div>

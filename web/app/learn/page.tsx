@@ -1,12 +1,15 @@
 import Link from "next/link";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbJsonLd, pageMetadata, webPageJsonLd } from "@/lib/seo";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
-export const metadata = {
-  title: "Learn | PRIME Football",
-  description: "How PRIME Football's ratings and predictions work, how they are graded, and how much to trust them each week of the season.",
-};
+export const metadata = pageMetadata({
+  title: "Learn How PRIME College Football Ratings Work",
+  description: "How PRIME's ratings and predictions work, how they are graded, and how much to trust them each week of the season.",
+  path: "/learn",
+});
 
 const ITEMS = [
   { href: "/methodology", title: "Methodology", text: "What APR, SOS, SOR and the advanced metrics mean, and how they are built." },
@@ -17,6 +20,10 @@ const ITEMS = [
 export default function LearnPage() {
   return (
     <>
+      <JsonLd data={[
+        webPageJsonLd({ path: "/learn", name: "Learn How PRIME College Football Ratings Work", description: "How PRIME's ratings and predictions work, how they are graded, and how much to trust them each week of the season.", type: "CollectionPage" }),
+        breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Learn", path: "/learn" }]),
+      ]} />
       <a className="skip-link" href="#learnContent">Skip to content</a>
       <SiteHeader tagline="Transparent College Football Analytics" />
       <SiteNav />

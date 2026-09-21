@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL, THEME_COLOR, TITLE_TEMPLATE, isProductionDeployment, ogImageUrl } from "@/lib/seo";
 import Script from "next/script";
 import { TooltipProvider } from "@/components/Tooltip";
-import BrandTitleGuard from "@/components/BrandTitleGuard";
 import MatchupPredictionPortal from "@/components/MatchupPredictionPortal";
 import ExploratoryStickyTableHeader from "@/components/ExploratoryStickyTableHeader";
 import AdvancedAllColumnsPolicy from "@/components/AdvancedAllColumnsPolicy";
@@ -60,11 +60,60 @@ import "@/styles/trust-state.css";
 import "@/styles/home-rankings.css";
 import "@/styles/rankings-prime25.css";
 import "@/styles/site-chrome.css";
+import "@/styles/seo-content.css";
+
+export const viewport: Viewport = {
+  themeColor: THEME_COLOR,
+};
+
+const production = isProductionDeployment();
+const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+const bingVerification = process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION;
 
 export const metadata: Metadata = {
-  title: "PRIME Football | College Football Analytics",
-  description:
-    "PRIME Football provides opponent-adjusted college football ratings, weekly matchup analysis, offensive and defensive analytics, strength of schedule, weekly movement, and historical seasons.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: DEFAULT_TITLE, template: TITLE_TEMPLATE },
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: "sports",
+  referrer: "strict-origin-when-cross-origin",
+  formatDetection: { email: false, address: false, telephone: false },
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_US",
+    url: SITE_URL,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [{ url: ogImageUrl(), width: 1200, height: 630, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [{ url: ogImageUrl(), alt: SITE_NAME }],
+  },
+  // Only production deployments are indexable; previews and local builds are never crawled into search results.
+  robots: production
+    ? { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } }
+    : { index: false, follow: false },
+  verification: {
+    ...(googleVerification ? { google: googleVerification } : {}),
+    ...(bingVerification ? { other: { "msvalidate.01": bingVerification } } : {}),
+  },
 };
 
 const analyticsInit = `window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};`;
@@ -74,7 +123,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <meta name="theme-color" content="#142742" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font -- this is the
@@ -87,7 +135,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <BrandTitleGuard />
         <ExploratoryStickyTableHeader />
         <AdvancedAllColumnsPolicy />
         <TableFreshnessStamp />

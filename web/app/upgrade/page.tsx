@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbJsonLd, pageMetadata, webPageJsonLd } from "@/lib/seo";
 import { redirect } from "next/navigation";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
@@ -13,20 +15,20 @@ import {
 
 export const dynamic = "force-dynamic";
 
+// Canonical is always /upgrade: ?feature=, ?plan= and ?checkout= variants are UI state, not separate pages.
 export function generateMetadata(): Metadata {
   if (isEarlyBetaActive()) {
-    return {
-      title: "Early Beta Access | PRIME Football",
-      description:
-        "Use PRIME Advanced Analytics and Predictions free during Early Beta, then choose Advanced or Advanced + Predictions beginning October 16, 2026.",
-    };
+    return pageMetadata({
+      title: "PRIME Advanced: Early Beta Access",
+      description: "Use PRIME Advanced Analytics and Predictions free during Early Beta, then choose Advanced or Advanced + Predictions beginning October 16, 2026.",
+      path: "/upgrade",
+    });
   }
-
-  return {
-    title: "Plans | PRIME Football",
-    description:
-      "Compare PRIME Advanced at $1.99 per month with PRIME Advanced + Predictions at $4.99 per month.",
-  };
+  return pageMetadata({
+    title: "PRIME Advanced Plans",
+    description: "Compare PRIME Advanced at $1.99 per month with PRIME Advanced + Predictions at $4.99 per month.",
+    path: "/upgrade",
+  });
 }
 
 type UpgradePageProps = {
@@ -85,6 +87,10 @@ export default async function UpgradePage({ searchParams }: UpgradePageProps) {
 
   return (
     <>
+      <JsonLd data={[
+        webPageJsonLd({ path: "/upgrade", name: "PRIME Advanced", description: "PRIME Advanced Analytics and Predictions plans." }),
+        breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "PRIME Advanced", path: "/upgrade" }]),
+      ]} />
       <a className="skip-link" href="#upgradeContent">Skip to plans</a>
       <SiteHeader tagline="Advanced College Football Research" />
       <SiteNav />

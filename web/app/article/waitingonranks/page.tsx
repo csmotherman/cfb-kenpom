@@ -1,14 +1,13 @@
 import Link from "next/link";
+import { noIndexMetadata } from "@/lib/seo";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
-export const metadata = {
-  title: "Nobody Knows Who's Good Yet. Here's Why Week 4 Matters | PRIME Football",
-  description:
-    "After two games, college football is still split into dozens of disconnected groups. PRIME's data shows why rankings become much more useful around Week 4.",
-  robots: { index: false, follow: false },
-};
+export const metadata = noIndexMetadata(
+  "Nobody Knows Who's Good Yet. Here's Why Week 4 Matters",
+  "After two games, college football is still split into dozens of disconnected groups. PRIME's data shows why rankings become much more useful around Week 4.",
+);
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (

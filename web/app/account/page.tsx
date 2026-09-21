@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { noIndexMetadata } from "@/lib/seo";
 import { redirect } from "next/navigation";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
@@ -15,10 +16,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Account | PRIME Football",
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = noIndexMetadata("Account", "Manage your PRIME College Football Analytics account.");
 
 type AccountPageProps = {
   searchParams: Promise<{

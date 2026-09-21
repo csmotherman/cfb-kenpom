@@ -1,15 +1,14 @@
 import Link from "next/link";
+import { noIndexMetadata } from "@/lib/seo";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { logoUrl } from "@/lib/teamCode";
 
-export const metadata = {
-  title: "What Turnovers Actually Cost: PPA/Play Before and After | PRIME Football",
-  description:
-    "We pulled every turnover from three Week 2 classics -- Michigan-Oklahoma, Alabama-Kentucky, and Texas-Ohio State -- and measured exactly how much each one swung a team's PPA per play.",
-  robots: { index: false, follow: false },
-};
+export const metadata = noIndexMetadata(
+  "What Turnovers Actually Cost: PPA/Play Before and After",
+  "We pulled every turnover from three Week 2 classics -- Michigan-Oklahoma, Alabama-Kentucky, and Texas-Ohio State -- and measured exactly how much each one swung a team's PPA per play.",
+);
 
 type TurnoverPlay = {
   qtrClock: string;

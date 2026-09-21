@@ -1,16 +1,23 @@
 import Link from "next/link";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbJsonLd, pageMetadata, webPageJsonLd } from "@/lib/seo";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
-export const metadata = {
-  title: "Methodology | PRIME Football",
-  description: "How PRIME Football builds opponent-adjusted college football ratings, team profiles, weekly matchup snapshots, and model research.",
-};
+export const metadata = pageMetadata({
+  title: "College Football Ratings Methodology",
+  description: "How PRIME builds opponent-adjusted college football ratings, strength of schedule and record, advanced stats and predictions, and what each number means.",
+  path: "/methodology",
+});
 
 export default function MethodologyPage() {
   return (
     <>
+      <JsonLd data={[
+        webPageJsonLd({ path: "/methodology", name: "College Football Ratings Methodology", description: "How PRIME builds opponent-adjusted college football ratings, strength of schedule and record, advanced stats and predictions." }),
+        breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Methodology", path: "/methodology" }]),
+      ]} />
       <a className="skip-link" href="#methodologyContent">Skip to methodology</a>
       <SiteHeader tagline="Transparent College Football Analytics" />
       <SiteNav />

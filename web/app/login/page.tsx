@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
+import { noIndexMetadata } from "@/lib/seo";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import { login } from "@/app/auth/actions";
 
-export const metadata: Metadata = {
-  title: "Sign in | PRIME Football",
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = noIndexMetadata("Sign in", "Manage your PRIME College Football Analytics account.");
 
 type LoginPageProps = {
   searchParams: Promise<{ error?: string; message?: string; next?: string }>;
