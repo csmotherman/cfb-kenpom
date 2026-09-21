@@ -1,0 +1,22 @@
+name: PRIME composite rating experiment
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'research/rating_methodology_validation/composite_feature_test.py'
+      - '.github/workflows/prime-composite-experiment.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy
+      - name: Run leakage-safe composite experiment
+        run: python research/rating_methodology_validation/composite_feature_test.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prime-composite-experiment
+          path: research/rating_methodology_validation/results/composite_feature_test.json
