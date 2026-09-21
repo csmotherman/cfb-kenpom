@@ -28,7 +28,8 @@ def synthetic_round_robin_rows(season):
     base = dict(
         conference="C1", opponent_classification="fbs", classification="fbs",
         neutral_site=False, epaSum=1.0, epaPlays=1, successfulPlays=1,
-        successEligiblePlays=1, successfulPlayYards=8.0,
+        successEligiblePlays=2, successfulPlayYards=8.0,
+        explosivePlays=1, explosiveEligiblePlays=2,
     )
     return [
         {**base, "season": season, "gameId": "1", "team": "A", "opponent": "B",
@@ -122,6 +123,32 @@ class CurrentSeasonRatingContractTests(unittest.TestCase):
         )
         self.assertAlmostEqual(
             baseline["ratings"]["AdjNet"]["A"], corrupted["ratings"]["AdjNet"]["A"], places=9,
+        )
+
+    def test_live_composite_uses_success_and_explosiveness_but_not_epa(self):
+        rows = synthetic_round_robin_rows(2026)
+        baseline = R.fit_publication_composite(
+            rows, season=2026, cutoff={"siteWeek": 6, "scope": "through-site-week"},
+        )
+
+        epa_only = [{**row, "epaSum": row["epaSum"] + (100.0 if row["team"] == "A" else 0.0)} for row in rows]
+        epa_result = R.fit_publication_composite(
+            epa_only, season=2026, cutoff={"siteWeek": 6, "scope": "through-site-week"},
+        )
+        self.assertEqual(baseline["ratings"], epa_result["ratings"])
+
+        success_changed = [
+            {**row, "successfulPlays": 2.0}
+            if row["team"] == "A" and row["successEligiblePlays"] >= 2
+            else row
+            for row in rows
+        ]
+        success_result = R.fit_publication_composite(
+            success_changed, season=2026, cutoff={"siteWeek": 6, "scope": "through-site-week"},
+        )
+        self.assertNotEqual(
+            baseline["ratings"]["AdjOff"]["A"],
+            success_result["ratings"]["AdjOff"]["A"],
         )
 
     def test_publication_wrapper_still_rejects_a_raw_prior_season_row_mixed_into_input(self):
