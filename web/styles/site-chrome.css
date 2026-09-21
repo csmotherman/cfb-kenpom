@@ -361,3 +361,95 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-be
     letter-spacing: .075em !important;
   }
 }
+
+
+/* PRIME editorial chrome — cream/navy/gold treatment from approved mobile mockup */
+.site-header {
+  background:
+    radial-gradient(circle at 84% 20%, rgba(197,154,67,.055), transparent 24%),
+    #faf8f3 !important;
+}
+.site-header__inner { min-height: 76px !important; }
+.logotype__logo { width: 148px !important; }
+.logotype__name {
+  max-width: 180px !important;
+  white-space: normal !important;
+  line-height: 1.45 !important;
+  letter-spacing: .22em !important;
+}
+.site-header__tagline {
+  max-width: 250px;
+  white-space: normal;
+  line-height: 1.65;
+  text-align: left;
+}
+.site-nav a,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+  min-height: 52px !important;
+  font-family: var(--font-display);
+  font-size: 13px !important;
+  font-weight: 800;
+  letter-spacing: .065em !important;
+}
+
+@media (max-width: 760px) {
+  .site-header { position: relative; top: auto; }
+  .site-header__inner {
+    min-height: 108px !important;
+    padding: 0 22px !important;
+  }
+  .logotype { gap: 12px; }
+  .logotype__logo {
+    width: 132px !important;
+    max-height: 58px !important;
+  }
+  .logotype__divider {
+    display: block !important;
+    height: 38px !important;
+    background: #c59a43;
+  }
+  .logotype__name {
+    display: block !important;
+    max-width: 104px !important;
+    color: #596272 !important;
+    font-size: 7px !important;
+    font-weight: 800;
+    letter-spacing: .20em !important;
+    line-height: 1.6 !important;
+    white-space: normal !important;
+  }
+  .auth-link {
+    min-height: 40px !important;
+    padding: 0 13px !important;
+    font-size: 9px !important;
+    letter-spacing: .11em !important;
+  }
+  .site-search__toggle {
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+  .site-nav {
+    border-bottom-width: 3px !important;
+  }
+  .site-nav .container,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav .container {
+    padding: 0 8px !important;
+    gap: 0 !important;
+  }
+  .site-nav a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+    min-height: 48px !important;
+    padding: 0 15px !important;
+    font-family: var(--font-display);
+    font-size: 11px !important;
+    font-weight: 800;
+    letter-spacing: .045em !important;
+  }
+  .site-nav a.active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a.active {
+    color: #d9b354 !important;
+    background: rgba(255,255,255,.045);
+    box-shadow: inset 0 -3px 0 #d2a43d;
+  }
+}
