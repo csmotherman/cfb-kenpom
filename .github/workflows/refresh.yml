@@ -133,11 +133,29 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "web/public/data/schedule/$SEASON.json" "web/public/data/market-lines/$SEASON.json"
+          FILES=("web/public/data/schedule/$SEASON.json" "web/public/data/market-lines/$SEASON.json")
+          git add "${FILES[@]}"
           git commit -m "Refresh $SEASON schedule and market odds"
-          git fetch origin "$TARGET_BRANCH"
-          git rebase "origin/$TARGET_BRANCH"
-          git push origin "HEAD:$TARGET_BRANCH"
+          # Both files are regenerated outputs. If another commit landed on main since checkout, do not hand-merge
+          # (that can resurrect stale scores): rebuild them on top of the latest main and commit again.
+          for attempt in 1 2 3; do
+            git fetch origin "$TARGET_BRANCH"
+            if git rebase "origin/$TARGET_BRANCH" && git push origin "HEAD:$TARGET_BRANCH"; then
+              exit 0
+            fi
+            git rebase --abort || true
+            git reset --hard "origin/$TARGET_BRANCH"
+            python scripts/export_market_lines.py --season "$SEASON"
+            python scripts/normalize_schedule_calendar.py --season "$SEASON"
+            if [ -z "$(git status --porcelain -- "${FILES[@]}")" ]; then
+              echo "Calendar and market odds already current on the latest main."
+              exit 0
+            fi
+            git add "${FILES[@]}"
+            git commit -m "Refresh $SEASON schedule and market odds"
+          done
+          echo "Could not publish the calendar/market refresh after 3 attempts" >&2
+          exit 1
       - name: Notify Vercel of calendar/market refresh
         if: steps.calendar.outputs.changed == 'true'
         env:
