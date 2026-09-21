@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -25,6 +25,36 @@ type PrimeRankingSnapshot = {
   teams: PrimeRankingTeam[];
 };
 
+function RankingColumn({ teams }: { teams: PrimeRankingTeam[] }) {
+  return (
+    <div className="prime-25__column">
+      <div className="prime-25__column-head" aria-hidden="true">
+        <span>RK</span>
+        <span>TEAM</span>
+        <span>W-L</span>
+      </div>
+      {teams.map((team) => (
+        <Link
+          href={`/team/${team.slug}`}
+          className={`prime-25__row${team.rank <= 5 ? " prime-25__row--top5" : ""}`}
+          key={team.slug}
+        >
+          <span className={`prime-25__rank${team.rank === 1 ? " prime-25__rank--one" : ""}`}>{team.rank}</span>
+          <span className="prime-25__team">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoUrl(team.teamId, 64)} alt="" loading="lazy" decoding="async" />
+            <span className="prime-25__team-copy">
+              <strong>{team.team}</strong>
+              <small>{team.conf}</small>
+            </span>
+          </span>
+          <span className="prime-25__record">{team.record}</span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default function RankingsPage() {
   const [snapshot, setSnapshot] = useState<PrimeRankingSnapshot | null>(null);
 
@@ -38,75 +68,57 @@ export default function RankingsPage() {
       .catch(() => setSnapshot(null));
   }, []);
 
+  const columns = useMemo(() => {
+    const teams = snapshot?.teams ?? [];
+    return [teams.slice(0, 13), teams.slice(13, 25)];
+  }, [snapshot]);
+
   return (
     <>
       <a className="skip-link" href="#rankingsContent">Skip to rankings</a>
-      <SiteHeader tagline="The PRIME Top 25" />
+      <SiteHeader tagline="The PRIME 25" />
       <SiteNav />
 
       <main id="rankingsContent" className="prime-rankings container">
-        <header className="prime-rankings__hero">
-          <span className="eyebrow">PRIME Rankings</span>
-          <h1>Who has earned it?</h1>
-          <p>
-            Ratings tell you how well a team has played. Rankings ask a different question:
-            <strong> who deserves to be ranked highest right now?</strong>
-          </p>
-          <p className="prime-rankings__sub">
-            Performance meets résumé. No preseason poll boost, brand-name bonus or reputation points.
-          </p>
-          <div className="prime-rankings__release">
-            <span>New Top 25</span>
-            <strong>Every Sunday · 12 PM ET</strong>
+        <header className="prime-rankings__masthead">
+          <div className="prime-rankings__brand">
+            <span className="eyebrow">PRIME Rankings</span>
+            <h1>The PRIME 25</h1>
+            <p>Who has earned a spot among the nation&apos;s best?</p>
+          </div>
+
+          <div className="prime-rankings__meta">
+            <div className="prime-rankings__issue">
+              <span>{snapshot ? `Week ${snapshot.throughWeek}` : "Current"}</span>
+              <strong>{snapshot?.season ?? 2026}</strong>
+            </div>
+            <div className="prime-rankings__drop">
+              <span>New rankings</span>
+              <strong>Sunday · 12 PM ET</strong>
+            </div>
           </div>
         </header>
 
-        <section className="prime-rankings__card" aria-label="PRIME Top 25">
-          <div className="prime-rankings__card-head">
-            <div>
-              <span className="eyebrow">Current release</span>
-              <h2>PRIME Top 25</h2>
-            </div>
-            <div className="prime-rankings__week">
-              {snapshot ? <>Week {snapshot.throughWeek}<small>{snapshot.season}</small></> : "Loading"}
-            </div>
+        <section className="prime-25" aria-label="The PRIME 25 college football rankings">
+          <div className="prime-25__banner">
+            <span>Performance + Résumé</span>
+            <strong>THE PRIME 25</strong>
+            <span>No preseason bias</span>
           </div>
 
-          <div className="prime-rankings__table">
-            <div className="prime-rankings__row prime-rankings__row--head">
-              <span>RK</span>
-              <span>TEAM</span>
-              <span>W-L</span>
-              <span className="prime-rankings__context-col">RATING RK</span>
-              <span className="prime-rankings__context-col">SOR RK</span>
-            </div>
-            {(snapshot?.teams ?? []).map((team) => (
-              <Link href={`/team/${team.slug}`} className="prime-rankings__row" key={team.slug}>
-                <span className="prime-rankings__rank">{team.rank}</span>
-                <span className="prime-rankings__team">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="prime-rankings__team-logo" src={logoUrl(team.teamId, 64)} alt="" loading="lazy" decoding="async" />
-                  <span className="prime-rankings__team-copy"><strong>{team.team}</strong><small>{team.conf}</small></span>
-                </span>
-                <span>{team.record}</span>
-                <span className="prime-rankings__context-col">#{team.ratingRank}</span>
-                <span className="prime-rankings__context-col">#{team.sorRank}</span>
-              </Link>
-            ))}
+          <div className="prime-25__grid">
+            <RankingColumn teams={columns[0]} />
+            <RankingColumn teams={columns[1]} />
           </div>
         </section>
 
-        <aside className="prime-rankings__explain">
-          <strong>Why can Ratings and Rankings disagree?</strong>
-          <span>
-            A team can play like one of the best teams in the country without having one of the best résumés.
-            Another can earn a great record without performing at the same level possession by possession.
-          </span>
-          <Link href="/ratings">Compare with PRIME Ratings →</Link>
-        </aside>
+        <div className="prime-rankings__underbar">
+          <span>Ratings measure how well teams have played. The PRIME 25 measures what they&apos;ve earned.</span>
+          <Link href="/ratings">View Performance Analytics →</Link>
+        </div>
       </main>
 
-      <SiteFooter note="PRIME Rankings are a weekly Top 25 built from current-season performance and strength of record. Ratings remain the live measure of how well teams have performed." />
+      <SiteFooter note="The PRIME 25 is released every Sunday at 12 PM ET and combines current-season performance with strength of record. Teams receive no boost from preseason polls, brand name or reputation." />
     </>
   );
 }
