@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import { logoUrl } from "@/lib/teamCode";
 
 type PrimeRankingTeam = {
   rank: number;
@@ -82,7 +83,11 @@ export default function RankingsPage() {
             {(snapshot?.teams ?? []).map((team) => (
               <Link href={`/team/${team.slug}`} className="prime-rankings__row" key={team.slug}>
                 <span className="prime-rankings__rank">{team.rank}</span>
-                <span className="prime-rankings__team"><strong>{team.team}</strong><small>{team.conf}</small></span>
+                <span className="prime-rankings__team">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="prime-rankings__team-logo" src={logoUrl(team.teamId, 64)} alt="" loading="lazy" decoding="async" />
+                  <span className="prime-rankings__team-copy"><strong>{team.team}</strong><small>{team.conf}</small></span>
+                </span>
                 <span>{team.record}</span>
                 <span className="prime-rankings__context-col">#{team.ratingRank}</span>
                 <span className="prime-rankings__context-col">#{team.sorRank}</span>
