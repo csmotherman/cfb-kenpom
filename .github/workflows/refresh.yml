@@ -27,8 +27,9 @@ on:
 
 concurrency:
   group: refresh-rankings-data
-  # Never allow an older formula/data build to publish after a newer one.
-  cancel-in-progress: true
+  # Formula/manual rebuilds may supersede stale work. Hourly scheduled checks
+  # must never cancel an already-running publisher simply because the clock fired.
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 permissions:
   contents: write
