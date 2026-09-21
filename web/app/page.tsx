@@ -249,13 +249,48 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="prime-home-matchup__kickoff">{kickoffLabel(featuredGame)}</div>
+                <div className="prime-home-matchup__kickoff">
+                  {kickoffLabel(featuredGame)}
+                  {featuredGame.venue ? <span> · {featuredGame.venue}</span> : null}
+                </div>
 
-                <div className="prime-home-matchup__edge">
-                  <span>Current Net APR Gap</span>
-                  <strong>
-                    {matchupEdge ? `${matchupEdge.team} +${matchupEdge.value.toFixed(1)}` : "Preview available"}
-                  </strong>
+                <div className="prime-home-matchup__metrics" aria-label="Featured matchup PRIME ratings">
+                  <div>
+                    <span>Overall</span>
+                    <strong>{featuredAway?.adjEM === null || featuredAway?.adjEM === undefined ? "—" : featuredAway.adjEM.toFixed(1)}</strong>
+                    <small>{featuredAway?.rank ? `#${featuredAway.rank}` : ""}</small>
+                  </div>
+                  <div>
+                    <span>Off</span>
+                    <strong>{featuredAway?.adjO === null || featuredAway?.adjO === undefined ? "—" : featuredAway.adjO.toFixed(1)}</strong>
+                    <small>{featuredAway?.adjORank ? `#${featuredAway.adjORank}` : ""}</small>
+                  </div>
+                  <div>
+                    <span>Def</span>
+                    <strong>{featuredAway?.adjD === null || featuredAway?.adjD === undefined ? "—" : featuredAway.adjD.toFixed(1)}</strong>
+                    <small>{featuredAway?.adjDRank ? `#${featuredAway.adjDRank}` : ""}</small>
+                  </div>
+
+                  <div className="prime-home-matchup__metric-edge">
+                    <span>PRIME Edge</span>
+                    <strong>{matchupEdge ? `${matchupEdge.team} +${matchupEdge.value.toFixed(1)}` : "Preview"}</strong>
+                  </div>
+
+                  <div>
+                    <span>Off</span>
+                    <strong>{featuredHome?.adjO === null || featuredHome?.adjO === undefined ? "—" : featuredHome.adjO.toFixed(1)}</strong>
+                    <small>{featuredHome?.adjORank ? `#${featuredHome.adjORank}` : ""}</small>
+                  </div>
+                  <div>
+                    <span>Def</span>
+                    <strong>{featuredHome?.adjD === null || featuredHome?.adjD === undefined ? "—" : featuredHome.adjD.toFixed(1)}</strong>
+                    <small>{featuredHome?.adjDRank ? `#${featuredHome.adjDRank}` : ""}</small>
+                  </div>
+                  <div>
+                    <span>Overall</span>
+                    <strong>{featuredHome?.adjEM === null || featuredHome?.adjEM === undefined ? "—" : featuredHome.adjEM.toFixed(1)}</strong>
+                    <small>{featuredHome?.rank ? `#${featuredHome.rank}` : ""}</small>
+                  </div>
                 </div>
 
                 <Link className="prime-home-matchup__cta" href={`/matchup/${year}/${encodeURIComponent(featuredGame.gameId)}`}>
