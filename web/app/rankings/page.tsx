@@ -25,6 +25,28 @@ type PrimeRankingSnapshot = {
   teams: PrimeRankingTeam[];
 };
 
+function RankingTile({ team, featured = false }: { team: PrimeRankingTeam; featured?: boolean }) {
+  return (
+    <Link
+      href={`/team/${team.slug}`}
+      className={`prime25-tile${featured ? " prime25-tile--featured" : ""}${team.rank === 1 ? " prime25-tile--number-one" : ""}`}
+    >
+      <span className="prime25-tile__rank">{team.rank}</span>
+
+      <span className="prime25-tile__body">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoUrl(team.teamId, 96)} alt="" loading="lazy" decoding="async" />
+        <span className="prime25-tile__copy">
+          <strong>{team.team}</strong>
+          <small>{team.conf}</small>
+        </span>
+      </span>
+
+      <span className="prime25-tile__record">{team.record}</span>
+    </Link>
+  );
+}
+
 export default function RankingsPage() {
   const [snapshot, setSnapshot] = useState<PrimeRankingSnapshot | null>(null);
 
@@ -37,6 +59,10 @@ export default function RankingsPage() {
       .then(setSnapshot)
       .catch(() => setSnapshot(null));
   }, []);
+
+  const teams = snapshot?.teams ?? [];
+  const topFive = teams.slice(0, 5);
+  const rest = teams.slice(5);
 
   return (
     <>
@@ -74,27 +100,28 @@ export default function RankingsPage() {
 
             <div className="prime25-divider" />
 
-            <section className="prime25-grid" aria-label="The PRIME 25 college football rankings">
-              {(snapshot?.teams ?? []).map((team) => (
-                <Link
-                  href={`/team/${team.slug}`}
-                  className={`prime25-tile${team.rank === 1 ? " prime25-tile--number-one" : ""}`}
-                  key={team.slug}
-                >
-                  <span className="prime25-tile__rank">{team.rank}</span>
+            <section className="prime25-top-five" aria-label="PRIME Top 5">
+              <div className="prime25-section-label">
+                <strong>Top 5</strong>
+                <span>Nation&apos;s highest-ranked teams</span>
+              </div>
+              <div className="prime25-top-five__grid">
+                {topFive.map((team) => (
+                  <RankingTile team={team} featured key={team.slug} />
+                ))}
+              </div>
+            </section>
 
-                  <span className="prime25-tile__body">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={logoUrl(team.teamId, 96)} alt="" loading="lazy" decoding="async" />
-                    <span className="prime25-tile__copy">
-                      <strong>{team.team}</strong>
-                      <small>{team.conf}</small>
-                    </span>
-                  </span>
-
-                  <span className="prime25-tile__record">{team.record}</span>
-                </Link>
-              ))}
+            <section className="prime25-rest" aria-label="PRIME rankings 6 through 25">
+              <div className="prime25-section-label prime25-section-label--subtle">
+                <strong>6–25</strong>
+                <span>The rest of the PRIME 25</span>
+              </div>
+              <div className="prime25-grid">
+                {rest.map((team) => (
+                  <RankingTile team={team} key={team.slug} />
+                ))}
+              </div>
             </section>
 
             <footer className="prime25-stage__footer">
