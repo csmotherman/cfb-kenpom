@@ -185,8 +185,8 @@
   display: none;
 }
 
-.site-nav a,
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+.site-nav__links > a,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -209,16 +209,16 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
   transition: color .14s ease, background .14s ease, box-shadow .14s ease;
 }
 
-.site-nav a:hover,
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a:hover {
+.site-nav__links > a:hover,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a:hover {
   color: #fff !important;
   background: rgba(255,255,255,.045);
 }
 
-.site-nav a.active,
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a.active,
-.site-nav a[data-beta="true"].active,
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-beta="true"].active {
+.site-nav__links > a.active,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a.active,
+.site-nav__links > a[data-beta="true"].active,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a[data-beta="true"].active {
   color: #f3d27f !important;
   background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.035));
   box-shadow:
@@ -226,8 +226,8 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-be
     0 4px 12px rgba(0,0,0,.09);
 }
 
-.site-nav a[data-beta="true"],
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-beta="true"] {
+.site-nav__links > a[data-beta="true"],
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a[data-beta="true"] {
   color: #c8d0db !important;
 }
 
@@ -249,8 +249,8 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-be
     width: 210px !important;
   }
 
-  .site-nav a,
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+  .site-nav__links > a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a {
     padding-left: 16px !important;
     padding-right: 16px !important;
   }
@@ -353,8 +353,8 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-be
     flex-wrap: nowrap !important;
   }
 
-  .site-nav a,
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+  .site-nav__links > a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a {
     min-height: 42px !important;
     padding: 0 12px !important;
     font-size: 8.5px !important;
@@ -383,8 +383,8 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-be
   line-height: 1.65;
   text-align: left;
 }
-.site-nav a,
-body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+.site-nav__links > a,
+body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a {
   min-height: 52px !important;
   font-family: var(--font-display);
   font-size: 13px !important;
@@ -437,8 +437,8 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
     padding: 0 8px !important;
     gap: 0 !important;
   }
-  .site-nav a,
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+  .site-nav__links > a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a {
     min-height: 48px !important;
     padding: 0 15px !important;
     font-family: var(--font-display);
@@ -446,8 +446,8 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
     font-weight: 800;
     letter-spacing: .045em !important;
   }
-  .site-nav a.active,
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a.active {
+  .site-nav__links > a.active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a.active {
     color: #d9b354 !important;
     background: rgba(255,255,255,.045);
     box-shadow: inset 0 -3px 0 #d2a43d;
@@ -509,8 +509,8 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
     scrollbar-width: none;
   }
 
-  .site-nav a,
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+  .site-nav__links > a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a {
     min-height: 44px !important;
     height: 44px !important;
     width: auto !important;
@@ -524,17 +524,17 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
     color: #cbd2dc !important;
   }
 
-  .site-nav a.active,
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a.active,
-  .site-nav a[data-beta="true"].active,
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-beta="true"].active {
+  .site-nav__links > a.active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a.active,
+  .site-nav__links > a[data-beta="true"].active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a[data-beta="true"].active {
     color: #f0c75e !important;
     background: rgba(255,255,255,.045) !important;
     box-shadow: inset 0 -3px 0 #d2a43d !important;
   }
 
-  .site-nav a[data-beta="true"]:not(.active),
-  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-beta="true"]:not(.active) {
+  .site-nav__links > a[data-beta="true"]:not(.active),
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav__links > a[data-beta="true"]:not(.active) {
     color: #cbd2dc !important;
   }
 }
@@ -1273,6 +1273,49 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .predictions-table-
     font-weight: 800 !important;
     letter-spacing: .035em !important;
     line-height: 1 !important;
+  }
+}
+
+/* Brand link isolation: the PRIME wordmark never inherits tab styles. */
+html body .site-nav.site-nav--unified .site-nav__brand,
+body:has(#ratingsTable, #advancedTable, #predictionsContent)
+  .site-nav.site-nav--unified .site-nav__brand,
+body:has(.prime-home)
+  .site-nav.site-nav--unified .site-nav__brand,
+body:has(.prime25-page)
+  .site-nav.site-nav--unified .site-nav__brand {
+  color: #f2cf77 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 25px !important;
+  font-weight: 700 !important;
+  letter-spacing: .02em !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 1280px) and (min-width: 761px) {
+  html body .site-nav.site-nav--unified .site-nav__brand,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__brand,
+  body:has(.prime-home)
+    .site-nav.site-nav--unified .site-nav__brand,
+  body:has(.prime25-page)
+    .site-nav.site-nav--unified .site-nav__brand {
+    font-size: 22px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html body .site-nav.site-nav--unified .site-nav__brand,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__brand,
+  body:has(.prime-home)
+    .site-nav.site-nav--unified .site-nav__brand,
+  body:has(.prime25-page)
+    .site-nav.site-nav--unified .site-nav__brand {
+    font-size: 18px !important;
   }
 }
 
