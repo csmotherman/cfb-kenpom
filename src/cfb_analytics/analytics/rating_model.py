@@ -688,6 +688,14 @@ def _fit_possession_efficiency(
     ratings["AdjNet"] = {
         team: ratings["AdjOff"][team] + ratings["AdjDef"][team] for team in teams
     }
+    # Internal-only component exposure keeps the early-season prior-opponent
+    # taper in possession-APR units. Site exporters ignore these keys.
+    ratings["PossessionAdjOff"] = {
+        team: RATING_SCALE * float(offense[team]) for team in teams
+    }
+    ratings["PossessionAdjDef"] = {
+        team: RATING_SCALE * float(defense[team]) for team in teams
+    }
 
     league_mean = float(fit["leagueMean"])
     weighted_sse = 0.0
