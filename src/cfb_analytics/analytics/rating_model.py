@@ -70,9 +70,9 @@ from cfb_analytics.analytics.iterative_ratings import _observations, fit_metric_
 
 MODEL_MODES = ("hierarchical_hfa", "legacy")
 
-RATING_MODEL_ID = "adj-rating-possession-field-position-v5"
+RATING_MODEL_ID = "adj-rating-prime-composite-v6"
 LEGACY_RATING_MODEL_ID = "adj-rating-legacy-srs-ypp-v1"
-MODEL_VERSION = "possession-efficiency-field-position-adjusted-v5"
+MODEL_VERSION = "prime-apr-success-explosiveness-v6"
 
 # Approximately one game's worth of offensive possessions. This is a neutral,
 # zero-effect stabilizer, not an external estimate of any team's strength.
@@ -112,22 +112,33 @@ def prior_season_weight(site_week):
     return PRIOR_SEASON_TAPER_START_WEIGHT * remaining / span
 
 RATING_INPUT_VERSION = "validated-drive-field-position-adjusted-v2"
-RATING_SCALE = 10.0  # adjusted points/drive effect -> points per 10 resolved possessions.
+RATING_SCALE = 10.0  # preserves the familiar APR-equivalent display scale.
 POSSESSION_SPEC = (
     "PossessionPoints",
     "fieldPositionAdjustedDriveValue",
     "resolvedPointPossessions",
 )
+SUCCESS_SPEC = ("Success", "successfulPlays", "successEligiblePlays")
+EXPLOSIVE_SPEC = ("Explosive", "explosivePlays", "explosiveEligiblePlays")
 
-# These play-level fields remain on the composite-input row for compatibility
-# with the existing site-build route and its audit trail. They are not inputs to
-# the possession rating itself.
+# Frozen after the 2014-2025 leakage-safe walk-forward comparison in
+# research/rating_methodology_validation/composite_feature_test.py. The
+# full-sample post-validation regression is normalized to the APR coefficient
+# so the published scale remains anchored to the existing possession rating.
+# EPA was tested but excluded: once Success + Explosiveness are present it
+# added effectively no out-of-sample signal.
+SUCCESS_APR_EQUIVALENT_WEIGHT = 4.265087804255385
+EXPLOSIVE_APR_EQUIVALENT_WEIGHT = 3.123668980132548
+PLAY_LEVEL_RIDGE_EQUIVALENT_PLAYS = 10.0
+
 COMPOSITE_FIELDS = (
     "epaSum",
     "epaPlays",
     "successfulPlays",
     "successEligiblePlays",
     "successfulPlayYards",
+    "explosivePlays",
+    "explosiveEligiblePlays",
 )
 POSSESSION_FIELDS = (
     "offensiveDrivePoints",
@@ -371,6 +382,28 @@ def _validated_model_rows(rows: list[dict[str, Any]], season: int):
                 f"Resolved drive observations do not reconcile for {game_id} / {team}"
             )
 
+        component_values = {}
+        for numerator_field, denominator_field in (
+            ("successfulPlays", "successEligiblePlays"),
+            ("explosivePlays", "explosiveEligiblePlays"),
+        ):
+            numerator = row.get(numerator_field)
+            denominator = row.get(denominator_field)
+            if not _finite(numerator) or not _finite(denominator):
+                raise RatingModelError(
+                    f"Non-finite {numerator_field}/{denominator_field} input for "
+                    f"{game_id} / {team}"
+                )
+            numerator = float(numerator)
+            denominator = float(denominator)
+            if numerator < 0 or denominator < 0 or numerator > denominator:
+                raise RatingModelError(
+                    f"Invalid {numerator_field}/{denominator_field} counts for "
+                    f"{game_id} / {team}: {numerator:g}/{denominator:g}"
+                )
+            component_values[numerator_field] = numerator
+            component_values[denominator_field] = denominator
+
         model_rows.append(
             {
                 "team": team,
@@ -378,6 +411,7 @@ def _validated_model_rows(rows: list[dict[str, Any]], season: int):
                 "offensiveDrivePoints": float(points),
                 "resolvedPointPossessions": float(possessions),
                 "resolvedDriveObservations": drive_observations,
+                **component_values,
             }
         )
 
@@ -491,6 +525,30 @@ def _refine_with_prior_season_opponents(
     return refined_offense, refined_defense
 
 
+def _fit_play_component(
+    model_rows: list[dict[str, Any]],
+    spec: tuple[str, str, str],
+    *,
+    cutoff: Any,
+):
+    fit = fit_metric_ratings(
+        model_rows,
+        spec,
+        shrinkage=PLAY_LEVEL_RIDGE_EQUIVALENT_PLAYS,
+        damping=1.0,
+        tolerance=1e-9,
+        max_iterations=10000,
+    )
+    if not fit.get("converged"):
+        raise RatingModelError(
+            f"{spec[0]} solver did not converge at cutoff {cutoff}; "
+            f"max delta {fit.get('maxDelta')}"
+        )
+    if set(fit.get("offense", {})) != set(fit.get("defense", {})):
+        raise RatingModelError(f"{spec[0]} offense and defense universes differ")
+    return fit
+
+
 def _fit_possession_efficiency(
     rows: list[dict[str, Any]],
     *,
@@ -553,6 +611,13 @@ def _fit_possession_efficiency(
             f"max delta {fit.get('maxDelta')}"
         )
 
+    success_fit = _fit_play_component(
+        adjusted_model_rows, SUCCESS_SPEC, cutoff=cutoff
+    )
+    explosive_fit = _fit_play_component(
+        adjusted_model_rows, EXPLOSIVE_SPEC, cutoff=cutoff
+    )
+
     offense = fit.get("offense", {})
     defense = fit.get("defense", {})
     teams = sorted(set(offense) & set(defense))
@@ -577,9 +642,43 @@ def _fit_possession_efficiency(
             weight=prior_weight,
         )
 
+    success_offense = success_fit.get("offense", {})
+    success_defense = success_fit.get("defense", {})
+    explosive_offense = explosive_fit.get("offense", {})
+    explosive_defense = explosive_fit.get("defense", {})
+    for label, component in (
+        ("Success offense", success_offense),
+        ("Success defense", success_defense),
+        ("Explosiveness offense", explosive_offense),
+        ("Explosiveness defense", explosive_defense),
+    ):
+        if set(component) != set(teams):
+            raise RatingModelError(f"{label} team universe differs from APR")
+
+    composite_offense = {
+        team: (
+            float(offense[team])
+            + SUCCESS_APR_EQUIVALENT_WEIGHT * float(success_offense[team])
+            + EXPLOSIVE_APR_EQUIVALENT_WEIGHT * float(explosive_offense[team])
+        )
+        for team in teams
+    }
+    composite_defense = {
+        team: (
+            float(defense[team])
+            + SUCCESS_APR_EQUIVALENT_WEIGHT * float(success_defense[team])
+            + EXPLOSIVE_APR_EQUIVALENT_WEIGHT * float(explosive_defense[team])
+        )
+        for team in teams
+    }
+
     ratings = {
-        "AdjOff": {team: RATING_SCALE * float(offense[team]) for team in teams},
-        "AdjDef": {team: RATING_SCALE * float(defense[team]) for team in teams},
+        "AdjOff": {
+            team: RATING_SCALE * composite_offense[team] for team in teams
+        },
+        "AdjDef": {
+            team: RATING_SCALE * composite_defense[team] for team in teams
+        },
     }
     ratings["AdjNet"] = {
         team: ratings["AdjOff"][team] + ratings["AdjDef"][team] for team in teams
@@ -611,6 +710,16 @@ def _fit_possession_efficiency(
                 "rawPointsPerResolvedPossession": raw_value,
                 "fieldPositionAdjustedPointsPerResolvedPossession": value,
                 "resolvedPossessions": weight,
+                "successRate": (
+                    float(row["successfulPlays"]) / float(row["successEligiblePlays"])
+                    if float(row["successEligiblePlays"]) > 0
+                    else None
+                ),
+                "explosivePlayRate": (
+                    float(row["explosivePlays"]) / float(row["explosiveEligiblePlays"])
+                    if float(row["explosiveEligiblePlays"]) > 0
+                    else None
+                ),
             }
         )
     weighted_rmse = math.sqrt(weighted_sse / total_weight)
@@ -622,6 +731,13 @@ def _fit_possession_efficiency(
         "inputVersion": input_version,
         "scale": RATING_SCALE,
         "ridgeEquivalentPossessions": ridge_equivalent_possessions,
+        "playLevelRidgeEquivalentPlays": PLAY_LEVEL_RIDGE_EQUIVALENT_PLAYS,
+        "componentWeights": {
+            "possessionApr": 1.0,
+            "success": SUCCESS_APR_EQUIVALENT_WEIGHT,
+            "explosiveness": EXPLOSIVE_APR_EQUIVALENT_WEIGHT,
+            "epa": 0.0,
+        },
         "drivePpdVersion": DRIVE_PPD_VERSION,
         "fieldPositionEpVersion": FIELD_POSITION_EP_VERSION,
         "fieldPositionBaseline": field_position_baseline,
@@ -662,9 +778,17 @@ def _fit_possession_efficiency(
         "fieldPositionAdjustment": field_position_baseline,
         "usesPriorSeasonTeamStrength": used_prior_season,
         "priorSeasonOpponentWeight": prior_weight,
+        "playLevelGarbageTimeExcluded": True,
         "modelMetadata": {"modelKey": model_key},
     }
-    return {"fits": {"PossessionPoints": wrapped_fit}, "ratings": ratings}
+    return {
+        "fits": {
+            "PossessionPoints": wrapped_fit,
+            "Success": success_fit,
+            "Explosive": explosive_fit,
+        },
+        "ratings": ratings,
+    }
 
 
 def fit_publication_composite(
@@ -766,18 +890,20 @@ def rating_model_metadata(
         "modelVersion": MODEL_VERSION,
         "netDefinition": "AdjNet = AdjOff + AdjDef",
         "offenseDefinition": (
-            "10 * recursively opponent-adjusted offensive points above starting-field "
-            "expectation/resolved possession"
+            "10 * (opponent-adjusted field-position possession APR + "
+            "4.2650878043 * opponent-adjusted Success Rate edge + "
+            "3.1236689801 * opponent-adjusted Explosiveness edge)"
         ),
         "defenseDefinition": (
-            "10 * recursively opponent-adjusted points above starting-field expectation "
-            "prevented/resolved possession (higher is better)"
+            "same validated APR + Success + Explosiveness blend on defense; "
+            "higher is better"
         ),
         "ratingScale": (
-            "field-position-adjusted points per 10 resolved possessions above/below average FBS"
+            "APR-equivalent composite units, anchored to the prior points-per-10-possession scale"
         ),
         "metric": (
-            "offensive points above starting-field-position expectation/resolved possession"
+            "field-position-adjusted possession efficiency plus validated play-level "
+            "Success Rate and Explosiveness; EPA tested and excluded as redundant"
         ),
         "opponentAdjustment": (
             "simultaneous recursive current-season offense-defense solve"
@@ -798,6 +924,17 @@ def rating_model_metadata(
         "usesPriorSeasonTeamStrength": USES_PRIOR_SEASON_TEAM_STRENGTH,
         "usesPreseasonTeamPrior": USES_PRESEASON_TEAM_PRIOR,
         "garbageTimeExcluded": False,
+        "playLevelGarbageTimeExcluded": True,
+        "componentWeights": {
+            "possessionApr": 1.0,
+            "success": SUCCESS_APR_EQUIVALENT_WEIGHT,
+            "explosiveness": EXPLOSIVE_APR_EQUIVALENT_WEIGHT,
+            "epa": 0.0,
+        },
+        "componentWeightValidation": (
+            "2014-2025 leakage-safe walk-forward; full-sample post-validation "
+            "coefficients normalized to APR"
+        ),
         "normalization": "none",
         "inputVersion": RATING_INPUT_VERSION,
         "season": season,
