@@ -71,6 +71,12 @@ export async function GET(request: NextRequest) {
       conference: row.conf ?? null,
       record: row.record ?? null,
       rating: row.adjEM,
+      prime_rating: row.adjEM,
+      off_rating: row.adjO,
+      off_rating_rank: row.adjORank ?? null,
+      def_rating: row.adjD,
+      def_rating_rank: row.adjDRank ?? null,
+      // Backward-compatible aliases retained for existing API consumers.
       net_apr: row.adjEM,
       off_apr: row.adjO,
       off_apr_rank: row.adjORank ?? null,
@@ -86,7 +92,15 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(
     {
       source: "PRIME CFB",
-      methodology: "APR (Adjusted Possession Rating)",
+      methodology: "PRIME v6: field-position-adjusted possession APR + opponent-adjusted Success Rate + Explosiveness",
+      model_version: "prime-apr-success-explosiveness-v6",
+      component_weights: {
+        possession_apr: 1.0,
+        success_rate: 4.265087804255385,
+        explosiveness: 3.123668980132548,
+        epa: 0.0,
+      },
+      notes: "EPA was tested in leakage-safe historical validation and excluded from the live blend as redundant once Success Rate and Explosiveness were included.",
       season,
       week,
       available_weeks: data.weeks,
