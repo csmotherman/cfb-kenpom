@@ -24,11 +24,11 @@ type Column = {
 };
 
 const COLUMNS: Column[] = [
-  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by Net APR" },
+  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by PRIME Net APR" },
   { key: "team", label: "Team", numeric: false, defaultDir: "asc" },
-  { key: "adjEM", label: "Net APR", numeric: true, defaultDir: "desc", primary: true, tooltip: "Overall opponent-adjusted possession-efficiency rating. Net APR = Off APR + Def APR, expressed as points per 10 resolved possessions above or below the FBS average." },
-  { key: "adjO", label: "Off APR", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive points per resolved possession, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
-  { key: "adjD", label: "Def APR", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted points per resolved possession prevented, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
+  { key: "adjEM", label: "Net APR", numeric: true, defaultDir: "desc", primary: true, tooltip: "PRIME's overall opponent-adjusted performance rating. Net APR = Off APR + Def APR and blends field-position-adjusted possession efficiency with opponent-adjusted Success Rate and Explosiveness." },
+  { key: "adjO", label: "Off APR", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive composite: field-position-adjusted possession APR plus Success Rate and Explosiveness. Higher is better." },
+  { key: "adjD", label: "Def APR", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted defensive composite: possession prevention plus Success Rate and Explosiveness prevention. Higher is better." },
   { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Average PRIME rating (Net APR) of opponents played through the selected week. Higher means a tougher schedule." },
   { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Wins above what an average FBS team would be expected to achieve against the same opponents and game locations. A résumé measure (won/lost), not a performance measure like Net APR. Higher is better." },
   { key: "proj", label: "Proj", numeric: true, defaultDir: "desc", rankKey: "projRank", secondary: true, tooltip: "Projection, not a rating: a forward-looking estimate of team strength (expected margin versus an average FBS team on a neutral field). Early in the season it leans on preseason expectations and fades to this season's performance by Week 4. Net APR is what a team has earned; Projection is what we expect going forward." },
@@ -371,11 +371,11 @@ export default function RatingsPage() {
           <h2 id="ratingsGlossaryTitle">Ratings glossary</h2>
         </div>
         <div className="ratings-glossary__grid">
-          <div><strong>APR</strong><span>Adjusted Possession Rating — PRIME’s opponent-adjusted possession-efficiency rating system.</span></div>
-          <div><strong>Net APR</strong><span>The overall team-strength rating. Net APR = Off APR + Def APR. Zero is FBS average; higher is better.</span></div>
-          <div><strong>Off APR</strong><span>Opponent-adjusted offensive points per resolved possession, expressed per 10 resolved possessions above or below FBS average.</span></div>
-          <div><strong>Def APR</strong><span>Opponent-adjusted points prevented per resolved possession, expressed per 10 resolved possessions above or below FBS average. Higher is better.</span></div>
-          <div><strong>Resolved possession</strong><span>A possession with a usable offensive scoring outcome in the rating model. APR uses offensive drive points rather than defensive or special-teams scores.</span></div>
+          <div><strong>APR</strong><span>Adjusted Possession Rating — PRIME’s overall opponent-adjusted performance system, anchored by possession efficiency and enhanced with validated play-level efficiency.</span></div>
+          <div><strong>Net APR</strong><span>The overall team-strength rating. Net APR = Off APR + Def APR. Zero is approximately FBS average; higher is better.</span></div>
+          <div><strong>Off APR</strong><span>Field-position-adjusted possession efficiency blended with opponent-adjusted offensive Success Rate and Explosiveness.</span></div>
+          <div><strong>Def APR</strong><span>The defensive version of the same blend: possession scoring prevention plus opponent-adjusted Success Rate and Explosiveness prevention. Higher is better.</span></div>
+          <div><strong>Resolved possession</strong><span>A possession with a usable offensive scoring outcome. It remains the backbone of APR; play-level Success Rate and Explosiveness now add complementary information.</span></div>
           <div><strong>SOS</strong><span>Strength of Schedule — average PRIME rating of opponents played through the selected week. Higher means a tougher schedule.</span></div>
           <div><strong>SOR</strong><span>Strength of Record — wins above what an average FBS team would be expected to achieve against the same opponents and game locations.</span></div>
           <div><strong>Projection</strong><span>Not a rating. A forward-looking estimate of team strength (expected margin against an average FBS team on a neutral field). Overall Rating shows what a team has earned this season; Projection is what we expect going forward, and leans on preseason information until about Week 4.</span></div>
@@ -392,7 +392,7 @@ export default function RatingsPage() {
       </aside>
 
       <div id="methodology" tabIndex={-1}>
-        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional, and SOS/SOR omit games without pregame opponent ratings. Off APR and Def APR are recursively opponent-adjusted possession-efficiency ratings based on offensive drive points per resolved possession and scaled per 10 possessions; higher is better for both. Net APR = Off APR + Def APR. SOR is wins above an average team on the same schedule -- a résumé measure, separate from Net APR's performance measure." />
+        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional. PRIME v6 blends field-position-adjusted possession APR with opponent-adjusted Success Rate and Explosiveness; EPA was tested but excluded from the live blend as redundant. Net APR = Off APR + Def APR. SOR is wins above an average team on the same schedule -- a résumé measure, separate from Net APR's performance measure." />
       </div>
     </>
   );
