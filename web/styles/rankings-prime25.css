@@ -292,32 +292,32 @@ body:has(.prime25-page) .site-nav a {
   grid-column: 2;
   grid-row: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-width: 0;
-  gap: 3px;
-  padding: 5px 20px 13px 8px;
-  text-align: center;
+  gap: 9px;
+  padding: 7px 28px 7px 10px;
+  text-align: left;
 }
 
 .prime25-tile__body img {
   display: block;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 31px;
   object-fit: contain;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .prime25-tile__copy {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 100%;
+  align-items: flex-start;
+  justify-content: center;
   min-width: 0;
-  line-height: 1;
-  text-align: center;
+  line-height: 1.05;
+  text-align: left;
 }
 
 .prime25-tile__copy strong {
@@ -326,17 +326,17 @@ body:has(.prime25-page) .site-nav a {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 9.5px;
+  font-size: 11.5px;
   font-weight: 850;
   color: #162941;
 }
 
 .prime25-tile__copy small {
-  margin-top: 2px;
-  font-size: 5.5px;
-  font-weight: 900;
-  letter-spacing: .07em;
-  color: #8a857c;
+  margin-top: 4px;
+  font-size: 7.5px;
+  font-weight: 850;
+  letter-spacing: .055em;
+  color: #747b84;
 }
 
 .prime25-tile__record {
@@ -368,13 +368,17 @@ body:has(.prime25-page) .site-nav a {
 }
 
 .prime25-tile--featured .prime25-tile__body img {
-  width: 34px;
-  height: 34px;
-  flex-basis: 34px;
+  width: 36px;
+  height: 36px;
+  flex-basis: 36px;
 }
 
 .prime25-tile--featured .prime25-tile__copy strong {
-  font-size: 10.5px;
+  font-size: 12.5px;
+}
+
+.prime25-tile--featured .prime25-tile__copy small {
+  font-size: 8px;
 }
 
 .prime25-tile--featured .prime25-tile__record {
@@ -450,10 +454,11 @@ body:has(.prime25-page) .site-footer {
   .prime25-tile { min-height: 54px; }
   .prime25-tile--featured { min-height: 62px; }
   .prime25-tile__rank { font-size: 23px; }
-  .prime25-tile__body { padding-top: 4px; padding-bottom: 11px; }
-  .prime25-tile__body img { width: 24px; height: 24px; flex-basis: 24px; }
-  .prime25-tile--featured .prime25-tile__body img { width: 29px; height: 29px; flex-basis: 29px; }
-  .prime25-tile__copy strong { font-size: 8.8px; }
+  .prime25-tile__body { gap: 7px; padding: 5px 24px 5px 8px; }
+  .prime25-tile__body img { width: 27px; height: 27px; flex-basis: 27px; }
+  .prime25-tile--featured .prime25-tile__body img { width: 31px; height: 31px; flex-basis: 31px; }
+  .prime25-tile__copy strong { font-size: 10.2px; }
+  .prime25-tile__copy small { margin-top: 3px; font-size: 6.8px; }
   .prime25-rest { margin-top: 6px; }
   .prime25-stage__footer { margin-top: 7px; padding-top: 6px; }
 }
@@ -605,23 +610,26 @@ body:has(.prime25-page) .site-footer {
   }
 
   .prime25-tile__body {
-    padding: 4px 18px 11px 4px;
+    gap: 6px;
+    padding: 5px 18px 5px 6px;
   }
 
   .prime25-tile__body img,
   .prime25-tile--featured .prime25-tile__body img {
-    width: 25px;
-    height: 25px;
-    flex-basis: 25px;
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
   }
 
   .prime25-tile__copy strong,
   .prime25-tile--featured .prime25-tile__copy strong {
-    font-size: 8px;
+    font-size: 9px;
   }
 
-  .prime25-tile__copy small {
-    font-size: 5px;
+  .prime25-tile__copy small,
+  .prime25-tile--featured .prime25-tile__copy small {
+    margin-top: 3px;
+    font-size: 6.3px;
   }
 
   .prime25-tile__record {
