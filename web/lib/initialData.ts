@@ -5,7 +5,7 @@
 import { extendRankingsToCurrentWeek } from "@/lib/rankingsExtend";
 import { getLatestYear, getPrimeRankingsServer, getRankingsSeasonServer, getScheduleServer, getSiteMeta, readPublicData, type PrimeRankingsFile } from "@/lib/seoData";
 import { buildPerformanceSummary, type PerformanceSummary } from "@/lib/performanceSummary";
-import type { CfpSeasonResult, PredictionsTrackRecord, PreseasonPower, MarketLinesSeason, ProjectionSeason, RankingsRow, RankingsSeason, ScheduleGame, ScheduleSeason } from "@/lib/types";
+import type { CfpSeasonResult, PredictionsTrackRecord, MarketLinesSeason, ProjectionSeason, RankingsRow, RankingsSeason, ScheduleGame, ScheduleSeason } from "@/lib/types";
 
 export type RatingsInitial = {
   year: string;
@@ -120,11 +120,10 @@ export async function getPredictionsInitial(defaultWeekFn: (s: ScheduleSeason) =
   if (!year) return null;
   const meta = await getSiteMeta();
   const predictionYears = meta?.predictionYears?.length ? meta.predictionYears : [year];
-  const [schedule, rankings, market, power, tracks] = await Promise.all([
+  const [schedule, rankings, market, tracks] = await Promise.all([
     getScheduleServer(year),
     currentRankings(year),
     readPublicData(`market-lines/${year}.json`) as Promise<MarketLinesSeason | null>,
-    readPublicData(`preseason-power-${year}.json`) as Promise<PreseasonPower | null>,
     Promise.all(predictionYears.map((y) => readPublicData(`prediction-track-record/${y}.json`) as Promise<PredictionsTrackRecord | null>)),
   ]);
   if (!schedule || !rankings) return null;
@@ -138,7 +137,7 @@ export async function getPredictionsInitial(defaultWeekFn: (s: ScheduleSeason) =
     selectedWeek,
     schedule: { ...schedule, byWeek: Object.fromEntries(schedule.weeks.map((w) => [String(w), w === selectedWeek ? games : []])) },
     rankings: { ...rankings, byWeek: Object.fromEntries(rankings.weeks.map((w) => [String(w), w === ratingWeek ? rankings.byWeek[String(w)] ?? [] : []])) },
-    performance: buildPerformanceSummary(tracks.filter((t): t is PredictionsTrackRecord => Boolean(t?.overall?.graded)), power, meta?.rankingsYears ?? []),
+    performance: buildPerformanceSummary(tracks.filter((t): t is PredictionsTrackRecord => Boolean(t?.overall?.graded))),
     marketLines: market ? { ...market, games: Object.fromEntries(Object.entries(market.games ?? {}).filter(([id]) => ids.has(id))) } : null,
   };
 }

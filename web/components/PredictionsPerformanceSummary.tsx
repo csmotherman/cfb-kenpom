@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getMeta, getPredictionsTrackRecord, getPreseasonPower } from "@/lib/data";
+import { getMeta, getPredictionsTrackRecord } from "@/lib/data";
 import { buildPerformanceSummary, type PerformanceSummary as Summary } from "@/lib/performanceSummary";
 
 function percent(value: number): string {
@@ -21,14 +21,11 @@ export default function PredictionsPerformanceSummary({ initial }: { initial?: S
       const meta = await getMeta();
       const latestSeason = meta.rankingsYears[meta.rankingsYears.length - 1];
       const predictionYears = meta.predictionYears?.length ? meta.predictionYears : [latestSeason];
-      const [records, power] = await Promise.all([
-        Promise.all(predictionYears.map((year) => getPredictionsTrackRecord(year))).then((rows) =>
-          rows.filter((record): record is NonNullable<typeof record> => Boolean(record?.overall.graded)),
-        ),
-        getPreseasonPower(latestSeason).catch(() => null),
-      ]);
+      const records = await Promise.all(predictionYears.map((year) => getPredictionsTrackRecord(year))).then((rows) =>
+        rows.filter((record): record is NonNullable<typeof record> => Boolean(record?.overall.graded)),
+      );
       if (cancelled) return;
-      setSummary(buildPerformanceSummary(records, power, meta.rankingsYears));
+      setSummary(buildPerformanceSummary(records));
     })().catch(() => {
       if (!cancelled) setSummary(null);
     });

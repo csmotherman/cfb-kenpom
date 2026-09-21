@@ -1,14 +1,9 @@
 """Projection: a forward-looking team-strength estimate, deliberately separate from the earned-performance Rating (APR).
 
-Projection(team, week) = w * PreseasonStrength + (1 - w) * CurrentStrength, both in points of expected margin versus an
-average FBS team on a neutral field, where
-  * PreseasonStrength is the frozen preseason-power score (prior-season results, recruiting, QB continuity), centered on the
-    rated FBS teams,
-  * CurrentStrength is the frozen aggregate prediction model's average predicted margin against every other FBS team,
-    computed only from games completed through that week,
-  * w is the codebase's existing early-season taper by games played: 1.0, .75, .50, .25, 0 (0-4+ games).
-Nothing here reads plays or drives. A team with no preseason rating (new to FBS) has no Projection until it has played
-MIN_GAMES games, then uses current strength alone; a team with a rating but too little current data uses preseason alone.
+Projection(team, week) = the frozen aggregate prediction model's average predicted margin against every other FBS team on a
+neutral field, in points, computed only from games completed through that week. It uses no preseason rating, prior-season
+strength, recruiting or any other preseason input, and nothing here reads plays or drives. A team with fewer than MIN_GAMES
+completed games has no Projection yet.
 """
 from __future__ import annotations
 
@@ -22,19 +17,8 @@ from typing import Any
 from cfb_analytics.analytics import advanced_shadow as sh
 from cfb_analytics.analytics import aggregate_prediction as agg
 
-PROJECTION_VERSION = "projection-v1"
-PRIOR_WEIGHTS = {0: 1.0, 1: 0.75, 2: 0.50, 3: 0.25, 4: 0.0}  # same taper as the early-season blend
+PROJECTION_VERSION = "projection-v2"
 SIM_WEEK = 999
-
-
-def prior_weight(games_played: int) -> float:
-    return PRIOR_WEIGHTS[max(0, min(int(games_played), max(PRIOR_WEIGHTS)))]
-
-
-def preseason_strengths(frozen_preseason: dict[str, Any]) -> dict[str, float]:
-    ratings = {t: float(v) for t, v in frozen_preseason["ratings"].items()}
-    mean = sum(ratings.values()) / len(ratings)
-    return {t: v - mean for t, v in ratings.items()}
 
 
 def current_strengths(
@@ -66,29 +50,15 @@ def current_strengths(
     return out
 
 
-def blend(pre: float | None, cur: float | None, games: int) -> tuple[float | None, float]:
-    """(projection, weight actually placed on the preseason value)."""
-    if pre is None and cur is None:
-        return None, 0.0
-    if pre is None:
-        return (cur if games >= agg.MIN_GAMES else None), 0.0
-    if cur is None:
-        return pre, 1.0
-    w = prior_weight(games)
-    return w * pre + (1.0 - w) * cur, w
-
-
 def build_projection(
     raw_root: Path,
     season: int,
     frozen_agg: dict[str, Any],
-    frozen_preseason: dict[str, Any],
     site_weeks: list[int],
     identity: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     team_rows, game_rows = sh.load_aggregate_games(raw_root, season)
     teams = sorted({g[s] for g in game_rows if g["fbsVsFbs"] for s in ("homeTeam", "awayTeam")})
-    pre = preseason_strengths(frozen_preseason)
     identity = identity or {}
     by_week: dict[str, list[dict[str, Any]]] = {}
     for wk in site_weeks:
@@ -101,22 +71,18 @@ def build_projection(
         cur = current_strengths(team_rows, game_rows, frozen_agg, teams, cutoff)
         rows = []
         for t in teams:
-            proj, w = blend(pre.get(t), cur.get(t), played[t])
-            if proj is None:
+            if t not in cur or played[t] < agg.MIN_GAMES:
                 continue
             ident = identity.get(t, {})
-            rows.append({"team": t, "slug": ident.get("slug"), "teamId": ident.get("teamId"), "projection": round(proj, 2),
-                         "preseason": round(pre[t], 2) if t in pre else None, "current": round(cur[t], 2) if t in cur else None,
-                         "priorWeight": w, "games": played[t]})
+            rows.append({"team": t, "slug": ident.get("slug"), "teamId": ident.get("teamId"), "projection": round(cur[t], 2),
+                         "current": round(cur[t], 2), "games": played[t]})
         rows.sort(key=lambda r: -r["projection"])
         for i, r in enumerate(rows, 1):
             r["rank"] = i
         by_week[str(wk)] = rows
     return {
         "version": PROJECTION_VERSION, "season": season, "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "definition": "Expected margin versus an average FBS team on a neutral field: preseason strength tapered out over the first four games "
-                      "and replaced by the aggregate model's current-season strength.",
-        "models": {"aggregate": frozen_agg.get("freezeVersion"), "preseason": frozen_preseason.get("freezeVersion")},
-        "priorWeights": {str(k): v for k, v in PRIOR_WEIGHTS.items()},
+        "definition": "Expected margin versus an average FBS team on a neutral field, from the aggregate model and current-season games only (no preseason inputs).",
+        "models": {"aggregate": frozen_agg.get("freezeVersion")},
         "weeks": list(site_weeks), "byWeek": by_week,
     }

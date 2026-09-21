@@ -32,7 +32,7 @@ const COLUMNS: Column[] = [
   { key: "adjD", label: "Def APR", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted defensive composite: possession prevention plus Success Rate and Explosiveness prevention. Higher is better." },
   { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Average PRIME rating (Net APR) of opponents played through the selected week. Higher means a tougher schedule." },
   { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Wins above what an average FBS team would be expected to achieve against the same opponents and game locations. A résumé measure (won/lost), not a performance measure like Net APR. Higher is better." },
-  { key: "proj", label: "Proj", numeric: true, defaultDir: "desc", rankKey: "projRank", secondary: true, tooltip: "Projection, not a rating: a forward-looking estimate of team strength (expected margin versus an average FBS team on a neutral field). Early in the season it leans on preseason expectations and fades to this season's performance by Week 4. Net APR is what a team has earned; Projection is what we expect going forward." },
+  { key: "proj", label: "Proj", numeric: true, defaultDir: "desc", rankKey: "projRank", secondary: true, tooltip: "Projection, not a rating: a forward-looking estimate of team strength (expected margin versus an average FBS team on a neutral field). It uses this season's games only, with no preseason input, so it appears once most teams have played three games. Net APR is what a team has earned; Projection is what we expect going forward." },
 ];
 
 function na(v: unknown): v is null | undefined {
@@ -160,7 +160,8 @@ export default function RatingsClient({ seo, initial }: { seo?: ReactNode; initi
       return { ...t, proj: p?.projection ?? null, projRank: p?.rank ?? null };
     });
   }, [season, week, projection]);
-  const showProj = Boolean(projection?.byWeek?.[week]);
+  // Shown once the projection covers at least half of the teams that week (it needs three games per team).
+  const showProj = (projection?.byWeek?.[week]?.length ?? 0) >= rows.length / 2 && rows.length > 0;
   const columns = useMemo(() => COLUMNS.filter((c) => c.key !== "proj" || showProj), [showProj]);
   const effectiveSortKey = sortKey === "proj" && !showProj ? "rank" : sortKey;
 
@@ -389,7 +390,7 @@ export default function RatingsClient({ seo, initial }: { seo?: ReactNode; initi
           <div><strong>Resolved possession</strong><span>A possession with a usable offensive scoring outcome. It remains the backbone of APR; play-level Success Rate and Explosiveness now add complementary information.</span></div>
           <div><strong>SOS</strong><span>Strength of Schedule — average PRIME rating of opponents played through the selected week. Higher means a tougher schedule.</span></div>
           <div><strong>SOR</strong><span>Strength of Record — wins above what an average FBS team would be expected to achieve against the same opponents and game locations.</span></div>
-          <div><strong>Projection</strong><span>Not a rating. A forward-looking estimate of team strength (expected margin against an average FBS team on a neutral field). Overall Rating shows what a team has earned this season; Projection is what we expect going forward, and leans on preseason information until about Week 4.</span></div>
+          <div><strong>Projection</strong><span>Not a rating. A forward-looking estimate of team strength (expected margin against an average FBS team on a neutral field). Overall Rating shows what a team has earned this season; Projection is what we expect going forward, and uses current-season games only (no preseason input), so it appears once most teams have played three games.</span></div>
         </div>
         <Link className="utility-link" href="/methodology">Full methodology ↗</Link>
       </section>

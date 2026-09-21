@@ -649,9 +649,7 @@ export type ProjectionRow = {
   team: string;
   projection: number;
   rank: number;
-  preseason: number | null;
   current: number | null;
-  priorWeight: number;
   games: number;
 };
 

@@ -357,7 +357,9 @@ def publish_preseason_power() -> Path:
 # games played the blend is 100% in-season signal (see early_season_blend.
 # MAX_PRIOR_GAMES) and this model has nothing left to add over the site's
 # own developing AdjNet/SOR.
-MAX_PUBLISHED_WEEK = MAX_PRIOR_GAMES + 1
+# Retired: the aggregate model (aggregate_predictions) scores week 4 onward and no preseason input is used for new
+# predictions. Weeks 1-3 keep their immutable, already-graded snapshots.
+MAX_PUBLISHED_WEEK = 3
 
 
 def publish_pending() -> list[Path]:

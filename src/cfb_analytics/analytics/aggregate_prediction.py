@@ -23,8 +23,8 @@ from cfb_analytics.analytics import advanced_shadow_eval as ev
 MODEL_VERSION = "aggregate-advanced-margin-v1"
 FREEZE_VERSION = "aggregate-advanced-2026-v1"
 TARGET_SEASON = 2026
-FIRST_PUBLISHED_WEEK = 6  # weeks 1-5 belong to the early-season blend (early_season_predictions.MAX_PUBLISHED_WEEK)
 MIN_GAMES = 3
+FIRST_PUBLISHED_WEEK = MIN_GAMES + 1  # weeks 1-3 were scored by the retired early-season blend; from week 4 every team has MIN_GAMES results
 SPECS = sh.SAME_STATS_SPECS + sh.GAME_SHAPE_SPECS
 FEATURES: tuple[str, ...] = sh.SAME_STATS_FEATURES + sh.spec_features(sh.GAME_SHAPE_SPECS)
 ALL_SEASONS = (2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025)

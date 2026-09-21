@@ -1,6 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { extendRankingsToCurrentWeek } from "./rankingsExtend";
-import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, MarketLinesSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, ProjectionSeason, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
+import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, MarketLinesSeason, PredictionsTrackRecord, PredictionsWeek, ProjectionSeason, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
@@ -98,8 +98,6 @@ const predictionsTrackRecordInflight = new Map<string, Promise<PredictionsTrackR
 
 const projectionData = new Map<string, ProjectionSeason | null>();
 const projectionInflight = new Map<string, Promise<ProjectionSeason | null>>();
-const preseasonPowerData = new Map<string, PreseasonPower | null>();
-const preseasonPowerInflight = new Map<string, Promise<PreseasonPower | null>>();
 
 const cfpResultsData = new Map<string, CfpSeasonResult | null>();
 const cfpResultsInflight = new Map<string, Promise<CfpSeasonResult | null>>();
@@ -480,25 +478,6 @@ export function useCfpResultsSeason(year: string | null): CfpSeasonResult | null
     () => (year ? cfpResultsData.get(year) : undefined),
     () => undefined
   );
-}
-
-export function getPreseasonPower(year: number | string): Promise<PreseasonPower | null> {
-  const key = String(year);
-  if (preseasonPowerData.has(key)) return Promise.resolve(preseasonPowerData.get(key) ?? null);
-  let entry = preseasonPowerInflight.get(key);
-  if (!entry) {
-    entry = fetchOptionalJson<PreseasonPower>(`/data/preseason-power-${key}.json`).then((record) => {
-      preseasonPowerData.set(key, record);
-      preseasonPowerInflight.delete(key);
-      return record;
-    });
-    entry = entry.catch((error: Error) => {
-      preseasonPowerInflight.delete(key);
-      throw error;
-    });
-    preseasonPowerInflight.set(key, entry);
-  }
-  return entry;
 }
 
 export async function getPredictionsWeek(season: number | string, week: number | string): Promise<PredictionsWeek | null> {

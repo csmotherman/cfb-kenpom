@@ -2,7 +2,7 @@
 
     python -m cfb_analytics.pipelines.publish_projection
 
-Rebuilt from the frozen aggregate model and frozen preseason power on every run; deterministic for a given set of completed games.
+Rebuilt from the frozen aggregate model and current-season games only (no preseason input) on every run; deterministic for a given set of completed games.
 """
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ from cfb_analytics.raw.audit import discover_partitions
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 RAW_ROOT = REPO_ROOT / "data" / "raw"
-PRESEASON_FROZEN = REPO_ROOT / "prospective" / str(agg.TARGET_SEASON) / "preseason-power-frozen.json"
 OUT_DIR = REPO_ROOT / "web" / "public" / "data" / "projection"
 
 
@@ -35,7 +34,7 @@ def publish(raw_root: Path = RAW_ROOT, out_dir: Path = OUT_DIR, season: int = ag
     if not weeks:
         return None
     payload = proj.build_projection(
-        raw_root, season, agg.load_frozen(), json.loads(PRESEASON_FROZEN.read_text()), weeks,
+        raw_root, season, agg.load_frozen(), weeks,
     )
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"{season}.json"

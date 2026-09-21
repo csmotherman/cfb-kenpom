@@ -152,6 +152,10 @@ class PublicationContractTests(unittest.TestCase):
     def _write(self, week):
         return pipe.write_snapshot(week, raw_root=self.raw, snapshot_dir=self.snap, frozen_path=self.frozen_path)
 
+    def test_first_published_week_is_the_first_with_enough_games_and_needs_no_preseason_input(self):
+        self.assertEqual(agg.FIRST_PUBLISHED_WEEK, agg.MIN_GAMES + 1)
+        self.assertNotIn("preseason", " ".join(agg.FEATURES).lower())
+
     def test_weeks_before_the_handoff_are_never_written(self):
         make_raw(self.raw, completed_weeks=5)
         for week in range(1, agg.FIRST_PUBLISHED_WEEK):
