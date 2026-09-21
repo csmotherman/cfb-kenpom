@@ -107,12 +107,6 @@ export default function RankingsPage() {
             </header>
 
             <section className="prime25-board" aria-label="The PRIME 25 college football rankings">
-              <div className="prime25-board__strap">
-                <span>Performance + Résumé</span>
-                <strong>The PRIME 25</strong>
-                <span>No preseason bias</span>
-              </div>
-
               <div className="prime25-board__grid">
                 <RankColumn teams={columns[0]} />
                 <RankColumn teams={columns[1]} />
@@ -121,7 +115,7 @@ export default function RankingsPage() {
 
             <div className="prime25-underbar">
               <span>Ratings measure how well teams have played. The PRIME 25 measures what they&apos;ve earned.</span>
-              <Link href="/">View Performance Analytics →</Link>
+              <Link href="/ratings">View Performance Analytics →</Link>
             </div>
           </section>
         </div>
