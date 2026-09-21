@@ -2,6 +2,7 @@ import JsonLd from "@/components/JsonLd";
 import { breadcrumbJsonLd, datasetJsonLd, itemListJsonLd, pageMetadata, webPageJsonLd } from "@/lib/seo";
 import { getLatestYear, getPrimeRankingsServer } from "@/lib/seoData";
 import { fullTeamName } from "@/lib/teamMascots";
+import { RankingsSeoContent } from "@/components/seo/SectionSeo";
 import RankingsClient from "./RankingsClient";
 
 const DESCRIPTION =
@@ -33,7 +34,7 @@ export default async function RankingsPage() {
         }),
         breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "The PRIME 25", path: "/rankings" }]),
       ]} />
-      <RankingsClient />
+      <RankingsClient seo={<RankingsSeoContent />} />
     </>
   );
 }

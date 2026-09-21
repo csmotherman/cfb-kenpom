@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -48,7 +48,7 @@ function RankingTile({ team, featured = false }: { team: PrimeRankingTeam; featu
   );
 }
 
-export default function RankingsClient() {
+export default function RankingsClient({ seo }: { seo?: ReactNode }) {
   const [snapshot, setSnapshot] = useState<PrimeRankingSnapshot | null>(null);
 
   useEffect(() => {
@@ -182,6 +182,8 @@ export default function RankingsClient() {
           </section>
         </div>
       </main>
+
+      {seo}
 
       <SiteFooter note="The PRIME 25 is released every Sunday at 12 PM ET. Rankings combine current-season performance with strength of record; teams receive no boost from preseason polls, brand name, or reputation." />
     </>

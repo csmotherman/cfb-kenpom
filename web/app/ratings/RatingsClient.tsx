@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -75,7 +75,7 @@ function RankChangeBadge({ change }: { change: number | null | undefined }) {
   );
 }
 
-export default function RatingsClient() {
+export default function RatingsClient({ seo }: { seo?: ReactNode }) {
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [years, setYears] = useState<number[]>([]);
@@ -359,6 +359,8 @@ export default function RatingsClient() {
           </table>
         </div>
       </main>
+
+      {seo}
 
       <section className="ratings-glossary container" aria-labelledby="ratingsGlossaryTitle">
         <div className="ratings-glossary__heading">

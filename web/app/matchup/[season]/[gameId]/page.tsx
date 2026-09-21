@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/JsonLd";
-import MatchupSeoIntro from "@/components/seo/MatchupSeoIntro";
+import { buildMatchupSeoParts } from "@/components/seo/MatchupSeoContent";
 import { noIndexMetadata } from "@/lib/seo";
 import { getDataTimestamp, getGameContext, getLatestYear, getScheduleServer } from "@/lib/seoData";
-import { matchupHeading, matchupJsonLd, matchupMetadata } from "@/lib/seoPages";
+import { gameModified, matchupHeading, matchupJsonLd, matchupMetadata } from "@/lib/seoPages";
 import MatchupClient from "./MatchupClient";
 
 type Params = { params: Promise<{ season: string; gameId: string }> };
@@ -28,11 +28,11 @@ export default async function MatchupPage({ params }: Params) {
   const { season, gameId } = await params;
   const ctx = await getGameContext(season, gameId);
   if (ctx === null) notFound();
-  if (ctx === undefined) return <MatchupClient season={season} gameId={gameId} heading="College football matchup analytics" intro={null} />;
+  if (ctx === undefined) return <MatchupClient season={season} gameId={gameId} heading="College football matchup analytics" seo={null} />;
   return (
     <>
-      <JsonLd data={matchupJsonLd(ctx, await getDataTimestamp())} />
-      <MatchupClient season={season} gameId={gameId} heading={matchupHeading(ctx)} intro={<MatchupSeoIntro ctx={ctx} />} />
+      <JsonLd data={matchupJsonLd(ctx, gameModified(ctx.game, await getDataTimestamp()))} />
+      <MatchupClient season={season} gameId={gameId} heading={matchupHeading(ctx)} seo={buildMatchupSeoParts(ctx)} />
     </>
   );
 }

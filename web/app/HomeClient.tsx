@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -50,7 +50,7 @@ function bestByRank(rows: RankingsRow[], key: "adjORank" | "adjDRank" | "sosRank
     .sort((a, b) => (a[key] ?? 999) - (b[key] ?? 999))[0] ?? null;
 }
 
-export default function HomeClient() {
+export default function HomeClient({ seo }: { seo?: ReactNode }) {
   const [year, setYear] = useState<string>("");
   const [snapshot, setSnapshot] = useState<PrimeRankingSnapshot | null>(null);
   const [schedule, setSchedule] = useState<ScheduleSeason | null>(null);
@@ -418,6 +418,8 @@ export default function HomeClient() {
           <span><b>PRIME 25</b> = what you&apos;ve earned.</span>
         </section>
       </main>
+
+      {seo}
 
       <SiteFooter note="PRIME Football — opponent-adjusted college football ratings, rankings, predictions, and advanced analytics." />
     </>

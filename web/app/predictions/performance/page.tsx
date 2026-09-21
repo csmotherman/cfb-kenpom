@@ -1,6 +1,7 @@
 import JsonLd from "@/components/JsonLd";
 import { breadcrumbJsonLd, pageMetadata, webPageJsonLd } from "@/lib/seo";
 import { getDataTimestamp } from "@/lib/seoData";
+import { PerformanceSeoIntro } from "@/components/seo/SectionSeo";
 import PerformanceClient from "./PerformanceClient";
 
 const DESCRIPTION =
@@ -20,7 +21,7 @@ export default async function PredictionPerformancePage() {
         webPageJsonLd({ path: "/predictions/performance", name: "Prediction Model Performance", description: DESCRIPTION, dateModified: await getDataTimestamp() }),
         breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Predictions", path: "/predictions" }, { name: "Model performance", path: "/predictions/performance" }]),
       ]} />
-      <PerformanceClient />
+      <PerformanceClient seoLede={<PerformanceSeoIntro />} />
     </>
   );
 }

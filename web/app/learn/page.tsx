@@ -9,6 +9,9 @@ export const metadata = pageMetadata({
   title: "Learn How PRIME College Football Ratings Work",
   description: "How PRIME's ratings and predictions work, how they are graded, and how much to trust them each week of the season.",
   path: "/learn",
+  // A three-link hub with no content of its own; the pages it links to are the ones worth indexing.
+  noindex: true,
+  follow: true,
 });
 
 const ITEMS = [

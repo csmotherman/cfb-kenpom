@@ -10,7 +10,8 @@ import {
   absoluteUrl,
   type JsonLd,
 } from "@/lib/seo";
-import type { GameContext, TeamSnapshot } from "@/lib/seoData";
+import { isIndexableGame, type GameContext, type TeamSnapshot } from "@/lib/seoData";
+import { formatGameDate } from "@/lib/seoContent";
 import { logoUrl } from "@/lib/teamCode";
 import { conferenceName } from "@/lib/teamMascots";
 
@@ -49,6 +50,9 @@ export function teamMetadata(snapshot: TeamSnapshot): Metadata {
     title: teamTitle(snapshot),
     description: teamDescription(snapshot),
     path: teamPath(snapshot.entry.slug),
+    // A team with no published rating this season has nothing to show beyond a schedule: keep it reachable, out of results.
+    noindex: !snapshot.latest,
+    follow: true,
     image: { params: { kind: "team", slug: snapshot.entry.slug }, alt: `${snapshot.fullName} football analytics from PRIME` },
   });
 }
@@ -65,6 +69,14 @@ export function teamJsonLd(snapshot: TeamSnapshot, dateModified: string | null):
   ];
 }
 
+/** Completed games are final at kickoff-day content; upcoming games change with every ratings refresh. Never later than the data timestamp. */
+export function gameModified(game: { completed: boolean; startDate: string | null }, generated: string | null | undefined): string | null {
+  if (!game.completed) return generated ?? null;
+  const t = game.startDate ? new Date(game.startDate).getTime() : NaN;
+  if (Number.isNaN(t)) return null;
+  return generated && t > new Date(generated).getTime() ? generated : new Date(t).toISOString();
+}
+
 export function matchupHeading(ctx: GameContext) {
   return ctx.game.completed
     ? `${ctx.away.name} vs ${ctx.home.name} Game Analytics & Result`
@@ -72,9 +84,7 @@ export function matchupHeading(ctx: GameContext) {
 }
 
 export function matchupDescription(ctx: GameContext) {
-  const when = ctx.game.startDate && !ctx.game.startTimeTBD
-    ? new Date(ctx.game.startDate).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" })
-    : null;
+  const when = ctx.game.startDate ? formatGameDate(ctx.game, "short") : null;
   const where = ctx.game.venue ? ` at ${ctx.game.venue}` : "";
   const ranks = ctx.away.rank && ctx.home.rank ? ` PRIME power ratings: ${ctx.away.name} #${ctx.away.rank}, ${ctx.home.name} #${ctx.home.rank}.` : "";
   const score = ctx.game.completed && ctx.game.awayPoints !== null && ctx.game.homePoints !== null
@@ -89,6 +99,9 @@ export function matchupMetadata(ctx: GameContext): Metadata {
     title: matchupHeading(ctx),
     description: matchupDescription(ctx),
     path: matchupPath(ctx.season, String(ctx.game.gameId)),
+    // FBS-vs-FCS games have no rating comparison to offer; keep them reachable (noindex, follow) but out of search results.
+    noindex: !isIndexableGame(ctx),
+    follow: true,
     image: { params: { kind: "matchup", season: ctx.season, game: String(ctx.game.gameId) }, alt: `${ctx.away.name} vs ${ctx.home.name} matchup analytics from PRIME` },
   });
 }

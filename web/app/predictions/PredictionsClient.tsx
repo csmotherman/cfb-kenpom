@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
@@ -124,7 +124,7 @@ function pickText(winner: string, margin: number): string {
   return `${winner} to win by ${Math.abs(margin).toFixed(1)}`;
 }
 
-export default function PredictionsClient() {
+export default function PredictionsClient({ seo }: { seo?: { lede: ReactNode; content: ReactNode } }) {
   const router = useRouter();
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [season, setSeason] = useState<number | null>(null);
@@ -323,7 +323,7 @@ export default function PredictionsClient() {
         <PredictionsPerformanceSummary />
         {schedule === undefined ? (
           <>
-            <h1 className="sr-only">College Football Predictions &amp; Matchup Analytics</h1>
+            {seo?.lede ?? <h1 className="sr-only">College Football Predictions &amp; Matchup Analytics</h1>}
             <PrimeLoadingState variant="predictions" />
           </>
         ) : schedule === null ? (
@@ -506,6 +506,8 @@ export default function PredictionsClient() {
 
         {power ? <PreseasonPowerTable power={power} /> : null}
       </main>
+
+      {seo?.content}
 
       <SiteFooter note="Weekly Predictions are model-generated projections, not betting advice. Games without a complete graded model output are labeled Not enough data rather than being shown as substitute predictions." />
     </>

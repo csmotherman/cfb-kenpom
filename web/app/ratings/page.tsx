@@ -1,6 +1,7 @@
 import JsonLd from "@/components/JsonLd";
 import { breadcrumbJsonLd, datasetJsonLd, pageMetadata, webPageJsonLd } from "@/lib/seo";
 import { getDataTimestamp, getSiteMeta } from "@/lib/seoData";
+import { RatingsSeoContent } from "@/components/seo/SectionSeo";
 import RatingsClient from "./RatingsClient";
 
 const DESCRIPTION =
@@ -30,7 +31,7 @@ export default async function RatingsPage() {
         }),
         breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Ratings", path: "/ratings" }]),
       ]} />
-      <RatingsClient />
+      <RatingsClient seo={<RatingsSeoContent />} />
     </>
   );
 }

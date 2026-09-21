@@ -1,11 +1,12 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import type { MatchupSeoParts } from "@/components/seo/MatchupSeoContent";
 import MatchupEdgesSection from "@/components/MatchupEdgesSection";
 import GameResultsSheet from "@/components/GameResultsSheet";
 import PrimeLoadingState from "@/components/PrimeLoadingState";
@@ -152,7 +153,7 @@ type HeadlineRow = {
   right: StatDatum;
 };
 
-export default function MatchupClient({ season: seasonParam, gameId, heading, intro }: { season: string; gameId: string; heading: string; intro: ReactNode }) {
+export default function MatchupClient({ season: seasonParam, gameId, heading, seo }: { season: string; gameId: string; heading: string; seo: MatchupSeoParts | null }) {
   const season = Number.parseInt(seasonParam, 10);
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [schedule, setSchedule] = useState<ScheduleSeason | null | undefined>(undefined);
@@ -256,10 +257,12 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, in
       <>
         <SiteHeader tagline="College Football Matchup Analysis" />
         <SiteNav />
-        {intro}
-        <main className="container weekly-state">
-          <PrimeLoadingState variant="matchup" compact />
-        </main>
+        {seo?.loading}
+        {seo ? null : (
+          <main className="container weekly-state">
+            <PrimeLoadingState variant="matchup" compact />
+          </main>
+        )}
       </>
     );
   }
@@ -330,7 +333,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, in
         <SiteNav />
 
         <main id="matchupContent" className="container matchup-v2-main">
-          <h1 className="sr-only">{heading}</h1>
+          {seo?.lede ?? <h1 className="sr-only">{heading}</h1>}
           <GameResultsSheet
             leftTeam={{
               name: game.awayTeam, short: game.awayTeam, teamId: game.awayTeamId,
@@ -351,6 +354,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, in
           <div className="matchup-v2-center matchup-v2-center--results" />
 
           <MatchupEdgesSection season={season} gameId={gameId} />
+          {seo?.facts}
         </main>
 
         <SiteFooter note="Final results use CFBD's official team box score for base game facts and PRIME's play-by-play/drive pipeline for advanced metrics. Conditional colors apply only to performance metrics against the historical FBS-vs-FBS single-game baseline." />
@@ -365,7 +369,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, in
       <SiteNav />
 
       <main id="matchupContent" className="container matchup-v2-main">
-          <h1 className="sr-only">{heading}</h1>
+          {seo?.lede ?? <h1 className="sr-only">{heading}</h1>}
         <section className="matchup-v2-gamebar" aria-label="Game information">
           <div className="matchup-v2-gamebar__meta">
             <strong>{season} · {weekName}</strong>
@@ -416,6 +420,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, in
         </div>
 
         <MatchupEdgesSection season={season} gameId={gameId} />
+        {seo?.facts}
       </main>
 
       <SiteFooter note="Matchup pages use the most recent overall rating snapshot strictly before the selected game week. Net APR, Off APR, Def APR, SOS and SOR are read directly from that same Rankings snapshot used by the main table; SOR is wins above an average FBS team on the same schedule. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Def APR." />

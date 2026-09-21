@@ -8,6 +8,9 @@ export const metadata = pageMetadata({
   title: "College Football Game History & Head-to-Head Series",
   description: DESCRIPTION,
   path: "/game-history",
+  // A query tool: results depend on the pair a visitor picks and no series has its own URL, so there is nothing crawlable to rank.
+  noindex: true,
+  follow: true,
 });
 
 export default function GameHistoryPage() {

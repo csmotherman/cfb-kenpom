@@ -1,5 +1,6 @@
 import JsonLd from "@/components/JsonLd";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, organizationJsonLd, pageMetadata, websiteJsonLd } from "@/lib/seo";
+import { HomeSeoContent } from "@/components/seo/SectionSeo";
 import HomeClient from "./HomeClient";
 
 export const metadata = pageMetadata({
@@ -14,7 +15,7 @@ export default function HomePage() {
   return (
     <>
       <JsonLd data={[websiteJsonLd(), organizationJsonLd()]} />
-      <HomeClient />
+      <HomeClient seo={<HomeSeoContent />} />
     </>
   );
 }

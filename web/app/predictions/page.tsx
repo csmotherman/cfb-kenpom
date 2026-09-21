@@ -1,6 +1,7 @@
 import JsonLd from "@/components/JsonLd";
 import { breadcrumbJsonLd, pageMetadata, webPageJsonLd } from "@/lib/seo";
 import { getDataTimestamp } from "@/lib/seoData";
+import { PredictionsSeoContent, PredictionsSeoIntro } from "@/components/seo/SectionSeo";
 import PredictionsClient from "./PredictionsClient";
 
 const DESCRIPTION =
@@ -20,7 +21,7 @@ export default async function PredictionsPage() {
         webPageJsonLd({ path: "/predictions", name: "College Football Predictions & Matchup Analytics", description: DESCRIPTION, dateModified: await getDataTimestamp() }),
         breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Predictions", path: "/predictions" }]),
       ]} />
-      <PredictionsClient />
+      <PredictionsClient seo={{ lede: <PredictionsSeoIntro />, content: <PredictionsSeoContent /> }} />
     </>
   );
 }

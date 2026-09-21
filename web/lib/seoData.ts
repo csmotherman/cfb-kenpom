@@ -68,12 +68,115 @@ export async function getTeamSnapshot(slug: string): Promise<TeamSnapshot | null
   return { entry, fullName: fullTeamName(entry.team), year, week, latest, prime25Rank: prime25 };
 }
 
+export type TrackRecordFile = { generatedAt?: string };
+export const getTrackRecordTimestamp = cache(async (year: number | string) => ((await readPublicData(`prediction-track-record/${year}.json`)) as TrackRecordFile | null)?.generatedAt ?? null);
+
+/** Latest published rating snapshot for a season: the rows and the week they describe. */
+export const getLatestSnapshot = cache(async (year: number) => {
+  const season = await getRankingsSeasonServer(year);
+  const week = season?.weeks?.length ? season.weeks[season.weeks.length - 1] : null;
+  const rows = season && week !== null ? season.byWeek[String(week)] ?? [] : [];
+  return { season, week, rows };
+});
+
+export type TeamGameRow = {
+  game: ScheduleGame;
+  home: boolean;
+  opponent: string;
+  opponentFull: string;
+  opponentSlug: string;
+  opponentHasProfile: boolean;
+  opponentRank: number | null;
+  pointsFor: number | null;
+  pointsAgainst: number | null;
+  result: "W" | "L" | "T" | null;
+};
+
+export type TeamContent = {
+  snapshot: TeamSnapshot;
+  games: TeamGameRow[];
+  totalRated: number;
+  /** Position by PRIME rating among rated teams of the same conference. */
+  confRank: number | null;
+  confTotal: number;
+  weekLabel: string | null;
+};
+
+const gameSort = (a: ScheduleGame, b: ScheduleGame) => a.week - b.week || (a.startDate ?? "").localeCompare(b.startDate ?? "");
+
+export async function getTeamContent(snapshot: TeamSnapshot): Promise<TeamContent> {
+  const { year, entry } = snapshot;
+  const [schedule, directory, latestSnap] = await Promise.all([
+    year ? getScheduleServer(year) : null,
+    getTeamDirectory(),
+    year ? getLatestSnapshot(year) : null,
+  ]);
+  const profiles = new Set(directory.map((team) => team.slug));
+  const rows = latestSnap?.rows ?? [];
+  const rankBySlug = new Map(rows.map((row) => [row.slug, row.rank]));
+  const games = schedule
+    ? Object.values(schedule.byWeek)
+        .flat()
+        .filter((g) => g.homeSlug === entry.slug || g.awaySlug === entry.slug)
+        .sort(gameSort)
+        .map((g): TeamGameRow => {
+          const home = g.homeSlug === entry.slug;
+          const opponent = home ? g.awayTeam : g.homeTeam;
+          const opponentSlug = home ? g.awaySlug : g.homeSlug;
+          const pointsFor = home ? g.homePoints : g.awayPoints;
+          const pointsAgainst = home ? g.awayPoints : g.homePoints;
+          const scored = g.completed && pointsFor !== null && pointsAgainst !== null;
+          return {
+            game: g,
+            home,
+            opponent,
+            opponentFull: fullTeamName(opponent),
+            opponentSlug,
+            opponentHasProfile: profiles.has(opponentSlug),
+            opponentRank: rankBySlug.get(opponentSlug) ?? null,
+            pointsFor,
+            pointsAgainst,
+            result: scored ? (pointsFor! > pointsAgainst! ? "W" : pointsFor! < pointsAgainst! ? "L" : "T") : null,
+          };
+        })
+    : [];
+  const confRows = rows.filter((row) => row.conf === entry.conf && row.rank !== null).sort((a, b) => a.rank! - b.rank!);
+  const confIndex = confRows.findIndex((row) => row.slug === entry.slug);
+  const week = snapshot.week;
+  return {
+    snapshot,
+    games,
+    totalRated: rows.filter((row) => row.rank !== null).length,
+    confRank: confIndex >= 0 ? confIndex + 1 : null,
+    confTotal: confRows.length,
+    weekLabel: week === null ? null : latestSnap?.season?.weekLabels?.[String(week)] || `Week ${week}`,
+  };
+}
+
+export type MatchupSide = {
+  name: string;
+  fullName: string;
+  slug: string;
+  /** True when the team has a PRIME profile page (FBS teams). FCS opponents have none. */
+  hasProfile: boolean;
+  row: RankingsRow | null;
+  /** Position in The PRIME 25, only when the ratings shown are current and the team is in it. */
+  prime25: number | null;
+  rank: number | null;
+  record: string | null;
+  form: TeamGameRow[];
+};
+
 export type GameContext = {
   season: number;
   game: ScheduleGame;
   weekLabel: string;
-  away: { name: string; fullName: string; slug: string; rank: number | null; record: string | null };
-  home: { name: string; fullName: string; slug: string; rank: number | null; record: string | null };
+  away: MatchupSide;
+  home: MatchupSide;
+  /** Which published rating snapshot the comparison uses. "pregame" = the week before kickoff, "current" = latest available. */
+  ratingBasis: "pregame" | "current" | null;
+  ratingWeek: number | null;
+  totalRated: number;
 };
 
 /** Returns null when the schedule loads but the game is not in it; undefined when the schedule itself cannot be read. */
@@ -82,26 +185,58 @@ export async function getGameContext(seasonParam: string, gameId: string): Promi
   if (!Number.isFinite(season)) return null;
   const schedule = await getScheduleServer(season);
   if (!schedule) return undefined;
-  let game: ScheduleGame | undefined;
-  for (const games of Object.values(schedule.byWeek)) {
-    game = games.find((g) => String(g.gameId) === gameId);
-    if (game) break;
-  }
+  const all = Object.values(schedule.byWeek).flat();
+  const game = all.find((g) => String(g.gameId) === gameId);
   if (!game) return null;
-  const rankings = await getRankingsSeasonServer(season);
-  // Pregame view: ratings as of the week before the game, matching what the page itself shows.
-  const weeks = (rankings?.weeks ?? []).filter((w) => w < game!.week);
-  const ratingWeek = weeks.length ? weeks[weeks.length - 1] : null;
-  const rows = rankings && ratingWeek !== null ? rankings.byWeek[String(ratingWeek)] ?? [] : [];
-  const side = (name: string, slug: string) => {
-    const row = rows.find((r) => r.slug === slug);
-    return { name, fullName: fullTeamName(name), slug, rank: row?.rank ?? null, record: row?.record ?? null };
+  const [rankings, directory, prime] = await Promise.all([getRankingsSeasonServer(season), getTeamDirectory(), getPrimeRankingsServer(season)]);
+  const profiles = new Set(directory.map((team) => team.slug));
+  const weeks = rankings?.weeks ?? [];
+  const rowsFor = (week: number | null) => (rankings && week !== null ? rankings.byWeek[String(week)] ?? [] : []);
+  const priorWeeks = weeks.filter((w) => w < game.week);
+  const pregameWeek = priorWeeks.length ? priorWeeks[priorWeeks.length - 1] : null;
+  const latestWeek = weeks.length ? weeks[weeks.length - 1] : null;
+  const has = (rows: RankingsRow[]) => rows.some((r) => r.slug === game.awaySlug) && rows.some((r) => r.slug === game.homeSlug);
+  // Prefer the true pregame snapshot; when a team was not yet rated then (e.g. a Week 1 opener), fall back to the latest one.
+  let ratingWeek: number | null = null;
+  let ratingBasis: GameContext["ratingBasis"] = null;
+  if (has(rowsFor(pregameWeek))) { ratingWeek = pregameWeek; ratingBasis = "pregame"; }
+  else if (has(rowsFor(latestWeek))) { ratingWeek = latestWeek; ratingBasis = latestWeek !== null && latestWeek < game.week ? "pregame" : "current"; }
+  const rows = rowsFor(ratingWeek);
+  const primeSlugs = new Map((prime?.teams ?? []).map((t) => [t.slug, t.rank]));
+  const primeApplies = ratingWeek !== null && prime?.throughWeek === ratingWeek;
+  const side = (name: string, slug: string): MatchupSide => {
+    const row = rows.find((r) => r.slug === slug) ?? null;
+    const form = all
+      .filter((g) => g.completed && g.week < game.week && (g.homeSlug === slug || g.awaySlug === slug))
+      .sort(gameSort)
+      .slice(-3)
+      .map((g): TeamGameRow => {
+        const home = g.homeSlug === slug;
+        const pointsFor = home ? g.homePoints : g.awayPoints;
+        const pointsAgainst = home ? g.awayPoints : g.homePoints;
+        const scored = pointsFor !== null && pointsAgainst !== null;
+        const opponent = home ? g.awayTeam : g.homeTeam;
+        return {
+          game: g, home, opponent, opponentFull: fullTeamName(opponent), opponentSlug: home ? g.awaySlug : g.homeSlug,
+          opponentHasProfile: profiles.has(home ? g.awaySlug : g.homeSlug), opponentRank: null, pointsFor, pointsAgainst,
+          result: scored ? (pointsFor! > pointsAgainst! ? "W" : pointsFor! < pointsAgainst! ? "L" : "T") : null,
+        };
+      });
+    return { name, fullName: fullTeamName(name), slug, hasProfile: profiles.has(slug), row, prime25: primeApplies ? primeSlugs.get(slug) ?? null : null, rank: row?.rank ?? null, record: row?.record ?? null, form };
   };
+  const away = side(game.awayTeam, game.awaySlug);
+  const home = side(game.homeTeam, game.homeSlug);
   return {
     season,
     game,
     weekLabel: schedule.weekLabels?.[String(game.week)] || `Week ${game.week}`,
-    away: side(game.awayTeam, game.awaySlug),
-    home: side(game.homeTeam, game.homeSlug),
+    away,
+    home,
+    ratingBasis,
+    ratingWeek,
+    totalRated: rows.filter((r) => r.rank !== null).length,
   };
 }
+
+/** A game page is indexable when both teams have profiles and ratings; FBS-vs-FCS games have no comparison to offer. */
+export const isIndexableGame = (ctx: GameContext) => ctx.away.hasProfile && ctx.home.hasProfile && !!ctx.away.row && !!ctx.home.row;

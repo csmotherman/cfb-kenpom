@@ -6,3 +6,32 @@
 .seo-intro__list { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; }
 .seo-intro__list span { color: var(--color-ink-tertiary); font-size: .9em; }
 .seo-intro__links { margin-top: 18px; }
+
+/* Persistent server-rendered content sections (team, matchup and section pages). */
+.seo-section { margin-top: 28px; }
+.seo-section h2 { margin: 0 0 10px; font-size: 1.15rem; }
+.seo-section p { max-width: 74ch; margin: 0 0 10px; line-height: 1.6; }
+.seo-note { color: var(--color-ink-secondary); font-size: 13px; }
+.seo-table-wrap { overflow-x: auto; border: 1px solid var(--color-hairline); background: var(--color-paper-soft); }
+.seo-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.seo-table th, .seo-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--color-hairline); vertical-align: top; }
+.seo-table thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--color-ink-secondary); }
+.seo-table tbody tr:last-child td, .seo-table tbody tr:last-child th { border-bottom: 0; }
+.seo-table--compare th[scope="row"] { text-align: center; color: var(--color-ink-secondary); font-weight: 600; }
+.seo-table--compare td { text-align: center; }
+.seo-table--compare thead th { text-align: center; }
+.seo-table a, .seo-section a { color: var(--color-gold-dark); }
+.seo-links ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; }
+.seo-lede { padding-block: 20px 4px; }
+.seo-lede h1 { margin: 0 0 8px; font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.15; }
+.seo-lede p { max-width: 74ch; margin: 0; line-height: 1.6; }
+.seo-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.seo-form ul { margin: 0; padding-left: 1.1rem; }
+.seo-leaders { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
+.seo-leaders ol { margin: 0; padding-left: 1.3rem; display: grid; gap: 3px; }
+.seo-leaders h3 { margin: 0 0 6px; font-size: .95rem; }
+
+.site-index__grid .site-index__team { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; border-bottom: 1px solid var(--color-hairline); padding: 6px 0; }
+.site-index__grid .site-index__team a { border-bottom: 0; padding: 0; }
+.site-index__team .seo-note { white-space: nowrap; font-size: 12px; }
+.seo-list { margin: 0 0 12px; padding-left: 1.1rem; display: grid; gap: 4px; }

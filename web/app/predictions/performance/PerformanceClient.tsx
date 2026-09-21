@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
@@ -25,7 +25,7 @@ function record(stats: PredictionRecordStats): string {
   return `${stats.correct}–${stats.graded - stats.correct}`;
 }
 
-export default function PerformanceClient() {
+export default function PerformanceClient({ seoLede }: { seoLede?: ReactNode }) {
   const [records, setRecords] = useState<PredictionsTrackRecord[]>([]);
   const [season, setSeason] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +70,7 @@ export default function PerformanceClient() {
       <main id="performanceContent" className="container prediction-performance-page">
         {loading ? (
           <>
-            <h1 className="sr-only">Prediction Model Performance</h1>
+            {seoLede ?? <h1 className="sr-only">Prediction Model Performance</h1>}
             <PrimeLoadingState variant="predictions" />
           </>
         ) : !active ? (

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import type { TeamSeoParts } from "@/components/seo/TeamSeoContent";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -249,11 +250,11 @@ function marginRank(
   return { rank: index >= 0 ? index + 1 : null, total: ranked.length };
 }
 
-export default function TeamClient({ slug, fullName, intro }: { slug: string; fullName: string; intro: ReactNode }) {
-  return <TeamProfile key={slug} slug={slug} fullName={fullName} intro={intro} />;
+export default function TeamClient({ slug, fullName, seo }: { slug: string; fullName: string; seo: TeamSeoParts | null }) {
+  return <TeamProfile key={slug} slug={slug} fullName={fullName} seo={seo} />;
 }
 
-function TeamProfile({ slug, fullName, intro }: { slug: string; fullName: string; intro: ReactNode }) {
+function TeamProfile({ slug, fullName, seo }: { slug: string; fullName: string; seo: TeamSeoParts | null }) {
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [seasons, setSeasons] = useState<SeasonRow[] | null>(null);
   const [latestRankings, setLatestRankings] = useState<RankingsSeason | null>(null);
@@ -360,7 +361,7 @@ function TeamProfile({ slug, fullName, intro }: { slug: string; fullName: string
         <SiteHeader tagline="College Football Team Analytics" />
         <SiteNav />
         {/* Server-rendered team summary (real text and links for crawlers and no-JS readers) until the interactive profile loads. */}
-        {intro ?? <main className="container weekly-state">Loading team profile…</main>}
+        {seo?.loading ?? <main className="container weekly-state">Loading team profile…</main>}
       </>
     );
   }
@@ -398,7 +399,7 @@ function TeamProfile({ slug, fullName, intro }: { slug: string; fullName: string
             <img src={logoUrl(latest.teamId, 192)} alt="" decoding="async" />
             <div>
               <span>{latest.conf} · {latest.year} through {latest.finalWeekLabel}</span>
-              <h1>{fullName}</h1>
+              <h1>{fullName} <small className="team-v2-h1-sub">Football Analytics</small></h1>
               <p>
                 <strong>{latest.record}</strong>
                 {" · "}
@@ -423,6 +424,8 @@ function TeamProfile({ slug, fullName, intro }: { slug: string; fullName: string
             />
           ))}
         </section>
+
+        {seo?.summary}
 
         <section className="team-v2-workbench">
           <nav className="team-v2-tabs" aria-label="Team analytics">
@@ -544,6 +547,7 @@ function TeamProfile({ slug, fullName, intro }: { slug: string; fullName: string
             </table>
           </div>
         </section>
+        {seo?.after}
       </main>
 
       <SiteFooter note="Team profiles use PRIME's latest published season snapshot. PRIME 25 Rank is the résumé ranking built from equal-standardized Power Rating + SOR. Power Rating is the team's overall model rating and uses PRIME v6's field-position-adjusted possession APR plus opponent-adjusted Success Rate and Explosiveness. Schedule links use the corresponding pregame Power Rating snapshot." />

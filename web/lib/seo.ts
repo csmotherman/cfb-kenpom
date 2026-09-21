@@ -56,6 +56,8 @@ type PageMetaInput = {
   image?: { params: Record<string, string | number>; alt: string };
   type?: "website" | "article";
   noindex?: boolean;
+  /** With noindex: still let crawlers follow the page's links. */
+  follow?: boolean;
   /** Use when the title must not receive the template (the homepage). */
   absoluteTitle?: string;
 };
@@ -87,7 +89,7 @@ export function pageMetadata(input: PageMetaInput): Metadata {
       images: [{ url: imageUrl, alt: image.alt }],
       ...(TWITTER_HANDLE ? { site: TWITTER_HANDLE, creator: TWITTER_HANDLE } : {}),
     },
-    ...(input.noindex ? { robots: { index: false, follow: false } } : {}),
+    ...(input.noindex ? { robots: { index: false, follow: input.follow === true } } : {}),
   };
 }
 

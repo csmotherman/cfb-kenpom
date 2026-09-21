@@ -684,3 +684,12 @@
   .team-v2-mini-profile__row > span,
   .team-v2-group__row > span { font-size: 10.5px; }
 }
+
+.team-v2-identity h1 .team-v2-h1-sub {
+  display: block;
+  margin-top: 6px;
+  font-size: .36em;
+  font-weight: 700;
+  letter-spacing: .18em;
+  color: var(--color-gold-dark);
+}
