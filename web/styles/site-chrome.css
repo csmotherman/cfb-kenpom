@@ -1471,3 +1471,74 @@ html body .site-nav.site-nav--unified .site-nav__brand img {
     z-index: 1101 !important;
   }
 }
+
+
+/* Mobile route-invariant nav hard reset.
+   Legacy Ratings/Advanced selectors use body:has(#...) and an ID, which can
+   outrank the shared mobile grid even when the shared rule appears later.
+   Pin the exact Home layout on every data-heavy route. */
+@media (max-width: 760px) {
+  html body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified > .site-nav__inner.container,
+  html body:has(.prime25-page)
+    .site-nav.site-nav--unified > .site-nav__inner.container {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-rows: 45px 48px !important;
+    grid-template-areas:
+      "brand actions"
+      "links links" !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 93px !important;
+    height: 93px !important;
+    margin: 0 !important;
+    padding: 0 10px !important;
+    gap: 0 8px !important;
+    overflow: visible !important;
+  }
+
+  html body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__brand,
+  html body:has(.prime25-page)
+    .site-nav.site-nav--unified .site-nav__brand {
+    grid-area: brand !important;
+    width: auto !important;
+    min-height: 45px !important;
+    height: 45px !important;
+    padding: 0 !important;
+    border-right: 0 !important;
+  }
+
+  html body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__actions,
+  html body:has(.prime25-page)
+    .site-nav.site-nav--unified .site-nav__actions {
+    grid-area: actions !important;
+    justify-self: end !important;
+    display: flex !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 45px !important;
+    gap: 6px !important;
+  }
+
+  html body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links,
+  html body:has(.prime25-page)
+    .site-nav.site-nav--unified .site-nav__links {
+    grid-area: links !important;
+    align-self: stretch !important;
+    display: flex !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 48px !important;
+    margin: 0 -10px !important;
+    padding: 0 6px !important;
+    gap: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    flex-wrap: nowrap !important;
+  }
+}
