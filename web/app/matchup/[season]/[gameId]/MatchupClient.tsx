@@ -95,15 +95,13 @@ async function getPublicMatchupAdvanced(year: number, gameId: string): Promise<P
     cache: "default",
     signal: AbortSignal.timeout(20000),
   });
-  if (response.status === 404) return null;
-  if (!response.ok) throw new Error(`Failed to load matchup analytics: ${response.status}`);
+  if (!response.ok) return null;
   return response.json() as Promise<PublicMatchupAdvanced>;
 }
 
 // Only fetched/used for completed games (see MatchupPage below) -- the
-// single-game Game Results breakdown. Same soft-degrade contract as
-// getMatchupAdvancedSeason: 404 means "not published for this season" and
-// degrades to null rather than erroring the whole pregame/postgame page.
+// single-game Game Results breakdown. 404 means "not published for this
+// season" and degrades to null rather than erroring the whole page.
 async function getMatchupTeamGameAdvancedSeason(year: number): Promise<TeamGameAdvancedSeason | null> {
   const response = await fetch(`/api/matchup-team-game-advanced/${year}`, {
     cache: "no-store",
