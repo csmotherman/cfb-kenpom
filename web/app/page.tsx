@@ -13,6 +13,7 @@ type PrimeRankingTeam = {
   team: string;
   slug: string;
   teamId: number;
+  conf: string;
   record: string;
   ratingRank: number;
   sorRank: number;
@@ -51,128 +52,132 @@ export default function HomePage() {
     return [...(season.byWeek[String(latestWeek)] ?? [])]
       .filter((team) => team.rank !== null)
       .sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999))
-      .slice(0, 10);
+      .slice(0, 5);
   }, [season, latestWeek]);
+
+  const topRankings = (snapshot?.teams ?? []).slice(0, 5);
 
   return (
     <>
       <a className="skip-link" href="#homeChoices">Skip to Ratings and Rankings</a>
-      <SiteHeader tagline="College Football, Measured Two Ways" />
+      <SiteHeader tagline="College Football Analytics" />
       <SiteNav />
 
       <main className="prime-home" id="homeChoices">
-        <section className="prime-home__hero container">
-          <div className="prime-home__hero-copy">
-            <span className="eyebrow">Two ways to see college football</span>
-            <h1>Who&apos;s good. Who&apos;s earned it.</h1>
-            <p>Ratings measure the performance. Rankings judge the résumé.</p>
-          </div>
-          <div className="prime-home__principles" aria-label="PRIME ranking principles">
-            <span>No preseason poll boost</span>
-            <span>No brand-name bonus</span>
-            <span>Earn it this season</span>
-          </div>
+        <section className="prime-home__intro container">
+          <span className="prime-home__eyebrow">PRIME College Football</span>
+          <h1>Ratings and rankings answer different questions.</h1>
+          <p>
+            Ratings measure how well teams have played. The PRIME 25 measures what they&apos;ve earned.
+          </p>
         </section>
 
-        <section className="prime-choice-grid container" aria-label="Choose Ratings or Rankings">
-          <article className="prime-choice prime-choice--ratings">
-            <div className="prime-choice__copy">
-              <div className="prime-choice__titleline">
-                <span className="prime-choice__kicker">Ratings</span>
-                <span className="prime-choice__status">LIVE</span>
+        <section className="prime-home__cards container" aria-label="Choose Ratings or Rankings">
+          <article className="prime-home-card prime-home-card--ratings">
+            <header className="prime-home-card__header">
+              <div>
+                <span className="prime-home-card__label">Ratings</span>
+                <h2>Performance Analytics</h2>
+                <p>Opponent-adjusted efficiency and advanced team performance from the current season.</p>
               </div>
-              <h2>Performance Analytics</h2>
-              <p className="prime-choice__desktop-copy">
-                Efficiencies, advanced statistics, and opponent-adjusted ratings.
-              </p>
-              <p className="prime-choice__mobile-copy">
-                Efficiencies, advanced statistics, and opponent-adjusted ratings.
-              </p>
-              <div className="prime-choice__actionline">
-                <span className="prime-choice__cadence">Updated as games are completed.</span>
-                <Link className="prime-choice__button" href="/ratings">View Ratings <span>→</span></Link>
+              <div className="prime-home-card__meta">
+                <span>Live</span>
+                <strong>{latestWeek !== undefined ? `Through Week ${latestWeek}` : "Current"}</strong>
               </div>
-            </div>
+            </header>
 
-            <div className="prime-choice__preview" aria-label="Current Top 10 Ratings">
-              <div className="prime-choice__preview-head">
-                <span>Current Top 10</span>
-                <span>{latestWeek !== undefined ? `Through Week ${latestWeek}` : "Live"}</span>
+            <div className="prime-home-card__preview">
+              <div className="prime-home-card__preview-title">
+                <strong>Top 5 Ratings</strong>
+                <span>Overall APR</span>
               </div>
-              <div className="prime-mini-table prime-mini-table--ratings">
-                <div className="prime-mini-table__head">
-                  <span>RK</span><span>TEAM</span><span>W-L</span><span>RATING</span>
-                </div>
+
+              <div className="prime-home-list">
                 {topRatings.map((team) => (
-                  <Link className="prime-mini-table__row" href={`/team/${team.slug}`} key={team.slug}>
-                    <span className="prime-mini-table__rank">{team.rank}</span>
-                    <strong className="prime-mini-table__team">
+                  <Link href={`/team/${team.slug}`} className="prime-home-list__row" key={team.slug}>
+                    <span className="prime-home-list__rank">{team.rank}</span>
+                    <span className="prime-home-list__team">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={logoUrl(team.teamId, 64)} alt="" loading="lazy" decoding="async" />
-                      <span>{team.team}</span>
-                    </strong>
-                    <span>{team.record}</span>
-                    <span className="prime-mini-table__value">{team.adjEM === null ? "—" : team.adjEM.toFixed(1)}</span>
+                      <strong>{team.team}</strong>
+                    </span>
+                    <span className="prime-home-list__record">{team.record}</span>
+                    <span className="prime-home-list__value">
+                      {team.adjEM === null ? "—" : team.adjEM.toFixed(1)}
+                    </span>
                   </Link>
                 ))}
               </div>
-              <Link className="prime-choice__view-all" href="/ratings">View all Ratings →</Link>
+            </div>
+
+            <div className="prime-home-card__footer">
+              <span>Updated as completed games are processed.</span>
+              <Link href="/ratings">View Ratings <span>→</span></Link>
             </div>
           </article>
 
-          <article className="prime-choice prime-choice--rankings">
-            <div className="prime-choice__copy">
-              <div className="prime-choice__titleline">
-                <span className="prime-choice__kicker">Rankings</span>
-                <span className="prime-choice__status prime-choice__status--gold">SUNDAY · 12 ET</span>
+          <article className="prime-home-card prime-home-card--rankings">
+            <header className="prime-home-card__header">
+              <div>
+                <span className="prime-home-card__label">Rankings</span>
+                <h2>The PRIME 25</h2>
+                <p>Current-season performance and strength of record, ranked by what teams have earned.</p>
               </div>
-              <h2>The PRIME 25</h2>
-              <p className="prime-choice__desktop-copy">
-                Who has earned a spot among the nation&apos;s best?
-              </p>
-              <p className="prime-choice__mobile-copy">
-                Who has earned a spot among the nation&apos;s best?
-              </p>
-              <div className="prime-choice__actionline">
-                <span className="prime-choice__cadence">New PRIME Top 25 every Sunday at 12 PM ET.</span>
-                <Link className="prime-choice__button" href="/rankings">View Rankings <span>→</span></Link>
+              <div className="prime-home-card__meta prime-home-card__meta--gold">
+                <span>{snapshot ? `Week ${snapshot.throughWeek}` : "Current"}</span>
+                <strong>Sunday · 12 PM ET</strong>
               </div>
-            </div>
+            </header>
 
-            <div className="prime-choice__preview" aria-label="Current PRIME Top 10 Rankings">
-              <div className="prime-choice__preview-head">
-                <span>PRIME Top 10</span>
-                <span>{snapshot ? `Week ${snapshot.throughWeek}` : "Sunday release"}</span>
+            <p className="prime-home-card__trust">
+              Built from current-season performance and strength of record. No preseason rankings, brand reputation, or voter input.
+            </p>
+
+            <div className="prime-home-card__preview">
+              <div className="prime-home-card__preview-title">
+                <strong>PRIME Top 5</strong>
+                <span>{snapshot ? `${snapshot.season} season` : "Current season"}</span>
               </div>
-              <div className="prime-mini-table prime-mini-table--rankings">
-                <div className="prime-mini-table__head">
-                  <span>RK</span><span>TEAM</span><span>W-L</span>
-                </div>
-                {(snapshot?.teams ?? []).slice(0, 10).map((team) => (
-                  <Link className="prime-mini-table__row" href={`/team/${team.slug}`} key={team.slug}>
-                    <span className="prime-mini-table__rank">{team.rank}</span>
-                    <strong className="prime-mini-table__team">
+
+              <div className="prime-home-list prime-home-list--rankings">
+                {topRankings.map((team) => (
+                  <Link href={`/team/${team.slug}`} className="prime-home-list__row" key={team.slug}>
+                    <span className={`prime-home-list__rank${team.rank === 1 ? " prime-home-list__rank--one" : ""}`}>{team.rank}</span>
+                    <span className="prime-home-list__team">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={logoUrl(team.teamId, 64)} alt="" loading="lazy" decoding="async" />
-                      <span>{team.team}</span>
-                    </strong>
-                    <span>{team.record}</span>
+                      <span className="prime-home-list__team-copy">
+                        <strong>{team.team}</strong>
+                        <small>{team.conf}</small>
+                      </span>
+                    </span>
+                    <span className="prime-home-list__record">{team.record}</span>
                   </Link>
                 ))}
               </div>
-              <Link className="prime-choice__view-all" href="/rankings">View all Rankings →</Link>
+            </div>
+
+            <div className="prime-home-card__footer">
+              <span>New PRIME 25 every Sunday at 12 PM ET.</span>
+              <Link href="/rankings">View Rankings <span>→</span></Link>
             </div>
           </article>
         </section>
 
-        <section className="prime-home__difference container">
-          <div><strong>Ratings</strong><span>How good have they played?</span></div>
-          <div className="prime-home__difference-mark" aria-hidden="true">≠</div>
-          <div><strong>Rankings</strong><span>What have they earned?</span></div>
+        <section className="prime-home__explain container" aria-label="Difference between Ratings and Rankings">
+          <div>
+            <strong>Ratings</strong>
+            <span>How well has the team played?</span>
+          </div>
+          <div className="prime-home__explain-divider" aria-hidden="true" />
+          <div>
+            <strong>Rankings</strong>
+            <span>What has the team earned?</span>
+          </div>
         </section>
       </main>
 
-      <SiteFooter note="PRIME Ratings measure on-field performance. PRIME Rankings combine performance with the strength of the record a team has earned. A team's own place is not boosted by preseason polls, brand name or reputation." />
+      <SiteFooter note="PRIME Ratings measure on-field performance. The PRIME 25 combines current-season performance with strength of record." />
     </>
   );
 }
