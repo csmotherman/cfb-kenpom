@@ -7,6 +7,9 @@ on:
       - main
     paths:
       - ".github/workflows/refresh.yml"
+      - "src/cfb_analytics/analytics/rating_model.py"
+      - "scripts/build_real_data.py"
+      - "scripts/compile_site_data.py"
   schedule:
     # Cheap metadata check every hour for newly completed/corrected games and
     # calendar rollover. Minute 17 avoids the busiest top-of-hour window.
@@ -263,13 +266,13 @@ jobs:
         run: python -m cfb_analytics.pipelines.build_canonical --season "$SEASON"
       - name: Recompute 2026 ratings
         run: python -m cfb_analytics.pipelines.calculate_ratings --season "$SEASON"
-      - name: Compile 2026 recursive possession-efficiency ratings and Advanced metrics
+      - name: Compile 2026 PRIME composite ratings and Advanced metrics
         # The historical CLI route name is retained for build compatibility.
-        # rating_model.py publishes starting-field-position-adjusted points above
-        # expectation per resolved possession, recursively opponent-adjusted.
-        # Early opponent baselines use the documented weeks 1-3 prior-season taper;
-        # no conference-strength term enters the published rating. Drive scoring is
-        # sourced from validated derived drives + canonical plays.
+        # PRIME v6 blends field-position-adjusted possession APR with recursively
+        # opponent-adjusted Success Rate and Explosiveness. The play-level weights
+        # are frozen from the 2014-2025 leakage-safe walk-forward validation.
+        # EPA was tested and excluded from the live blend as redundant. Early APR
+        # opponent baselines retain the documented weeks 1-3 prior-season taper.
         run: python scripts/compile_site_data.py --season "$SEASON" --rating-model hierarchical_hfa
 
       - name: Score weekly predictions
