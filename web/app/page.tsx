@@ -182,7 +182,7 @@ export default function HomePage() {
             </div>
 
             <aside className="prime-home-v2__hero-meta" aria-label="Current PRIME season">
-              <span>{snapshot?.season ?? year || "Current"} Season</span>
+              <span>{snapshot?.season ?? (year || "Current")} Season</span>
               <strong>{displayWeek !== null ? `Week ${displayWeek}` : "Live"}</strong>
               <i />
               <small>More signal.<br />Less noise.</small>
