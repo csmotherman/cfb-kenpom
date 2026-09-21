@@ -605,7 +605,7 @@ export default function AdvancedPage() {
     <>
       <a className="skip-link" href="#advancedTable">Skip to advanced analytics</a>
       <div>
-        <SiteHeader tagline="Opponent-Adjusted College Football Ratings" />
+        <SiteHeader tagline="Advanced Stats" />
         <SiteNav />
 
         <section className="ratings-hero container" aria-labelledby="advancedTitle">
