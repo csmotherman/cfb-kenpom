@@ -18,6 +18,9 @@ COMPONENTS={"apr":"A_AdjPPP","epa":"D_AdjEPA","success":"E_AdjSuccess","explosiv
 SPECS=[
  ("APR",["apr"]),
  ("APR + EPA",["apr","epa"]),
+ ("APR + Success",["apr","success"]),
+ ("APR + Explosiveness",["apr","explosive"]),
+ ("APR + Success + Explosiveness",["apr","success","explosive"]),
  ("APR + EPA + Success",["apr","epa","success"]),
  ("APR + EPA + Success + Explosiveness",["apr","epa","success","explosive"]),
 ]
@@ -59,12 +62,20 @@ def main():
   y=[r["y"] for r,p in preds]; p=[p for r,p in preds]
   early=[(r,p) for r,p in preds if r["seasonTypeRank"]==0 and r["week"]<=4]
   late=[(r,p) for r,p in preds if not (r["seasonTypeRank"]==0 and r["week"]<=4)]
+  X_all=np.asarray([[1.0]+[r[f] for f in features] for r in complete],float)
+  y_all=np.asarray([r["y"] for r in complete],float)
+  beta_all=np.linalg.lstsq(X_all,y_all,rcond=None)[0]
+  full_coefficients={"intercept":float(beta_all[0]),**{f:float(beta_all[i+1]) for i,f in enumerate(features)}}
+  apr_coef=full_coefficients.get("apr",1.0)
+  apr_equivalent_weights={f:(full_coefficients[f]/apr_coef) for f in features}
   results[label]={
    "features":features,"n":len(preds),"margin_mae":mae(p,y),"correlation":corr(p,y),
    "winner_accuracy":float(np.mean([(pp>0)==(rr["y"]>0) for rr,pp in preds])),
    "early_weeks_1_4":{"n":len(early),"margin_mae":mae([p for r,p in early],[r["y"] for r,p in early])},
    "weeks_5_plus":{"n":len(late),"margin_mae":mae([p for r,p in late],[r["y"] for r,p in late])},
    "leave_one_season_out_coefficients":coefs,
+   "full_sample_coefficients":full_coefficients,
+   "apr_equivalent_weights":apr_equivalent_weights,
   }
  base=results["APR"]["margin_mae"]
  for v in results.values(): v["mae_change_vs_apr"]=v["margin_mae"]-base
