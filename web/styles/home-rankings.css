@@ -24,44 +24,44 @@ body:has(.prime-home) .site-nav a {
 
 .prime-home {
   min-height: calc(100vh - 79px);
-  padding: 24px 0 30px;
+  padding: 10px 0 20px;
   background:
     radial-gradient(circle at 12% 5%, rgba(190,143,45,.08), transparent 26%),
     linear-gradient(180deg, #f5f1e8 0%, #efe9dc 100%);
 }
 
 .prime-home__intro {
-  padding-bottom: 18px;
+  padding-bottom: 9px;
   border-bottom: 1px solid #d4ccbe;
 }
 
 .prime-home__eyebrow {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 3px;
   color: #a17621;
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 900;
   letter-spacing: .22em;
   text-transform: uppercase;
 }
 
 .prime-home__intro h1 {
-  max-width: 980px;
+  max-width: 1100px;
   margin: 0;
   color: #122944;
   font-family: var(--font-display);
-  font-size: clamp(44px, 5vw, 68px);
+  font-size: clamp(30px, 3.4vw, 42px);
   font-weight: 800;
-  line-height: .9;
+  line-height: .94;
   letter-spacing: -.025em;
   text-transform: uppercase;
 }
 
 .prime-home__intro p {
   max-width: 900px;
-  margin-top: 11px;
+  margin-top: 5px;
   color: #536172;
-  font-size: 16px;
+  font-size: 11.5px;
   font-weight: 650;
   line-height: 1.45;
 }
@@ -69,12 +69,14 @@ body:has(.prime-home) .site-nav a {
 .prime-home__cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 18px;
+  gap: 14px;
+  margin-top: 10px;
 }
 
 .prime-home-card {
   position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   overflow: hidden;
   border: 1px solid #cfc7b8;
   border-radius: 10px;
@@ -99,8 +101,9 @@ body:has(.prime-home) .site-nav a {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
-  padding: 18px 20px 15px;
+  gap: 14px;
+  min-height: 122px;
+  padding: 12px 15px 10px;
   border-bottom: 1px solid #ded7cb;
 }
 
@@ -111,17 +114,17 @@ body:has(.prime-home) .site-nav a {
 .prime-home-card__label {
   display: block;
   color: #a17621;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 900;
   letter-spacing: .16em;
   text-transform: uppercase;
 }
 
 .prime-home-card h2 {
-  margin-top: 4px;
+  margin-top: 2px;
   color: #132a45;
   font-family: var(--font-display);
-  font-size: clamp(31px, 3vw, 42px);
+  font-size: clamp(28px, 2.5vw, 35px);
   font-weight: 800;
   line-height: .95;
   text-transform: uppercase;
@@ -129,23 +132,23 @@ body:has(.prime-home) .site-nav a {
 
 .prime-home-card__header p {
   max-width: 500px;
-  margin-top: 8px;
+  margin-top: 5px;
   color: #5d6876;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 600;
   line-height: 1.45;
 }
 
 .prime-home-card__meta {
-  min-width: 116px;
-  padding: 9px 10px;
+  min-width: 104px;
+  padding: 7px 9px;
   flex: 0 0 auto;
   border: 1px solid #d5d8dd;
   background: #f4f6f8;
 }
 
 .prime-home-card__meta--gold {
-  min-width: 156px;
+  min-width: 142px;
   border-color: #dbc998;
   background: #f7f1e1;
 }
@@ -168,23 +171,23 @@ body:has(.prime-home) .site-nav a {
   margin-top: 4px;
   color: #152a44;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1.15;
 }
 
 .prime-home-card__trust {
-  margin: 13px 20px 0;
-  padding: 10px 11px;
-  border-left: 3px solid #c1973f;
-  background: #f6f1e6;
-  color: #5f6874;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.45;
+  margin-top: 5px !important;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #7a746a !important;
+  font-size: 10.5px !important;
+  font-weight: 650 !important;
+  line-height: 1.3 !important;
 }
 
 .prime-home-card__preview {
-  padding: 14px 20px 0;
+  padding: 9px 15px 0;
 }
 
 .prime-home-card__preview-title {
@@ -192,12 +195,12 @@ body:has(.prime-home) .site-nav a {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
 }
 
 .prime-home-card__preview-title strong {
   color: #152a44;
-  font-size: 12px;
+  font-size: 9.5px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: .06em;
@@ -219,7 +222,7 @@ body:has(.prime-home) .site-nav a {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) 54px 62px;
   align-items: center;
-  min-height: 50px;
+  min-height: 44px;
   border-bottom: 1px solid #e7e1d7;
   background: rgba(255,255,255,.7);
   transition: background-color .12s ease;
@@ -253,14 +256,14 @@ body:has(.prime-home) .site-nav a {
   display: flex;
   align-items: center;
   min-width: 0;
-  gap: 10px;
-  padding: 0 12px;
+  gap: 9px;
+  padding: 0 10px;
 }
 
 .prime-home-list__team img {
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
   object-fit: contain;
 }
 
@@ -282,9 +285,9 @@ body:has(.prime-home) .site-nav a {
 }
 
 .prime-home-list__team-copy small {
-  margin-top: 4px;
+  margin-top: 3px;
   color: #7b838c;
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 800;
   letter-spacing: .055em;
 }
@@ -309,12 +312,12 @@ body:has(.prime-home) .site-nav a {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 15px 20px 18px;
+  padding: 10px 15px 12px;
 }
 
 .prime-home-card__footer > span {
   color: #767d86;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
 }
 
@@ -324,7 +327,7 @@ body:has(.prime-home) .site-nav a {
   gap: 18px;
   min-width: 132px;
   justify-content: space-between;
-  padding: 9px 11px;
+  padding: 8px 10px;
   border: 1px solid #142b46;
   background: #142b46;
   color: #fff;
@@ -346,8 +349,8 @@ body:has(.prime-home) .site-nav a {
   grid-template-columns: 1fr 1px 1fr;
   gap: 24px;
   align-items: center;
-  margin-top: 18px;
-  padding: 15px 18px;
+  margin-top: 10px;
+  padding: 9px 14px;
   border: 1px solid #d6cec0;
   background: rgba(255,253,247,.72);
 }
@@ -365,7 +368,7 @@ body:has(.prime-home) .site-nav a {
 .prime-home__explain strong {
   color: #132a45;
   font-family: var(--font-display);
-  font-size: 23px;
+  font-size: 19px;
   text-transform: uppercase;
 }
 
@@ -381,57 +384,19 @@ body:has(.prime-home) .site-nav a {
   background: #c8bda9;
 }
 
-/* Short desktop windows: tighten vertically without shrinking text. */
+/* Short desktop windows keep both preview tables aligned and above the fold. */
 @media (max-height: 820px) and (min-width: 900px) {
-  .prime-home {
-    padding-top: 14px;
-    padding-bottom: 18px;
-  }
-
-  .prime-home__intro {
-    padding-bottom: 12px;
-  }
-
-  .prime-home__intro h1 {
-    font-size: clamp(39px, 4.2vw, 56px);
-  }
-
-  .prime-home__intro p {
-    margin-top: 7px;
-    font-size: 14px;
-  }
-
-  .prime-home__cards {
-    margin-top: 13px;
-  }
-
-  .prime-home-card__header {
-    padding-top: 14px;
-    padding-bottom: 12px;
-  }
-
-  .prime-home-card h2 {
-    font-size: clamp(28px, 2.5vw, 36px);
-  }
-
-  .prime-home-card__preview {
-    padding-top: 10px;
-  }
-
-  .prime-home-list__row {
-    min-height: 43px;
-  }
-
-  .prime-home-card__footer {
-    padding-top: 11px;
-    padding-bottom: 13px;
-  }
-
-  .prime-home__explain {
-    margin-top: 12px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
+  .prime-home { padding-top: 7px; padding-bottom: 14px; }
+  .prime-home__intro { padding-bottom: 7px; }
+  .prime-home__intro h1 { font-size: clamp(28px, 3vw, 38px); }
+  .prime-home__intro p { margin-top: 4px; font-size: 11.5px; }
+  .prime-home__cards { margin-top: 8px; }
+  .prime-home-card__header { min-height: 112px; padding-top: 10px; padding-bottom: 8px; }
+  .prime-home-card h2 { font-size: clamp(26px, 2.3vw, 32px); }
+  .prime-home-card__preview { padding-top: 7px; }
+  .prime-home-list__row { min-height: 41px; }
+  .prime-home-card__footer { padding-top: 8px; padding-bottom: 10px; }
+  .prime-home__explain { margin-top: 8px; padding-top: 7px; padding-bottom: 7px; }
 }
 
 @media (max-width: 900px) {
@@ -480,11 +445,11 @@ body:has(.prime-home) .site-nav a {
   }
 
   .prime-home {
-    padding: 14px 0 18px;
+    padding: 9px 0 16px;
   }
 
   .prime-home__intro {
-    padding-bottom: 12px;
+    padding-bottom: 8px;
   }
 
   .prime-home__eyebrow {
@@ -492,13 +457,13 @@ body:has(.prime-home) .site-nav a {
   }
 
   .prime-home__intro h1 {
-    font-size: clamp(31px, 10vw, 43px);
+    font-size: clamp(27px, 8.8vw, 36px);
   }
 
   .prime-home__intro p {
-    margin-top: 8px;
-    font-size: 12px;
-    line-height: 1.4;
+    margin-top: 5px;
+    font-size: 11px;
+    line-height: 1.35;
   }
 
   .prime-home__cards {
@@ -511,7 +476,8 @@ body:has(.prime-home) .site-nav a {
   }
 
   .prime-home-card__header {
-    padding: 13px 13px 11px;
+    min-height: 0;
+    padding: 11px 12px 9px;
   }
 
   .prime-home-card__label {
@@ -545,9 +511,8 @@ body:has(.prime-home) .site-nav a {
   }
 
   .prime-home-card__trust {
-    margin: 10px 13px 0;
-    padding: 8px 9px;
-    font-size: 10px;
+    margin-top: 4px !important;
+    font-size: 9.5px !important;
   }
 
   /* Mobile homepage explains the two products instead of showing cramped tables. */
