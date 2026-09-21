@@ -43,3 +43,195 @@
 .seo-crumbs a:hover { color: var(--color-gold-dark); text-decoration: underline; }
 .seo-hub-nav { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; }
 .seo-hub-nav [aria-current="page"] { font-weight: 700; }
+
+
+/* PRIME matchup pages use the same editorial language as the interactive
+   scouting sheet. These server-rendered sections are user-facing content, not
+   generic SEO chrome, so keep their typography, borders and spacing native to
+   the matchup experience. */
+.matchup-v2-main .seo-lede {
+  margin: 0;
+  padding: 16px 0 12px;
+  border-bottom: 1px solid var(--color-hairline-strong);
+}
+
+.matchup-v2-main .seo-lede .seo-crumbs {
+  padding: 0 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.matchup-v2-main .seo-lede h1 {
+  margin: 0 0 6px;
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 38px);
+  font-weight: 800;
+  line-height: .98;
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+}
+
+.matchup-v2-main .seo-lede p {
+  max-width: 78ch;
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.matchup-v2-main > .seo-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-hairline-strong);
+}
+
+.matchup-v2-main > .seo-section h2 {
+  margin: 0 0 9px;
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+}
+
+.matchup-v2-main .seo-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-hairline-strong);
+  border-top: 2px solid var(--color-navy);
+  border-radius: 0;
+  background: var(--color-paper);
+}
+
+.matchup-v2-main .seo-table {
+  font-family: var(--font-body);
+  font-size: 12px;
+}
+
+.matchup-v2-main .seo-table th,
+.matchup-v2-main .seo-table td {
+  padding: 8px 10px;
+}
+
+.matchup-v2-main .seo-table thead th {
+  background: var(--color-paper-soft);
+  color: var(--color-navy);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+.matchup-v2-main .seo-table--compare tbody th {
+  color: var(--color-ink-secondary);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.matchup-v2-main .seo-note {
+  margin-top: 8px;
+  color: var(--color-ink-tertiary);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.matchup-v2-main .seo-form {
+  gap: 12px;
+}
+
+.matchup-v2-main .seo-form > div {
+  padding: 10px 12px;
+  border: 1px solid var(--color-hairline);
+  background: rgba(255,255,255,.34);
+}
+
+.matchup-v2-main .seo-form h3 {
+  margin: 0 0 7px;
+  color: var(--color-navy);
+  font-size: 12px;
+}
+
+.matchup-v2-main .seo-form li,
+.matchup-v2-main .seo-links li {
+  color: var(--color-ink-secondary);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.matchup-v2-main .seo-links a {
+  color: var(--color-navy);
+  font-weight: 750;
+  text-decoration-color: rgba(184,137,45,.55);
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .matchup-v2-main .seo-lede {
+    padding: 11px 0 10px;
+  }
+
+  .matchup-v2-main .seo-lede .seo-crumbs {
+    padding-bottom: 6px;
+    font-size: 8px;
+  }
+
+  .matchup-v2-main .seo-lede h1 {
+    margin-bottom: 5px;
+    font-size: clamp(23px, 7.2vw, 30px);
+    line-height: 1;
+  }
+
+  .matchup-v2-main .seo-lede p {
+    font-size: 10.5px;
+    line-height: 1.4;
+  }
+
+  .matchup-v2-main > .seo-section {
+    margin-top: 16px;
+    padding-top: 13px;
+  }
+
+  .matchup-v2-main > .seo-section h2 {
+    margin-bottom: 7px;
+    font-size: 15px;
+  }
+
+  .matchup-v2-main .seo-table {
+    min-width: 0;
+    font-size: 10.5px;
+  }
+
+  .matchup-v2-main .seo-table th,
+  .matchup-v2-main .seo-table td {
+    padding: 7px 6px;
+  }
+
+  .matchup-v2-main .seo-table thead th {
+    font-size: 7px;
+  }
+
+  .matchup-v2-main .seo-table--compare tbody th {
+    font-size: 9px;
+  }
+
+  .matchup-v2-main .seo-note {
+    font-size: 9px;
+  }
+
+  .matchup-v2-main .seo-form {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .matchup-v2-main .seo-form > div {
+    padding: 9px 10px;
+  }
+
+  .matchup-v2-main .seo-form li,
+  .matchup-v2-main .seo-links li {
+    font-size: 10px;
+  }
+}
