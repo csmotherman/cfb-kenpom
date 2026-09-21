@@ -81,13 +81,12 @@ export default function HomePage() {
                 <span className="prime-choice__kicker">Ratings</span>
                 <span className="prime-choice__status">LIVE</span>
               </div>
-              <h2>Who&apos;s actually playing the best?</h2>
+              <h2>Performance Analytics</h2>
               <p className="prime-choice__desktop-copy">
-                A deeper look at how well teams have performed on the field — efficiency, dominance and the
-                competition they&apos;ve faced. Think team quality beyond just the record.
+                Efficiencies, advanced statistics, and opponent-adjusted ratings.
               </p>
               <p className="prime-choice__mobile-copy">
-                How well teams have actually performed on the field, beyond just wins and losses.
+                Efficiencies, advanced statistics, and opponent-adjusted ratings.
               </p>
               <div className="prime-choice__actionline">
                 <span className="prime-choice__cadence">Updated as games are completed.</span>
@@ -127,13 +126,12 @@ export default function HomePage() {
                 <span className="prime-choice__kicker">Rankings</span>
                 <span className="prime-choice__status prime-choice__status--gold">SUNDAY · 12 ET</span>
               </div>
-              <h2>Who deserves to be in the Top 25?</h2>
+              <h2>The PRIME 25</h2>
               <p className="prime-choice__desktop-copy">
-                A poll-style view that weighs how well a team has played with the strength of the record it has
-                earned. No voters rewarding a logo, reputation or preseason ranking.
+                Who has earned a spot among the nation&apos;s best?
               </p>
               <p className="prime-choice__mobile-copy">
-                A Top 25-style view based on performance and the strength of each team&apos;s record.
+                Who has earned a spot among the nation&apos;s best?
               </p>
               <div className="prime-choice__actionline">
                 <span className="prime-choice__cadence">New PRIME Top 25 every Sunday at 12 PM ET.</span>
