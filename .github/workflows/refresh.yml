@@ -27,7 +27,8 @@ on:
 
 concurrency:
   group: refresh-rankings-data
-  cancel-in-progress: false
+  # Never allow an older formula/data build to publish after a newer one.
+  cancel-in-progress: true
 
 permissions:
   contents: write
