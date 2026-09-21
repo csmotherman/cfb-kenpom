@@ -113,6 +113,36 @@ export type AdvancedSeason = {
   byWeek: Record<string, AdvancedRow[]>;
 };
 
+export type PublicMatchupAdvancedMetricKey =
+  | "epaAdj"
+  | "epaAdjAllowed"
+  | "passEpaAdj"
+  | "passEpaAdjAllowed"
+  | "rushEpaAdj"
+  | "rushEpaAdjAllowed"
+  | "passSuccessAdj"
+  | "passSuccessAdjAllowed"
+  | "rushSuccessAdj"
+  | "rushSuccessAdjAllowed";
+
+export type PublicMatchupAdvancedMetric = {
+  value: number | null;
+  rank: number | null;
+  total: number;
+};
+
+export type PublicMatchupAdvancedTeam = {
+  slug: string;
+  metrics: Record<PublicMatchupAdvancedMetricKey, PublicMatchupAdvancedMetric>;
+};
+
+export type PublicMatchupAdvanced = {
+  season: number;
+  gameId: string;
+  week: number;
+  teams: Record<string, PublicMatchupAdvancedTeam>;
+};
+
 // Research-stage Exploratory Tier 1 (series-level) statistics -- see
 // /advanced/exploratory. Raw counts only; every rate is num/den, summed
 // across the selected week range client-side, same convention as
