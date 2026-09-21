@@ -1071,3 +1071,372 @@
     grid-template-columns: 30px minmax(0,1fr) 54px 38px;
   }
 }
+
+
+/* ==========================================================================
+   Mobile homepage v3 — compact, readable, data-first
+   ========================================================================== */
+
+@media (max-width: 760px) {
+  .prime-home-v2 {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+    padding-bottom: 12px;
+  }
+
+  .prime-home-v2 > .container {
+    width: auto;
+    max-width: none;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
+  .prime-home-v2__hero {
+    background:
+      linear-gradient(90deg, rgba(250,248,243,.985), rgba(250,248,243,.94)),
+      url("/brand/background-rankings.png") center 38% / cover no-repeat;
+  }
+
+  .prime-home-v2__hero::before {
+    display: none;
+  }
+
+  .prime-home-v2__hero-inner {
+    display: flex;
+    align-items: center;
+    min-height: 122px;
+    height: auto;
+    padding: 13px 14px 14px;
+  }
+
+  .prime-home-v2__hero-copy {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .prime-home-v2__eyebrow {
+    margin-bottom: 4px;
+    font-size: 7px;
+    letter-spacing: .18em;
+  }
+
+  .prime-home-v2__hero h1 {
+    max-width: 100%;
+    font-size: clamp(29px, 8.6vw, 38px);
+    line-height: .94;
+    letter-spacing: -.018em;
+  }
+
+  .prime-home-v2__hero h1 span {
+    margin-top: 1px;
+  }
+
+  .prime-home-v2__hero p {
+    max-width: 94%;
+    margin-top: 7px;
+    font-size: 9.5px;
+    line-height: 1.35;
+  }
+
+  .prime-home-v2__dashboard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .prime-home-matchup,
+  .prime-home-panel--ratings,
+  .prime-home-panel--rankings {
+    grid-column: 1 !important;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .prime-home-matchup {
+    grid-row: auto;
+    min-height: 0;
+    padding: 0 10px 10px;
+  }
+
+  .prime-home-matchup > header {
+    min-height: 36px;
+  }
+
+  .prime-home-matchup > header span {
+    font-size: 7.5px;
+  }
+
+  .prime-home-matchup > header b {
+    font-size: 6.5px;
+  }
+
+  .prime-home-matchup__teams {
+    grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
+    min-height: 142px;
+    gap: 5px;
+    padding: 9px 0 5px;
+  }
+
+  .prime-home-matchup__team img {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 4px;
+  }
+
+  .prime-home-matchup__team span {
+    font-size: 13px;
+  }
+
+  .prime-home-matchup__team strong {
+    max-width: 132px;
+    font-size: 18px;
+  }
+
+  .prime-home-matchup__team small {
+    font-size: 7px;
+  }
+
+  .prime-home-matchup__vs {
+    font-size: 20px;
+  }
+
+  .prime-home-matchup__vs::before,
+  .prime-home-matchup__vs::after {
+    width: 25px;
+  }
+
+  .prime-home-matchup__kickoff {
+    padding: 3px 3px 8px;
+    font-size: 7px;
+    line-height: 1.3;
+  }
+
+  .prime-home-matchup__metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-radius: 6px;
+  }
+
+  .prime-home-matchup__metrics > div {
+    min-height: 46px;
+    padding: 5px 3px;
+  }
+
+  .prime-home-matchup__metrics span {
+    font-size: 5.5px;
+  }
+
+  .prime-home-matchup__metrics strong {
+    font-size: 10px;
+  }
+
+  .prime-home-matchup__metrics small {
+    font-size: 6px;
+  }
+
+  .prime-home-matchup__metrics .prime-home-matchup__metric-edge {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-height: 42px;
+    border-top: 1px solid #e2dacd;
+    border-bottom: 1px solid #e2dacd;
+  }
+
+  .prime-home-matchup__metrics .prime-home-matchup__metric-edge strong {
+    font-size: 13px;
+  }
+
+  .prime-home-matchup__cta {
+    width: 100%;
+    min-height: 40px;
+    margin-top: 8px;
+    font-size: 8.5px;
+    border-radius: 5px;
+  }
+
+  .prime-home-panel__head {
+    min-height: 68px;
+    padding: 9px 10px 7px;
+  }
+
+  .prime-home-panel__head h2 {
+    font-size: 23px;
+  }
+
+  .prime-home-panel__head p {
+    max-width: 230px;
+    font-size: 7.5px;
+  }
+
+  .prime-home-panel__head > a {
+    margin-top: 2px;
+    font-size: 6.8px;
+  }
+
+  .prime-home-v2-table {
+    grid-template-rows: 26px repeat(5, 44px);
+  }
+
+  .prime-home-v2-table__head {
+    padding: 0 7px;
+    font-size: 6px;
+  }
+
+  .prime-home-v2-table__row {
+    min-height: 44px;
+    padding: 0 7px;
+    font-size: 8px;
+  }
+
+  .prime-home-v2-table__rank {
+    font-size: 15px;
+  }
+
+  .prime-home-v2-table__team {
+    gap: 6px;
+    padding-right: 3px;
+  }
+
+  .prime-home-v2-table__team img {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+  }
+
+  .prime-home-v2-table__team b {
+    font-size: 9.5px;
+  }
+
+  .prime-home-v2__insights {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .prime-home-insight {
+    min-height: 82px;
+    padding: 8px 9px;
+  }
+
+  .prime-home-insight > span {
+    font-size: 6.5px;
+  }
+
+  .prime-home-insight > div {
+    gap: 7px;
+    margin-top: 4px;
+  }
+
+  .prime-home-insight img {
+    width: 31px;
+    height: 31px;
+    flex-basis: 31px;
+  }
+
+  .prime-home-insight strong {
+    font-size: 14px;
+  }
+
+  .prime-home-insight p {
+    font-size: 7px;
+  }
+
+  .prime-home-v2__explore {
+    margin-top: 10px;
+  }
+
+  .prime-home-v2__explore h2 {
+    margin-bottom: 5px;
+    font-size: 12px;
+  }
+
+  .prime-home-v2__explore-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+
+  .prime-home-v2__explore-grid > a {
+    grid-template-columns: 28px minmax(0, 1fr) 10px;
+    min-height: 58px;
+    padding: 6px 7px;
+    gap: 6px;
+  }
+
+  .prime-home-v2__explore-icon {
+    width: 27px;
+    height: 31px;
+    font-size: 14px;
+  }
+
+  .prime-home-v2__explore-grid strong {
+    font-size: 8px;
+  }
+
+  .prime-home-v2__explore-grid small {
+    font-size: 6.5px;
+  }
+
+  .prime-home-v2__definition {
+    min-height: 34px;
+    margin-top: 10px;
+    padding: 6px 8px;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 6.5px;
+    line-height: 1.3;
+  }
+
+  .prime-home-v2__definition i {
+    height: 11px;
+  }
+}
+
+@media (max-width: 430px) {
+  .prime-home-v2 > .container {
+    margin-left: 7px;
+    margin-right: 7px;
+  }
+
+  .prime-home-v2__hero-inner {
+    min-height: 116px;
+    padding: 12px 11px;
+  }
+
+  .prime-home-v2__hero h1 {
+    font-size: clamp(27px, 8.4vw, 34px);
+  }
+
+  .prime-home-v2__hero p {
+    max-width: 100%;
+    font-size: 9px;
+  }
+
+  .prime-home-matchup__team img {
+    width: 58px;
+    height: 58px;
+  }
+
+  .prime-home-matchup__team strong {
+    max-width: 118px;
+    font-size: 16px;
+  }
+
+  .prime-home-v2-table--ratings .prime-home-v2-table__head,
+  .prime-home-v2-table--ratings .prime-home-v2-table__row {
+    grid-template-columns: 27px minmax(0, 1fr) 47px 37px 37px;
+  }
+
+  .prime-home-v2-table--prime25 .prime-home-v2-table__head,
+  .prime-home-v2-table--prime25 .prime-home-v2-table__row {
+    grid-template-columns: 27px minmax(0, 1fr) 50px 35px;
+  }
+
+  .prime-home-v2__explore-grid small {
+    display: none;
+  }
+
+  .prime-home-v2__explore-grid > a {
+    min-height: 52px;
+  }
+}
