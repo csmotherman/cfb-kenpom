@@ -71,43 +71,40 @@ class WinProbabilityTests(unittest.TestCase):
 
 
 class SosTests(unittest.TestCase):
-    def test_sos_equals_mean_opponent_adjnet(self):
-        comp = composite({"A": (5.0, 5.0), "B": (-3.0, -3.0), "C": (0.0, 0.0)})
-        games = [("A", True, True, 1), ("B", False, True, -1), ("C", True, True, 0)]
-        sos, _sor, _exp = compute_sos_sor(games, comp)
-        # opponent AdjNet: A=10, B=-6, C=0 -> mean = 4/3
-        self.assertAlmostEqual(sos, (10.0 - 6.0 + 0.0) / 3)
+    def test_neutral_average_opponent_has_zero_sos(self):
+        comp = composite({"Average": (0.0, 0.0)})
+        sos, _sor, _exp = compute_sos_sor([("Average", True, True, 0)], comp)
+        self.assertAlmostEqual(sos, 0.0)
 
-    def test_sos_is_location_blind(self):
-        comp = composite({"A": (5.0, 5.0)})
-        home_game = [("A", True, True, 1)]
-        away_game = [("A", True, True, -1)]
-        neutral_game = [("A", True, True, 0)]
-        sos_home, _, _ = compute_sos_sor(home_game, comp)
-        sos_away, _, _ = compute_sos_sor(away_game, comp)
-        sos_neutral, _, _ = compute_sos_sor(neutral_game, comp)
-        self.assertEqual(sos_home, sos_away)
-        self.assertEqual(sos_home, sos_neutral)
-
-    def test_higher_opponent_ratings_produce_higher_sos(self):
+    def test_stronger_opponents_produce_higher_sos(self):
         comp = composite({"Elite": (10.0, 10.0), "Weak": (-10.0, -10.0)})
-        team_a_games = [("Elite", True, True, 0), ("Elite", False, True, 0), ("Elite", True, True, 0)]
-        team_b_games = [("Weak", True, True, 0), ("Weak", False, True, 0), ("Weak", True, True, 0)]
-        sos_a, _, _ = compute_sos_sor(team_a_games, comp)
-        sos_b, _, _ = compute_sos_sor(team_b_games, comp)
-        self.assertGreater(sos_a, sos_b)
+        sos_hard, _, _ = compute_sos_sor([("Elite", True, True, 0)] * 3, comp)
+        sos_easy, _, _ = compute_sos_sor([("Weak", True, True, 0)] * 3, comp)
+        self.assertGreater(sos_hard, sos_easy)
+
+    def test_road_game_is_harder_than_home_game_same_opponent(self):
+        comp = composite({"Average": (0.0, 0.0)})
+        home, _, _ = compute_sos_sor([("Average", True, True, 1)], comp)
+        neutral, _, _ = compute_sos_sor([("Average", True, True, 0)], comp)
+        away, _, _ = compute_sos_sor([("Average", True, True, -1)], comp)
+        self.assertGreater(away, neutral)
+        self.assertGreater(neutral, home)
+
+    def test_single_neutral_game_maps_back_to_opponent_adjnet(self):
+        comp = composite({"A": (5.0, 5.0)})
+        sos, _sor, _exp = compute_sos_sor([("A", True, True, 0)], comp)
+        self.assertAlmostEqual(sos, 10.0, places=4)
 
     def test_fcs_opponent_uses_frozen_baseline(self):
-        comp = composite({"A": (5.0, 5.0)})
-        games = [("A", True, True, 1), ("SomeFCS", True, False, 1)]
-        sos, _sor, _exp = compute_sos_sor(games, comp)
-        self.assertAlmostEqual(sos, (10.0 + SOR_FCS_BASELINE) / 2)
+        comp = composite({})
+        sos, _sor, _exp = compute_sos_sor([("SomeFCS", True, False, 0)], comp)
+        self.assertAlmostEqual(sos, SOR_FCS_BASELINE, places=4)
 
-    def test_unresolvable_opponent_is_excluded_not_treated_as_zero(self):
+    def test_unresolvable_opponent_is_excluded(self):
         comp = composite({"A": (5.0, 5.0)})
-        games = [("A", True, True, 1), ("Unrated", True, True, 1)]  # "Unrated" not in composite
+        games = [("A", True, True, 0), ("Unrated", True, True, 0)]
         sos, _sor, _exp = compute_sos_sor(games, comp)
-        self.assertAlmostEqual(sos, 10.0)  # only A counted, not averaged with a phantom 0
+        self.assertAlmostEqual(sos, 10.0, places=4)
 
     def test_no_games_is_none_not_zero(self):
         comp = composite({})
