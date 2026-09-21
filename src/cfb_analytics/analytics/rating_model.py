@@ -116,7 +116,7 @@ def prior_season_weight(site_week):
     remaining = PRIOR_SEASON_TAPER_ZERO_WEEK - site_week
     return PRIOR_SEASON_TAPER_START_WEIGHT * remaining / span
 
-RATING_INPUT_VERSION = "validated-drive-field-position-adjusted-v2"
+RATING_INPUT_VERSION = "validated-drive-field-position-play-efficiency-v3"
 RATING_SCALE = 10.0  # preserves the familiar APR-equivalent display scale.
 POSSESSION_SPEC = (
     "PossessionPoints",
