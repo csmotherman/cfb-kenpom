@@ -1,0 +1,475 @@
+{
+ "testSeasons": [
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "rule": "are reported. RULE 1 (first written, one-standard-error): the simplest candidate whose MAE and log loss are each\nwithin one paired-bootstrap standard error of the best. It proved too sensitive to noise (it picks different sets in the main and\nearly-season populations because near-identical models have tiny paired standard errors). RULE 2 (used for the decision, and\ndisclosed as a change): the simplest candidate that is statistically indistinguishable from the best, i.e. the 95% paired\nbootstrap CI of its MAE difference to the best includes zero, with calibration gap <= 3 pp, and MAE no worse than the\nsource-parity set S19 in every test season. Sources beyond official box + /stats/game/advanced count against complexity.",
+ "populations": {
+  "min3 (main)": {
+   "n": 2481,
+   "best": "S19 + all four groups",
+   "candidates": {
+    "lean-9 (SRS, EPA, success, YPP, 2 volume)": {
+     "features": 9,
+     "n": 2481,
+     "accuracy": 0.6913,
+     "logloss": 0.5735,
+     "brier": 0.1965,
+     "mae": 12.6766,
+     "rmse": 15.9514,
+     "median_ae": 10.793,
+     "maxCalibrationGap": 0.0147,
+     "maeBySeason": {
+      "2022": 12.627,
+      "2023": 13.011,
+      "2024": 12.537,
+      "2025": 12.518
+     },
+     "vsBestMae": {
+      "diff": 0.09463737696833127,
+      "ci_lo": 0.022132626486713873,
+      "ci_hi": 0.1700480706699633
+     },
+     "vsBestLogloss": {
+      "diff": 0.002675263946990699,
+      "ci_lo": -0.0005881128084180884,
+      "ci_hi": 0.006063520751966309
+     },
+     "vsBestAccuracy": {
+      "diff": -0.005239822652156389,
+      "ci_lo": -0.014117291414752112,
+      "ci_hi": 0.004030632809351068
+     }
+    },
+    "S19 (source-parity set)": {
+     "features": 19,
+     "n": 2481,
+     "accuracy": 0.6933,
+     "logloss": 0.5733,
+     "brier": 0.1963,
+     "mae": 12.6834,
+     "rmse": 15.9398,
+     "median_ae": 10.9759,
+     "maxCalibrationGap": 0.0069,
+     "maeBySeason": {
+      "2022": 12.611,
+      "2023": 13.011,
+      "2024": 12.561,
+      "2025": 12.539
+     },
+     "vsBestMae": {
+      "diff": 0.1014573571202009,
+      "ci_lo": 0.03417845340839501,
+      "ci_hi": 0.16996509408012214
+     },
+     "vsBestLogloss": {
+      "diff": 0.0024554203020128768,
+      "ci_lo": -0.0005810020735480583,
+      "ci_hi": 0.005631537192155568
+     },
+     "vsBestAccuracy": {
+      "diff": -0.0032245062474808546,
+      "ci_lo": -0.011688835147118097,
+      "ci_hi": 0.005239822652156389
+     }
+    },
+    "S19 + shape": {
+     "features": 25,
+     "n": 2481,
+     "accuracy": 0.6957,
+     "logloss": 0.5709,
+     "brier": 0.1954,
+     "mae": 12.6149,
+     "rmse": 15.8605,
+     "median_ae": 10.7344,
+     "maxCalibrationGap": 0.0109,
+     "maeBySeason": {
+      "2022": 12.582,
+      "2023": 12.903,
+      "2024": 12.546,
+      "2025": 12.412
+     },
+     "vsBestMae": {
+      "diff": 0.03298651619864655,
+      "ci_lo": -0.003854115036186494,
+      "ci_hi": 0.07035367235842216
+     },
+     "vsBestLogloss": {
+      "diff": 0.00011468846086286973,
+      "ci_lo": -0.0016211432574506615,
+      "ci_hi": 0.0018484703042955988
+     },
+     "vsBestAccuracy": {
+      "diff": -0.0008061265618702137,
+      "ci_lo": -0.006449012494961709,
+      "ci_hi": 0.0048367593712212815
+     }
+    },
+    "S19 + shape + havoc proxy": {
+     "features": 27,
+     "n": 2481,
+     "accuracy": 0.6945,
+     "logloss": 0.5708,
+     "brier": 0.1954,
+     "mae": 12.5992,
+     "rmse": 15.8558,
+     "median_ae": 10.71,
+     "maxCalibrationGap": 0.0187,
+     "maeBySeason": {
+      "2022": 12.535,
+      "2023": 12.904,
+      "2024": 12.532,
+      "2025": 12.409
+     },
+     "vsBestMae": {
+      "diff": 0.017214022483310037,
+      "ci_lo": -0.013990288995423008,
+      "ci_hi": 0.04882103424890253
+     },
+     "vsBestLogloss": {
+      "diff": 3.629614265779922e-05,
+      "ci_lo": -0.0014404479678337607,
+      "ci_hi": 0.0014473542815356653
+     },
+     "vsBestAccuracy": {
+      "diff": -0.002015316404675534,
+      "ci_lo": -0.007658202337767029,
+      "ci_hi": 0.0036275695284159614
+     }
+    },
+    "S19 + shape + explosiveness": {
+     "features": 27,
+     "n": 2481,
+     "accuracy": 0.6949,
+     "logloss": 0.571,
+     "brier": 0.1955,
+     "mae": 12.6163,
+     "rmse": 15.8556,
+     "median_ae": 10.7209,
+     "maxCalibrationGap": 0.0133,
+     "maeBySeason": {
+      "2022": 12.59,
+      "2023": 12.905,
+      "2024": 12.545,
+      "2025": 12.408
+     },
+     "vsBestMae": {
+      "diff": 0.03431051173507935,
+      "ci_lo": -0.000262789247926036,
+      "ci_hi": 0.06998955697983168
+     },
+     "vsBestLogloss": {
+      "diff": 0.0001947941785395801,
+      "ci_lo": -0.0014935424539633077,
+      "ci_hi": 0.0018562371857203822
+     },
+     "vsBestAccuracy": {
+      "diff": -0.0016122531237404273,
+      "ci_lo": -0.007265215638855297,
+      "ci_hi": 0.004030632809351068
+     }
+    },
+    "S19 + shape + rushing": {
+     "features": 35,
+     "n": 2481,
+     "accuracy": 0.6977,
+     "logloss": 0.5711,
+     "brier": 0.1953,
+     "mae": 12.5874,
+     "rmse": 15.845,
+     "median_ae": 10.7855,
+     "maxCalibrationGap": 0.0133,
+     "maeBySeason": {
+      "2022": 12.492,
+      "2023": 12.874,
+      "2024": 12.557,
+      "2025": 12.411
+     },
+     "vsBestMae": {
+      "diff": 0.005448204840688404,
+      "ci_lo": -0.007430718410979283,
+      "ci_hi": 0.01868605162688443
+     },
+     "vsBestLogloss": {
+      "diff": 0.0003178653621628869,
+      "ci_lo": -0.0002718752624116652,
+      "ci_hi": 0.0009127504997918456
+     },
+     "vsBestAccuracy": {
+      "diff": 0.0012091898428053204,
+      "ci_lo": -0.002015316404675534,
+      "ci_hi": 0.004433696090286175
+     }
+    },
+    "S19 + all four groups": {
+     "features": 39,
+     "n": 2481,
+     "accuracy": 0.6965,
+     "logloss": 0.5708,
+     "brier": 0.1952,
+     "mae": 12.582,
+     "rmse": 15.8327,
+     "median_ae": 10.7698,
+     "maxCalibrationGap": 0.0088,
+     "maeBySeason": {
+      "2022": 12.489,
+      "2023": 12.878,
+      "2024": 12.543,
+      "2025": 12.401
+     },
+     "vsBestMae": {
+      "diff": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0
+     },
+     "vsBestLogloss": {
+      "diff": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0
+     },
+     "vsBestAccuracy": {
+      "diff": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0
+     }
+    }
+   },
+   "selectedRule1": "S19 + all four groups",
+   "selected": "S19 + shape"
+  },
+  "min1 (early-season stress)": {
+   "n": 2939,
+   "best": "S19 + all four groups",
+   "candidates": {
+    "lean-9 (SRS, EPA, success, YPP, 2 volume)": {
+     "features": 9,
+     "n": 2939,
+     "accuracy": 0.6972,
+     "logloss": 0.5769,
+     "brier": 0.1976,
+     "mae": 13.0599,
+     "rmse": 16.552,
+     "median_ae": 10.9447,
+     "maxCalibrationGap": 0.0249,
+     "maeBySeason": {
+      "2022": 13.079,
+      "2023": 13.361,
+      "2024": 12.905,
+      "2025": 12.899
+     },
+     "vsBestMae": {
+      "diff": 0.11216758515430442,
+      "ci_lo": 0.03550127502810779,
+      "ci_hi": 0.18612495953413785
+     },
+     "vsBestLogloss": {
+      "diff": 0.006050156253617077,
+      "ci_lo": 0.0026958155402424322,
+      "ci_hi": 0.009395708652620497
+     },
+     "vsBestAccuracy": {
+      "diff": -0.004083021435862538,
+      "ci_lo": -0.012929567880231372,
+      "ci_hi": 0.004763525008506295
+     }
+    },
+    "S19 (source-parity set)": {
+     "features": 19,
+     "n": 2939,
+     "accuracy": 0.6975,
+     "logloss": 0.5762,
+     "brier": 0.1973,
+     "mae": 13.0625,
+     "rmse": 16.5501,
+     "median_ae": 10.9818,
+     "maxCalibrationGap": 0.0229,
+     "maeBySeason": {
+      "2022": 13.063,
+      "2023": 13.375,
+      "2024": 12.952,
+      "2025": 12.862
+     },
+     "vsBestMae": {
+      "diff": 0.11472253319441895,
+      "ci_lo": 0.04912864701333273,
+      "ci_hi": 0.18014609733047768
+     },
+     "vsBestLogloss": {
+      "diff": 0.005380681013970733,
+      "ci_lo": 0.0025424574527668302,
+      "ci_hi": 0.008246931390515364
+     },
+     "vsBestAccuracy": {
+      "diff": -0.00374276964954066,
+      "ci_lo": -0.011908812521265737,
+      "ci_hi": 0.004423273222184417
+     }
+    },
+    "S19 + shape": {
+     "features": 25,
+     "n": 2939,
+     "accuracy": 0.6999,
+     "logloss": 0.5708,
+     "brier": 0.1952,
+     "mae": 12.9653,
+     "rmse": 16.4385,
+     "median_ae": 10.9511,
+     "maxCalibrationGap": 0.0273,
+     "maeBySeason": {
+      "2022": 13.017,
+      "2023": 13.204,
+      "2024": 12.932,
+      "2025": 12.707
+     },
+     "vsBestMae": {
+      "diff": 0.017582695365295498,
+      "ci_lo": -0.012229522735537688,
+      "ci_hi": 0.04807078271578236
+     },
+     "vsBestLogloss": {
+      "diff": -4.563114551234266e-06,
+      "ci_lo": -0.0013267988631521497,
+      "ci_hi": 0.0013635149623773834
+     },
+     "vsBestAccuracy": {
+      "diff": -0.0013610071452875127,
+      "ci_lo": -0.007153793807417486,
+      "ci_hi": 0.004763525008506295
+     }
+    },
+    "S19 + shape + havoc proxy": {
+     "features": 27,
+     "n": 2939,
+     "accuracy": 0.7002,
+     "logloss": 0.5707,
+     "brier": 0.1951,
+     "mae": 12.9621,
+     "rmse": 16.4358,
+     "median_ae": 10.9614,
+     "maxCalibrationGap": 0.028,
+     "maeBySeason": {
+      "2022": 13.019,
+      "2023": 13.204,
+      "2024": 12.917,
+      "2025": 12.708
+     },
+     "vsBestMae": {
+      "diff": 0.014393329398273801,
+      "ci_lo": -0.014841469057242953,
+      "ci_hi": 0.043822112428230045
+     },
+     "vsBestLogloss": {
+      "diff": -0.00012160722861085978,
+      "ci_lo": -0.0014032380477075486,
+      "ci_hi": 0.001226567410622826
+     },
+     "vsBestAccuracy": {
+      "diff": -0.0010207553589656345,
+      "ci_lo": -0.006464783940115686,
+      "ci_hi": 0.004423273222184417
+     }
+    },
+    "S19 + shape + explosiveness": {
+     "features": 27,
+     "n": 2939,
+     "accuracy": 0.7006,
+     "logloss": 0.5707,
+     "brier": 0.1951,
+     "mae": 12.9628,
+     "rmse": 16.4314,
+     "median_ae": 10.957,
+     "maxCalibrationGap": 0.0272,
+     "maeBySeason": {
+      "2022": 13.008,
+      "2023": 13.199,
+      "2024": 12.934,
+      "2025": 12.709
+     },
+     "vsBestMae": {
+      "diff": 0.015040987830642467,
+      "ci_lo": -0.012840871157973867,
+      "ci_hi": 0.04274748098855963
+     },
+     "vsBestLogloss": {
+      "diff": -0.00011356038738972551,
+      "ci_lo": -0.0013351826083033457,
+      "ci_hi": 0.0011518957989634362
+     },
+     "vsBestAccuracy": {
+      "diff": -0.0006805035726437564,
+      "ci_lo": -0.006124532153793808,
+      "ci_hi": 0.004763525008506295
+     }
+    },
+    "S19 + shape + rushing": {
+     "features": 35,
+     "n": 2939,
+     "accuracy": 0.7033,
+     "logloss": 0.5711,
+     "brier": 0.1952,
+     "mae": 12.9537,
+     "rmse": 16.4278,
+     "median_ae": 10.8277,
+     "maxCalibrationGap": 0.0322,
+     "maeBySeason": {
+      "2022": 12.973,
+      "2023": 13.185,
+      "2024": 12.954,
+      "2025": 12.701
+     },
+     "vsBestMae": {
+      "diff": 0.005951968057852059,
+      "ci_lo": -0.005160454033935256,
+      "ci_hi": 0.017518406515424335
+     },
+     "vsBestLogloss": {
+      "diff": 0.000231786604115807,
+      "ci_lo": -0.00025484287663311714,
+      "ci_hi": 0.0007149195812551325
+     },
+     "vsBestAccuracy": {
+      "diff": 0.002041510717931269,
+      "ci_lo": -0.0010207553589656345,
+      "ci_hi": 0.005103776794828173
+     }
+    },
+    "S19 + all four groups": {
+     "features": 39,
+     "n": 2939,
+     "accuracy": 0.7013,
+     "logloss": 0.5708,
+     "brier": 0.1951,
+     "mae": 12.9477,
+     "rmse": 16.4153,
+     "median_ae": 10.8308,
+     "maxCalibrationGap": 0.032,
+     "maeBySeason": {
+      "2022": 12.976,
+      "2023": 13.174,
+      "2024": 12.946,
+      "2025": 12.693
+     },
+     "vsBestMae": {
+      "diff": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0
+     },
+     "vsBestLogloss": {
+      "diff": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0
+     },
+     "vsBestAccuracy": {
+      "diff": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0
+     }
+    }
+   },
+   "selectedRule1": "S19 + shape + havoc proxy",
+   "selected": "S19 + shape"
+  }
+ }
+}
