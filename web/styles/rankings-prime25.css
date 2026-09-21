@@ -1,5 +1,6 @@
 /* ==========================================================================
    The PRIME 25 — rankings poster
+   Matches the approved mockup: expressive background + two separate cards.
    ========================================================================== */
 
 body:has(.prime25-page) {
@@ -7,59 +8,56 @@ body:has(.prime25-page) {
 }
 
 body:has(.prime25-page) .site-header {
-  background: rgba(248, 245, 237, .96);
+  background: rgba(250, 247, 239, .97);
 }
 
 body:has(.prime25-page) .site-header__inner {
-  min-height: 48px;
+  min-height: 47px;
   padding-top: 5px;
   padding-bottom: 5px;
 }
 
 body:has(.prime25-page) .logotype__logo {
   width: 104px;
-  max-height: 44px;
+  max-height: 42px;
 }
 
-body:has(.prime25-page) .logotype__divider {
-  height: 22px;
-}
-
-body:has(.prime25-page) .logotype__name {
-  font-size: 8.5px;
-}
-
+body:has(.prime25-page) .logotype__divider { height: 22px; }
+body:has(.prime25-page) .logotype__name { font-size: 8.5px; }
 body:has(.prime25-page) .site-header__tagline {
   font-size: 8px;
-  letter-spacing: .16em;
+  letter-spacing: .15em;
 }
 
 body:has(.prime25-page) .site-nav a {
-  min-height: 35px;
+  min-height: 34px;
   font-size: 10px;
 }
 
 .prime25-page {
   position: relative;
-  min-height: calc(100vh - 84px);
+  min-height: calc(100vh - 82px);
+  overflow: hidden;
   background:
     url("/brand/background-rankings.png") center top / cover no-repeat;
-  overflow: hidden;
 }
 
 .prime25-page__veil {
   min-height: inherit;
-  background:
-    linear-gradient(90deg, rgba(247,243,234,.10), rgba(247,243,234,.34) 20%, rgba(247,243,234,.34) 80%, rgba(247,243,234,.10)),
-    linear-gradient(180deg, rgba(247,243,234,.08), rgba(247,243,234,.15));
+  background: linear-gradient(
+    180deg,
+    rgba(248,244,235,.03) 0%,
+    rgba(248,244,235,.09) 46%,
+    rgba(248,244,235,.12) 100%
+  );
 }
 
 .prime25-shell {
   position: relative;
   z-index: 2;
-  max-width: 1320px;
-  padding-top: 18px;
-  padding-bottom: 16px;
+  width: min(1180px, calc(100% - 150px));
+  max-width: none;
+  padding: 18px 0 14px;
 }
 
 .prime25-hero {
@@ -67,156 +65,157 @@ body:has(.prime25-page) .site-nav a {
   align-items: flex-end;
   justify-content: space-between;
   gap: 28px;
-  padding: 0 20px 10px;
+  padding: 0 0 11px;
 }
 
 .prime25-hero__copy {
   min-width: 0;
+  padding-left: 4px;
 }
 
 .prime25-hero__eyebrow {
-  display: block;
-  margin-bottom: 2px;
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+  font-size: 10px;
   font-weight: 900;
-  letter-spacing: .24em;
+  letter-spacing: .23em;
   text-transform: uppercase;
-  color: #a77a20;
+  color: #9e741d;
+}
+
+.prime25-hero__eyebrow::before {
+  content: "♛";
+  font-family: Georgia, serif;
+  font-size: 21px;
+  line-height: 1;
+  color: #b2852a;
+  transform: translateY(-1px);
 }
 
 .prime25-hero h1 {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(62px, 6.5vw, 96px);
+  font-size: clamp(60px, 5.8vw, 82px);
   font-weight: 800;
-  line-height: .79;
-  letter-spacing: -.035em;
+  line-height: .82;
+  letter-spacing: -.04em;
   text-transform: uppercase;
-  color: #132943;
-  text-shadow: 0 2px 0 rgba(255,255,255,.58);
+  color: #122944;
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.82),
+    0 8px 20px rgba(23,36,56,.08);
 }
 
 .prime25-hero__gold {
-  color: #b18222;
+  color: #b28022;
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.8),
+    0 3px 0 rgba(126,87,11,.13);
 }
 
 .prime25-hero__copy p {
-  margin-top: 8px;
-  font-size: 15px;
+  margin-top: 7px;
+  font-size: 13px;
   font-weight: 800;
   color: #263a55;
+  text-shadow: 0 1px 0 rgba(255,255,255,.78);
 }
 
 .prime25-hero__meta {
   display: flex;
   align-items: stretch;
   gap: 8px;
-  padding-bottom: 3px;
+  padding-bottom: 4px;
 }
 
 .prime25-meta-card {
-  min-width: 108px;
-  padding: 9px 12px;
-  border: 1px solid rgba(142,122,84,.48);
-  background: rgba(250,248,242,.88);
-  box-shadow: 0 5px 16px rgba(24,32,43,.08);
+  min-width: 105px;
+  padding: 8px 11px;
+  border: 1px solid rgba(145,124,86,.5);
+  background: rgba(252,249,242,.93);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.8) inset,
+    0 6px 14px rgba(28,35,44,.09);
   backdrop-filter: blur(2px);
 }
 
-.prime25-meta-card--wide {
-  min-width: 176px;
-}
+.prime25-meta-card--wide { min-width: 176px; }
 
 .prime25-meta-card span {
   display: block;
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 900;
-  letter-spacing: .08em;
+  letter-spacing: .09em;
   text-transform: uppercase;
-  color: #a77a20;
+  color: #9e741d;
 }
 
 .prime25-meta-card strong {
   display: block;
   margin-top: 3px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11.5px;
   line-height: 1.1;
-  color: #132943;
+  color: #122944;
 }
 
+/* Two independent cards, like the concept image. */
 .prime25-board {
-  overflow: hidden;
-  border: 1px solid rgba(36,55,79,.35);
-  background: rgba(255,254,249,.92);
-  box-shadow: 0 16px 34px rgba(22,32,45,.16);
-  backdrop-filter: blur(1.5px);
-}
-
-.prime25-board__strap {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  min-height: 42px;
-  padding: 0 18px;
-  border-bottom: 3px solid #c29539;
-  background: rgba(19,41,67,.97);
-  color: #d8dde4;
-}
-
-.prime25-board__strap span {
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-}
-
-.prime25-board__strap span:last-child {
-  text-align: right;
-}
-
-.prime25-board__strap strong {
-  font-family: var(--font-display);
-  font-size: 29px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: .02em;
-  text-transform: uppercase;
-  color: #fff;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
 }
 
 .prime25-board__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
 }
 
 .prime25-column {
   min-width: 0;
+  overflow: hidden;
   padding: 0 10px 8px;
+  border: 1px solid rgba(43,57,75,.28);
+  background: rgba(255,254,250,.96);
+  box-shadow:
+    0 13px 26px rgba(25,32,42,.13),
+    0 1px 0 rgba(255,255,255,.92) inset;
 }
 
 .prime25-column + .prime25-column {
-  border-left: 1px solid rgba(190,181,164,.82);
+  border-left: 1px solid rgba(43,57,75,.28);
 }
 
 .prime25-column__head,
 .prime25-row {
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr) 54px;
+  grid-template-columns: 50px minmax(0, 1fr) 50px;
   align-items: center;
 }
 
 .prime25-column__head {
-  min-height: 27px;
-  padding: 0 7px;
-  color: #727879;
-  font-size: 7px;
+  min-height: 32px;
+  margin: 0 -10px;
+  padding: 0 10px;
+  border-bottom: 3px solid #c49331;
+  background: #122944;
+  color: #eef1f4;
+  font-size: 7.5px;
   font-weight: 900;
-  letter-spacing: .15em;
+  letter-spacing: .14em;
   text-transform: uppercase;
+}
+
+.prime25-column__head span:first-child {
+  text-align: center;
 }
 
 .prime25-column__head span:last-child {
@@ -224,17 +223,24 @@ body:has(.prime25-page) .site-nav a {
 }
 
 .prime25-row {
-  min-height: 39px;
-  border-top: 1px solid rgba(210,203,191,.8);
-  background: rgba(255,255,255,.42);
-  transition: background-color .12s ease, transform .12s ease, box-shadow .12s ease;
+  min-height: 36px;
+  border-top: 1px solid rgba(205,197,183,.78);
+  background: rgba(255,255,255,.58);
+  transition:
+    background-color .12s ease,
+    box-shadow .12s ease,
+    transform .12s ease;
+}
+
+.prime25-row:first-of-type {
+  border-top: 0;
 }
 
 .prime25-row:hover {
   position: relative;
   z-index: 2;
-  background: rgba(249,244,232,.96);
-  box-shadow: 0 4px 12px rgba(28,38,50,.08);
+  background: #f8f1e2;
+  box-shadow: 0 3px 10px rgba(25,33,42,.08);
 }
 
 .prime25-row__rank {
@@ -242,76 +248,81 @@ body:has(.prime25-page) .site-nav a {
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  background: #132943;
+  margin-left: -10px;
+  background: #122944;
   color: #fff;
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 900;
 }
 
 .prime25-row--number-one {
-  background: linear-gradient(90deg, rgba(218,180,92,.24), rgba(255,255,255,.36));
+  background:
+    linear-gradient(90deg, rgba(212,171,77,.36), rgba(255,251,236,.9) 55%, rgba(255,255,255,.68));
+  box-shadow: inset 0 0 0 1px rgba(184,137,34,.27);
 }
 
 .prime25-row--number-one .prime25-row__rank {
-  position: relative;
-  background: #a77a20;
+  background: linear-gradient(180deg, #b98a28, #9f711b);
+  color: #fff;
 }
 
 .prime25-row--number-one .prime25-row__rank::before {
   content: "♛";
   margin-right: 4px;
   font-family: Georgia, serif;
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1;
+  color: #fff6cc;
 }
 
 .prime25-row__team {
   display: flex;
   align-items: center;
   min-width: 0;
-  gap: 10px;
+  gap: 9px;
   padding: 0 10px;
 }
 
 .prime25-row__team img {
-  width: 26px;
-  height: 26px;
-  flex: 0 0 26px;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
   object-fit: contain;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,.65));
 }
 
 .prime25-row__team-copy {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  line-height: 1.02;
+  line-height: 1;
 }
 
 .prime25-row__team-copy strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 850;
-  color: #15263f;
+  color: #142741;
 }
 
 .prime25-row__team-copy small {
   margin-top: 2px;
-  font-size: 7px;
+  font-size: 6.8px;
   font-weight: 900;
-  letter-spacing: .05em;
-  color: #777b78;
+  letter-spacing: .055em;
+  color: #747a7d;
 }
 
 .prime25-row__record {
-  padding-right: 7px;
+  padding-right: 1px;
   text-align: right;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 800;
-  color: #243650;
+  color: #223750;
 }
 
 .prime25-underbar {
@@ -319,21 +330,22 @@ body:has(.prime25-page) .site-nav a {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  min-height: 36px;
+  min-height: 37px;
   padding: 7px 4px 0;
   color: #626d78;
-  font-size: 9.5px;
+  font-size: 9px;
+  text-shadow: 0 1px 0 rgba(255,255,255,.72);
 }
 
 .prime25-underbar a {
   flex: 0 0 auto;
   padding: 7px 12px;
-  border: 1px solid rgba(167,122,32,.72);
-  background: rgba(250,247,238,.82);
-  font-size: 9px;
+  border: 1px solid rgba(164,119,29,.75);
+  background: rgba(251,247,237,.91);
+  box-shadow: 0 4px 10px rgba(32,39,48,.06);
+  font-size: 8.5px;
   font-weight: 900;
-  color: #9a6f18;
-  box-shadow: 0 3px 9px rgba(33,40,49,.05);
+  color: #936815;
 }
 
 .prime25-underbar a:hover {
@@ -346,31 +358,39 @@ body:has(.prime25-page) .site-footer {
   background: #eee8da;
 }
 
-@media (max-width: 980px) {
+/* Large desktop: keep the poster contained so the side art stays visible. */
+@media (min-width: 1500px) {
   .prime25-shell {
-    padding-left: 14px;
-    padding-right: 14px;
-  }
-
-  .prime25-hero h1 {
-    font-size: clamp(56px, 8vw, 80px);
-  }
-
-  .prime25-row__team-copy strong {
-    font-size: 12px;
+    width: min(1240px, calc(100% - 300px));
   }
 }
 
+/* Laptop */
+@media (max-width: 1100px) {
+  .prime25-shell {
+    width: calc(100% - 64px);
+  }
+
+  .prime25-hero h1 {
+    font-size: clamp(54px, 7vw, 72px);
+  }
+
+  .prime25-row__team-copy strong {
+    font-size: 11.5px;
+  }
+}
+
+/* Mobile keeps the poster-style two-column view so all 25 remain visible. */
 @media (max-width: 760px) {
   body:has(.prime25-page) .site-header__inner {
-    min-height: 42px;
+    min-height: 41px;
     padding-top: 4px;
     padding-bottom: 4px;
   }
 
   body:has(.prime25-page) .logotype__logo {
     width: 80px;
-    max-height: 35px;
+    max-height: 34px;
   }
 
   body:has(.prime25-page) .logotype__divider,
@@ -393,98 +413,90 @@ body:has(.prime25-page) .site-footer {
 
   body:has(.prime25-page) .site-nav a {
     width: auto !important;
-    min-width: 72px;
+    min-width: 68px;
     flex: 0 0 auto !important;
-    min-height: 31px;
-    padding: 0 8px;
-    font-size: 8px;
+    min-height: 30px;
+    padding: 0 7px;
+    font-size: 7.8px;
   }
 
   .prime25-page {
-    min-height: calc(100vh - 73px);
+    min-height: calc(100vh - 72px);
     background-position: center top;
   }
 
   .prime25-page__veil {
-    background: rgba(247,243,234,.28);
+    background: rgba(248,244,235,.18);
   }
 
   .prime25-shell {
-    padding: 8px 7px 10px;
+    width: calc(100% - 12px);
+    padding: 7px 0 9px;
   }
 
   .prime25-hero {
     align-items: center;
-    gap: 8px;
-    padding: 0 2px 6px;
+    gap: 7px;
+    padding-bottom: 6px;
   }
 
   .prime25-hero__eyebrow {
-    font-size: 7px;
-    letter-spacing: .18em;
+    gap: 4px;
+    font-size: 6.5px;
+    letter-spacing: .16em;
+  }
+
+  .prime25-hero__eyebrow::before {
+    font-size: 12px;
   }
 
   .prime25-hero h1 {
-    gap: 5px;
-    font-size: clamp(31px, 9vw, 44px);
+    gap: 4px;
+    font-size: clamp(29px, 9vw, 42px);
   }
 
   .prime25-hero__copy p {
-    margin-top: 4px;
-    max-width: 230px;
-    font-size: 8px;
+    margin-top: 3px;
+    max-width: 220px;
+    font-size: 7.5px;
   }
 
   .prime25-hero__meta {
-    gap: 4px;
+    gap: 3px;
     padding-bottom: 0;
   }
 
   .prime25-meta-card {
     min-width: 0;
-    padding: 5px 6px;
+    padding: 4px 5px;
   }
 
   .prime25-meta-card--wide {
     display: none;
   }
 
-  .prime25-meta-card span {
-    font-size: 5.5px;
-  }
+  .prime25-meta-card span { font-size: 5px; }
+  .prime25-meta-card strong { font-size: 7px; }
 
-  .prime25-meta-card strong {
-    font-size: 7.5px;
-  }
-
-  .prime25-board__strap {
-    min-height: 29px;
-    padding: 0 6px;
-    border-bottom-width: 2px;
-  }
-
-  .prime25-board__strap strong {
-    font-size: 18px;
-  }
-
-  .prime25-board__strap span {
-    font-size: 5px;
-    letter-spacing: .08em;
+  .prime25-board__grid {
+    gap: 5px;
   }
 
   .prime25-column {
-    padding: 0 3px 4px;
+    padding: 0 2px 3px;
   }
 
   .prime25-column__head,
   .prime25-row {
-    grid-template-columns: 23px minmax(0, 1fr) 27px;
+    grid-template-columns: 21px minmax(0, 1fr) 26px;
   }
 
   .prime25-column__head {
-    min-height: 16px;
-    padding: 0 1px;
-    font-size: 4.8px;
+    min-height: 22px;
+    margin: 0 -2px;
+    padding: 0 2px;
+    border-bottom-width: 2px;
+    font-size: 4.7px;
   }
 
   .prime25-row {
@@ -492,7 +504,8 @@ body:has(.prime25-page) .site-footer {
   }
 
   .prime25-row__rank {
-    font-size: 8px;
+    margin-left: -2px;
+    font-size: 7.8px;
   }
 
   .prime25-row--number-one .prime25-row__rank::before {
@@ -511,7 +524,7 @@ body:has(.prime25-page) .site-footer {
   }
 
   .prime25-row__team-copy strong {
-    font-size: 7.4px;
+    font-size: 7.2px;
   }
 
   .prime25-row__team-copy small {
@@ -519,14 +532,13 @@ body:has(.prime25-page) .site-footer {
   }
 
   .prime25-row__record {
-    padding-right: 1px;
-    font-size: 6.3px;
+    font-size: 6.1px;
   }
 
   .prime25-underbar {
-    min-height: 25px;
-    padding-top: 4px;
-    font-size: 6px;
+    min-height: 24px;
+    padding-top: 3px;
+    font-size: 5.8px;
   }
 
   .prime25-underbar span {
@@ -536,8 +548,8 @@ body:has(.prime25-page) .site-footer {
   }
 
   .prime25-underbar a {
-    padding: 4px 6px;
-    font-size: 6px;
+    padding: 4px 5px;
+    font-size: 5.8px;
     white-space: nowrap;
   }
 }
