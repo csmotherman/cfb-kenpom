@@ -453,3 +453,88 @@ body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
     box-shadow: inset 0 -3px 0 #d2a43d;
   }
 }
+
+
+/* PRIME compact chrome v2 — data-first, no wasted vertical space */
+@media (max-width: 760px) {
+  .site-header__inner {
+    min-height: 68px !important;
+    height: 68px !important;
+    padding: 0 16px !important;
+    gap: 10px !important;
+  }
+
+  .logotype {
+    gap: 0 !important;
+  }
+
+  .logotype__logo {
+    width: 126px !important;
+    max-height: 46px !important;
+  }
+
+  .logotype__divider,
+  .logotype__name,
+  .site-header__tagline {
+    display: none !important;
+  }
+
+  .site-header__actions {
+    gap: 8px !important;
+  }
+
+  .auth-link {
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 0 12px !important;
+    border-radius: 6px !important;
+    font-size: 9px !important;
+  }
+
+  .site-search__toggle {
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    border-radius: 6px !important;
+  }
+
+  .site-nav .container,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav .container {
+    display: flex !important;
+    align-items: stretch !important;
+    padding: 0 4px !important;
+    gap: 0 !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+  }
+
+  .site-nav a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a {
+    min-height: 44px !important;
+    height: 44px !important;
+    width: auto !important;
+    flex: 0 0 auto !important;
+    padding: 0 13px !important;
+    border-radius: 0 !important;
+    font-family: var(--font-display);
+    font-size: 10.5px !important;
+    font-weight: 800 !important;
+    letter-spacing: .04em !important;
+    color: #cbd2dc !important;
+  }
+
+  .site-nav a.active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a.active,
+  .site-nav a[data-beta="true"].active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-beta="true"].active {
+    color: #f0c75e !important;
+    background: rgba(255,255,255,.045) !important;
+    box-shadow: inset 0 -3px 0 #d2a43d !important;
+  }
+
+  .site-nav a[data-beta="true"]:not(.active),
+  body:has(#ratingsTable, #advancedTable, #predictionsContent) .site-nav a[data-beta="true"]:not(.active) {
+    color: #cbd2dc !important;
+  }
+}
