@@ -78,7 +78,7 @@ export default function HomePage() {
               <div>
                 <span className="prime-home-card__label">Ratings</span>
                 <h2>Performance Analytics</h2>
-                <p>Opponent-adjusted efficiency and advanced team performance from the current season.</p>
+                <p>Opponent-adjusted performance and advanced team efficiency.</p>
               </div>
               <div className="prime-home-card__meta">
                 <span>Live</span>
@@ -121,7 +121,7 @@ export default function HomePage() {
               <div>
                 <span className="prime-home-card__label">Rankings</span>
                 <h2>The PRIME 25</h2>
-                <p>Current-season performance and strength of record, ranked by what teams have earned.</p>
+                <p>Current-season performance and strength of record.</p>
                 <p className="prime-home-card__trust">
                   No preseason rankings, brand reputation, or voter input.
                 </p>
