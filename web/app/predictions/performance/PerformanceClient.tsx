@@ -17,7 +17,7 @@ function points(value: number | null | undefined): string {
 }
 
 const MODEL_NAMES: Record<string, string> = {
-  "early-season-blend-2026-v1": "Early-season blend (retired; used preseason power)",
+  "early-season-blend-2026-v1": "Early-season blend (preseason power + this season's margins; retired after Week 4)",
   "aggregate-advanced-2026-v1": "Aggregate advanced model (from Week 6)",
 };
 
@@ -132,7 +132,7 @@ export default function PerformanceClient({ seoLede }: { seoLede?: ReactNode }) 
               <PerformanceTable
                 title="By model"
                 eyebrow="Live picks, split by the model that made them"
-                note="Weeks 1-3 were picked by the early-season blend, which used preseason information and has been retired. Week 4 onward is picked by the aggregate model, which uses current-season games only. Each model is graded only on its own frozen picks."
+                note="Weeks 1-4 are picked by the early-season blend, which uses preseason information and is retired after Week 4. Week 5 onward is picked by the aggregate model, which uses current-season games only. Each model is graded only on its own frozen picks."
                 headers={["Model", "Weeks", "Record", "Accuracy", "MAE", "RMSE", "Games"]}
                 rows={active.models.map((model) => [
                   MODEL_NAMES[model.modelVersion] ?? model.modelVersion,

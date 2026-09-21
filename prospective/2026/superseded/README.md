@@ -1,7 +1,6 @@
 # Superseded snapshots
 
-`week-04.early-season-blend.json` is the Week 4 prediction snapshot originally published on 2026-09-20 by the early-season
-blend (`early-season-blend-2026-v1`), which used a frozen preseason power estimate. On 2026-09-21, before any Week 4 game
-had kicked off, PRIME stopped using preseason inputs for predictions and re-scored Week 4 with the aggregate model
-(`aggregate-advanced-2026-v1`, current-season games only). The original is kept here unmodified for transparency and is not
-read by the export or graded. Weeks 1-3 keep their original blend snapshots (already graded); Week 4 onward is the aggregate model.
+`week-04.aggregate-preview.json` is an aggregate-model (`aggregate-advanced-2026-v1`) scoring of Week 4, made on 2026-09-21
+before any Week 4 kickoff when the plan was to retire the preseason-informed blend one week early. That plan was reversed:
+Week 4 is the blend's last week (`early-season-blend-2026-v1`, published 2026-09-20, restored in `../predictions/`), and the
+aggregate model takes over at Week 5. This preview is kept for transparency and is not read by the export or graded.

@@ -297,7 +297,7 @@ def build_prediction_track_record_payload(year, schedule_payload, snapshots, mar
         for game in games
     }
     # Every snapshot carries exactly one version. A season may span models only through a declared, ordered hand-off
-    # (early-season blend for weeks 1-3, then the aggregate model); any other mismatch is still an error.
+    # (early-season blend for weeks 1-4, then the aggregate model); any other mismatch is still an error.
     ordered = sorted(snapshots, key=lambda snapshot: int(snapshot["week"]))
     require(all(snapshot.get("freezeVersion") for snapshot in ordered), "Prediction snapshot without a frozen model version")
     in_week_order = [snapshot["freezeVersion"] for snapshot in ordered]

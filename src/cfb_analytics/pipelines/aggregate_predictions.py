@@ -1,11 +1,11 @@
-"""Publish immutable weekly predictions from the frozen aggregate advanced model (week 4 onward).
+"""Publish immutable weekly predictions from the frozen aggregate advanced model (week 5 onward).
 
     python -m cfb_analytics.pipelines.aggregate_predictions freeze     # once, needs local 2014-2025 raw data
     python -m cfb_analytics.pipelines.aggregate_predictions score --week 6
     python -m cfb_analytics.pipelines.aggregate_predictions publish    # what CI runs
 
-Weeks 1-3 were scored by early_season_predictions (a preseason-informed blend, now retired: no preseason input is used
-for new predictions). This model takes over from week 4, once every team has the minimum current-season games. Snapshots use the shape export_web_data already reads and are exclusive-create, so a
+Weeks 1-4 are scored by early_season_predictions (a preseason-informed blend; week 4 is its last week). This model takes
+over from week 5 and uses no preseason input. Snapshots use the shape export_web_data already reads and are exclusive-create, so a
 scored week is never rewritten with later information. Reads only allow-listed aggregate sources; no plays or drives.
 """
 from __future__ import annotations

@@ -277,7 +277,9 @@ jobs:
         # opponent baselines retain the documented weeks 1-3 prior-season taper.
         run: python scripts/compile_site_data.py --season "$SEASON" --rating-model hierarchical_hfa
 
-      - name: Publish aggregate-model predictions (week 4 onward; no preseason input)
+      - name: Score early-season predictions (weeks 1-4, last week of the preseason-informed blend)
+        run: python -m cfb_analytics.pipelines.early_season_predictions publish
+      - name: Publish aggregate-model predictions (week 5 onward; no preseason input)
         run: python -m cfb_analytics.pipelines.aggregate_predictions publish
       - name: Publish Projection (forward-looking team strength)
         run: python -m cfb_analytics.pipelines.publish_projection
