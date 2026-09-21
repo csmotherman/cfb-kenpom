@@ -1,0 +1,336 @@
+/* PRIME landing + Ratings/Rankings split preview */
+
+.prime-home { padding: 44px 0 54px; }
+.prime-home__hero { text-align: center; max-width: 900px; }
+.prime-home__hero h1 {
+  margin: 8px auto 12px;
+  max-width: 880px;
+  font-family: var(--font-display);
+  font-size: clamp(42px, 5.5vw, 72px);
+  line-height: .95;
+  letter-spacing: -.025em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+.prime-home__hero > p {
+  max-width: 720px;
+  margin: 0 auto;
+  color: var(--color-ink-secondary);
+  font-size: 17px;
+}
+.prime-home__principles {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.prime-home__principles span {
+  padding: 6px 10px;
+  border: 1px solid var(--color-hairline);
+  background: rgba(255,255,255,.45);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  color: var(--color-ink-secondary);
+}
+
+.prime-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 36px;
+}
+.prime-choice {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-hairline-strong);
+  background: var(--color-paper-soft);
+  box-shadow: 0 12px 28px rgba(23,23,23,.06);
+}
+.prime-choice::before {
+  content: "";
+  display: block;
+  height: 4px;
+  background: var(--color-navy);
+}
+.prime-choice--rankings::before { background: var(--color-gold); }
+.prime-choice__copy { padding: 24px 26px 22px; }
+.prime-choice__kicker {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--color-gold-dark);
+}
+.prime-choice h2 {
+  max-width: 520px;
+  font-family: var(--font-display);
+  font-size: 37px;
+  line-height: 1;
+  letter-spacing: -.015em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+.prime-choice__copy p {
+  margin-top: 11px;
+  max-width: 590px;
+  color: var(--color-ink-secondary);
+  line-height: 1.55;
+}
+.prime-choice__mobile-copy { display: none; }
+.prime-choice__cadence {
+  display: block;
+  margin-top: 13px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-ink-tertiary);
+}
+.prime-choice__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-width: 242px;
+  margin-top: 18px;
+  padding: 12px 15px;
+  background: var(--color-navy);
+  color: white;
+  font-weight: 800;
+  font-size: 13px;
+  border: 1px solid var(--color-navy);
+  transition: transform .15s ease, background .15s ease;
+}
+.prime-choice--rankings .prime-choice__button {
+  background: var(--color-gold-dark);
+  border-color: var(--color-gold-dark);
+}
+.prime-choice__button:hover { transform: translateY(-1px); background: var(--color-navy-light); }
+
+.prime-choice__preview {
+  border-top: 1px solid var(--color-hairline);
+  background: white;
+  padding: 0 20px 16px;
+}
+.prime-choice__preview-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 44px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+.prime-mini-table__head,
+.prime-mini-table__row {
+  display: grid;
+  grid-template-columns: 38px minmax(0,1fr) 48px 64px;
+  gap: 8px;
+  align-items: center;
+  min-height: 34px;
+  border-top: 1px solid #ebe6da;
+  font-size: 12px;
+}
+.prime-mini-table--rankings .prime-mini-table__head,
+.prime-mini-table--rankings .prime-mini-table__row {
+  grid-template-columns: 38px minmax(0,1fr) 48px;
+}
+.prime-mini-table__head {
+  min-height: 28px;
+  color: var(--color-ink-tertiary);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.prime-mini-table__row:hover { background: #faf7ef; }
+.prime-mini-table__rank,
+.prime-mini-table__value { font-family: var(--font-mono); font-weight: 700; }
+.prime-mini-table__value { text-align: right; }
+.prime-choice__view-all {
+  display: block;
+  padding-top: 14px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-gold-dark);
+}
+
+.prime-home__difference {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 22px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-hairline);
+}
+.prime-home__difference > div:not(.prime-home__difference-mark) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.prime-home__difference > div:first-child { text-align: right; }
+.prime-home__difference strong {
+  font-family: var(--font-display);
+  font-size: 27px;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+.prime-home__difference span { font-size: 12px; color: var(--color-ink-tertiary); }
+.prime-home__difference-mark { font-size: 24px; color: var(--color-gold-dark); }
+
+/* Rankings page */
+.prime-rankings { padding-top: 38px; padding-bottom: 52px; max-width: 980px; }
+.prime-rankings__hero { text-align: center; max-width: 760px; margin: 0 auto 28px; }
+.prime-rankings__hero h1 {
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: clamp(44px, 6vw, 66px);
+  line-height: .95;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+.prime-rankings__hero > p { margin: 10px auto 0; max-width: 680px; color: var(--color-ink-secondary); font-size: 16px; }
+.prime-rankings__sub { font-size: 13px !important; color: var(--color-ink-tertiary) !important; }
+.prime-rankings__release {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 7px 10px;
+  background: #e8dfcc;
+  border: 1px solid #d2c4a6;
+  font-size: 11px;
+}
+.prime-rankings__release span { text-transform: uppercase; letter-spacing: .08em; font-weight: 800; color: var(--color-gold-dark); }
+
+.prime-rankings__card { border: 1px solid var(--color-hairline-strong); background: white; }
+.prime-rankings__card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 19px 20px 16px;
+  border-bottom: 1px solid var(--color-hairline);
+}
+.prime-rankings__card-head h2 {
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+.prime-rankings__week { text-align: right; font-family: var(--font-mono); font-weight: 800; }
+.prime-rankings__week small { display: block; color: var(--color-ink-tertiary); font-size: 10px; }
+.prime-rankings__row {
+  display: grid;
+  grid-template-columns: 54px minmax(0,1fr) 70px 90px 75px;
+  gap: 8px;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 18px;
+  border-top: 1px solid #ebe6da;
+}
+.prime-rankings__row:hover:not(.prime-rankings__row--head) { background: #faf7ef; }
+.prime-rankings__row--head {
+  min-height: 31px;
+  border-top: 0;
+  color: var(--color-ink-tertiary);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.prime-rankings__rank { font-family: var(--font-mono); font-size: 16px; font-weight: 800; color: var(--color-navy); }
+.prime-rankings__team { display: flex; flex-direction: column; }
+.prime-rankings__team small { margin-top: 1px; color: var(--color-ink-tertiary); font-size: 9px; font-weight: 700; letter-spacing: .06em; }
+.prime-rankings__explain {
+  display: grid;
+  grid-template-columns: 180px minmax(0,1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-paper-raised);
+  font-size: 12px;
+  color: var(--color-ink-secondary);
+}
+.prime-rankings__explain strong { color: var(--color-navy); }
+.prime-rankings__explain a { font-weight: 800; color: var(--color-gold-dark); white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .prime-home { padding: 22px 0 28px; }
+  .prime-home__hero { text-align: left; }
+  .prime-home__hero h1 {
+    margin: 5px 0 7px;
+    max-width: 520px;
+    font-size: clamp(34px, 10vw, 48px);
+  }
+  .prime-home__hero > p { margin: 0; font-size: 13px; line-height: 1.45; }
+  .prime-home__principles {
+    justify-content: flex-start;
+    gap: 5px;
+    margin-top: 11px;
+  }
+  .prime-home__principles span {
+    padding: 4px 6px;
+    font-size: 8px;
+    letter-spacing: .035em;
+  }
+  .prime-choice-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .prime-choice { box-shadow: none; }
+  .prime-choice__copy { padding: 17px 17px 16px; }
+  .prime-choice__kicker { margin-bottom: 5px; font-size: 9px; }
+  .prime-choice h2 { font-size: 28px; }
+  .prime-choice__desktop-copy { display: none; }
+  .prime-choice__mobile-copy {
+    display: block;
+    margin-top: 7px !important;
+    font-size: 12px;
+    line-height: 1.4 !important;
+  }
+  .prime-choice__cadence { margin-top: 8px; font-size: 10px; }
+  .prime-choice__button {
+    width: 100%;
+    min-width: 0;
+    margin-top: 12px;
+    min-height: 46px;
+  }
+  .prime-choice__preview { display: none; }
+  .prime-home__difference {
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 15px;
+  }
+  .prime-home__difference strong { font-size: 21px; }
+  .prime-home__difference span { font-size: 9px; }
+  .prime-home__difference-mark { font-size: 18px; }
+
+  .prime-rankings { padding-top: 24px; }
+  .prime-rankings__hero { text-align: left; margin-bottom: 18px; }
+  .prime-rankings__hero h1 { font-size: 42px; }
+  .prime-rankings__hero > p { margin-left: 0; font-size: 13px; }
+  .prime-rankings__release { margin-top: 12px; }
+  .prime-rankings__card-head { padding: 14px 13px 12px; }
+  .prime-rankings__card-head h2 { font-size: 25px; }
+  .prime-rankings__row {
+    grid-template-columns: 40px minmax(0,1fr) 48px;
+    min-height: 43px;
+    padding: 0 11px;
+  }
+  .prime-rankings__context-col { display: none; }
+  .prime-rankings__explain {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 14px;
+  }
+}
