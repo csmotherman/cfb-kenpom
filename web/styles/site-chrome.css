@@ -1331,3 +1331,143 @@ html body .site-nav.site-nav--unified .site-nav__brand img {
 @media (max-width: 720px) {
   html body .site-nav.site-nav--unified .site-nav__brand img { height: 22px; }
 }
+
+
+/* ==========================================================================
+   Mobile chrome v3 — fixed two-row navigation
+   The primary bar must never disappear while scrolling. Separating the brand/
+   actions row from the horizontally scrollable tab row also prevents Sign In
+   and Search from covering long labels such as Weekly Predictions.
+   ========================================================================== */
+
+.site-nav__mobile-spacer {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  html {
+    scroll-padding-top: 102px;
+  }
+
+  html body .site-nav.site-nav--unified {
+    position: fixed !important;
+    inset: 0 0 auto 0 !important;
+    z-index: 1000 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 96px !important;
+    height: 96px !important;
+    overflow: visible !important;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    box-sizing: border-box !important;
+  }
+
+  .site-nav__mobile-spacer {
+    display: block;
+    width: 100%;
+    height: 96px;
+    min-height: 96px;
+    flex: 0 0 96px;
+  }
+
+  html body .site-nav.site-nav--unified > .site-nav__inner.container {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-rows: 45px 48px !important;
+    grid-template-areas:
+      "brand actions"
+      "links links";
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 93px !important;
+    height: 93px !important;
+    margin: 0 !important;
+    padding: 0 10px !important;
+    gap: 0 8px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .site-nav.site-nav--unified .site-nav__brand {
+    grid-area: brand;
+    justify-self: start !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 45px !important;
+    height: 45px !important;
+    padding: 0 !important;
+    border-right: 0 !important;
+  }
+
+  html body .site-nav.site-nav--unified .site-nav__brand img {
+    width: auto !important;
+    height: 27px !important;
+    max-width: 116px !important;
+  }
+
+  html body .site-nav.site-nav--unified .site-nav__actions {
+    grid-area: actions;
+    justify-self: end !important;
+    display: flex !important;
+    align-items: center !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 45px !important;
+    gap: 6px !important;
+  }
+
+  html body .site-nav.site-nav--unified .site-nav__actions .auth-link,
+  html body .site-nav.site-nav--unified .site-search__toggle {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+  }
+
+  html body .site-nav.site-nav--unified .site-nav__links {
+    grid-area: links;
+    align-self: stretch !important;
+    display: flex !important;
+    align-items: stretch !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 48px !important;
+    margin: 0 -10px !important;
+    padding: 0 6px !important;
+    gap: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none !important;
+    border-top: 1px solid rgba(255,255,255,.07);
+    background: rgba(6, 22, 39, .12);
+    scroll-snap-type: x proximity;
+  }
+
+  html body .site-nav.site-nav--unified .site-nav__links > a,
+  html body .site-nav.site-nav--unified .site-nav__links > a.active,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a,
+  body:has(#ratingsTable, #advancedTable, #predictionsContent)
+    .site-nav.site-nav--unified .site-nav__links > a.active {
+    flex: 0 0 auto !important;
+    min-height: 48px !important;
+    height: 48px !important;
+    padding: 0 13px !important;
+    border-radius: 0 !important;
+    font-size: 10px !important;
+    letter-spacing: .04em !important;
+    scroll-snap-align: center;
+  }
+
+  html body .site-nav.site-nav--unified .site-search--open .site-search__box {
+    z-index: 1100 !important;
+  }
+
+  html body .site-nav.site-nav--unified .site-search__results {
+    z-index: 1101 !important;
+  }
+}
