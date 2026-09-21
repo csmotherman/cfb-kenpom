@@ -5,6 +5,7 @@ on:
     paths:
       - 'research/rating_methodology_validation/composite_feature_test.py'
       - 'research/rating_methodology_validation/models.py'
+      - 'research/rating_methodology_validation/production_model.py'
       - 'src/cfb_analytics/analytics/rating_model.py'
       - '.github/workflows/prime-composite-experiment.yml'
 jobs:
