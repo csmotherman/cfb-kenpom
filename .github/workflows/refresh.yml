@@ -278,6 +278,8 @@ jobs:
         run: python -m cfb_analytics.pipelines.early_season_predictions publish
       - name: Publish aggregate-model predictions (weeks 6+)
         run: python -m cfb_analytics.pipelines.aggregate_predictions publish
+      - name: Publish Projection (forward-looking team strength)
+        run: python -m cfb_analytics.pipelines.publish_projection
       - name: Export Next.js data
         run: python scripts/export_web_data.py
       - name: Refresh public market odds

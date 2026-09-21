@@ -552,3 +552,24 @@ export type MatchupEdgesGame = {
   possiblePairings: number;
   edges: MatchupEdge[];
 };
+
+
+// Forward-looking team strength, deliberately separate from the earned-performance Net APR rating.
+export type ProjectionRow = {
+  team: string;
+  projection: number;
+  rank: number;
+  preseason: number | null;
+  current: number | null;
+  priorWeight: number;
+  games: number;
+};
+
+export type ProjectionSeason = {
+  version: string;
+  season: number;
+  generatedAt: string;
+  definition: string;
+  weeks: number[];
+  byWeek: Record<string, ProjectionRow[]>;
+};

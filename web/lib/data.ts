@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, MarketLinesSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
+import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, MarketLinesSeason, PredictionsTrackRecord, PredictionsWeek, PreseasonPower, ProjectionSeason, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-cache", signal: AbortSignal.timeout(20000) });
@@ -95,6 +95,8 @@ const teamStatsWeeklyInflight = new Map<string, Promise<TeamStatsWeeklySeason | 
 const predictionsTrackRecordData = new Map<string, PredictionsTrackRecord | null>();
 const predictionsTrackRecordInflight = new Map<string, Promise<PredictionsTrackRecord | null>>();
 
+const projectionData = new Map<string, ProjectionSeason | null>();
+const projectionInflight = new Map<string, Promise<ProjectionSeason | null>>();
 const preseasonPowerData = new Map<string, PreseasonPower | null>();
 const preseasonPowerInflight = new Map<string, Promise<PreseasonPower | null>>();
 
@@ -534,4 +536,37 @@ export async function getPredictionsWeek(season: number | string, week: number |
   }
 
   throw new Error(payload.message ?? "Predictions are temporarily unavailable");
+}
+
+
+// Public forward-looking Projection. A missing file (season without a published projection) is a normal null.
+export function getProjectionSeason(year: number | string): Promise<ProjectionSeason | null> {
+  const key = String(year);
+  if (projectionData.has(key)) return Promise.resolve(projectionData.get(key) ?? null);
+  let entry = projectionInflight.get(key);
+  if (!entry) {
+    entry = fetchOptionalJson<ProjectionSeason>(`/data/projection/${key}.json`).then((record) => {
+      projectionData.set(key, record);
+      projectionInflight.delete(key);
+      notify();
+      return record;
+    });
+    entry = entry.catch((error: Error) => {
+      projectionInflight.delete(key);
+      throw error;
+    });
+    projectionInflight.set(key, entry);
+  }
+  return entry;
+}
+
+export function useProjectionSeason(year: string | null): ProjectionSeason | null | undefined {
+  useEffect(() => {
+    if (year) getProjectionSeason(year).catch(() => {});
+  }, [year]);
+  return useSyncExternalStore(
+    subscribe,
+    () => (year ? projectionData.get(year) : undefined),
+    () => undefined
+  );
 }

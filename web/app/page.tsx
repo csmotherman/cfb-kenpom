@@ -6,19 +6,20 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import CfpTeamCell from "@/components/CfpTeamCell";
 import { TipTrigger } from "@/components/Tooltip";
-import { getMeta, useCfpResultsSeason, useRankingsSeason } from "@/lib/data";
+import { getMeta, useCfpResultsSeason, useProjectionSeason, useRankingsSeason } from "@/lib/data";
 import { buildCfpStatusMap } from "@/lib/cfp";
 import { columnRange, heatBackground } from "@/lib/heatmap";
 import Link from "next/link";
 import { ratingsTrustState } from "@/lib/trustState";
 
 type Column = {
-  key: "rank" | "team" | "adjEM" | "adjO" | "adjD" | "sos" | "sor";
+  key: "rank" | "team" | "adjEM" | "adjO" | "adjD" | "sos" | "sor" | "proj";
   label: string;
   numeric: boolean;
   defaultDir: "asc" | "desc";
   primary?: boolean;
-  rankKey?: "adjORank" | "adjDRank" | "sosRank" | "sorRank";
+  rankKey?: "adjORank" | "adjDRank" | "sosRank" | "sorRank" | "projRank";
+  secondary?: boolean;
   tooltip?: string;
 };
 
@@ -30,6 +31,7 @@ const COLUMNS: Column[] = [
   { key: "adjD", label: "Def APR", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted points per resolved possession prevented, scaled to points per 10 possessions above or below the FBS average. Higher is better." },
   { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Average PRIME rating (Net APR) of opponents played through the selected week. Higher means a tougher schedule." },
   { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Wins above what an average FBS team would be expected to achieve against the same opponents and game locations. A résumé measure (won/lost), not a performance measure like Net APR. Higher is better." },
+  { key: "proj", label: "Proj", numeric: true, defaultDir: "desc", rankKey: "projRank", secondary: true, tooltip: "Projection, not a rating: a forward-looking estimate of team strength (expected margin versus an average FBS team on a neutral field). Early in the season it leans on preseason expectations and fades to this season's performance by Week 4. Net APR is what a team has earned; Projection is what we expect going forward." },
 ];
 
 function na(v: unknown): v is null | undefined {
@@ -112,6 +114,7 @@ export default function RatingsPage() {
   // (not yet fetched, or that season's CFP hasn't been decided) just means
   // no boxes render, never an error.
   const cfpResults = useCfpResultsSeason(year || null);
+  const projection = useProjectionSeason(year || null);
   const cfpStatusByTeamId = useMemo(() => buildCfpStatusMap(cfpResults), [cfpResults]);
 
   // Postseason site-weeks are named by CFBD's own playoff round (e.g. "CFP
@@ -134,7 +137,18 @@ export default function RatingsPage() {
     setWeek(String(season.weeks[season.weeks.length - 1]));
   }
 
-  const rows = useMemo(() => (season && week ? season.byWeek[week] || [] : []), [season, week]);
+  // Projection is a separate, forward-looking estimate merged in only for display; it never feeds the rating or its ranks.
+  const rows = useMemo(() => {
+    const base = season && week ? season.byWeek[week] || [] : [];
+    const byTeam = new Map((projection?.byWeek?.[week] ?? []).map((p) => [p.team, p]));
+    return base.map((t) => {
+      const p = byTeam.get(t.team);
+      return { ...t, proj: p?.projection ?? null, projRank: p?.rank ?? null };
+    });
+  }, [season, week, projection]);
+  const showProj = Boolean(projection?.byWeek?.[week]);
+  const columns = useMemo(() => COLUMNS.filter((c) => c.key !== "proj" || showProj), [showProj]);
+  const effectiveSortKey = sortKey === "proj" && !showProj ? "rank" : sortKey;
 
   const conferences = useMemo(() => {
     const set = new Set<string>();
@@ -160,15 +174,15 @@ export default function RatingsPage() {
     if (conference) out = out.filter((t) => t.conf === conference);
     const dir = sortDir === "asc" ? 1 : -1;
     out = out.slice().sort((a, b) => {
-      const av = (a as Record<string, unknown>)[sortKey] as string | number | null;
-      const bv = (b as Record<string, unknown>)[sortKey] as string | number | null;
+      const av = (a as Record<string, unknown>)[effectiveSortKey] as string | number | null;
+      const bv = (b as Record<string, unknown>)[effectiveSortKey] as string | number | null;
       if (na(av)) return na(bv) ? 0 : 1;
       if (na(bv)) return -1;
       if (typeof av === "string") return av.localeCompare(bv as string) * dir;
       return ((av as number) - (bv as number)) * dir;
     });
     return out;
-  }, [rows, filter, conference, sortKey, sortDir]);
+  }, [rows, filter, conference, effectiveSortKey, sortDir]);
 
   useEffect(() => {
     if (!year) return;
@@ -295,12 +309,12 @@ export default function RatingsPage() {
             <caption className="sr-only">College football overall rankings</caption>
             <thead>
               <tr>
-                {COLUMNS.slice(0, 2).map((col) => (
-                  <HeaderCell key={col.key} col={col} sortKey={sortKey} sortDir={sortDir} onClick={onHeaderClick} />
+                {columns.slice(0, 2).map((col) => (
+                  <HeaderCell key={col.key} col={col} sortKey={effectiveSortKey} sortDir={sortDir} onClick={onHeaderClick} />
                 ))}
                 <th scope="col" className="num record-cell">W-L</th>
-                {COLUMNS.slice(2).map((col) => (
-                  <HeaderCell key={col.key} col={col} sortKey={sortKey} sortDir={sortDir} onClick={onHeaderClick} />
+                {columns.slice(2).map((col) => (
+                  <HeaderCell key={col.key} col={col} sortKey={effectiveSortKey} sortDir={sortDir} onClick={onHeaderClick} />
                 ))}
               </tr>
             </thead>
@@ -308,7 +322,7 @@ export default function RatingsPage() {
               {loading ? (
                 Array.from({ length: 9 }).map((_, i) => (
                   <tr key={i} className="skeleton-row">
-                    {Array.from({ length: 8 }).map((__, c) => (
+                    {Array.from({ length: columns.length + 1 }).map((__, c) => (
                       <td key={c}>
                         <span className="skeleton-bar" style={{ width: (c === 1 ? 70 : 40 + ((c * 13) % 30)) + "%" }} />
                       </td>
@@ -317,7 +331,7 @@ export default function RatingsPage() {
                 ))
               ) : filtered.length === 0 ? (
                 <tr className="empty-row">
-                  <td colSpan={8}>No teams match the current filters.</td>
+                  <td colSpan={columns.length + 1}>No teams match the current filters.</td>
                 </tr>
               ) : (
                 filtered.map((t) => (
@@ -342,6 +356,7 @@ export default function RatingsPage() {
                     <StatCell value={t.adjD} rank={t.adjDRank} useSign decimals={2} metricKey="adjD" bg={heatBackground(t.adjD, ranges.adjD)} />
                     <StatCell value={t.sos} rank={t.sosRank} useSign decimals={1} metricKey="sos" bg={heatBackground(t.sos, ranges.sos)} />
                     <StatCell value={t.sor} rank={t.sorRank} useSign decimals={1} metricKey="sor" bg={heatBackground(t.sor, ranges.sor)} />
+                    {showProj ? <StatCell value={t.proj} rank={t.projRank} useSign decimals={1} metricKey="proj" secondary /> : null}
                   </tr>
                 ))
               )}
@@ -363,6 +378,7 @@ export default function RatingsPage() {
           <div><strong>Resolved possession</strong><span>A possession with a usable offensive scoring outcome in the rating model. APR uses offensive drive points rather than defensive or special-teams scores.</span></div>
           <div><strong>SOS</strong><span>Strength of Schedule — average PRIME rating of opponents played through the selected week. Higher means a tougher schedule.</span></div>
           <div><strong>SOR</strong><span>Strength of Record — wins above what an average FBS team would be expected to achieve against the same opponents and game locations.</span></div>
+          <div><strong>Projection</strong><span>Not a rating. A forward-looking estimate of team strength (expected margin against an average FBS team on a neutral field). Overall Rating shows what a team has earned this season; Projection is what we expect going forward, and leans on preseason information until about Week 4.</span></div>
         </div>
         <Link className="utility-link" href="/methodology">Full methodology ↗</Link>
       </section>
@@ -397,7 +413,7 @@ function HeaderCell({
   return (
     <th
       scope="col"
-      className={[col.numeric ? "num" : "", `${col.key}-cell`, "sortable", "metric-cell"].filter(Boolean).join(" ")}
+      className={[col.numeric ? "num" : "", `${col.key}-cell`, "sortable", "metric-cell", col.secondary ? "secondary-col" : ""].filter(Boolean).join(" ")}
       data-metric-key={col.key}
       aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
     >
@@ -422,7 +438,9 @@ function StatCell({
   decimals,
   metricKey,
   bg,
+  secondary,
 }: {
+  secondary?: boolean;
   value: number | null;
   rank?: number | null;
   primary?: boolean;
@@ -433,7 +451,7 @@ function StatCell({
 }) {
   return (
     <td
-      className={"num stat-cell metric-cell" + (primary ? " primary" : "")}
+      className={"num stat-cell metric-cell" + (primary ? " primary" : "") + (secondary ? " secondary-col" : "")}
       data-metric-key={metricKey}
       style={bg ? { backgroundColor: bg } : undefined}
     >
