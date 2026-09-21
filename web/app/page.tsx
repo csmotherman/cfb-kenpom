@@ -6,11 +6,13 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { getMeta, useRankingsSeason } from "@/lib/data";
+import { logoUrl } from "@/lib/teamCode";
 
 type PrimeRankingTeam = {
   rank: number;
   team: string;
   slug: string;
+  teamId: number;
   record: string;
   ratingRank: number;
   sorRank: number;
@@ -60,12 +62,11 @@ export default function HomePage() {
 
       <main className="prime-home" id="homeChoices">
         <section className="prime-home__hero container">
-          <span className="eyebrow">PRIME Football</span>
-          <h1>Who&apos;s actually good — and who&apos;s earned the ranking?</h1>
-          <p>
-            PRIME separates <strong>performance</strong> from <strong>résumé</strong> so college football fans
-            can see both sides of the argument.
-          </p>
+          <div className="prime-home__hero-copy">
+            <span className="eyebrow">Two ways to see college football</span>
+            <h1>Who&apos;s good. Who&apos;s earned it.</h1>
+            <p>Ratings measure the performance. Rankings judge the résumé.</p>
+          </div>
           <div className="prime-home__principles" aria-label="PRIME ranking principles">
             <span>No preseason poll boost</span>
             <span>No brand-name bonus</span>
@@ -76,7 +77,10 @@ export default function HomePage() {
         <section className="prime-choice-grid container" aria-label="Choose Ratings or Rankings">
           <article className="prime-choice prime-choice--ratings">
             <div className="prime-choice__copy">
-              <span className="prime-choice__kicker">Ratings</span>
+              <div className="prime-choice__titleline">
+                <span className="prime-choice__kicker">Ratings</span>
+                <span className="prime-choice__status">LIVE</span>
+              </div>
               <h2>Who&apos;s actually playing the best?</h2>
               <p className="prime-choice__desktop-copy">
                 A deeper look at how well teams have performed on the field — efficiency, dominance and the
@@ -85,8 +89,10 @@ export default function HomePage() {
               <p className="prime-choice__mobile-copy">
                 How well teams have actually performed on the field, beyond just wins and losses.
               </p>
-              <span className="prime-choice__cadence">Updated as games are completed.</span>
-              <Link className="prime-choice__button" href="/ratings">See Who&apos;s Actually Good <span>→</span></Link>
+              <div className="prime-choice__actionline">
+                <span className="prime-choice__cadence">Updated as games are completed.</span>
+                <Link className="prime-choice__button" href="/ratings">View Ratings <span>→</span></Link>
+              </div>
             </div>
 
             <div className="prime-choice__preview" aria-label="Current Top 10 Ratings">
@@ -101,7 +107,11 @@ export default function HomePage() {
                 {topRatings.map((team) => (
                   <Link className="prime-mini-table__row" href={`/team/${team.slug}`} key={team.slug}>
                     <span className="prime-mini-table__rank">{team.rank}</span>
-                    <strong>{team.team}</strong>
+                    <strong className="prime-mini-table__team">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={logoUrl(team.teamId, 64)} alt="" loading="lazy" decoding="async" />
+                      <span>{team.team}</span>
+                    </strong>
                     <span>{team.record}</span>
                     <span className="prime-mini-table__value">{team.adjEM === null ? "—" : team.adjEM.toFixed(1)}</span>
                   </Link>
@@ -113,7 +123,10 @@ export default function HomePage() {
 
           <article className="prime-choice prime-choice--rankings">
             <div className="prime-choice__copy">
-              <span className="prime-choice__kicker">Rankings</span>
+              <div className="prime-choice__titleline">
+                <span className="prime-choice__kicker">Rankings</span>
+                <span className="prime-choice__status prime-choice__status--gold">SUNDAY · 12 ET</span>
+              </div>
               <h2>Who deserves to be in the Top 25?</h2>
               <p className="prime-choice__desktop-copy">
                 A poll-style view that weighs how well a team has played with the strength of the record it has
@@ -122,8 +135,10 @@ export default function HomePage() {
               <p className="prime-choice__mobile-copy">
                 A Top 25-style view based on performance and the strength of each team&apos;s record.
               </p>
-              <span className="prime-choice__cadence">New PRIME Top 25 every Sunday at 12 PM ET.</span>
-              <Link className="prime-choice__button" href="/rankings">See Who Deserves It <span>→</span></Link>
+              <div className="prime-choice__actionline">
+                <span className="prime-choice__cadence">New PRIME Top 25 every Sunday at 12 PM ET.</span>
+                <Link className="prime-choice__button" href="/rankings">View Rankings <span>→</span></Link>
+              </div>
             </div>
 
             <div className="prime-choice__preview" aria-label="Current PRIME Top 10 Rankings">
@@ -138,7 +153,11 @@ export default function HomePage() {
                 {(snapshot?.teams ?? []).slice(0, 10).map((team) => (
                   <Link className="prime-mini-table__row" href={`/team/${team.slug}`} key={team.slug}>
                     <span className="prime-mini-table__rank">{team.rank}</span>
-                    <strong>{team.team}</strong>
+                    <strong className="prime-mini-table__team">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={logoUrl(team.teamId, 64)} alt="" loading="lazy" decoding="async" />
+                      <span>{team.team}</span>
+                    </strong>
                     <span>{team.record}</span>
                   </Link>
                 ))}
