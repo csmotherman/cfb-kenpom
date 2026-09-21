@@ -75,8 +75,8 @@ body:has(.prime-home) .site-nav a {
 
 .prime-home-card {
   position: relative;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid #cfc7b8;
   border-radius: 10px;
@@ -102,8 +102,8 @@ body:has(.prime-home) .site-nav a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
-  min-height: 122px;
-  padding: 12px 15px 10px;
+  min-height: 104px;
+  padding: 10px 15px 9px;
   border-bottom: 1px solid #ded7cb;
 }
 
@@ -132,7 +132,7 @@ body:has(.prime-home) .site-nav a {
 
 .prime-home-card__header p {
   max-width: 500px;
-  margin-top: 5px;
+  margin-top: 4px;
   color: #5d6876;
   font-size: 11.5px;
   font-weight: 600;
@@ -188,6 +188,7 @@ body:has(.prime-home) .site-nav a {
 
 .prime-home-card__preview {
   padding: 9px 15px 0;
+  flex: 0 0 auto;
 }
 
 .prime-home-card__preview-title {
@@ -309,6 +310,7 @@ body:has(.prime-home) .site-nav a {
 
 .prime-home-card__footer {
   display: flex;
+  margin-top: auto;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -391,7 +393,7 @@ body:has(.prime-home) .site-nav a {
   .prime-home__intro h1 { font-size: clamp(28px, 3vw, 38px); }
   .prime-home__intro p { margin-top: 4px; font-size: 11.5px; }
   .prime-home__cards { margin-top: 8px; }
-  .prime-home-card__header { min-height: 112px; padding-top: 10px; padding-bottom: 8px; }
+  .prime-home-card__header { min-height: 98px; padding-top: 9px; padding-bottom: 7px; }
   .prime-home-card h2 { font-size: clamp(26px, 2.3vw, 32px); }
   .prime-home-card__preview { padding-top: 7px; }
   .prime-home-list__row { min-height: 41px; }
