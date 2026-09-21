@@ -1,3 +1,4 @@
+import ScrollToTop from "@/components/ScrollToTop";
 import { IBM_Plex_Mono, Public_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import type { Metadata, Viewport } from "next";
@@ -132,6 +133,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable}`}>
       <body>
+        <ScrollToTop />
         <ExploratoryStickyTableHeader />
         <AdvancedAllColumnsPolicy />
         <TableFreshnessStamp />

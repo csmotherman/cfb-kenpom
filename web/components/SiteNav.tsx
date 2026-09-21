@@ -75,7 +75,7 @@ export default function SiteNav() {
     ) {
       return;
     }
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
