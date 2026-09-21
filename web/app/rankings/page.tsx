@@ -23,6 +23,7 @@ type PrimeRankingSnapshot = {
   throughWeek: number;
   releasedAt: string;
   teams: PrimeRankingTeam[];
+  allTeams?: PrimeRankingTeam[];
 };
 
 function RankingTile({ team, featured = false }: { team: PrimeRankingTeam; featured?: boolean }) {
@@ -61,6 +62,7 @@ export default function RankingsPage() {
   }, []);
 
   const teams = snapshot?.teams ?? [];
+  const fullRankings = snapshot?.allTeams ?? teams;
   const topFive = teams.slice(0, 5);
   const rest = teams.slice(5);
 
@@ -129,6 +131,49 @@ export default function RankingsPage() {
               <span>Ratings measure how well teams have played. The PRIME 25 measures what they&apos;ve earned.</span>
               <Link href="/ratings">View Performance Analytics →</Link>
             </footer>
+          </section>
+
+          <section className="prime25-full-rankings" aria-label="Full PRIME rankings">
+            <header className="prime25-full-rankings__header">
+              <div>
+                <span className="prime25-full-rankings__eyebrow">All Teams</span>
+                <h2>Full Rankings</h2>
+                <p>All {fullRankings.length || 138} teams ranked by the same current-season methodology used for the PRIME 25.</p>
+              </div>
+              <div className="prime25-full-rankings__meta">
+                <span>{snapshot ? `Week ${snapshot.throughWeek}` : "Current"}</span>
+                <strong>{snapshot?.season ?? 2026}</strong>
+              </div>
+            </header>
+
+            <div className="prime25-full-table">
+              <div className="prime25-full-table__head" aria-hidden="true">
+                <span>RK</span>
+                <span>Team</span>
+                <span>W-L</span>
+                <span>Performance</span>
+                <span>SOR</span>
+              </div>
+
+              {fullRankings.map((team) => (
+                <Link href={`/team/${team.slug}`} className="prime25-full-table__row" key={team.slug}>
+                  <span className={`prime25-full-table__rank${team.rank <= 25 ? " prime25-full-table__rank--top25" : ""}`}>
+                    {team.rank}
+                  </span>
+                  <span className="prime25-full-table__team">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={logoUrl(team.teamId, 64)} alt="" loading="lazy" decoding="async" />
+                    <span className="prime25-full-table__team-copy">
+                      <strong>{team.team}</strong>
+                      <small>{team.conf}</small>
+                    </span>
+                  </span>
+                  <span className="prime25-full-table__record">{team.record}</span>
+                  <span className="prime25-full-table__metric">#{team.ratingRank}</span>
+                  <span className="prime25-full-table__metric">#{team.sorRank}</span>
+                </Link>
+              ))}
+            </div>
           </section>
         </div>
       </main>
