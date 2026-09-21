@@ -1,0 +1,543 @@
+/* ==========================================================================
+   The PRIME 25 — rankings poster
+   ========================================================================== */
+
+body:has(.prime25-page) {
+  background: #eee7d8;
+}
+
+body:has(.prime25-page) .site-header {
+  background: rgba(248, 245, 237, .96);
+}
+
+body:has(.prime25-page) .site-header__inner {
+  min-height: 48px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+body:has(.prime25-page) .logotype__logo {
+  width: 104px;
+  max-height: 44px;
+}
+
+body:has(.prime25-page) .logotype__divider {
+  height: 22px;
+}
+
+body:has(.prime25-page) .logotype__name {
+  font-size: 8.5px;
+}
+
+body:has(.prime25-page) .site-header__tagline {
+  font-size: 8px;
+  letter-spacing: .16em;
+}
+
+body:has(.prime25-page) .site-nav a {
+  min-height: 35px;
+  font-size: 10px;
+}
+
+.prime25-page {
+  position: relative;
+  min-height: calc(100vh - 84px);
+  background:
+    url("/brand/background-rankings.png") center top / cover no-repeat;
+  overflow: hidden;
+}
+
+.prime25-page__veil {
+  min-height: inherit;
+  background:
+    linear-gradient(90deg, rgba(247,243,234,.10), rgba(247,243,234,.34) 20%, rgba(247,243,234,.34) 80%, rgba(247,243,234,.10)),
+    linear-gradient(180deg, rgba(247,243,234,.08), rgba(247,243,234,.15));
+}
+
+.prime25-shell {
+  position: relative;
+  z-index: 2;
+  max-width: 1320px;
+  padding-top: 18px;
+  padding-bottom: 16px;
+}
+
+.prime25-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 0 20px 10px;
+}
+
+.prime25-hero__copy {
+  min-width: 0;
+}
+
+.prime25-hero__eyebrow {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: #a77a20;
+}
+
+.prime25-hero h1 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(62px, 6.5vw, 96px);
+  font-weight: 800;
+  line-height: .79;
+  letter-spacing: -.035em;
+  text-transform: uppercase;
+  color: #132943;
+  text-shadow: 0 2px 0 rgba(255,255,255,.58);
+}
+
+.prime25-hero__gold {
+  color: #b18222;
+}
+
+.prime25-hero__copy p {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #263a55;
+}
+
+.prime25-hero__meta {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding-bottom: 3px;
+}
+
+.prime25-meta-card {
+  min-width: 108px;
+  padding: 9px 12px;
+  border: 1px solid rgba(142,122,84,.48);
+  background: rgba(250,248,242,.88);
+  box-shadow: 0 5px 16px rgba(24,32,43,.08);
+  backdrop-filter: blur(2px);
+}
+
+.prime25-meta-card--wide {
+  min-width: 176px;
+}
+
+.prime25-meta-card span {
+  display: block;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #a77a20;
+}
+
+.prime25-meta-card strong {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.1;
+  color: #132943;
+}
+
+.prime25-board {
+  overflow: hidden;
+  border: 1px solid rgba(36,55,79,.35);
+  background: rgba(255,254,249,.92);
+  box-shadow: 0 16px 34px rgba(22,32,45,.16);
+  backdrop-filter: blur(1.5px);
+}
+
+.prime25-board__strap {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border-bottom: 3px solid #c29539;
+  background: rgba(19,41,67,.97);
+  color: #d8dde4;
+}
+
+.prime25-board__strap span {
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.prime25-board__strap span:last-child {
+  text-align: right;
+}
+
+.prime25-board__strap strong {
+  font-family: var(--font-display);
+  font-size: 29px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.prime25-board__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.prime25-column {
+  min-width: 0;
+  padding: 0 10px 8px;
+}
+
+.prime25-column + .prime25-column {
+  border-left: 1px solid rgba(190,181,164,.82);
+}
+
+.prime25-column__head,
+.prime25-row {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) 54px;
+  align-items: center;
+}
+
+.prime25-column__head {
+  min-height: 27px;
+  padding: 0 7px;
+  color: #727879;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.prime25-column__head span:last-child {
+  text-align: right;
+}
+
+.prime25-row {
+  min-height: 39px;
+  border-top: 1px solid rgba(210,203,191,.8);
+  background: rgba(255,255,255,.42);
+  transition: background-color .12s ease, transform .12s ease, box-shadow .12s ease;
+}
+
+.prime25-row:hover {
+  position: relative;
+  z-index: 2;
+  background: rgba(249,244,232,.96);
+  box-shadow: 0 4px 12px rgba(28,38,50,.08);
+}
+
+.prime25-row__rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  background: #132943;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.prime25-row--number-one {
+  background: linear-gradient(90deg, rgba(218,180,92,.24), rgba(255,255,255,.36));
+}
+
+.prime25-row--number-one .prime25-row__rank {
+  position: relative;
+  background: #a77a20;
+}
+
+.prime25-row--number-one .prime25-row__rank::before {
+  content: "♛";
+  margin-right: 4px;
+  font-family: Georgia, serif;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.prime25-row__team {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.prime25-row__team img {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  object-fit: contain;
+}
+
+.prime25-row__team-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.02;
+}
+
+.prime25-row__team-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 850;
+  color: #15263f;
+}
+
+.prime25-row__team-copy small {
+  margin-top: 2px;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .05em;
+  color: #777b78;
+}
+
+.prime25-row__record {
+  padding-right: 7px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  color: #243650;
+}
+
+.prime25-underbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 36px;
+  padding: 7px 4px 0;
+  color: #626d78;
+  font-size: 9.5px;
+}
+
+.prime25-underbar a {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border: 1px solid rgba(167,122,32,.72);
+  background: rgba(250,247,238,.82);
+  font-size: 9px;
+  font-weight: 900;
+  color: #9a6f18;
+  box-shadow: 0 3px 9px rgba(33,40,49,.05);
+}
+
+.prime25-underbar a:hover {
+  background: #a77a20;
+  color: #fff;
+}
+
+body:has(.prime25-page) .site-footer {
+  margin-top: 0;
+  background: #eee8da;
+}
+
+@media (max-width: 980px) {
+  .prime25-shell {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .prime25-hero h1 {
+    font-size: clamp(56px, 8vw, 80px);
+  }
+
+  .prime25-row__team-copy strong {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 760px) {
+  body:has(.prime25-page) .site-header__inner {
+    min-height: 42px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  body:has(.prime25-page) .logotype__logo {
+    width: 80px;
+    max-height: 35px;
+  }
+
+  body:has(.prime25-page) .logotype__divider,
+  body:has(.prime25-page) .logotype__name {
+    display: none;
+  }
+
+  body:has(.prime25-page) .site-nav .container {
+    display: flex !important;
+    grid-template-columns: none !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    overflow-x: auto !important;
+    scrollbar-width: none;
+  }
+
+  body:has(.prime25-page) .site-nav .container::-webkit-scrollbar {
+    display: none;
+  }
+
+  body:has(.prime25-page) .site-nav a {
+    width: auto !important;
+    min-width: 72px;
+    flex: 0 0 auto !important;
+    min-height: 31px;
+    padding: 0 8px;
+    font-size: 8px;
+  }
+
+  .prime25-page {
+    min-height: calc(100vh - 73px);
+    background-position: center top;
+  }
+
+  .prime25-page__veil {
+    background: rgba(247,243,234,.28);
+  }
+
+  .prime25-shell {
+    padding: 8px 7px 10px;
+  }
+
+  .prime25-hero {
+    align-items: center;
+    gap: 8px;
+    padding: 0 2px 6px;
+  }
+
+  .prime25-hero__eyebrow {
+    font-size: 7px;
+    letter-spacing: .18em;
+  }
+
+  .prime25-hero h1 {
+    gap: 5px;
+    font-size: clamp(31px, 9vw, 44px);
+  }
+
+  .prime25-hero__copy p {
+    margin-top: 4px;
+    max-width: 230px;
+    font-size: 8px;
+  }
+
+  .prime25-hero__meta {
+    gap: 4px;
+    padding-bottom: 0;
+  }
+
+  .prime25-meta-card {
+    min-width: 0;
+    padding: 5px 6px;
+  }
+
+  .prime25-meta-card--wide {
+    display: none;
+  }
+
+  .prime25-meta-card span {
+    font-size: 5.5px;
+  }
+
+  .prime25-meta-card strong {
+    font-size: 7.5px;
+  }
+
+  .prime25-board__strap {
+    min-height: 29px;
+    padding: 0 6px;
+    border-bottom-width: 2px;
+  }
+
+  .prime25-board__strap strong {
+    font-size: 18px;
+  }
+
+  .prime25-board__strap span {
+    font-size: 5px;
+    letter-spacing: .08em;
+  }
+
+  .prime25-column {
+    padding: 0 3px 4px;
+  }
+
+  .prime25-column__head,
+  .prime25-row {
+    grid-template-columns: 23px minmax(0, 1fr) 27px;
+  }
+
+  .prime25-column__head {
+    min-height: 16px;
+    padding: 0 1px;
+    font-size: 4.8px;
+  }
+
+  .prime25-row {
+    min-height: 25px;
+  }
+
+  .prime25-row__rank {
+    font-size: 8px;
+  }
+
+  .prime25-row--number-one .prime25-row__rank::before {
+    display: none;
+  }
+
+  .prime25-row__team {
+    gap: 3px;
+    padding: 0 3px;
+  }
+
+  .prime25-row__team img {
+    width: 15px;
+    height: 15px;
+    flex-basis: 15px;
+  }
+
+  .prime25-row__team-copy strong {
+    font-size: 7.4px;
+  }
+
+  .prime25-row__team-copy small {
+    display: none;
+  }
+
+  .prime25-row__record {
+    padding-right: 1px;
+    font-size: 6.3px;
+  }
+
+  .prime25-underbar {
+    min-height: 25px;
+    padding-top: 4px;
+    font-size: 6px;
+  }
+
+  .prime25-underbar span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .prime25-underbar a {
+    padding: 4px 6px;
+    font-size: 6px;
+    white-space: nowrap;
+  }
+}
