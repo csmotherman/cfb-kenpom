@@ -1,568 +1,752 @@
 /* ==========================================================================
-   PRIME homepage — Ratings vs Rankings
+   PRIME homepage — live college football dashboard
    ========================================================================== */
 
-body:has(.prime-home) .site-header__inner {
-  min-height: 46px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-body:has(.prime-home) .logotype__logo {
-  width: 100px;
-  max-height: 40px;
-}
-
-body:has(.prime-home) .logotype__divider { height: 21px; }
-body:has(.prime-home) .logotype__name { font-size: 8px; }
-body:has(.prime-home) .site-header__tagline { font-size: 8px; }
-
-body:has(.prime-home) .site-nav a {
-  min-height: 33px;
-  font-size: 9.5px;
-}
-
-.prime-home {
-  min-height: calc(100vh - 79px);
-  padding: 10px 0 20px;
+.prime-home-v2 {
+  min-height: calc(100vh - 58px);
+  padding-bottom: 18px;
   background:
-    radial-gradient(circle at 12% 5%, rgba(190,143,45,.08), transparent 26%),
-    linear-gradient(180deg, #f5f1e8 0%, #efe9dc 100%);
+    radial-gradient(circle at 10% 0%, rgba(184,138,42,.08), transparent 26%),
+    linear-gradient(180deg, #f5f1e8 0%, #eee8dc 100%);
+  color: #142742;
 }
 
-.prime-home__intro {
-  padding-bottom: 9px;
-  border-bottom: 1px solid #d4ccbe;
+.prime-home-v2__hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 188px;
+  border-bottom: 1px solid rgba(184,138,42,.65);
+  background:
+    linear-gradient(90deg, rgba(10,27,47,.97) 0%, rgba(10,27,47,.9) 50%, rgba(10,27,47,.66) 100%),
+    url("/brand/background-rankings.png") center 36% / cover no-repeat;
 }
 
-.prime-home__eyebrow {
+.prime-home-v2__hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: rgba(255,255,255,.13);
+}
+
+.prime-home-v2__hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 190px;
+  align-items: center;
+  min-height: 188px;
+  gap: 28px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.prime-home-v2__eyebrow {
   display: block;
-  margin-bottom: 3px;
-  color: #a17621;
-  font-size: 8px;
+  margin-bottom: 7px;
+  color: #d1a64a;
+  font-size: 9px;
   font-weight: 900;
-  letter-spacing: .22em;
+  letter-spacing: .28em;
   text-transform: uppercase;
 }
 
-.prime-home__intro h1 {
-  max-width: 1100px;
+.prime-home-v2__hero h1 {
+  max-width: 860px;
   margin: 0;
-  color: #122944;
+  color: #f8f5ed;
   font-family: var(--font-display);
-  font-size: clamp(30px, 3.4vw, 42px);
+  font-size: clamp(40px, 4vw, 62px);
   font-weight: 800;
-  line-height: .94;
+  line-height: .88;
   letter-spacing: -.025em;
   text-transform: uppercase;
 }
 
-.prime-home__intro p {
-  max-width: 900px;
+.prime-home-v2__hero h1 span {
+  display: block;
   margin-top: 5px;
-  color: #536172;
-  font-size: 11.5px;
+  color: #d2a43d;
+}
+
+.prime-home-v2__hero p {
+  max-width: 760px;
+  margin-top: 10px;
+  color: #dce3eb;
+  font-size: 12px;
   font-weight: 650;
   line-height: 1.45;
 }
 
-.prime-home__cards {
+.prime-home-v2__hero-meta {
+  justify-self: end;
+  width: 170px;
+  padding-left: 24px;
+  border-left: 1px solid rgba(255,255,255,.2);
+}
+
+.prime-home-v2__hero-meta span,
+.prime-home-v2__hero-meta small {
+  display: block;
+  color: #d5dce5;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.prime-home-v2__hero-meta strong {
+  display: block;
+  margin-top: 4px;
+  color: #e3b64e;
+  font-family: var(--font-display);
+  font-size: 29px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.prime-home-v2__hero-meta i {
+  display: block;
+  width: 34px;
+  height: 2px;
+  margin: 11px 0;
+  background: #d2a43d;
+}
+
+.prime-home-v2__dashboard {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: minmax(0,.92fr) minmax(360px,1.08fr) minmax(0,.92fr);
+  gap: 12px;
   margin-top: 10px;
 }
 
-.prime-home-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+.prime-home-panel,
+.prime-home-matchup {
+  min-width: 0;
   overflow: hidden;
-  border: 1px solid #cfc7b8;
-  border-radius: 10px;
-  background: rgba(255,254,249,.97);
-  box-shadow:
-    0 13px 30px rgba(20, 34, 51, .09),
-    inset 0 1px 0 rgba(255,255,255,.95);
+  border: 1px solid #d0c7b8;
+  border-radius: 7px;
+  background: rgba(255,254,250,.97);
+  box-shadow: 0 7px 20px rgba(20,34,51,.07);
 }
 
-.prime-home-card::before {
+.prime-home-panel::before {
   content: "";
   display: block;
-  height: 4px;
-  background: #142b46;
+  height: 3px;
+  background: #17304f;
 }
 
-.prime-home-card--rankings::before {
-  background: #b7892e;
+.prime-home-panel--rankings::before {
+  background: #b7892d;
 }
 
-.prime-home-card__header {
+.prime-home-panel__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
-  min-height: 104px;
-  padding: 10px 15px 9px;
-  border-bottom: 1px solid #ded7cb;
+  min-height: 80px;
+  gap: 10px;
+  padding: 9px 12px 8px;
+  border-bottom: 1px solid #ded7ca;
 }
 
-.prime-home-card__header > div:first-child {
-  min-width: 0;
-}
+.prime-home-panel__head > div { min-width: 0; }
 
-.prime-home-card__label {
+.prime-home-panel__head span {
   display: block;
-  color: #a17621;
+  color: #a27724;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.prime-home-panel__head h2 {
+  margin-top: 2px;
+  color: #142b47;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.prime-home-panel__head p {
+  margin-top: 4px;
+  color: #6d7580;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.prime-home-panel__head > a {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  color: #29405b;
+  font-size: 7.5px;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.prime-home-v2-table__head,
+.prime-home-v2-table__row {
+  display: grid;
+  align-items: center;
+}
+
+.prime-home-v2-table--ratings .prime-home-v2-table__head,
+.prime-home-v2-table--ratings .prime-home-v2-table__row {
+  grid-template-columns: 34px minmax(0,1fr) 54px 45px 45px;
+}
+
+.prime-home-v2-table--prime25 .prime-home-v2-table__head,
+.prime-home-v2-table--prime25 .prime-home-v2-table__row {
+  grid-template-columns: 34px minmax(0,1fr) 60px 42px;
+}
+
+.prime-home-v2-table__head {
+  min-height: 27px;
+  padding: 0 9px;
+  border-bottom: 1px solid #ddd7cb;
+  background: #f2efe8;
+  color: #69717c;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.prime-home-v2-table__row {
+  min-height: 39px;
+  padding: 0 9px;
+  border-bottom: 1px solid #e7e1d6;
+  color: #263850;
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.prime-home-v2-table__row:last-child { border-bottom: 0; }
+.prime-home-v2-table__row:hover { background: #f8f2e5; }
+
+.prime-home-v2-table__rank {
+  color: #142b47;
+  font-family: var(--font-display);
+  font-size: 16px;
+}
+
+.prime-home-v2-table__team {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  padding-right: 5px;
+}
+
+.prime-home-v2-table__team img {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  object-fit: contain;
+}
+
+.prime-home-v2-table__team b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #142b47;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.prime-home-matchup {
+  display: flex;
+  flex-direction: column;
+  min-height: 314px;
+  padding: 0 14px 12px;
+  border-color: #203853;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(197,154,67,.12), transparent 34%),
+    linear-gradient(180deg, #112944, #0e2239);
+  color: #fff;
+}
+
+.prime-home-matchup > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  border-bottom: 1px solid rgba(255,255,255,.16);
+}
+
+.prime-home-matchup > header span {
+  color: #e2b74f;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.prime-home-matchup > header b {
+  color: #ced8e5;
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.prime-home-matchup__teams {
+  display: grid;
+  grid-template-columns: 1fr 38px 1fr;
+  align-items: center;
+  flex: 1;
+  gap: 7px;
+  padding: 8px 0 2px;
+}
+
+.prime-home-matchup__team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  text-align: center;
+}
+
+.prime-home-matchup__team img {
+  width: 76px;
+  height: 76px;
+  margin-bottom: 2px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.26));
+}
+
+.prime-home-matchup__team span {
+  color: #e3b64e;
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.prime-home-matchup__team strong {
+  max-width: 100%;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 21px;
+  text-transform: uppercase;
+}
+
+.prime-home-matchup__team small {
+  margin-top: 2px;
+  color: #b9c5d3;
+  font-family: var(--font-mono);
+  font-size: 8px;
+}
+
+.prime-home-matchup__vs {
+  color: #e1b24a;
+  font-family: var(--font-display);
+  font-size: 22px;
+  text-align: center;
+}
+
+.prime-home-matchup__kickoff {
+  padding: 5px 0 7px;
+  color: #c9d2de;
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.prime-home-matchup__edge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+  padding: 7px 10px;
+  border: 1px solid rgba(219,178,82,.34);
+  background: rgba(255,255,255,.045);
+}
+
+.prime-home-matchup__edge span {
+  color: #aebccc;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.prime-home-matchup__edge strong {
+  color: #f1d485;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: right;
+}
+
+.prime-home-matchup__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58%;
+  min-height: 28px;
+  margin: 8px auto 0;
+  border-radius: 3px;
+  background: #d1a33e;
+  color: #152944;
   font-size: 8px;
   font-weight: 900;
-  letter-spacing: .16em;
   text-transform: uppercase;
 }
 
-.prime-home-card h2 {
-  margin-top: 2px;
-  color: #132a45;
+.prime-home-matchup__empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.prime-home-matchup__empty strong {
   font-family: var(--font-display);
-  font-size: clamp(28px, 2.5vw, 35px);
-  font-weight: 800;
-  line-height: .95;
+  font-size: 27px;
   text-transform: uppercase;
 }
 
-.prime-home-card__header p {
-  max-width: 500px;
-  margin-top: 4px;
-  color: #5d6876;
-  font-size: 11.5px;
-  font-weight: 600;
-  line-height: 1.45;
+.prime-home-matchup__empty span {
+  max-width: 270px;
+  color: #aebccc;
+  font-size: 9px;
 }
 
-.prime-home-card__meta {
-  min-width: 104px;
-  padding: 7px 9px;
-  flex: 0 0 auto;
-  border: 1px solid #d5d8dd;
-  background: #f4f6f8;
+.prime-home-matchup__empty a {
+  color: #e1b24a;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
-.prime-home-card__meta--gold {
-  min-width: 142px;
-  border-color: #dbc998;
-  background: #f7f1e1;
+.prime-home-v2__insights {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+  margin-top: 10px;
 }
 
-.prime-home-card__meta span {
+.prime-home-insight {
+  position: relative;
+  min-height: 94px;
+  overflow: hidden;
+  padding: 10px 12px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #26384f, #132942);
+  box-shadow: 0 5px 16px rgba(20,34,51,.08);
+  color: #fff;
+}
+
+.prime-home-insight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.035));
+  pointer-events: none;
+}
+
+.prime-home-insight--offense { background: linear-gradient(135deg, #4c2025, #241a25 70%); }
+.prime-home-insight--riser { background: linear-gradient(135deg, #194534, #132f2a 70%); }
+.prime-home-insight--schedule { background: linear-gradient(135deg, #26384f, #132942 70%); }
+.prime-home-insight--defense { background: linear-gradient(135deg, #1e344c, #101f34 70%); }
+
+.prime-home-insight > span {
   display: block;
-  color: #7b8490;
-  font-size: 7px;
+  color: #e1b64e;
+  font-size: 8px;
   font-weight: 900;
   letter-spacing: .1em;
   text-transform: uppercase;
 }
 
-.prime-home-card__meta--gold span {
-  color: #9d741f;
-}
-
-.prime-home-card__meta strong {
-  display: block;
-  margin-top: 4px;
-  color: #152a44;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  line-height: 1.15;
-}
-
-.prime-home-card__trust {
-  margin-top: 5px !important;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #7a746a !important;
-  font-size: 10.5px !important;
-  font-weight: 650 !important;
-  line-height: 1.3 !important;
-}
-
-.prime-home-card__preview {
-  padding: 9px 15px 0;
-  flex: 0 0 auto;
-}
-
-.prime-home-card__preview-title {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 6px;
-}
-
-.prime-home-card__preview-title strong {
-  color: #152a44;
-  font-size: 9.5px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-
-.prime-home-card__preview-title span {
-  color: #8a8379;
-  font-size: 8px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-}
-
-.prime-home-list {
-  border-top: 1px solid #ded8cc;
-}
-
-.prime-home-list__row {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 54px 62px;
-  align-items: center;
-  min-height: 44px;
-  border-bottom: 1px solid #e7e1d7;
-  background: rgba(255,255,255,.7);
-  transition: background-color .12s ease;
-}
-
-.prime-home-list--rankings .prime-home-list__row {
-  grid-template-columns: 42px minmax(0, 1fr) 54px;
-}
-
-.prime-home-list__row:hover {
-  background: #f8f3e8;
-}
-
-.prime-home-list__rank {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: stretch;
-  background: #142b46;
-  color: #fff;
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.prime-home-list__rank--one {
-  background: #b4872a;
-}
-
-.prime-home-list__team {
+.prime-home-insight > div {
   display: flex;
   align-items: center;
   min-width: 0;
   gap: 9px;
-  padding: 0 10px;
+  margin-top: 5px;
 }
 
-.prime-home-list__team img {
-  width: 25px;
-  height: 25px;
-  flex: 0 0 25px;
+.prime-home-insight img {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
   object-fit: contain;
 }
 
-.prime-home-list__team > strong,
-.prime-home-list__team-copy strong {
+.prime-home-insight strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #152a44;
-  font-size: 12.5px;
-  font-weight: 850;
-}
-
-.prime-home-list__team-copy {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.05;
-}
-
-.prime-home-list__team-copy small {
-  margin-top: 3px;
-  color: #7b838c;
-  font-size: 7.5px;
-  font-weight: 800;
-  letter-spacing: .055em;
-}
-
-.prime-home-list__record,
-.prime-home-list__value {
-  padding-right: 8px;
-  text-align: right;
-  color: #536071;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 750;
-}
-
-.prime-home-list__value {
-  color: #152a44;
-  font-weight: 900;
-}
-
-.prime-home-card__footer {
-  display: flex;
-  margin-top: auto;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 10px 15px 12px;
-}
-
-.prime-home-card__footer > span {
-  color: #767d86;
-  font-size: 9px;
-  font-weight: 600;
-}
-
-.prime-home-card__footer > a {
-  display: inline-flex;
-  align-items: center;
-  gap: 18px;
-  min-width: 132px;
-  justify-content: space-between;
-  padding: 8px 10px;
-  border: 1px solid #142b46;
-  background: #142b46;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 850;
-}
-
-.prime-home-card--rankings .prime-home-card__footer > a {
-  border-color: #a87a20;
-  background: #a87a20;
-}
-
-.prime-home-card__footer > a:hover {
-  transform: translateY(-1px);
-}
-
-.prime-home__explain {
-  display: grid;
-  grid-template-columns: 1fr 1px 1fr;
-  gap: 24px;
-  align-items: center;
-  margin-top: 10px;
-  padding: 9px 14px;
-  border: 1px solid #d6cec0;
-  background: rgba(255,253,247,.72);
-}
-
-.prime-home__explain > div:not(.prime-home__explain-divider) {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.prime-home__explain > div:first-child {
-  justify-content: flex-end;
-}
-
-.prime-home__explain strong {
-  color: #132a45;
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 18px;
   text-transform: uppercase;
 }
 
-.prime-home__explain span {
-  color: #6b7480;
-  font-size: 11px;
-  font-weight: 650;
+.prime-home-insight p {
+  margin-top: 5px;
+  color: #f4f5f7;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
 }
 
-.prime-home__explain-divider {
+.prime-home-v2__explore {
+  margin-top: 10px;
+}
+
+.prime-home-v2__explore h2 {
+  margin: 0 0 5px;
+  color: #1a314c;
+  font-family: var(--font-display);
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.prime-home-v2__explore-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+}
+
+.prime-home-v2__explore-grid > a {
+  display: grid;
+  grid-template-columns: 36px minmax(0,1fr) 16px;
+  align-items: center;
+  min-height: 62px;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid #d5cdc0;
+  border-radius: 4px;
+  background: rgba(255,254,250,.94);
+  box-shadow: 0 3px 10px rgba(20,34,51,.04);
+}
+
+.prime-home-v2__explore-grid > a:hover {
+  transform: translateY(-1px);
+  border-color: #b99a57;
+}
+
+.prime-home-v2__explore-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-right: 1px solid #e1d9ca;
+  color: #b7892d;
+  font-size: 18px;
+}
+
+.prime-home-v2__explore-grid strong {
+  display: block;
+  color: #19304b;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.prime-home-v2__explore-grid small {
+  display: block;
+  margin-top: 2px;
+  color: #6f7883;
+  font-size: 7.5px;
+  line-height: 1.3;
+}
+
+.prime-home-v2__explore-grid b {
+  color: #394b62;
+  font-size: 14px;
+}
+
+.prime-home-v2__definition {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 31px;
+  margin-top: 10px;
+  border-top: 1px solid #d3cbbb;
+  border-bottom: 1px solid #d3cbbb;
+  color: #425069;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.prime-home-v2__definition b { color: #172d48; }
+.prime-home-v2__definition i {
   width: 1px;
-  height: 30px;
-  background: #c8bda9;
+  height: 14px;
+  background: #bea25f;
 }
 
-/* Short desktop windows keep both preview tables aligned and above the fold. */
-@media (max-height: 820px) and (min-width: 900px) {
-  .prime-home { padding-top: 7px; padding-bottom: 14px; }
-  .prime-home__intro { padding-bottom: 7px; }
-  .prime-home__intro h1 { font-size: clamp(28px, 3vw, 38px); }
-  .prime-home__intro p { margin-top: 4px; font-size: 11.5px; }
-  .prime-home__cards { margin-top: 8px; }
-  .prime-home-card__header { min-height: 98px; padding-top: 9px; padding-bottom: 7px; }
-  .prime-home-card h2 { font-size: clamp(26px, 2.3vw, 32px); }
-  .prime-home-card__preview { padding-top: 7px; }
-  .prime-home-list__row { min-height: 41px; }
-  .prime-home-card__footer { padding-top: 8px; padding-bottom: 10px; }
-  .prime-home__explain { margin-top: 8px; padding-top: 7px; padding-bottom: 7px; }
-}
+@media (max-width: 1180px) {
+  .prime-home-v2__dashboard {
+    grid-template-columns: 1fr 1fr;
+  }
 
-@media (max-width: 900px) {
-  .prime-home__cards {
-    grid-template-columns: 1fr;
+  .prime-home-matchup {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 280px;
+  }
+
+  .prime-home-panel--ratings { grid-column: 1; }
+  .prime-home-panel--rankings { grid-column: 2; }
+
+  .prime-home-v2__insights,
+  .prime-home-v2__explore-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
   }
 }
 
 @media (max-width: 760px) {
-  body:has(.prime-home) .site-header__inner {
-    min-height: 41px;
-    padding-top: 3px;
-    padding-bottom: 3px;
+  .prime-home-v2 {
+    padding-bottom: 10px;
   }
 
-  body:has(.prime-home) .logotype__logo {
-    width: 80px;
-    max-height: 34px;
+  .prime-home-v2__hero {
+    min-height: 174px;
   }
 
-  body:has(.prime-home) .logotype__divider,
-  body:has(.prime-home) .logotype__name {
+  .prime-home-v2__hero-inner {
+    grid-template-columns: 1fr;
+    min-height: 174px;
+    padding: 16px 13px;
+  }
+
+  .prime-home-v2__hero h1 {
+    max-width: 520px;
+    font-size: clamp(34px, 10vw, 47px);
+  }
+
+  .prime-home-v2__hero p {
+    font-size: 10px;
+  }
+
+  .prime-home-v2__hero-meta {
     display: none;
   }
 
-  body:has(.prime-home) .site-nav .container {
-    display: flex !important;
-    grid-template-columns: none !important;
-    flex-wrap: nowrap !important;
-    gap: 0 !important;
-    overflow-x: auto !important;
-    scrollbar-width: none;
+  .prime-home-v2__dashboard {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 0 8px;
   }
 
-  body:has(.prime-home) .site-nav .container::-webkit-scrollbar {
-    display: none;
+  .prime-home-matchup,
+  .prime-home-panel--ratings,
+  .prime-home-panel--rankings {
+    grid-column: 1;
   }
 
-  body:has(.prime-home) .site-nav a {
-    width: auto !important;
-    min-width: 68px;
-    flex: 0 0 auto !important;
-    min-height: 30px;
-    padding: 0 7px;
-    font-size: 7.8px;
+  .prime-home-matchup {
+    grid-row: auto;
+    min-height: 300px;
   }
 
-  .prime-home {
-    padding: 9px 0 16px;
+  .prime-home-panel__head h2 {
+    font-size: 22px;
   }
 
-  .prime-home__intro {
-    padding-bottom: 8px;
+  .prime-home-v2__insights,
+  .prime-home-v2__explore-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
-  .prime-home__eyebrow {
-    font-size: 7px;
+  .prime-home-insight {
+    min-height: 88px;
+    padding: 9px;
   }
 
-  .prime-home__intro h1 {
-    font-size: clamp(27px, 8.8vw, 36px);
+  .prime-home-insight img {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
   }
 
-  .prime-home__intro p {
-    margin-top: 5px;
-    font-size: 11px;
-    line-height: 1.35;
+  .prime-home-insight strong {
+    font-size: 15px;
   }
 
-  .prime-home__cards {
-    gap: 10px;
-    margin-top: 10px;
+  .prime-home-v2__explore {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
-  .prime-home-card {
-    border-radius: 8px;
+  .prime-home-v2__explore-grid {
+    padding-left: 0;
+    padding-right: 0;
   }
 
-  .prime-home-card__header {
-    min-height: 0;
-    padding: 11px 12px 9px;
+  .prime-home-v2__explore-grid > a {
+    grid-template-columns: 28px minmax(0,1fr) 12px;
+    min-height: 68px;
+    padding: 7px;
   }
 
-  .prime-home-card__label {
-    font-size: 7px;
+  .prime-home-v2__explore-icon {
+    width: 27px;
+    height: 34px;
   }
 
-  .prime-home-card h2 {
-    font-size: 28px;
-  }
-
-  .prime-home-card__header p {
-    margin-top: 5px;
-    font-size: 11px;
-  }
-
-  .prime-home-card__meta {
-    min-width: 88px;
-    padding: 6px 7px;
-  }
-
-  .prime-home-card__meta--gold {
-    min-width: 105px;
-  }
-
-  .prime-home-card__meta span {
-    font-size: 5.5px;
-  }
-
-  .prime-home-card__meta strong {
-    font-size: 8px;
-  }
-
-  .prime-home-card__trust {
-    margin-top: 4px !important;
-    font-size: 9.5px !important;
-  }
-
-  /* Mobile homepage explains the two products instead of showing cramped tables. */
-  .prime-home-card__preview {
-    display: none;
-  }
-
-  .prime-home-card__footer {
-    padding: 12px 13px 13px;
-  }
-
-  .prime-home-card__footer > span {
-    font-size: 8px;
-    max-width: 52%;
-  }
-
-  .prime-home-card__footer > a {
-    min-width: 112px;
-    padding: 8px 9px;
+  .prime-home-v2__explore-grid strong {
     font-size: 8.5px;
   }
 
-  .prime-home__explain {
-    gap: 10px;
-    margin-top: 10px;
-    padding: 10px;
+  .prime-home-v2__explore-grid small {
+    font-size: 7px;
   }
 
-  .prime-home__explain > div:not(.prime-home__explain-divider) {
-    display: block;
+  .prime-home-v2__definition {
+    margin: 9px 8px 0;
+    gap: 9px;
+    padding: 6px 8px;
+    text-align: center;
+    font-size: 6.8px;
+  }
+}
+
+@media (max-width: 470px) {
+  .prime-home-v2__insights,
+  .prime-home-v2__explore-grid {
+    grid-template-columns: 1fr;
   }
 
-  .prime-home__explain > div:first-child {
-    text-align: right;
+  .prime-home-v2-table--ratings .prime-home-v2-table__head,
+  .prime-home-v2-table--ratings .prime-home-v2-table__row {
+    grid-template-columns: 30px minmax(0,1fr) 50px 40px 40px;
   }
 
-  .prime-home__explain strong {
-    display: block;
-    font-size: 18px;
+  .prime-home-v2-table--prime25 .prime-home-v2-table__head,
+  .prime-home-v2-table--prime25 .prime-home-v2-table__row {
+    grid-template-columns: 30px minmax(0,1fr) 54px 38px;
   }
 
-  .prime-home__explain span {
-    display: block;
-    margin-top: 2px;
-    font-size: 8px;
+  .prime-home-v2-table__team img {
+    width: 21px;
+    height: 21px;
+    flex-basis: 21px;
   }
 
-  .prime-home__explain-divider {
-    height: 38px;
+  .prime-home-v2-table__team b {
+    font-size: 9px;
   }
 }
