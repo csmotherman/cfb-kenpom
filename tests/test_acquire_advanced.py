@@ -137,6 +137,27 @@ class BoxScoreServerErrorTests(unittest.TestCase):
             acquire_advanced_box_scores(client, root, 2026, "regular", 1, {"1", "2", "3"})
             self.assertEqual(client.box_calls, ["2"])
 
+class BoxScorePayloadValidityTests(unittest.TestCase):
+    def test_non_object_payload_is_skipped_and_retried_never_stored(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            client = FakeClient(box_payloads={"1": {"teams": {"x": 1}}, "2": ["garbage"]})
+            acquire_advanced_box_scores(client, root, 2026, "regular", 1, {"1", "2"})
+            stored = json.loads((root / "cfbd/season=2026/season_type=regular/week=01/advanced_box_scores.json").read_text())
+            self.assertEqual([r["gameId"] for r in stored], ["1"])
+            client.box_calls.clear()
+            acquire_advanced_box_scores(client, root, 2026, "regular", 1, {"1", "2"})
+            self.assertEqual(client.box_calls, ["2"])
+
+    def test_http_success_with_no_teams_is_recorded_as_an_explicit_empty_answer(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            client = FakeClient(box_payloads={"1": {"teams": {}}})
+            acquire_advanced_box_scores(client, root, 2026, "regular", 1, {"1"})
+            stored = json.loads((root / "cfbd/season=2026/season_type=regular/week=01/advanced_box_scores.json").read_text())
+            self.assertEqual(stored[0]["sourceStatus"], "empty_response")
+
+
 
 if __name__ == "__main__":
     unittest.main()

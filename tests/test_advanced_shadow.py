@@ -200,7 +200,8 @@ class BoxAdvancedAndScoringTests(unittest.TestCase):
             "fieldPosition": [{"team": "X", "averageStart": 70.0}, {"team": "Y", "averageStart": 60.0}],
             "scoringOpportunities": [{"team": "X", "opportunities": 5, "points": 20}, {"team": "Y", "opportunities": 4, "points": 9}],
         }}]
-        out = sh._normalize_box_advanced(payload)
+        out, invalid = sh._normalize_box_advanced(payload)
+        self.assertEqual(invalid, {})
         self.assertEqual(out[("7", "X")]["havocForcedRate"], 0.30)  # X's own defense created 30% havoc
         self.assertEqual(out[("7", "Y")]["havocForcedRate"], 0.10)
         row = {"oppPlays": 60.0, "drives": 10.0}
@@ -213,6 +214,23 @@ class BoxAdvancedAndScoringTests(unittest.TestCase):
         row = sh._team_row("1", 2024, g, "regular", 1, "H", "A", "home", 31.0, 10.0, None, None,
                            {"defensiveTDs": 1.0, "kickReturnTDs": 0.0, "puntReturnTDs": 0.0, "totalYards": 400.0}, None)
         self.assertEqual(row["offPointsEst"], 31.0 - 7.0)
+
+    def test_failed_or_empty_box_advanced_answers_are_reported_never_read_as_null_stats(self):
+        out, invalid = sh._normalize_box_advanced([
+            {"gameId": 1, "teams": {}},                                        # scratch placeholder: no marker
+            {"gameId": 2, "teams": {}, "sourceStatus": "empty_response"},      # explicit legitimate empty answer
+            {"gameId": 3, "teams": {"havoc": [{"team": "X", "total": 0.2}]}},  # real payload
+        ])
+        self.assertEqual(invalid, {"1": "invalid_payload", "2": "empty_response"})
+        self.assertEqual({k[0] for k in out}, {"3"})
+        row = {"gameId": "1", "oppPlays": 60.0, "drives": 10.0}
+        sh._attach_box_advanced(row, None, None, invalid)
+        self.assertEqual(row["boxAdvancedStatus"], "invalid_payload")
+        self.assertFalse(row["hasBoxAdvanced"])
+        self.assertNotIn("havocForcedPlays", row)
+        clean = {"gameId": "9"}
+        sh._attach_box_advanced(clean, None, None, invalid)
+        self.assertEqual(clean["boxAdvancedStatus"], "absent")
 
     def test_source_contract_allows_advanced_box_scores(self):
         self.assertIn("advanced_box_scores.json", sh.ALLOWED_FILES)

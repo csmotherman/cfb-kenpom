@@ -142,9 +142,10 @@ def load_aggregate_games(
             for r in read_source(adv_path):
                 adv[(str(r.get("gameId")), str(r.get("team")))] = r
         adv_box: dict[tuple[str, str], dict[str, float | None]] = {}
+        adv_box_invalid: dict[str, str] = {}
         adv_box_path = pdir / "advanced_box_scores.json"
         if adv_box_path.exists():
-            adv_box = _normalize_box_advanced(read_source(adv_box_path))
+            adv_box, adv_box_invalid = _normalize_box_advanced(read_source(adv_box_path))
         box: dict[tuple[str, str], dict[str, float | None]] = {}
         box_path = pdir / "game_team_stats.json"
         if box_path.exists():
@@ -193,18 +194,24 @@ def load_aggregate_games(
                 b = box.get((gid, str(team)))
                 b_opp = box.get((gid, str(opp)))
                 row = _team_row(gid, season, g, season_type, week, team, opp, side, pf, pa, a, a_opp, b, b_opp)
-                _attach_box_advanced(row, adv_box.get((gid, str(team))), adv_box.get((gid, str(opp))))
+                _attach_box_advanced(row, adv_box.get((gid, str(team))), adv_box.get((gid, str(opp))), adv_box_invalid)
                 team_rows.append(row)
     return team_rows, game_rows
 
 
-def _normalize_box_advanced(payloads: list[dict[str, Any]]) -> dict[tuple[str, str], dict[str, float | None]]:
+def _normalize_box_advanced(payloads: list[dict[str, Any]]) -> tuple[dict[tuple[str, str], dict[str, float | None]], dict[str, str]]:
     """/game/box/advanced -> {(gameId, team): fields}. havoc is keyed by the DISRUPTING defense,
     so a team's row carries its own defense's havoc rate (`havocForcedRate`)."""
     out: dict[tuple[str, str], dict[str, float | None]] = {}
+    invalid: dict[str, str] = {}
     for item in payloads:
         teams = item.get("teams") or {}
         gid = str(item.get("gameId"))
+        if not isinstance(teams, dict) or not teams:
+            # Stored empty answers carry sourceStatus="empty_response"; a row with neither teams nor that marker is not a valid
+            # response (legacy or scratch placeholder). Either way it yields NO statistics and is reported, never read as nulls.
+            invalid.setdefault(gid, item.get("sourceStatus") or "invalid_payload")
+            continue
         havoc = {r.get("team"): r for r in teams.get("havoc") or []}
         scoring = {r.get("team"): r for r in teams.get("scoringOpportunities") or []}
         field = {r.get("team"): r for r in teams.get("fieldPosition") or []}
@@ -215,11 +222,12 @@ def _normalize_box_advanced(payloads: list[dict[str, Any]]) -> dict[tuple[str, s
                 "scoringOpps": _f((scoring.get(team) or {}).get("opportunities")),
                 "scoringOppPoints": _f((scoring.get(team) or {}).get("points")),
             }
-    return out
+    return out, invalid
 
 
-def _attach_box_advanced(row: dict[str, Any], own: dict[str, Any] | None, opp: dict[str, Any] | None) -> None:
+def _attach_box_advanced(row: dict[str, Any], own: dict[str, Any] | None, opp: dict[str, Any] | None, invalid: dict[str, str] | None = None) -> None:
     row["hasBoxAdvanced"] = own is not None
+    row["boxAdvancedStatus"] = "ok" if own is not None else (invalid or {}).get(str(row["gameId"]), "absent")
     if not own:
         return
     rate, opp_plays, drives = own.get("havocForcedRate"), row.get("oppPlays"), row.get("drives")

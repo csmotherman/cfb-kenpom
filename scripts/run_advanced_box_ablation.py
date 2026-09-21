@@ -40,7 +40,8 @@ def main() -> None:
         rows = sh.build_shadow_rows(tr, gr, specs=specs)
         elig = [r for r in rows if r["homeGamesBefore"] >= 3 and r["awayGamesBefore"] >= 3]
         pop[s] = [r for r in elig if all(isinstance(r.get(f), (int, float)) for f in need)]
-        coverage[s] = {"teamGames": len(tr), "withBoxAdvanced": sum(1 for r in tr if r.get("hasBoxAdvanced")), "eligibleGames": len(elig), "usedGames": len(pop[s])}
+        coverage[s] = {"teamGames": len(tr), "withBoxAdvanced": sum(1 for r in tr if r.get("hasBoxAdvanced")),
+                       "boxAdvancedStatus": dict(sorted(__import__("collections").Counter(r.get("boxAdvancedStatus") for r in tr).items())), "eligibleGames": len(elig), "usedGames": len(pop[s])}
         print(s, coverage[s], flush=True)
     out = {"coverage": coverage, "testSeasons": list(TEST), "results": {}}
     for ridge in (1e-6, 100.0):

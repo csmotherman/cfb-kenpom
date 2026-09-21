@@ -3,18 +3,28 @@
   "2023": {
    "teamGames": 1820,
    "withBoxAdvanced": 1820,
+   "boxAdvancedStatus": {
+    "ok": 1820
+   },
    "eligibleGames": 636,
    "usedGames": 636
   },
   "2024": {
    "teamGames": 1838,
    "withBoxAdvanced": 1830,
+   "boxAdvancedStatus": {
+    "invalid_payload": 8,
+    "ok": 1830
+   },
    "eligibleGames": 638,
    "usedGames": 638
   },
   "2025": {
    "teamGames": 1616,
    "withBoxAdvanced": 1616,
+   "boxAdvancedStatus": {
+    "ok": 1616
+   },
    "eligibleGames": 587,
    "usedGames": 587
   }

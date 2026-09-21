@@ -16,6 +16,8 @@ from typing import Iterable
 from cfb_analytics.raw.storage import partition_dir, store_response, verify_manifest
 from cfb_analytics.sources.cfbd.client import CfbdClient, CfbdError, CfbdResponse
 
+SOURCE_STATUS_EMPTY = "empty_response"
+
 ADVANCED_GAME_STATS_ENTITY = "advanced_game_stats"
 ADVANCED_BOX_SCORES_ENTITY = "advanced_box_scores"
 
@@ -105,8 +107,16 @@ def acquire_advanced_box_scores(
             # the whole refresh; downstream fields fall back to /stats/game/advanced or stay null.
             print(f"::warning::/game/box/advanced unavailable for game {gid} ({season} {season_type} week {week}): {str(exc)[:160]}")
             continue
+        if not isinstance(resp.payload, dict):
+            # A non-object body is a malformed response, not "no statistics": never store it as a valid row.
+            print(f"::warning::/game/box/advanced returned a non-object payload for game {gid} ({season} {season_type} week {week}); skipped")
+            continue
         last_response = resp
-        row = dict(resp.payload) if isinstance(resp.payload, dict) else {"raw": resp.payload}
+        row = dict(resp.payload)
+        if not isinstance(row.get("teams"), dict) or not row["teams"]:
+            # HTTP success with no team data: a legitimate empty answer, recorded explicitly so it can never be confused
+            # with a failed request (failed requests are never stored at all).
+            row["sourceStatus"] = SOURCE_STATUS_EMPTY
         row["gameId"] = gid
         rows.append(row)
         # Persist after every game, not just at the end -- N calls means N
