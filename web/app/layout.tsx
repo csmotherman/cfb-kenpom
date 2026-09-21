@@ -57,6 +57,7 @@ import "@/styles/predictions-performance.css";
 import "@/styles/market-odds.css";
 import "@/styles/loading-state.css";
 import "@/styles/trust-state.css";
+import "@/styles/rankings-prime25.css";
 
 export const metadata: Metadata = {
   title: "PRIME Football | College Football Analytics",
