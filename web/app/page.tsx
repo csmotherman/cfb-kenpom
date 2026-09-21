@@ -122,16 +122,15 @@ export default function HomePage() {
                 <span className="prime-home-card__label">Rankings</span>
                 <h2>The PRIME 25</h2>
                 <p>Current-season performance and strength of record, ranked by what teams have earned.</p>
+                <p className="prime-home-card__trust">
+                  No preseason rankings, brand reputation, or voter input.
+                </p>
               </div>
               <div className="prime-home-card__meta prime-home-card__meta--gold">
                 <span>{snapshot ? `Week ${snapshot.throughWeek}` : "Current"}</span>
                 <strong>Sunday · 12 PM ET</strong>
               </div>
             </header>
-
-            <p className="prime-home-card__trust">
-              Built from current-season performance and strength of record. No preseason rankings, brand reputation, or voter input.
-            </p>
 
             <div className="prime-home-card__preview">
               <div className="prime-home-card__preview-title">
