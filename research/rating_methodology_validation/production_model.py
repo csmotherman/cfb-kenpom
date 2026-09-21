@@ -37,6 +37,10 @@ def _to_production_row(r: dict) -> dict:
         "home_away": r.get("homeAway"),
         "offensiveDrivePoints": r.get("offensiveDrivePoints"),
         "resolvedPointPossessions": r.get("resolvedPointPossessions"),
+        "successfulPlays": r.get("successfulPlays"),
+        "successEligiblePlays": r.get("successEligiblePlays"),
+        "explosivePlays": r.get("explosivePlays"),
+        "explosiveEligiblePlays": r.get("explosiveEligiblePlays"),
     }
 
 
