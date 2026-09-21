@@ -146,8 +146,8 @@ const TABS: { key: TeamTab; label: string }[] = [
 ];
 
 const HISTORY_METRICS = [
-  ["adjEM", "Overall performance rating"],
-  ["rank", "Performance rank"],
+  ["adjEM", "Power Rating"],
+  ["rank", "Power Rating rank"],
   ["adjO", "Offense rating"],
   ["adjD", "Defense rating"],
   ["sos", "Strength of schedule"],
@@ -382,7 +382,7 @@ function TeamProfile({ slug }: { slug: string }) {
   }
 
   const headline = [
-    { label: "Overall", short: "Overall Rating", value: signed(latest.adjEM, 1), rank: latest.rank },
+    { label: "Overall", short: "Power Rating", value: signed(latest.adjEM, 1), rank: latest.rank },
     { label: "Offense", short: "Off Rating", value: signed(latest.adjO, 2), rank: latest.adjORank },
     { label: "Defense", short: "Def Rating", value: signed(latest.adjD, 2), rank: latest.adjDRank },
     { label: "Schedule", short: "SOS", value: signed(latest.sos, 1), rank: latest.sosRank },
@@ -406,9 +406,9 @@ function TeamProfile({ slug }: { slug: string }) {
               <p>
                 <strong>{latest.record}</strong>
                 {" · "}
-                {primeRank ? `PRIME #${primeRank.rank}` : "PRIME —"}
+                {primeRank ? `PRIME 25 Rank #${primeRank.rank}` : "PRIME 25 Rank —"}
                 {" · "}
-                {latest.rank ? `Performance #${latest.rank}` : "Performance unranked"}
+                {latest.rank ? `Power Rating #${latest.rank}` : "Power Rating unranked"}
               </p>
             </div>
           </div>
@@ -525,7 +525,7 @@ function TeamProfile({ slug }: { slug: string }) {
                   <th scope="col" className="conf-cell">Conf</th>
                   <th scope="col" className="num record-cell">W-L</th>
                   <th scope="col" className={historyMetric === "rank" ? "num history-rank-cell mobile-selected-history-metric" : "num history-rank-cell"}>Rk</th>
-                  <th scope="col" className={historyMetric === "adjEM" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Overall</th>
+                  <th scope="col" className={historyMetric === "adjEM" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Power</th>
                   <th scope="col" className={historyMetric === "adjO" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Off</th>
                   <th scope="col" className={historyMetric === "adjD" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>Def</th>
                   <th scope="col" className={historyMetric === "sos" ? "num history-metric-cell mobile-selected-history-metric" : "num history-metric-cell"}>SOS</th>
@@ -550,7 +550,7 @@ function TeamProfile({ slug }: { slug: string }) {
         </section>
       </main>
 
-      <SiteFooter note="Team profiles use PRIME's latest published season snapshot. PRIME rank is the résumé ranking built from equal-standardized Performance + SOR; Performance rank is the team's overall model rating rank. Current 2026 Overall/Offense/Defense ratings use PRIME v6's field-position-adjusted possession APR plus opponent-adjusted Success Rate and Explosiveness. Schedule links use the corresponding pregame performance snapshot." />
+      <SiteFooter note="Team profiles use PRIME's latest published season snapshot. PRIME 25 Rank is the résumé ranking built from equal-standardized Power Rating + SOR. Power Rating is the team's overall model rating and uses PRIME v6's field-position-adjusted possession APR plus opponent-adjusted Success Rate and Explosiveness. Schedule links use the corresponding pregame Power Rating snapshot." />
     </>
   );
 }
@@ -949,7 +949,7 @@ function ScheduleTab({
               <th scope="col">Week</th>
               <th scope="col">Opponent</th>
               <th scope="col">Result</th>
-              <th scope="col" className="num">Opp Rating<TipTrigger text="The opponent's published overall performance rating from the week strictly before this game." /></th>
+              <th scope="col" className="num">Opp Power Rating<TipTrigger text="The opponent's published Power Rating from the week strictly before this game." /></th>
               <th scope="col" className="team-v2-schedule__action">Matchup</th>
             </tr>
           </thead>
@@ -1000,7 +1000,7 @@ function ScheduleTab({
           </tbody>
         </table>
       </div>
-      <p className="team-v2-method-note">Opponent Rating is frozen to the published performance snapshot strictly before each game. Matchup pages use the same pregame-only logic.</p>
+      <p className="team-v2-method-note">Opponent Power Rating is frozen to the published snapshot strictly before each game. Matchup pages use the same pregame-only logic.</p>
     </div>
   );
 }
