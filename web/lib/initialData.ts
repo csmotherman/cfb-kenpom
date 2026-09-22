@@ -45,15 +45,19 @@ export async function getRankingsInitial(): Promise<RankingsInitial | null> {
   return snapshot ? { snapshot } : null;
 }
 
+export type HomeMatchup = {
+  game: ScheduleGame;
+  home: RankingsRow | null;
+  away: RankingsRow | null;
+};
+
 export type HomeInitial = {
   year: string;
   snapshot: PrimeRankingsFile | null;
   latestWeek: number | null;
   currentWeek: number | null;
   topRatings: RankingsRow[];
-  featuredGame: ScheduleGame | null;
-  featuredHome: RankingsRow | null;
-  featuredAway: RankingsRow | null;
+  featuredMatchups: HomeMatchup[];
   bestOffense: RankingsRow | null;
   bestDefense: RankingsRow | null;
   toughestSchedule: RankingsRow | null;
@@ -71,17 +75,28 @@ export async function getHomeInitial(): Promise<HomeInitial | null> {
   const latestWeek = season?.weeks?.length ? season.weeks[season.weeks.length - 1] : null;
   const currentRows = season && latestWeek !== null ? season.byWeek[String(latestWeek)] ?? [] : [];
   const byTeamId = new Map(currentRows.map((row) => [row.teamId, row]));
-  let featuredGame: ScheduleGame | null = null;
+  let featuredMatchups: HomeMatchup[] = [];
   if (schedule) {
     const targetWeek = schedule.weeks.find((week) => (schedule.byWeek[String(week)] ?? []).some((game) => !game.completed)) ?? schedule.currentWeek;
     const candidates = (schedule.byWeek[String(targetWeek)] ?? []).filter((game) => !game.completed);
-    featuredGame = [...candidates].sort((a, b) => {
-      const aHome = byTeamId.get(a.homeTeamId)?.rank ?? 200, aAway = byTeamId.get(a.awayTeamId)?.rank ?? 200;
-      const bHome = byTeamId.get(b.homeTeamId)?.rank ?? 200, bAway = byTeamId.get(b.awayTeamId)?.rank ?? 200;
-      const aTop = Number(aHome <= 25) + Number(aAway <= 25), bTop = Number(bHome <= 25) + Number(bAway <= 25);
-      if (aTop !== bTop) return bTop - aTop;
-      return aHome + aAway - (bHome + bAway);
-    })[0] ?? null;
+
+    // Weekend Watchlist: reward elite team quality first, then competitiveness.
+    // Lower scores are better. A close matchup between two highly rated teams
+    // should outrank a mismatch involving only one elite team.
+    featuredMatchups = [...candidates]
+      .map((game) => {
+        const home = byTeamId.get(game.homeTeamId) ?? null;
+        const away = byTeamId.get(game.awayTeamId) ?? null;
+        const homeRank = home?.rank ?? 200;
+        const awayRank = away?.rank ?? 200;
+        const quality = homeRank + awayRank;
+        const competitiveness = Math.abs(homeRank - awayRank);
+        const score = quality + competitiveness * 0.5;
+        return { game, home, away, score };
+      })
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 5)
+      .map(({ game, home, away }) => ({ game, home, away }));
   }
   return {
     year: String(year),
@@ -89,9 +104,7 @@ export async function getHomeInitial(): Promise<HomeInitial | null> {
     latestWeek,
     currentWeek: schedule?.currentWeek ?? null,
     topRatings: [...currentRows].filter((t) => t.rank !== null).sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999)).slice(0, 5),
-    featuredGame,
-    featuredHome: featuredGame ? byTeamId.get(featuredGame.homeTeamId) ?? null : null,
-    featuredAway: featuredGame ? byTeamId.get(featuredGame.awayTeamId) ?? null : null,
+    featuredMatchups,
     bestOffense: bestByRank(currentRows, "adjORank"),
     bestDefense: bestByRank(currentRows, "adjDRank"),
     toughestSchedule: bestByRank(currentRows, "sosRank"),
