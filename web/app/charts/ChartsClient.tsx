@@ -418,6 +418,27 @@ function buildMetricCatalog(points: TeamPoint[]) {
     .sort((a, b) => a.group.localeCompare(b.group) || a.label.localeCompare(b.label));
 }
 
+function wrapSvgText(text: string, maxCharsPerLine: number) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return [] as string[];
+
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= maxCharsPerLine || !current) {
+      current = next;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  }
+
+  if (current) lines.push(current);
+  return lines;
+}
+
 function blobToDataUrl(blob: Blob) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -607,27 +628,6 @@ export default function ChartsClient() {
   const xMedian = median(xValues);
   const yMedian = median(yValues);
 
-  const dimensions = aspect === "16:9" ? { width: 1600, height: 900 } : aspect === "1:1" ? { width: 1080, height: 1080 } : { width: 1200, height: 900 };
-  const margin = { left: 122, right: 58, top: 148, bottom: 104 };
-  const plotWidth = dimensions.width - margin.left - margin.right;
-  const plotHeight = dimensions.height - margin.top - margin.bottom;
-
-  const scaleX = (value: number) => {
-    const ratio = (value - xMin) / (xMax - xMin || 1);
-    const normalized = xReverse ? 1 - ratio : ratio;
-    return margin.left + normalized * plotWidth;
-  };
-  const scaleY = (value: number) => {
-    const ratio = (value - yMin) / (yMax - yMin || 1);
-    const normalized = yReverse ? ratio : 1 - ratio;
-    return margin.top + normalized * plotHeight;
-  };
-
-  const xTicks = Array.from({ length: 6 }, (_, index) => xMin + ((xMax - xMin) * index) / 5);
-  const yTicks = Array.from({ length: 6 }, (_, index) => yMin + ((yMax - yMin) * index) / 5);
-  const selectedX = metricMap.get(resolvedXMetric);
-  const selectedY = metricMap.get(resolvedYMetric);
-
   const conferenceLabel = (() => {
     const labels: Record<string, string> = {
       P4: "Power 4",
@@ -667,6 +667,32 @@ export default function ChartsClient() {
     `Through Week ${week}`,
     ...activeFilterLabels,
   ].filter((label): label is string => Boolean(label)).join(" · ");
+
+  const subtitleMaxChars = aspect === "16:9" ? 96 : aspect === "1:1" ? 58 : 72;
+  const subtitleLines = wrapSvgText(resolvedSubtitle, subtitleMaxChars);
+  const subtitleLineHeight = 24;
+  const subtitleExtraHeight = Math.max(0, subtitleLines.length - 1) * subtitleLineHeight;
+
+  const dimensions = aspect === "16:9" ? { width: 1600, height: 900 } : aspect === "1:1" ? { width: 1080, height: 1080 } : { width: 1200, height: 900 };
+  const margin = { left: 122, right: 58, top: 154 + subtitleExtraHeight, bottom: 104 };
+  const plotWidth = dimensions.width - margin.left - margin.right;
+  const plotHeight = dimensions.height - margin.top - margin.bottom;
+
+  const scaleX = (value: number) => {
+    const ratio = (value - xMin) / (xMax - xMin || 1);
+    const normalized = xReverse ? 1 - ratio : ratio;
+    return margin.left + normalized * plotWidth;
+  };
+  const scaleY = (value: number) => {
+    const ratio = (value - yMin) / (yMax - yMin || 1);
+    const normalized = yReverse ? ratio : 1 - ratio;
+    return margin.top + normalized * plotHeight;
+  };
+
+  const xTicks = Array.from({ length: 6 }, (_, index) => xMin + ((xMax - xMin) * index) / 5);
+  const yTicks = Array.from({ length: 6 }, (_, index) => yMin + ((yMax - yMin) * index) / 5);
+  const selectedX = metricMap.get(resolvedXMetric);
+  const selectedY = metricMap.get(resolvedYMetric);
 
   const applyPreset = (preset: (typeof PRESETS)[number]) => {
     if (!metricMap.has(preset.x) || !metricMap.has(preset.y)) return;
@@ -1062,7 +1088,17 @@ export default function ChartsClient() {
 
                 <text x={margin.left} y={56} className={styles.svgTitle}>{title || "PRIME Chart"}</text>
                 <rect x={margin.left} y={76} width={Math.min(plotWidth * 0.62, 670)} height={6} rx={3} fill="#c99a35" />
-                <text x={margin.left} y={112} className={styles.svgSubtitle}>{resolvedSubtitle}</text>
+                <text x={margin.left} y={110} className={styles.svgSubtitle}>
+                  {(subtitleLines.length ? subtitleLines : [resolvedSubtitle]).map((line, index) => (
+                    <tspan
+                      key={`${line}-${index}`}
+                      x={margin.left}
+                      dy={index === 0 ? 0 : subtitleLineHeight}
+                    >
+                      {line}
+                    </tspan>
+                  ))}
+                </text>
 
                 <g transform={`translate(${dimensions.width - margin.right} 42)`}>
                   <text x={0} y={0} textAnchor="end" className={styles.svgBrand}>PRIME</text>
