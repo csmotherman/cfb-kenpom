@@ -43,11 +43,11 @@ const META_KEYS = new Set(["teamId"]);
 const ADVANCED_DUPES = new Set(["adjEM", "adjO", "adjD", "rank", "adjORank", "adjDRank"]);
 const KNOWN_LABELS: Record<string, string> = {
   "ratings.rank": "Power Rating Rank",
-  "ratings.adjEM": "Net APR",
-  "ratings.adjO": "Off APR",
-  "ratings.adjD": "Def APR",
-  "ratings.adjORank": "Off APR Rank",
-  "ratings.adjDRank": "Def APR Rank",
+  "ratings.adjEM": "Net Rating",
+  "ratings.adjO": "Off Rating",
+  "ratings.adjD": "Def Rating",
+  "ratings.adjORank": "Off Rating Rank",
+  "ratings.adjDRank": "Def Rating Rank",
   "ratings.sos": "Strength of Schedule",
   "ratings.sosRank": "SOS Rank",
   "ratings.sor": "Strength of Record",
