@@ -41,6 +41,52 @@ type Aspect = "4:3" | "16:9" | "1:1";
 
 const META_KEYS = new Set(["teamId"]);
 const ADVANCED_DUPES = new Set(["adjEM", "adjO", "adjD", "rank", "adjORank", "adjDRank"]);
+
+const CONFERENCE_ALIASES: Record<string, string> = {
+  ACC: "ACC",
+  B1G: "B1G",
+  BIG10: "B1G",
+  "BIG TEN": "B1G",
+  B12: "B12",
+  BIG12: "B12",
+  "BIG 12": "B12",
+  SEC: "SEC",
+  AAC: "AAC",
+  AMERICAN: "AAC",
+  "AMERICAN ATHLETIC": "AAC",
+  "AMERICAN ATHLETIC CONFERENCE": "AAC",
+  CUSA: "CUSA",
+  "CONFERENCE USA": "CUSA",
+  MAC: "MAC",
+  "MID-AMERICAN": "MAC",
+  "MID-AMERICAN CONFERENCE": "MAC",
+  MWC: "MWC",
+  "MOUNTAIN WEST": "MWC",
+  PAC: "PAC",
+  PAC12: "PAC",
+  "PAC-12": "PAC",
+  SBC: "SBC",
+  "SUN BELT": "SBC",
+  IND: "IND",
+  INDEPENDENT: "IND",
+  "FBS INDEPENDENTS": "IND",
+};
+
+const POWER_4_CONFERENCES = new Set(["ACC", "B1G", "B12", "SEC"]);
+const GROUP_OF_6_CONFERENCES = new Set(["AAC", "CUSA", "MAC", "MWC", "PAC", "SBC"]);
+
+function canonicalConference(value: string) {
+  const key = value.trim().toUpperCase();
+  return CONFERENCE_ALIASES[key] ?? value;
+}
+
+function matchesConferenceFilter(teamConference: string, filter: string) {
+  if (filter === "ALL") return true;
+  const canonical = canonicalConference(teamConference);
+  if (filter === "P4") return POWER_4_CONFERENCES.has(canonical);
+  if (filter === "G6") return GROUP_OF_6_CONFERENCES.has(canonical);
+  return canonical === canonicalConference(filter);
+}
 const KNOWN_LABELS: Record<string, string> = {
   "ratings.rank": "Power Rating Rank",
   "ratings.adjEM": "Net Rating",
@@ -549,7 +595,7 @@ export default function ChartsClient() {
 
   const plotted = useMemo(() => {
     return points
-      .filter((point) => conference === "ALL" || point.conf === conference)
+      .filter((point) => matchesConferenceFilter(point.conf, conference))
       .map((point) => ({ ...point, x: point.values[resolvedXMetric], y: point.values[resolvedYMetric] }))
       .filter((point): point is TeamPoint & { x: number; y: number } => Number.isFinite(point.x) && Number.isFinite(point.y));
   }, [points, conference, resolvedXMetric, resolvedYMetric]);
@@ -584,6 +630,8 @@ export default function ChartsClient() {
 
   const conferenceLabel = (() => {
     const labels: Record<string, string> = {
+      P4: "Power 4",
+      G6: "Group of 6",
       B1G: "Big Ten",
       BIG10: "Big Ten",
       "Big Ten": "Big Ten",
@@ -835,6 +883,8 @@ export default function ChartsClient() {
                 Conference
                 <select value={conference} onChange={(event) => setConference(event.target.value)}>
                   <option value="ALL">All FBS</option>
+                  <option value="P4">Power 4 (P4)</option>
+                  <option value="G6">Group of 6 (G6)</option>
                   {conferences.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               </label>
