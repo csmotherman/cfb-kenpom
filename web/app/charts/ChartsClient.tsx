@@ -1057,10 +1057,38 @@ export default function ChartsClient() {
 
                 {showQuadrants ? (
                   <>
-                    <text x={margin.left + plotWidth * 0.25} y={margin.top + 28} textAnchor="middle" className={styles.svgQuadrant}>{quadTL}</text>
-                    <text x={margin.left + plotWidth * 0.75} y={margin.top + 28} textAnchor="middle" className={styles.svgQuadrant}>{quadTR}</text>
-                    <text x={margin.left + plotWidth * 0.25} y={margin.top + plotHeight - 20} textAnchor="middle" className={styles.svgQuadrant}>{quadBL}</text>
-                    <text x={margin.left + plotWidth * 0.75} y={margin.top + plotHeight - 20} textAnchor="middle" className={styles.svgQuadrant}>{quadBR}</text>
+                    <text
+                      x={margin.left + 16}
+                      y={margin.top + 26}
+                      textAnchor="start"
+                      className={styles.svgQuadrant}
+                    >
+                      {quadTL}
+                    </text>
+                    <text
+                      x={margin.left + plotWidth - 16}
+                      y={margin.top + 26}
+                      textAnchor="end"
+                      className={styles.svgQuadrant}
+                    >
+                      {quadTR}
+                    </text>
+                    <text
+                      x={margin.left + 16}
+                      y={margin.top + plotHeight - 16}
+                      textAnchor="start"
+                      className={styles.svgQuadrant}
+                    >
+                      {quadBL}
+                    </text>
+                    <text
+                      x={margin.left + plotWidth - 16}
+                      y={margin.top + plotHeight - 16}
+                      textAnchor="end"
+                      className={styles.svgQuadrant}
+                    >
+                      {quadBR}
+                    </text>
                   </>
                 ) : null}
 
