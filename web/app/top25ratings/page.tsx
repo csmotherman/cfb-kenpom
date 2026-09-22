@@ -117,7 +117,7 @@ export default async function Top25RatingsPage() {
                 </div>
                 <div className="prime25-meta-card prime25-meta-card--wide">
                   <span>Power Rating</span>
-                  <strong>PRIME Net APR</strong>
+                  <strong>PRIME Net Rating</strong>
                   <small>Opponent adjusted</small>
                 </div>
               </div>
@@ -157,7 +157,7 @@ export default async function Top25RatingsPage() {
         </div>
       </main>
 
-      <SiteFooter note="Top 25 Power Ratings are ordered by PRIME Net APR, the current-season opponent-adjusted performance rating used on the full Ratings page." />
+      <SiteFooter note="Top 25 Power Ratings are ordered by PRIME Net Rating, the current-season opponent-adjusted performance rating used on the full Ratings page." />
     </>
   );
 }
