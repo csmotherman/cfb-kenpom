@@ -36,7 +36,8 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
   const topRankings = (snapshot?.teams ?? []).slice(0, 5);
   const featuredMatchups = initial?.featuredMatchups ?? [];
   const [watchlistIndex, setWatchlistIndex] = useState(0);
-  const [watchlistDirection, setWatchlistDirection] = useState<"next" | "prev">("next");
+  const [watchlistTransition, setWatchlistTransition] = useState<"idle" | "out-next" | "out-prev" | "in-next" | "in-prev">("idle");
+  const [pendingWatchlistDirection, setPendingWatchlistDirection] = useState<-1 | 1>(1);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const activeMatchup = featuredMatchups[watchlistIndex] ?? featuredMatchups[0] ?? null;
   const featuredGame = activeMatchup?.game ?? null;
@@ -44,9 +45,22 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
   const featuredAway = activeMatchup?.away ?? null;
 
   const moveWatchlist = (direction: -1 | 1) => {
-    if (featuredMatchups.length <= 1) return;
-    setWatchlistDirection(direction > 0 ? "next" : "prev");
-    setWatchlistIndex((current) => (current + direction + featuredMatchups.length) % featuredMatchups.length);
+    if (featuredMatchups.length <= 1 || watchlistTransition !== "idle") return;
+    setPendingWatchlistDirection(direction);
+    setWatchlistTransition(direction > 0 ? "out-next" : "out-prev");
+  };
+
+  const handleWatchlistAnimationEnd = () => {
+    if (watchlistTransition === "out-next" || watchlistTransition === "out-prev") {
+      setWatchlistIndex((current) =>
+        (current + pendingWatchlistDirection + featuredMatchups.length) % featuredMatchups.length
+      );
+      setWatchlistTransition(pendingWatchlistDirection > 0 ? "in-next" : "in-prev");
+      return;
+    }
+    if (watchlistTransition === "in-next" || watchlistTransition === "in-prev") {
+      setWatchlistTransition("idle");
+    }
   };
 
   const matchupEdge = useMemo(() => {
@@ -151,7 +165,8 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
             {featuredGame ? (
               <div
                 key={featuredGame.gameId}
-                className={`prime-home-matchup__slide prime-home-matchup__slide--${watchlistDirection}`}
+                className={`prime-home-matchup__slide${watchlistTransition !== "idle" ? ` prime-home-matchup__slide--${watchlistTransition}` : ""}`}
+                onAnimationEnd={handleWatchlistAnimationEnd}
               >
                 <div className="prime-home-matchup__teams">
                   <div className="prime-home-matchup__team">
