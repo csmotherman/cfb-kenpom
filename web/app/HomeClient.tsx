@@ -36,6 +36,7 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
   const topRankings = (snapshot?.teams ?? []).slice(0, 5);
   const featuredMatchups = initial?.featuredMatchups ?? [];
   const [watchlistIndex, setWatchlistIndex] = useState(0);
+  const [watchlistDirection, setWatchlistDirection] = useState<"next" | "prev">("next");
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const activeMatchup = featuredMatchups[watchlistIndex] ?? featuredMatchups[0] ?? null;
   const featuredGame = activeMatchup?.game ?? null;
@@ -44,6 +45,7 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
 
   const moveWatchlist = (direction: -1 | 1) => {
     if (featuredMatchups.length <= 1) return;
+    setWatchlistDirection(direction > 0 ? "next" : "prev");
     setWatchlistIndex((current) => (current + direction + featuredMatchups.length) % featuredMatchups.length);
   };
 
@@ -147,7 +149,10 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
             </header>
 
             {featuredGame ? (
-              <>
+              <div
+                key={featuredGame.gameId}
+                className={`prime-home-matchup__slide prime-home-matchup__slide--${watchlistDirection}`}
+              >
                 <div className="prime-home-matchup__teams">
                   <div className="prime-home-matchup__team">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -215,7 +220,7 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
                 <Link className="prime-home-matchup__cta" href={`/matchup/${year}/${encodeURIComponent(featuredGame.gameId)}`}>
                   View Full Preview →
                 </Link>
-              </>
+              </div>
             ) : (
               <div className="prime-home-matchup__empty">
                 <strong>Next slate loading</strong>
