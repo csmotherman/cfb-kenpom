@@ -4,6 +4,7 @@ import type { GameContext, MatchupSide } from "@/lib/seoData";
 import { matchupCompareRows, matchupSummary } from "@/lib/seoContent";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { matchupHeading, matchupPath } from "@/lib/seoPages";
+import { logoUrl } from "@/lib/teamCode";
 
 export type MatchupSeoParts = { loading: ReactNode; lede: ReactNode; facts: ReactNode };
 
@@ -33,15 +34,25 @@ function Facts({ ctx }: { ctx: GameContext }) {
   return (
     <>
       {rows.length ? (
-        <section className="seo-section" aria-labelledby="matchup-compare-heading">
-          <h2 id="matchup-compare-heading">{ctx.away.name} vs {ctx.home.name} Team Comparison</h2>
+        <section className="seo-section matchup-comparison" aria-labelledby="matchup-compare-heading">
+          <h2 id="matchup-compare-heading">Team Comparison</h2>
           <div className="seo-table-wrap">
             <table className="seo-table seo-table--compare">
               <thead>
                 <tr>
-                  <th scope="col">{ctx.away.name}</th>
-                  <th scope="col"><span className="sr-only">Metric</span></th>
-                  <th scope="col">{ctx.home.name}</th>
+                  <th scope="col">
+                    <div className="matchup-comparison__team">
+                      <img src={logoUrl(ctx.game.awayTeamId, 128)} alt="" width={56} height={56} decoding="async" />
+                      <span>{ctx.away.name}</span>
+                    </div>
+                  </th>
+                  <th scope="col"><span className="matchup-comparison__versus" aria-hidden="true">VS</span><span className="sr-only">Metric</span></th>
+                  <th scope="col">
+                    <div className="matchup-comparison__team">
+                      <img src={logoUrl(ctx.game.homeTeamId, 128)} alt="" width={56} height={56} decoding="async" />
+                      <span>{ctx.home.name}</span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
