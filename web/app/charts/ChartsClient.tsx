@@ -692,6 +692,12 @@ export default function ChartsClient() {
     <>
       <SiteHeader tagline="Chart Studio" />
       <main className={styles.page}>
+        <section className={styles.mobileUnavailable} aria-labelledby="chartsDesktopOnlyTitle">
+          <span className={styles.eyebrow}>PRIME Chart Studio</span>
+          <h1 id="chartsDesktopOnlyTitle">Desktop only</h1>
+          <p>The chart builder is designed for a larger screen. Open <strong>primecfb.com/charts</strong> on a desktop or laptop to build and export charts.</p>
+        </section>
+
         <section className={styles.intro}>
           <div>
             <span className={styles.eyebrow}>Hidden tool · /charts</span>
