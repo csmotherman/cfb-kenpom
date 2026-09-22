@@ -75,7 +75,7 @@ const KNOWN_LABELS: Record<string, string> = {
   "advanced.successAdjAllowed": "Adjusted Success Rate Allowed",
 };
 
-const EXPLORATORY_METRICS = new Map(
+const EXPLORATORY_METRICS: Map<string, Pick<Metric, "label" | "group" | "format">> = new Map(
   SECTIONS.flatMap((section) =>
     section.columns.map((column) => [
       `exploratory.${column.key}`,
