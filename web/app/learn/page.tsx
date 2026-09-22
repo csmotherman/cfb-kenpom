@@ -15,7 +15,7 @@ export const metadata = pageMetadata({
 });
 
 const ITEMS = [
-  { href: "/methodology", title: "Methodology", text: "What APR, SOS, SOR and the advanced metrics mean, and how they are built." },
+  { href: "/methodology", title: "Methodology", text: "What Net Rating, Off Rating, Def Rating, SOS, SOR and the advanced metrics mean, and how they are built." },
   { href: "/predictions/performance", title: "Model performance", text: "Every published pick graded, including the misses." },
   { href: "/network", title: "Schedule network", text: "How connected the season's schedule is, and why early ratings are less certain." },
 ];
