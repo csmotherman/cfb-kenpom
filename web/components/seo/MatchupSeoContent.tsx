@@ -75,7 +75,7 @@ function Facts({ ctx }: { ctx: GameContext }) {
             </table>
           </div>
           <p className="seo-note">
-            {note ? `${note}. ` : ""}Records, ratings and ranks count FBS-vs-FBS games only. Rating values are opponent-adjusted; strength of schedule rank 1 is the toughest schedule.
+            {note ? `${note}. ` : ""}Records show overall results first, with FBS-only records in parentheses. Ratings and ranks count FBS-vs-FBS games only. Rating values are opponent-adjusted; strength of schedule rank 1 is the toughest schedule.
           </p>
         </section>
       ) : null}
