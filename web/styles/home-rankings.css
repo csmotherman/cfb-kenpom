@@ -332,7 +332,7 @@
   border-bottom: 1px solid rgba(161,123,50,.28);
 }
 
-.prime-home-matchup > header span {
+.prime-home-matchup__header-copy span {
   color: #a8771e;
   font-size: 8px;
   font-weight: 900;
@@ -340,10 +340,62 @@
   text-transform: uppercase;
 }
 
-.prime-home-matchup > header b {
+.prime-home-matchup__header-copy b {
   color: #293d54;
   font-size: 7px;
   text-transform: uppercase;
+}
+
+.prime-home-matchup__header-copy {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.prime-home-matchup__nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+
+.prime-home-matchup__nav > span {
+  min-width: 30px;
+  color: #5f6873;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-align: center;
+}
+
+.prime-home-matchup__nav button {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(161,123,50,.3);
+  border-radius: 50%;
+  background: rgba(255,253,247,.84);
+  color: #8e6720;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color .12s ease, background .12s ease, transform .12s ease;
+}
+
+.prime-home-matchup__nav button:hover {
+  border-color: rgba(161,123,50,.58);
+  background: #fffaf0;
+  transform: translateY(-1px);
+}
+
+.prime-home-matchup__nav button:focus-visible {
+  outline: 2px solid #b88629;
+  outline-offset: 2px;
 }
 
 .prime-home-matchup__teams {
@@ -1164,12 +1216,31 @@
     min-height: 36px;
   }
 
-  .prime-home-matchup > header span {
+  .prime-home-matchup__header-copy span {
     font-size: 7.5px;
   }
 
-  .prime-home-matchup > header b {
+  .prime-home-matchup__header-copy b {
     font-size: 6.5px;
+  }
+
+  .prime-home-matchup__header-copy {
+    gap: 6px;
+  }
+
+  .prime-home-matchup__nav {
+    gap: 3px;
+  }
+
+  .prime-home-matchup__nav > span {
+    min-width: 27px;
+    font-size: 6.5px;
+  }
+
+  .prime-home-matchup__nav button {
+    width: 27px;
+    height: 27px;
+    font-size: 18px;
   }
 
   .prime-home-matchup__teams {
