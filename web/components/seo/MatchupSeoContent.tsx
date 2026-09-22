@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { GameContext, MatchupSide } from "@/lib/seoData";
-import { matchupBasisNote, matchupCompareRows, matchupSummary, teamResultText } from "@/lib/seoContent";
+import { matchupCompareRows, matchupSummary } from "@/lib/seoContent";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { matchupHeading, matchupPath } from "@/lib/seoPages";
 
@@ -24,31 +24,12 @@ function Lede({ ctx }: { ctx: GameContext }) {
   );
 }
 
-function Form({ side }: { side: MatchupSide }) {
-  if (!side.form.length) return null;
-  return (
-    <div>
-      <h3>{side.name} recent results</h3>
-      <ul>
-        {side.form.map((row) => (
-          <li key={row.game.gameId}>
-            {teamResultText(row) ?? "Final"} {row.home ? "vs" : row.game.neutralSite ? "vs" : "at"} {row.opponent}
-            {row.opponentHasProfile ? "" : " (FCS)"} <span>(Week {row.game.week})</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function TeamLink({ side }: { side: MatchupSide }) {
   return side.hasProfile ? <Link href={`/team/${side.slug}`}>{side.fullName} analytics and ratings</Link> : <>{side.name} (FCS; no PRIME profile)</>;
 }
 
 function Facts({ ctx }: { ctx: GameContext }) {
   const rows = matchupCompareRows(ctx);
-  const note = matchupBasisNote(ctx);
-  const hasForm = ctx.away.form.length > 0 || ctx.home.form.length > 0;
   return (
     <>
       {rows.length ? (
@@ -75,17 +56,8 @@ function Facts({ ctx }: { ctx: GameContext }) {
             </table>
           </div>
           <p className="seo-note">
-            {note ? `${note}. ` : ""}Records show overall results first, with FBS-only records in parentheses. Ratings and ranks count FBS-vs-FBS games only. Rating values are opponent-adjusted; strength of schedule rank 1 is the toughest schedule.
+            Stats include games completed before this matchup. Records show overall results first, with FBS-only records in parentheses. Neutral-site games are excluded from home and road records.
           </p>
-        </section>
-      ) : null}
-      {hasForm ? (
-        <section className="seo-section" aria-labelledby="matchup-form-heading">
-          <h2 id="matchup-form-heading">Recent Form Entering {ctx.weekLabel}</h2>
-          <div className="seo-form">
-            <Form side={ctx.away} />
-            <Form side={ctx.home} />
-          </div>
         </section>
       ) : null}
       <nav className="seo-section seo-links" aria-labelledby="matchup-links-heading">
