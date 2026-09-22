@@ -25,14 +25,14 @@ type Column = {
 };
 
 const COLUMNS: Column[] = [
-  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by PRIME Net APR" },
+  { key: "rank", label: "Rk", numeric: true, defaultDir: "asc", tooltip: "Overall rank by PRIME Net Rating" },
   { key: "team", label: "Team", numeric: false, defaultDir: "asc" },
-  { key: "adjEM", label: "Net APR", numeric: true, defaultDir: "desc", primary: true, tooltip: "PRIME's overall opponent-adjusted performance rating. Net APR = Off APR + Def APR and blends field-position-adjusted possession efficiency with opponent-adjusted Success Rate and Explosiveness." },
-  { key: "adjO", label: "Off APR", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive composite: field-position-adjusted possession APR plus Success Rate and Explosiveness. Higher is better." },
-  { key: "adjD", label: "Def APR", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted defensive composite: possession prevention plus Success Rate and Explosiveness prevention. Higher is better." },
-  { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Average PRIME rating (Net APR) of opponents played through the selected week. Higher means a tougher schedule." },
-  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Wins above what an average FBS team would be expected to achieve against the same opponents and game locations. A résumé measure (won/lost), not a performance measure like Net APR. Higher is better." },
-  { key: "proj", label: "Proj", numeric: true, defaultDir: "desc", rankKey: "projRank", secondary: true, tooltip: "Projection, not a rating: a forward-looking estimate of team strength (expected margin versus an average FBS team on a neutral field). It uses this season's games only, with no preseason input, so it appears once most teams have played three games. Net APR is what a team has earned; Projection is what we expect going forward." },
+  { key: "adjEM", label: "Net Rating", numeric: true, defaultDir: "desc", primary: true, tooltip: "PRIME's overall opponent-adjusted performance rating. Net Rating = Off Rating + Def Rating and blends field-position-adjusted possession efficiency with opponent-adjusted Success Rate and Explosiveness." },
+  { key: "adjO", label: "Off Rating", numeric: true, defaultDir: "desc", rankKey: "adjORank", tooltip: "Opponent-adjusted offensive composite: field-position-adjusted possession efficiency plus Success Rate and Explosiveness. Higher is better." },
+  { key: "adjD", label: "Def Rating", numeric: true, defaultDir: "desc", rankKey: "adjDRank", tooltip: "Opponent-adjusted defensive composite: possession prevention plus Success Rate and Explosiveness prevention. Higher is better." },
+  { key: "sos", label: "SOS", numeric: true, defaultDir: "desc", rankKey: "sosRank", tooltip: "Average PRIME Net Rating of opponents played through the selected week. Higher means a tougher schedule." },
+  { key: "sor", label: "SOR", numeric: true, defaultDir: "desc", rankKey: "sorRank", tooltip: "Wins above what an average FBS team would be expected to achieve against the same opponents and game locations. A résumé measure (won/lost), not a performance measure like Net Rating. Higher is better." },
+  { key: "proj", label: "Proj", numeric: true, defaultDir: "desc", rankKey: "projRank", secondary: true, tooltip: "Projection, not a rating: a forward-looking estimate of team strength (expected margin versus an average FBS team on a neutral field). It uses this season's games only, with no preseason input, so it appears once most teams have played three games. Net Rating is what a team has earned; Projection is what we expect going forward." },
 ];
 
 function na(v: unknown): v is null | undefined {
@@ -383,11 +383,11 @@ export default function RatingsClient({ seo, initial }: { seo?: ReactNode; initi
           <h2 id="ratingsGlossaryTitle">Ratings glossary</h2>
         </div>
         <div className="ratings-glossary__grid">
-          <div><strong>APR</strong><span>Adjusted Possession Rating — PRIME’s overall opponent-adjusted performance system, anchored by possession efficiency and enhanced with validated play-level efficiency.</span></div>
-          <div><strong>Net APR</strong><span>The overall team-strength rating. Net APR = Off APR + Def APR. Zero is approximately FBS average; higher is better.</span></div>
-          <div><strong>Off APR</strong><span>Field-position-adjusted possession efficiency blended with opponent-adjusted offensive Success Rate and Explosiveness.</span></div>
-          <div><strong>Def APR</strong><span>The defensive version of the same blend: possession scoring prevention plus opponent-adjusted Success Rate and Explosiveness prevention. Higher is better.</span></div>
-          <div><strong>Resolved possession</strong><span>A possession with a usable offensive scoring outcome. It remains the backbone of APR; play-level Success Rate and Explosiveness now add complementary information.</span></div>
+          <div><strong>PRIME Rating</strong><span>PRIME’s overall opponent-adjusted performance system, anchored by possession efficiency and enhanced with validated play-level efficiency.</span></div>
+          <div><strong>Net Rating</strong><span>The overall team-strength rating. Net Rating = Off Rating + Def Rating. Zero is approximately FBS average; higher is better.</span></div>
+          <div><strong>Off Rating</strong><span>Field-position-adjusted possession efficiency blended with opponent-adjusted offensive Success Rate and Explosiveness.</span></div>
+          <div><strong>Def Rating</strong><span>The defensive version of the same blend: possession scoring prevention plus opponent-adjusted Success Rate and Explosiveness prevention. Higher is better.</span></div>
+          <div><strong>Resolved possession</strong><span>A possession with a usable offensive scoring outcome. It remains the backbone of the rating; play-level Success Rate and Explosiveness now add complementary information.</span></div>
           <div><strong>SOS</strong><span>Strength of Schedule — average PRIME rating of opponents played through the selected week. Higher means a tougher schedule.</span></div>
           <div><strong>SOR</strong><span>Strength of Record — wins above what an average FBS team would be expected to achieve against the same opponents and game locations.</span></div>
           <div><strong>Projection</strong><span>Not a rating. A forward-looking estimate of team strength (expected margin against an average FBS team on a neutral field). Overall Rating shows what a team has earned this season; Projection is what we expect going forward, and uses current-season games only (no preseason input), so it appears once most teams have played three games.</span></div>
@@ -404,7 +404,7 @@ export default function RatingsClient({ seo, initial }: { seo?: ReactNode; initi
       </aside>
 
       <div id="methodology" tabIndex={-1}>
-        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional. PRIME v6 blends field-position-adjusted possession APR with opponent-adjusted Success Rate and Explosiveness; EPA was tested but excluded from the live blend as redundant. Net APR = Off APR + Def APR. SOR is wins above an average team on the same schedule -- a résumé measure, separate from Net APR's performance measure." />
+        <SiteFooter note="Ratings and W-L include completed FBS-vs-FBS games only; FCS opponents are excluded. Early-season estimates are provisional. PRIME v6 blends field-position-adjusted possession efficiency with opponent-adjusted Success Rate and Explosiveness; EPA was tested but excluded from the live blend as redundant. Net Rating = Off Rating + Def Rating. SOR is wins above an average team on the same schedule -- a résumé measure, separate from Net Rating's performance measure." />
       </div>
     </>
   );
