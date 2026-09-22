@@ -388,7 +388,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
         {seo?.facts}
       </main>
 
-      <SiteFooter note="Matchup pages use the most recent overall rating snapshot strictly before the selected game week. Net APR, Off APR, Def APR, SOS and SOR are read directly from that same Rankings snapshot used by the main table; SOR is wins above an average FBS team on the same schedule. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Def APR." />
+      <SiteFooter note="Matchup pages use the most recent overall rating snapshot strictly before the selected game week. Net Rating, Off Rating, Def Rating, SOS and SOR are read directly from that same Rankings snapshot used by the main table; SOR is wins above an average FBS team on the same schedule. Rank colors are based on national rank among teams with available data. Adjusted defensive EPA and success values are oriented higher-is-better, same as Def Rating." />
     </>
   );
 }
@@ -576,17 +576,17 @@ function headlineComparisonRows({
 
   return [
     {
-      label: "Net APR",
+      label: "Net Rating",
       left: { value: signed(awayRating?.adjEM, 1), rank: awayRating?.rank, totalTeams: totalRated },
       right: { value: signed(homeRating?.adjEM, 1), rank: homeRating?.rank, totalTeams: totalRated },
     },
     {
-      label: "Off APR",
+      label: "Off Rating",
       left: { value: signed(awayRating?.adjO, 2), rank: awayRating?.adjORank, totalTeams: totalRated },
       right: { value: signed(homeRating?.adjO, 2), rank: homeRating?.adjORank, totalTeams: totalRated },
     },
     {
-      label: "Def APR",
+      label: "Def Rating",
       left: { value: signed(awayRating?.adjD, 2), rank: awayRating?.adjDRank, totalTeams: totalRated },
       right: { value: signed(homeRating?.adjD, 2), rank: homeRating?.adjDRank, totalTeams: totalRated },
     },
