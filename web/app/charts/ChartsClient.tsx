@@ -282,7 +282,7 @@ export default function ChartsClient() {
   const [exploratory, setExploratory] = useState<ExploratorySeason | null>(null);
   const [advancedStatus, setAdvancedStatus] = useState<"loading" | "ready" | "locked" | "missing">("loading");
   const [exploratoryStatus, setExploratoryStatus] = useState<"loading" | "ready" | "locked" | "missing">("loading");
-  const [loading, setLoading] = useState(true);
+  const [loadedYear, setLoadedYear] = useState("");
   const [week, setWeek] = useState(0);
   const [xMetric, setXMetric] = useState("ratings.sosRank");
   const [yMetric, setYMetric] = useState("ratings.adjEM");
@@ -323,9 +323,6 @@ export default function ChartsClient() {
   useEffect(() => {
     if (!year) return;
     let active = true;
-    setLoading(true);
-    setAdvancedStatus("loading");
-    setExploratoryStatus("loading");
 
     Promise.allSettled([
       getRankingsSeason(year),
@@ -360,7 +357,7 @@ export default function ChartsClient() {
         const message = exploratoryResult.reason instanceof Error ? exploratoryResult.reason.message.toLowerCase() : "";
         setExploratoryStatus(message.includes("subscription") || message.includes("sign in") ? "locked" : "missing");
       }
-      setLoading(false);
+      setLoadedYear(year);
     });
 
     return () => {
@@ -429,11 +426,11 @@ export default function ChartsClient() {
     return [...groups.entries()];
   }, [metrics]);
 
-  useEffect(() => {
-    if (!metrics.length) return;
-    if (!metricMap.has(xMetric)) setXMetric(metrics[0].key);
-    if (!metricMap.has(yMetric)) setYMetric(metrics[Math.min(1, metrics.length - 1)].key);
-  }, [metrics, metricMap, xMetric, yMetric]);
+  const resolvedXMetric = metricMap.has(xMetric) ? xMetric : metrics[0]?.key ?? xMetric;
+  const resolvedYMetric = metricMap.has(yMetric)
+    ? yMetric
+    : metrics[Math.min(1, Math.max(0, metrics.length - 1))]?.key ?? yMetric;
+  const loading = !year || loadedYear !== year;
 
   const conferences = useMemo(
     () => [...new Set(points.map((point) => point.conf).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
@@ -443,9 +440,9 @@ export default function ChartsClient() {
   const plotted = useMemo(() => {
     return points
       .filter((point) => conference === "ALL" || point.conf === conference)
-      .map((point) => ({ ...point, x: point.values[xMetric], y: point.values[yMetric] }))
+      .map((point) => ({ ...point, x: point.values[resolvedXMetric], y: point.values[resolvedYMetric] }))
       .filter((point): point is TeamPoint & { x: number; y: number } => Number.isFinite(point.x) && Number.isFinite(point.y));
-  }, [points, conference, xMetric, yMetric]);
+  }, [points, conference, resolvedXMetric, resolvedYMetric]);
 
   const xValues = plotted.map((point) => point.x);
   const yValues = plotted.map((point) => point.y);
@@ -472,8 +469,8 @@ export default function ChartsClient() {
 
   const xTicks = Array.from({ length: 6 }, (_, index) => xMin + ((xMax - xMin) * index) / 5);
   const yTicks = Array.from({ length: 6 }, (_, index) => yMin + ((yMax - yMin) * index) / 5);
-  const selectedX = metricMap.get(xMetric);
-  const selectedY = metricMap.get(yMetric);
+  const selectedX = metricMap.get(resolvedXMetric);
+  const selectedY = metricMap.get(resolvedYMetric);
   const resolvedSubtitle = subtitle.trim() || `Through Week ${week}`;
 
   const applyPreset = (preset: (typeof PRESETS)[number]) => {
