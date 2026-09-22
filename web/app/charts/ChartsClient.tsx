@@ -615,15 +615,53 @@ export default function ChartsClient() {
     const images = Array.from(clone.querySelectorAll("image"));
     await Promise.all(
       images.map(async (image) => {
+        const teamId = image.getAttribute("data-team-id");
         const href = image.getAttribute("href");
         if (!href || href.startsWith("data:")) return;
-        const response = await fetch(href, { mode: "cors" });
-        if (!response.ok) throw new Error(`Logo fetch failed: ${response.status}`);
+
+        const exportUrl = teamId ? `/api/team-logo/${encodeURIComponent(teamId)}` : href;
+        const response = await fetch(exportUrl, { cache: "force-cache" });
+        if (!response.ok) throw new Error(`Logo export failed: ${response.status}`);
         image.setAttribute("href", await blobToDataUrl(await response.blob()));
       })
     );
 
     return clone;
+  };
+
+  const renderChartPng = async () => {
+    const clone = await cloneSvgWithEmbeddedLogos();
+    const serialized = new XMLSerializer().serializeToString(clone);
+    const svgBlob = new Blob([serialized], { type: "image/svg+xml;charset=utf-8" });
+    const svgUrl = URL.createObjectURL(svgBlob);
+
+    try {
+      const image = new Image();
+      const loaded = new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error("Could not render chart image."));
+      });
+      image.src = svgUrl;
+      await loaded;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = dimensions.width;
+      canvas.height = dimensions.height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Canvas is unavailable.");
+
+      context.drawImage(image, 0, 0, dimensions.width, dimensions.height);
+
+      return await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (result) => (result ? resolve(result) : reject(new Error("Could not create chart image."))),
+          "image/png",
+          1
+        );
+      });
+    } finally {
+      URL.revokeObjectURL(svgUrl);
+    }
   };
 
   const downloadSvg = async () => {
@@ -647,42 +685,24 @@ export default function ChartsClient() {
     }
   };
 
-  const downloadPng = async () => {
+  const copyImage = async () => {
     setExporting(true);
     setExportMessage("");
     try {
-      const clone = await cloneSvgWithEmbeddedLogos();
-      const serialized = new XMLSerializer().serializeToString(clone);
-      const svgBlob = new Blob([serialized], { type: "image/svg+xml;charset=utf-8" });
-      const svgUrl = URL.createObjectURL(svgBlob);
-      const image = new Image();
-      const loaded = new Promise<void>((resolve, reject) => {
-        image.onload = () => resolve();
-        image.onerror = () => reject(new Error("Could not render chart for PNG export."));
-      });
-      image.src = svgUrl;
-      await loaded;
+      if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+        throw new Error("Image copying is not supported by this browser.");
+      }
 
-      const canvas = document.createElement("canvas");
-      canvas.width = dimensions.width;
-      canvas.height = dimensions.height;
-      const context = canvas.getContext("2d");
-      if (!context) throw new Error("Canvas is unavailable.");
-      context.drawImage(image, 0, 0, dimensions.width, dimensions.height);
-      URL.revokeObjectURL(svgUrl);
+      const blob = await renderChartPng();
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "image/png": blob,
+        }),
+      ]);
 
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((result) => (result ? resolve(result) : reject(new Error("PNG export failed."))), "image/png", 1);
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `prime-${year}-week-${week}-chart.png`;
-      link.click();
-      URL.revokeObjectURL(url);
-      setExportMessage("PNG exported.");
+      setExportMessage("Chart copied to clipboard.");
     } catch (error) {
-      setExportMessage(error instanceof Error ? error.message : "PNG export failed.");
+      setExportMessage(error instanceof Error ? error.message : "Could not copy chart image.");
     } finally {
       setExporting(false);
     }
@@ -869,8 +889,8 @@ export default function ChartsClient() {
             </div>
 
             <div className={styles.exportSection}>
-              <button type="button" className={styles.primaryButton} onClick={downloadPng} disabled={exporting || !plotted.length}>
-                {exporting ? "Preparing…" : "Download PNG"}
+              <button type="button" className={styles.primaryButton} onClick={copyImage} disabled={exporting || !plotted.length}>
+                {exporting ? "Preparing…" : "Copy Image"}
               </button>
               <button type="button" className={styles.secondaryButton} onClick={downloadSvg} disabled={exporting || !plotted.length}>
                 Download SVG
@@ -988,6 +1008,7 @@ export default function ChartsClient() {
                       <title>{point.team}: {formatValue(point.x, selectedX)} · {formatValue(point.y, selectedY)}</title>
                       <image
                         href={logoUrl(point.teamId, 128)}
+                        data-team-id={point.teamId}
                         x={-logoSize / 2}
                         y={-logoSize / 2}
                         width={logoSize}
