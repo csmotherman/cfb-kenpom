@@ -204,6 +204,47 @@
   accent-color: #b8862d;
 }
 
+.presetIntro {
+  margin: -3px 0 12px;
+  color: #7a7f84;
+  font-size: 8.5px;
+  line-height: 1.4;
+}
+
+.presetSections {
+  display: grid;
+  gap: 14px;
+}
+
+.presetSection {
+  min-width: 0;
+}
+
+.presetSection + .presetSection {
+  padding-top: 13px;
+  border-top: 1px solid #e8e2d8;
+}
+
+.presetSectionHead {
+  margin-bottom: 7px;
+}
+
+.presetSectionHead h3 {
+  margin: 0;
+  color: #9b7126;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.presetSectionHead p {
+  margin: 3px 0 0;
+  color: #85898d;
+  font-size: 7.5px;
+  line-height: 1.35;
+}
+
 .presetGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -212,6 +253,7 @@
 
 .presetGrid button {
   min-height: 34px;
+  text-align: left;
   padding: 6px 7px;
   border: 1px solid #d8d0c1;
   border-radius: 6px;
