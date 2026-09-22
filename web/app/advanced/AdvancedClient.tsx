@@ -128,7 +128,7 @@ const OFFENSE_SECTIONS: AdvSection[] = [
   {
     title: "Explosiveness",
     columns: [
-      { key: "offExp", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted explosiveness edge (offense), as of the end week. Research-stage model." },
+      { key: "offExp", label: "Adj", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted explosiveness edge (offense), as of the end week. Research-stage model." },
       { key: "offExpRaw", label: "Raw %", fmt: "pct1", rankable: true, kind: "rate", num: ["explosiveNum"], den: ["explosiveDen"], opponentNum: ["explosiveNumA"], opponentDen: ["explosiveDenA"], tooltip: "Explosive-play rate in the selected weeks (raw)." },
     ],
   },
@@ -168,7 +168,7 @@ const DEFENSE_SECTIONS: AdvSection[] = [
   {
     title: "Explosiveness",
     columns: [
-      { key: "defExp", label: "Adj", fmt: "signed2", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted explosiveness-suppression edge. Higher is better." },
+      { key: "defExp", label: "Adj", fmt: "signed3", rankable: true, kind: "snapshot", tooltip: "Schedule-adjusted explosiveness-suppression edge. Higher is better." },
       { key: "defExpRaw", label: "Expl %", fmt: "pct1", rankable: true, lowerBetter: true, kind: "rate", num: ["explosiveNumA"], den: ["explosiveDenA"], opponentNum: ["explosiveNum"], opponentDen: ["explosiveDen"], tooltip: "Explosive-play rate allowed in the selected weeks (raw). Lower is better." },
     ],
   },
