@@ -285,7 +285,7 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
               ) : null}
               <strong>{bestOffense?.team ?? "—"}</strong>
             </div>
-            <p>{bestOffense?.adjO === null || !bestOffense ? "Loading" : `${bestOffense.adjO.toFixed(1)} Off APR`}</p>
+            <p>{bestOffense?.adjO === null || !bestOffense ? "Loading" : `${bestOffense.adjO.toFixed(1)} Off Rating`}</p>
           </article>
 
           <article className="prime-home-insight prime-home-insight--riser">
@@ -321,7 +321,7 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
               ) : null}
               <strong>{bestDefense?.team ?? "—"}</strong>
             </div>
-            <p>{bestDefense?.adjD === null || !bestDefense ? "Loading" : `${bestDefense.adjD.toFixed(1)} Def APR`}</p>
+            <p>{bestDefense?.adjD === null || !bestDefense ? "Loading" : `${bestDefense.adjD.toFixed(1)} Def Rating`}</p>
           </article>
         </section>
 
