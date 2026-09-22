@@ -398,6 +398,51 @@
   outline-offset: 2px;
 }
 
+.prime-home-matchup__slide {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  will-change: transform, opacity;
+}
+
+.prime-home-matchup__slide--next {
+  animation: prime-watchlist-next .28s cubic-bezier(.22,.75,.24,1) both;
+}
+
+.prime-home-matchup__slide--prev {
+  animation: prime-watchlist-prev .28s cubic-bezier(.22,.75,.24,1) both;
+}
+
+@keyframes prime-watchlist-next {
+  from {
+    opacity: .12;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes prime-watchlist-prev {
+  from {
+    opacity: .12;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prime-home-matchup__slide--next,
+  .prime-home-matchup__slide--prev {
+    animation: none;
+  }
+}
+
 .prime-home-matchup__teams {
   display: grid;
   grid-template-columns: 1fr 52px 1fr;
