@@ -22,7 +22,7 @@ import type {
 } from "@/lib/types";
 import styles from "./charts.module.css";
 
-type MetricFormat = "number" | "percent" | "rank" | "integer";
+type MetricFormat = "number" | "number3" | "percent" | "rank" | "integer";
 type Metric = {
   key: string;
   label: string;
@@ -293,6 +293,12 @@ function humanize(key: string) {
 
 function metricFormat(key: string): MetricFormat {
   const lower = key.toLowerCase();
+  if (
+    lower === "advanced.offexp" ||
+    lower === "advanced.defexp" ||
+    lower === "stats.adjustedexplosivenessoffense" ||
+    lower === "stats.adjustedexplosivenessdefense"
+  ) return "number3";
   if (lower.endsWith("rank") || lower.includes("rank.")) return "rank";
   if (lower.endsWith("rankchange")) return "integer";
   if (
@@ -317,6 +323,7 @@ function metricGroup(prefix: string) {
 function formatValue(value: number, metric: Metric | undefined, compact = false) {
   if (!Number.isFinite(value)) return "—";
   if (metric?.format === "percent") return `${(value * 100).toFixed(compact ? 0 : 1)}%`;
+  if (metric?.format === "number3") return value.toFixed(3);
   if (metric?.format === "rank" || metric?.format === "integer") return Math.round(value).toString();
   const abs = Math.abs(value);
   if (compact && abs >= 100) return Math.round(value).toString();
