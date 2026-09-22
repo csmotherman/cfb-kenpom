@@ -449,30 +449,112 @@
 
 @media (max-width: 820px) {
   .page {
-    padding: 14px 9px 24px;
+    padding: 12px 10px 26px;
+    background:
+      radial-gradient(circle at 86% -8%, rgba(201, 154, 53, .07), transparent 20rem),
+      #f3f1eb;
   }
 
   .intro {
     display: block;
+    margin-bottom: 10px;
+  }
+
+  .eyebrow {
+    margin-bottom: 4px;
+    font-size: 9px;
+    letter-spacing: .11em;
+  }
+
+  .intro h1 {
+    font-size: 36px;
+    line-height: .96;
   }
 
   .intro p {
     max-width: 100%;
+    margin-top: 7px;
+    font-size: 11px;
+    line-height: 1.4;
   }
 
   .accessState {
     width: 100%;
     min-width: 0;
-    margin-top: 12px;
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-radius: 7px;
+  }
+
+  .accessState strong {
+    font-size: 10px;
+  }
+
+  .accessState small {
+    font-size: 7.8px;
   }
 
   .workspace {
     display: flex;
     flex-direction: column;
+    gap: 10px;
   }
 
   .controls {
     order: 2;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .controlSection {
+    margin-bottom: 8px;
+    padding: 12px;
+    border: 1px solid #d7d0c2;
+    border-radius: 9px;
+    background: #fffefa;
+    box-shadow: 0 5px 16px rgba(30, 42, 56, .045);
+  }
+
+  .controlSection h2 {
+    margin-bottom: 9px;
+    font-size: 9px;
+  }
+
+  .controls label {
+    margin-bottom: 8px;
+    font-size: 7.8px;
+  }
+
+  .controls select,
+  .controls input:not([type="checkbox"]):not([type="range"]) {
+    height: 42px;
+    margin-top: 5px;
+    padding: 0 11px;
+    border-radius: 7px;
+    font-size: 12px;
+  }
+
+  .twoCol {
+    gap: 8px;
+  }
+
+  .checkRow {
+    min-height: 34px;
+    font-size: 10px !important;
+  }
+
+  .checkRow input {
+    width: 17px;
+    height: 17px;
+  }
+
+  .textButton {
+    min-height: 28px;
+    padding: 0 4px;
+    font-size: 9px;
   }
 
   .previewColumn {
@@ -481,35 +563,174 @@
 
   .previewMeta {
     min-height: 28px;
+    padding: 0 2px;
+    gap: 8px;
     font-size: 7.5px;
+  }
+
+  .previewMeta span:last-child {
+    overflow: hidden;
+    max-width: 68%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
   }
 
   .canvasWrap {
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border-radius: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(154, 111, 34, .45) transparent;
+  }
+
+  .canvasWrap::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .canvasWrap::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(154, 111, 34, .42);
   }
 
   .chart {
-    min-width: 690px;
+    width: 560px;
+    min-width: 560px;
+    max-width: none;
   }
 
   .hoverCard {
     display: none;
   }
+
+  .presetGrid {
+    display: flex;
+    overflow-x: auto;
+    gap: 7px;
+    margin: 0 -12px;
+    padding: 0 12px 5px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .presetGrid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .presetGrid button {
+    min-width: 142px;
+    min-height: 42px;
+    flex: 0 0 142px;
+    padding: 7px 9px;
+    border-radius: 7px;
+    font-size: 9px;
+    scroll-snap-align: start;
+  }
+
+  .quadrantInputs {
+    gap: 7px;
+  }
+
+  .quadrantInputs input {
+    height: 38px !important;
+    font-size: 10px !important;
+  }
+
+  .exportSection {
+    position: sticky;
+    z-index: 8;
+    bottom: 8px;
+    gap: 7px;
+    padding: 9px;
+    border: 1px solid rgba(183, 173, 157, .9);
+    border-radius: 9px;
+    background: rgba(255, 254, 250, .94);
+    box-shadow: 0 8px 26px rgba(28, 40, 53, .13);
+    backdrop-filter: blur(10px);
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    min-height: 44px;
+    font-size: 9.5px;
+  }
 }
 
 @media (max-width: 520px) {
-  .intro h1 {
-    font-size: 34px;
+  .page {
+    padding-inline: 8px;
   }
 
-  .twoCol,
-  .presetGrid,
-  .quadrantInputs,
+  .intro h1 {
+    font-size: 32px;
+  }
+
+  .intro p {
+    font-size: 10.5px;
+  }
+
+  .accessState {
+    align-items: flex-start;
+  }
+
+  .twoCol {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quadrantInputs {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .exportSection {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .exportSection small {
-    grid-column: 1;
+    grid-column: 1 / -1;
+  }
+
+  .chart {
+    width: 520px;
+    min-width: 520px;
+  }
+
+  .previewMeta {
+    font-size: 7px;
+  }
+
+  .presetGrid button {
+    min-width: 132px;
+    flex-basis: 132px;
+  }
+}
+
+@media (max-width: 390px) {
+  .page {
+    padding-inline: 6px;
+  }
+
+  .intro h1 {
+    font-size: 30px;
+  }
+
+  .chart {
+    width: 500px;
+    min-width: 500px;
+  }
+
+  .controlSection {
+    padding: 11px 10px;
+  }
+
+  .presetGrid {
+    margin-inline: -10px;
+    padding-inline: 10px;
+  }
+
+  .presetGrid button {
+    min-width: 126px;
+    flex-basis: 126px;
   }
 }
