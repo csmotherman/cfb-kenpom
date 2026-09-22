@@ -215,7 +215,7 @@ const PRESETS = [
     y: "advanced.defExp",
     title: "How Defenses Take Away Offense",
     subtitle: "Who wins down to down, who erases explosives — and who does both.",
-    xReverse: false,
+    xReverse: true,
     yReverse: false,
     quadrants: ["No Big Plays, Still Leaky", "Shut-Down Unit", "Target Practice", "Wins Down to Down"],
   },
@@ -248,6 +248,16 @@ const PRESETS = [
     xReverse: true,
     yReverse: false,
     quadrants: ["Other Strengths Carrying", "Complete Defenses", "Leaky Defenses", "Sound, Needs More"],
+  },
+  {
+    name: "Stops Without Turnovers",
+    x: "exploratory.takeawayRate",
+    y: "exploratory.seriesStopRate",
+    title: "Can They Get Stops Without Turnovers?",
+    subtitle: "Series stops show repeatable defense; takeaways show the extra chaos layered on top.",
+    xReverse: false,
+    yReverse: false,
+    quadrants: ["Sound Without Turnovers", "Complete Disruption", "Can't Get Stops", "Turnover Reliant"],
   },
   {
     name: "Closing the Door",
@@ -350,6 +360,16 @@ const PRESETS = [
     quadrants: ["Flag Fest", "Disciplined Agitators", "Sloppy Football", "Clean & Quiet"],
   },
   {
+    name: "Built to Last",
+    x: "exploratory.explosiveDependency",
+    y: "ratings.adjO",
+    title: "Which Offenses Are Built to Last?",
+    subtitle: "Elite offense with less dependence on explosive plays is harder to derail when the big plays disappear.",
+    xReverse: true,
+    yReverse: false,
+    quadrants: ["Elite but Volatile", "Built to Last", "Boom or Bust", "Limited but Stable"],
+  },
+  {
     name: "Big-Play Impact",
     x: "stats.adjustedExplosivenessOffense",
     y: "ratings.adjO",
@@ -390,6 +410,36 @@ const PRESETS = [
     quadrants: ["Looks Worse Than Reality", "Legit Big-Play Defense", "Actually Vulnerable", "Raw Numbers Flatter Them"],
   },
 ];
+
+const PRESET_SECTIONS = [
+  {
+    title: "Power & Résumé",
+    description: "Who's actually good, who's earned it, and who's been tested.",
+    presets: ["Battle Tested", "Complete Teams", "Resume Reality", "Schedule Opportunity", "Hidden Field Edge"],
+  },
+  {
+    title: "Offense Stories",
+    description: "How teams create, sustain, and finish offense.",
+    presets: ["Offensive Identity", "Every-Down Value", "Cashing In", "Big Plays to Points", "Air or Ground", "Built to Last", "Big-Play Impact", "Tempo Check", "Passing Lean"],
+  },
+  {
+    title: "Defense Stories",
+    description: "How teams prevent efficiency, create chaos, and finish stops.",
+    presets: ["Defensive Identity", "Chaos Creators", "Big-Play Prevention", "Down-to-Down Defense", "Stops Without Turnovers", "Closing the Door"],
+  },
+  {
+    title: "Drive DNA",
+    description: "Why possessions survive, stall, or self-destruct.",
+    presets: ["Stay Ahead", "Drive Survival", "Clean Football", "Boom or Bust", "Series Control", "Pressure to Possessions", "Ball Security", "Hard to Kill", "Flag Battle"],
+  },
+  {
+    title: "Reality Checks",
+    description: "Where raw impressions change after opponent adjustment.",
+    presets: ["Explosiveness Reality Check", "Efficiency Reality Check", "Explosive Defense Reality Check"],
+  },
+] as const;
+
+const PRESET_BY_NAME = new Map(PRESETS.map((preset) => [preset.name, preset]));
 
 function humanize(key: string) {
   if (KNOWN_LABELS[key]) return KNOWN_LABELS[key];
@@ -1024,16 +1074,31 @@ export default function ChartsClient() {
 
             <div className={styles.controlSection}>
               <h2>Presets</h2>
-              <div className={styles.presetGrid}>
-                {PRESETS.map((preset) => (
-                  <button
-                    type="button"
-                    key={preset.name}
-                    disabled={!metricMap.has(preset.x) || !metricMap.has(preset.y)}
-                    onClick={() => applyPreset(preset)}
-                  >
-                    {preset.name}
-                  </button>
+              <p className={styles.presetIntro}>Choose the question you want the chart to answer.</p>
+              <div className={styles.presetSections}>
+                {PRESET_SECTIONS.map((section) => (
+                  <section className={styles.presetSection} key={section.title}>
+                    <div className={styles.presetSectionHead}>
+                      <h3>{section.title}</h3>
+                      <p>{section.description}</p>
+                    </div>
+                    <div className={styles.presetGrid}>
+                      {section.presets.map((presetName) => {
+                        const preset = PRESET_BY_NAME.get(presetName);
+                        if (!preset) return null;
+                        return (
+                          <button
+                            type="button"
+                            key={preset.name}
+                            disabled={!metricMap.has(preset.x) || !metricMap.has(preset.y)}
+                            onClick={() => applyPreset(preset)}
+                          >
+                            {preset.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
                 ))}
               </div>
             </div>
