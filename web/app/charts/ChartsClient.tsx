@@ -588,7 +588,40 @@ export default function ChartsClient() {
   const yTicks = Array.from({ length: 6 }, (_, index) => yMin + ((yMax - yMin) * index) / 5);
   const selectedX = metricMap.get(resolvedXMetric);
   const selectedY = metricMap.get(resolvedYMetric);
-  const resolvedSubtitle = subtitle.trim() || `Through Week ${week}`;
+
+  const conferenceLabel = (() => {
+    const labels: Record<string, string> = {
+      B1G: "Big Ten",
+      BIG10: "Big Ten",
+      "Big Ten": "Big Ten",
+      SEC: "SEC",
+      ACC: "ACC",
+      B12: "Big 12",
+      BIG12: "Big 12",
+      "Big 12": "Big 12",
+      AAC: "American",
+      AMERICAN: "American",
+      CUSA: "Conference USA",
+      MAC: "MAC",
+      MWC: "Mountain West",
+      "Mountain West": "Mountain West",
+      SBC: "Sun Belt",
+      "Sun Belt": "Sun Belt",
+      PAC: "Pac-12",
+      PAC12: "Pac-12",
+      "Pac-12": "Pac-12",
+      IND: "Independent",
+      Independent: "Independent",
+    };
+    return labels[conference] ?? conference;
+  })();
+
+  const activeFilterLabels = [
+    conference !== "ALL" ? `${conferenceLabel} only` : null,
+  ].filter((label): label is string => Boolean(label));
+
+  const baseSubtitle = subtitle.trim() || `Through Week ${week}`;
+  const resolvedSubtitle = [baseSubtitle, ...activeFilterLabels].join(" · ");
 
   const applyPreset = (preset: (typeof PRESETS)[number]) => {
     if (!metricMap.has(preset.x) || !metricMap.has(preset.y)) return;
