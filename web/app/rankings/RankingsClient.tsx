@@ -6,7 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { logoUrl } from "@/lib/teamCode";
+import { logoUrl, teamCode } from "@/lib/teamCode";
 
 type PrimeRankingTeam = {
   rank: number;
@@ -42,6 +42,7 @@ function RankingTile({ team, featured = false }: { team: PrimeRankingTeam; featu
           <strong>{team.team}</strong>
           <small>{team.conf}</small>
         </span>
+        <span className="prime25-tile__code" aria-hidden="true">{teamCode(team.team)}</span>
       </span>
 
       <span className="prime25-tile__record">{team.record}</span>
