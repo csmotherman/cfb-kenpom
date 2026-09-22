@@ -29,7 +29,8 @@ async function staticEntries(generated: Stamp, year: number | null): Promise<Ent
   const pages: [string, Entry["changeFrequency"], number, Stamp][] = [
     ["/", "daily", 1.0, later(generated, prime?.releasedAt)],
     ["/ratings", "daily", 0.9, generated],
-    ["/rankings", "daily", 0.9, prime?.releasedAt ?? generated],\n    ["/top25ratings", "daily", 0.9, generated],
+    ["/rankings", "daily", 0.9, prime?.releasedAt ?? generated],
+    ["/top25ratings", "daily", 0.9, generated],
     ["/predictions", "daily", 0.8, generated],
     ["/predictions/performance", "weekly", 0.6, trackRecord ?? generated],
     ["/teams", "weekly", 0.7, undefined],
