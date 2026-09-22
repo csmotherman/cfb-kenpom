@@ -582,13 +582,13 @@ export default function ChartsClient() {
             <p>Build shareable college football charts from the data already powering PRIME. Every team is plotted with its logo.</p>
           </div>
           <div className={styles.accessState}>
-            <span className={advancedStatus === "ready" && exploratoryStatus === "ready" ? styles.readyDot : styles.mutedDot} />
+            <span className={!loading && advancedStatus === "ready" && exploratoryStatus === "ready" ? styles.readyDot : styles.mutedDot} />
             <div>
               <strong>
-                {advancedStatus === "ready" && exploratoryStatus === "ready"
-                  ? "Advanced + Exploratory connected"
-                  : advancedStatus === "loading" || exploratoryStatus === "loading"
-                    ? "Loading premium metrics…"
+                {loading || advancedStatus === "loading" || exploratoryStatus === "loading"
+                  ? "Loading premium metrics…"
+                  : advancedStatus === "ready" && exploratoryStatus === "ready"
+                    ? "Advanced + Exploratory connected"
                     : "Public data mode"}
               </strong>
               <small>
@@ -637,8 +637,8 @@ export default function ChartsClient() {
                   type="button"
                   className={styles.textButton}
                   onClick={() => {
-                    setXMetric(yMetric);
-                    setYMetric(xMetric);
+                    setXMetric(resolvedYMetric);
+                    setYMetric(resolvedXMetric);
                     setXReverse(yReverse);
                     setYReverse(xReverse);
                   }}
@@ -649,7 +649,7 @@ export default function ChartsClient() {
 
               <label>
                 X axis
-                <select value={xMetric} onChange={(event) => setXMetric(event.target.value)}>
+                <select value={resolvedXMetric} onChange={(event) => setXMetric(event.target.value)}>
                   {metricGroups.map(([group, groupMetrics]) => (
                     <optgroup key={group} label={group}>
                       {groupMetrics.map((metric) => <option key={metric.key} value={metric.key}>{metric.label}</option>)}
@@ -664,7 +664,7 @@ export default function ChartsClient() {
 
               <label>
                 Y axis
-                <select value={yMetric} onChange={(event) => setYMetric(event.target.value)}>
+                <select value={resolvedYMetric} onChange={(event) => setYMetric(event.target.value)}>
                   {metricGroups.map(([group, groupMetrics]) => (
                     <optgroup key={group} label={group}>
                       {groupMetrics.map((metric) => <option key={metric.key} value={metric.key}>{metric.label}</option>)}
