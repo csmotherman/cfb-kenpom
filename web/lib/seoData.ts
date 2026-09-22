@@ -167,9 +167,15 @@ export type MatchupSide = {
   overallRecord: string;
   /** FBS-only record entering the matchup. */
   fbsRecord: string;
+  /** Record across the team's five most recent games entering the matchup. */
+  lastFiveRecord: string;
+  homeRecord: string;
+  roadRecord: string;
+  pointsPerGame: number | null;
+  pointsAllowedPerGame: number | null;
+  averageMargin: number | null;
   /** Published record from the rating snapshot. */
   record: string | null;
-  form: TeamGameRow[];
 };
 
 export type GameContext = {
@@ -233,23 +239,40 @@ export async function getGameContext(seasonParam: string, gameId: string): Promi
       `${record.wins}-${record.losses}${record.ties ? `-${record.ties}` : ""}`;
     const overall = recordFor(completedGames);
     const fbs = recordFor(completedGames.filter((g) => profiles.has(g.homeSlug === slug ? g.awaySlug : g.homeSlug)));
+    const lastFive = recordFor(completedGames.slice(-5));
+    const home = recordFor(completedGames.filter((g) => !g.neutralSite && g.homeSlug === slug));
+    const road = recordFor(completedGames.filter((g) => !g.neutralSite && g.awaySlug === slug));
+    const scoredGames = completedGames.filter((g) => g.homePoints !== null && g.awayPoints !== null);
+    const scoring = scoredGames.reduce(
+      (totals, g) => {
+        const isHome = g.homeSlug === slug;
+        totals.for += isHome ? g.homePoints! : g.awayPoints!;
+        totals.against += isHome ? g.awayPoints! : g.homePoints!;
+        return totals;
+      },
+      { for: 0, against: 0 }
+    );
     const overallRecord = formatRecord(overall);
     const fbsRecord = formatRecord(fbs);
-    const form = completedGames
-      .slice(-3)
-      .map((g): TeamGameRow => {
-        const home = g.homeSlug === slug;
-        const pointsFor = home ? g.homePoints : g.awayPoints;
-        const pointsAgainst = home ? g.awayPoints : g.homePoints;
-        const scored = pointsFor !== null && pointsAgainst !== null;
-        const opponent = home ? g.awayTeam : g.homeTeam;
-        return {
-          game: g, home, opponent, opponentFull: fullTeamName(opponent), opponentSlug: home ? g.awaySlug : g.homeSlug,
-          opponentHasProfile: profiles.has(home ? g.awaySlug : g.homeSlug), opponentRank: null, pointsFor, pointsAgainst,
-          result: scored ? (pointsFor! > pointsAgainst! ? "W" : pointsFor! < pointsAgainst! ? "L" : "T") : null,
-        };
-      });
-    return { name, fullName: fullTeamName(name), slug, hasProfile: profiles.has(slug), row, prime25: primeApplies ? primeSlugs.get(slug) ?? null : null, rank: row?.rank ?? null, overallRecord, fbsRecord, record: row?.record ?? null, form };
+    const gamesPlayed = scoredGames.length;
+    return {
+      name,
+      fullName: fullTeamName(name),
+      slug,
+      hasProfile: profiles.has(slug),
+      row,
+      prime25: primeApplies ? primeSlugs.get(slug) ?? null : null,
+      rank: row?.rank ?? null,
+      overallRecord,
+      fbsRecord,
+      lastFiveRecord: formatRecord(lastFive),
+      homeRecord: formatRecord(home),
+      roadRecord: formatRecord(road),
+      pointsPerGame: gamesPlayed ? scoring.for / gamesPlayed : null,
+      pointsAllowedPerGame: gamesPlayed ? scoring.against / gamesPlayed : null,
+      averageMargin: gamesPlayed ? (scoring.for - scoring.against) / gamesPlayed : null,
+      record: row?.record ?? null,
+    };
   };
   const away = side(game.awayTeam, game.awaySlug);
   const home = side(game.homeTeam, game.homeSlug);
