@@ -236,7 +236,7 @@ export function matchupCompareRows(ctx: GameContext): CompareRow[] {
     return v ? `${v}${rk ? ` (${rk})` : ""}` : "—";
   };
   const rows: CompareRow[] = [
-    { label: "Record (vs FBS)", away: a.record, home: h.record },
+    { label: "Record (vs FBS)", away: `${ctx.away.overallRecord} (${ctx.away.fbsRecord})`, home: `${ctx.home.overallRecord} (${ctx.home.fbsRecord})` },
     { label: "PRIME rating rank", away: noRank(a.rank) ?? "—", home: noRank(h.rank) ?? "—" },
     { label: "Overall rating", away: rating(a, "adjEM", "rank", 1), home: rating(h, "adjEM", "rank", 1) },
     { label: "Offense", away: rating(a, "adjO", "adjORank", 2), home: rating(h, "adjO", "adjORank", 2) },
