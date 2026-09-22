@@ -125,6 +125,33 @@ const PRESETS = [
     yReverse: false,
     quadrants: ["Efficient Grinders", "Dangerous Offenses", "Limited", "Boom or Bust"],
   },
+  {
+    name: "Series Conversion vs Recovery",
+    x: "exploratory.recoveryRate",
+    y: "exploratory.seriesConversionRate",
+    title: "Series Conversion vs Recovery",
+    xReverse: false,
+    yReverse: false,
+    quadrants: ["Sustain Without Recovery", "Series Killers", "Drive Problems", "Resilient, Still Inconsistent"],
+  },
+  {
+    name: "Clean Drives vs Drive Killers",
+    x: "exploratory.cleanDriveRate",
+    y: "exploratory.driveKillerRate",
+    title: "Clean Drives vs Drive Killer Rate",
+    xReverse: false,
+    yReverse: true,
+    quadrants: ["Mistakes, But Survive", "Clean & Resilient", "Self-Destructive", "Clean Until Trouble Hits"],
+  },
+  {
+    name: "Explosive Dependency vs Failure Burden",
+    x: "exploratory.explosiveDependency",
+    y: "exploratory.failureBurden",
+    title: "Explosive Dependency vs Failure Burden",
+    xReverse: false,
+    yReverse: true,
+    quadrants: ["Steady & Efficient", "Explosive Without The Damage", "Grinding Through Mistakes", "Boom-or-Bust"],
+  },
 ];
 
 function humanize(key: string) {
@@ -558,7 +585,7 @@ export default function ChartsClient() {
             <p>Build shareable college football charts from the data already powering PRIME. Every team is plotted with its logo.</p>
           </div>
           <div className={styles.accessState}>
-            <span className={advancedStatus === "ready" ? styles.readyDot : styles.mutedDot} />
+            <span className={advancedStatus === "ready" && exploratoryStatus === "ready" ? styles.readyDot : styles.mutedDot} />
             <div>
               <strong>
                 {advancedStatus === "ready" && exploratoryStatus === "ready"
