@@ -230,21 +230,17 @@ export function matchupCompareRows(ctx: GameContext): CompareRow[] {
   const a = ctx.away.row;
   const h = ctx.home.row;
   if (!a || !h) return [];
-  const rating = (r: RankingsRow, key: "adjEM" | "adjO" | "adjD" | "sor" | "sos", rankKey: "rank" | "adjORank" | "adjDRank" | "sorRank" | "sosRank", digits: number) => {
-    const v = signedRating(r[key], digits);
-    const rk = noRank(r[rankKey]);
-    return v ? `${v}${rk ? ` (${rk})` : ""}` : "—";
-  };
+  const number = (value: number | null) => value === null ? "—" : value.toFixed(1);
+  const margin = (value: number | null) => value === null ? "—" : `${value >= 0 ? "+" : ""}${value.toFixed(1)}`;
   const rows: CompareRow[] = [
     { label: "Record (vs FBS)", away: `${ctx.away.overallRecord} (${ctx.away.fbsRecord})`, home: `${ctx.home.overallRecord} (${ctx.home.fbsRecord})` },
-    { label: "PRIME rating rank", away: noRank(a.rank) ?? "—", home: noRank(h.rank) ?? "—" },
-    { label: "Overall rating", away: rating(a, "adjEM", "rank", 1), home: rating(h, "adjEM", "rank", 1) },
-    { label: "Offense", away: rating(a, "adjO", "adjORank", 2), home: rating(h, "adjO", "adjORank", 2) },
-    { label: "Defense", away: rating(a, "adjD", "adjDRank", 2), home: rating(h, "adjD", "adjDRank", 2) },
-    { label: "Strength of record", away: rating(a, "sor", "sorRank", 2), home: rating(h, "sor", "sorRank", 2) },
-    { label: "Strength of schedule", away: rating(a, "sos", "sosRank", 1), home: rating(h, "sos", "sosRank", 1) },
+    { label: "Last 5 games", away: ctx.away.lastFiveRecord, home: ctx.home.lastFiveRecord },
+    { label: "Home record", away: ctx.away.homeRecord, home: ctx.home.homeRecord },
+    { label: "Road record", away: ctx.away.roadRecord, home: ctx.home.roadRecord },
+    { label: "Points per game", away: number(ctx.away.pointsPerGame), home: number(ctx.home.pointsPerGame) },
+    { label: "Points allowed per game", away: number(ctx.away.pointsAllowedPerGame), home: number(ctx.home.pointsAllowedPerGame) },
+    { label: "Average scoring margin", away: margin(ctx.away.averageMargin), home: margin(ctx.home.averageMargin) },
   ];
-  if (ctx.away.prime25 || ctx.home.prime25) rows.splice(2, 0, { label: "The PRIME 25", away: ctx.away.prime25 ? `No. ${ctx.away.prime25}` : "Unranked", home: ctx.home.prime25 ? `No. ${ctx.home.prime25}` : "Unranked" });
   return rows;
 }
 
