@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -34,9 +34,18 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
   const latestWeek = initial?.latestWeek ?? undefined;
   const topRatings = initial?.topRatings ?? [];
   const topRankings = (snapshot?.teams ?? []).slice(0, 5);
-  const featuredGame = initial?.featuredGame ?? null;
-  const featuredHome = initial?.featuredHome ?? null;
-  const featuredAway = initial?.featuredAway ?? null;
+  const featuredMatchups = initial?.featuredMatchups ?? [];
+  const [watchlistIndex, setWatchlistIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const activeMatchup = featuredMatchups[watchlistIndex] ?? featuredMatchups[0] ?? null;
+  const featuredGame = activeMatchup?.game ?? null;
+  const featuredHome = activeMatchup?.home ?? null;
+  const featuredAway = activeMatchup?.away ?? null;
+
+  const moveWatchlist = (direction: -1 | 1) => {
+    if (featuredMatchups.length <= 1) return;
+    setWatchlistIndex((current) => (current + direction + featuredMatchups.length) % featuredMatchups.length);
+  };
 
   const matchupEdge = useMemo(() => {
     if (!featuredHome || !featuredAway || featuredHome.adjEM === null || featuredAway.adjEM === null) return null;
@@ -112,10 +121,29 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
             </div>
           </article>
 
-          <article className="prime-home-matchup">
+          <article
+            className="prime-home-matchup"
+            onTouchStart={(event) => setTouchStartX(event.touches[0]?.clientX ?? null)}
+            onTouchEnd={(event) => {
+              if (touchStartX === null || featuredMatchups.length <= 1) return;
+              const endX = event.changedTouches[0]?.clientX ?? touchStartX;
+              const delta = endX - touchStartX;
+              if (Math.abs(delta) >= 40) moveWatchlist(delta < 0 ? 1 : -1);
+              setTouchStartX(null);
+            }}
+          >
             <header>
-              <span>PRIME Matchup of the Week</span>
-              <b>{featuredGame ? `Week ${featuredGame.week}` : "Next Up"}</b>
+              <div className="prime-home-matchup__header-copy">
+                <span>Weekend Watchlist</span>
+                <b>{featuredGame ? `Week ${featuredGame.week}` : "Next Up"}</b>
+              </div>
+              {featuredMatchups.length > 1 ? (
+                <div className="prime-home-matchup__nav" aria-label="Weekend Watchlist navigation">
+                  <button type="button" onClick={() => moveWatchlist(-1)} aria-label="Previous matchup">‹</button>
+                  <span aria-live="polite">{watchlistIndex + 1} / {featuredMatchups.length}</span>
+                  <button type="button" onClick={() => moveWatchlist(1)} aria-label="Next matchup">›</button>
+                </div>
+              ) : null}
             </header>
 
             {featuredGame ? (
