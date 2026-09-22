@@ -96,7 +96,7 @@ const PRESETS = [
     title: "Team Strength vs Schedule Strength",
     xReverse: true,
     yReverse: false,
-    quadrants: ["Paper Tiger Potential", "Elite & Battle-Tested", "Woof", "In The Meat Grinder"],
+    quadrants: ["Beating Up Cupcakes", "Battle Tested", "Bad & Untested", "Schedule From Hell"],
   },
   {
     name: "Offense vs Defense",
@@ -105,7 +105,7 @@ const PRESETS = [
     title: "Offensive Strength vs Defensive Strength",
     xReverse: false,
     yReverse: false,
-    quadrants: ["Defense Carrying", "Complete Teams", "Trouble", "Offense Carrying"],
+    quadrants: ["Defense Carries", "Complete Team", "Nothing Working", "Scoreboard Warriors"],
   },
   {
     name: "EPA vs Success",
@@ -114,7 +114,7 @@ const PRESETS = [
     title: "Adjusted EPA vs Adjusted Success Rate",
     xReverse: false,
     yReverse: false,
-    quadrants: ["Efficient, Not Explosive", "Complete Efficiency", "Struggling", "Big-Play Driven"],
+    quadrants: ["Move The Chains", "Offensive Machine", "Going Nowhere", "Living On Big Plays"],
   },
   {
     name: "Explosiveness vs Offense",
@@ -123,7 +123,7 @@ const PRESETS = [
     title: "Explosiveness vs Offensive Rating",
     xReverse: false,
     yReverse: false,
-    quadrants: ["Efficient Grinders", "Dangerous Offenses", "Limited", "Boom or Bust"],
+    quadrants: ["Death By 1,000 Cuts", "Pick Your Poison", "No Juice", "Boom or Bust"],
   },
   {
     name: "Series Conversion vs Recovery",
@@ -132,7 +132,7 @@ const PRESETS = [
     title: "Series Conversion vs Recovery",
     xReverse: false,
     yReverse: false,
-    quadrants: ["Sustain Without Recovery", "Series Killers", "Drive Problems", "Resilient, Still Inconsistent"],
+    quadrants: ["Stays On Schedule", "Drive Extenders", "Three & Out Territory", "Gets Off The Mat"],
   },
   {
     name: "Clean Drives vs Drive Killers",
@@ -141,7 +141,7 @@ const PRESETS = [
     title: "Clean Drives vs Drive Killer Rate",
     xReverse: false,
     yReverse: true,
-    quadrants: ["Mistakes, But Survive", "Clean & Resilient", "Self-Destructive", "Clean Until Trouble Hits"],
+    quadrants: ["Survives The Mess", "Clean Football", "Self Destruct Button", "One Mistake Away"],
   },
   {
     name: "Explosive Dependency vs Failure Burden",
@@ -159,7 +159,7 @@ const PRESETS = [
     title: "Résumé vs Power Rating",
     xReverse: true,
     yReverse: true,
-    quadrants: ["Power > Résumé", "Elite On Both", "Work To Do", "Résumé > Power"],
+    quadrants: ["Better Than Their Résumé", "Proven Contender", "Neither", "Résumé Merchants"],
   },
   {
     name: "Offense vs Success Rate",
@@ -186,7 +186,7 @@ const PRESETS = [
     title: "Adjusted Pass EPA vs Adjusted Rush EPA",
     xReverse: false,
     yReverse: false,
-    quadrants: ["Run-Game Lean", "Balanced Weapons", "Offensive Trouble", "Pass-Game Lean"],
+    quadrants: ["Ground & Pound", "Pick Your Poison", "Offensive Crisis", "Air Raid Territory"],
   },
   {
     name: "Explosiveness vs Finishing",
@@ -195,7 +195,7 @@ const PRESETS = [
     title: "Offensive Explosiveness vs Finishing",
     xReverse: false,
     yReverse: false,
-    quadrants: ["Finishes Without Explosives", "Dangerous Everywhere", "Needs More Juice", "Explosive, Inconsistent Finish"],
+    quadrants: ["Cash In Every Chance", "Touchdown Waiting To Happen", "No Threat", "All Flash, No Finish"],
   },
   {
     name: "Havoc vs Defense",
@@ -204,7 +204,7 @@ const PRESETS = [
     title: "Defensive Havoc vs Defensive Rating",
     xReverse: false,
     yReverse: false,
-    quadrants: ["Sound Without Havoc", "Disruptive & Strong", "Passive & Vulnerable", "Chaos-Driven"],
+    quadrants: ["Sound & Steady", "Nightmare Fuel", "Easy Living", "Chaos or Bust"],
   },
   {
     name: "Field Position vs Power",
@@ -213,7 +213,7 @@ const PRESETS = [
     title: "Field Position vs Power Rating",
     xReverse: false,
     yReverse: false,
-    quadrants: ["Winning Without Field Position", "Complete Advantage", "Needs Help", "Field Position Carrying"],
+    quadrants: ["Winning The Hard Way", "Complete Advantage", "Needs Help", "Field Position Carrying"],
   },
   {
     name: "Series Conversion vs 3rd & Long Avoidance",
@@ -231,7 +231,7 @@ const PRESETS = [
     title: "Series Stops vs 3rd & Long Creation",
     xReverse: false,
     yReverse: false,
-    quadrants: ["Stops Without Long Downs", "Dictates The Series", "Can't Get Off Field", "Creates Long Downs, Doesn't Finish"],
+    quadrants: ["Gets Off The Field", "Drive Killers", "Can't Get A Stop", "Almost There"],
   },
   {
     name: "Turnover Rate vs Clean Drives",
@@ -240,7 +240,7 @@ const PRESETS = [
     title: "Turnover Rate vs Clean Drive Rate",
     xReverse: true,
     yReverse: false,
-    quadrants: ["Clean But Turnover-Prone", "Secure & Clean", "Self-Destructive", "Protects Ball, Still Messy"],
+    quadrants: ["Clean Until Disaster", "Takes Care Of Business", "Giveaway Machine", "Ugly But Safe"],
   },
   {
     name: "Takeaways vs Failure Pressure",
@@ -249,7 +249,7 @@ const PRESETS = [
     title: "Takeaways vs Failure Pressure",
     xReverse: false,
     yReverse: false,
-    quadrants: ["Pressure Without Takeaways", "Disruption Machines", "Low-Impact Defenses", "Turnover Reliant"],
+    quadrants: ["Pressure Without Payoff", "Creates Chaos", "No Resistance", "Turnover Hunters"],
   },
   {
     name: "Recovery vs Drive Killers",
@@ -258,7 +258,7 @@ const PRESETS = [
     title: "Recovery Rate vs Drive Killer Rate",
     xReverse: false,
     yReverse: true,
-    quadrants: ["Survives Mistakes", "Resilient Offenses", "Fragile Drives", "Recovers Series, Loses Drives"],
+    quadrants: ["Keeps Drives Alive", "Hard To Kill", "One Mistake = Punt", "Escapes Trouble, Eventually Dies"],
   },
   {
     name: "Penalty Discipline",
@@ -267,7 +267,7 @@ const PRESETS = [
     title: "Penalty Discipline vs Penalties Drawn",
     xReverse: true,
     yReverse: false,
-    quadrants: ["Draws Flags, Commits Too Many", "Disciplined & Stressful", "Penalty Problems", "Disciplined, Low Pressure"],
+    quadrants: ["Flag Fest", "Disciplined Agitators", "Sloppy Football", "Clean & Quiet"],
   },
 ];
 
@@ -412,10 +412,10 @@ export default function ChartsClient() {
   const [aspect, setAspect] = useState<Aspect>("4:3");
   const [title, setTitle] = useState("Team Strength vs Schedule Strength");
   const [subtitle, setSubtitle] = useState("");
-  const [quadTL, setQuadTL] = useState("Paper Tiger Potential");
-  const [quadTR, setQuadTR] = useState("Elite & Battle-Tested");
-  const [quadBL, setQuadBL] = useState("Woof");
-  const [quadBR, setQuadBR] = useState("In The Meat Grinder");
+  const [quadTL, setQuadTL] = useState("Beating Up Cupcakes");
+  const [quadTR, setQuadTR] = useState("Battle Tested");
+  const [quadBL, setQuadBL] = useState("Bad & Untested");
+  const [quadBR, setQuadBR] = useState("Schedule From Hell");
   const [hovered, setHovered] = useState<HoveredPoint | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportMessage, setExportMessage] = useState("");
