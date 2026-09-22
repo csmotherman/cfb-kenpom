@@ -5,14 +5,17 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import {
   getAdvancedSeason,
+  getExploratorySeason,
   getMeta,
   getRankingsSeason,
   getTeamStatsSeason,
   getTeamStatsWeeklySeason,
 } from "@/lib/data";
 import { logoUrl } from "@/lib/teamCode";
+import { aggregateExploratory, SECTIONS } from "@/lib/exploratory";
 import type {
   AdvancedSeason,
+  ExploratorySeason,
   RankingsSeason,
   TeamStatsSeason,
   TeamStatsWeeklySeason,
@@ -71,6 +74,19 @@ const KNOWN_LABELS: Record<string, string> = {
   "advanced.successAdj": "Adjusted Success Rate",
   "advanced.successAdjAllowed": "Adjusted Success Rate Allowed",
 };
+
+const EXPLORATORY_METRICS = new Map(
+  SECTIONS.flatMap((section) =>
+    section.columns.map((column) => [
+      `exploratory.${column.key}`,
+      {
+        label: column.label,
+        group: `Exploratory · ${section.title}`,
+        format: (column.fmt ?? "pct1") === "pct1" ? "percent" : "number",
+      } satisfies Pick<Metric, "label" | "group" | "format">,
+    ] as const)
+  )
+);
 
 const PRESETS = [
   {
@@ -150,6 +166,7 @@ function metricFormat(key: string): MetricFormat {
 function metricGroup(prefix: string) {
   if (prefix === "ratings") return "Ratings & Résumé";
   if (prefix === "stats") return "Team Stats";
+  if (prefix === "exploratory") return "Exploratory";
   return "Advanced";
 }
 
@@ -210,6 +227,8 @@ function buildMetricCatalog(points: TeamPoint[]) {
   return [...keys]
     .filter((key) => points.some((point) => Number.isFinite(point.values[key])))
     .map((key): Metric => {
+      const exploratory = EXPLORATORY_METRICS.get(key);
+      if (exploratory) return { key, ...exploratory };
       const prefix = key.split(".")[0];
       return { key, label: humanize(key), group: metricGroup(prefix), format: metricFormat(key) };
     })
@@ -233,7 +252,9 @@ export default function ChartsClient() {
   const [weeklyStats, setWeeklyStats] = useState<TeamStatsWeeklySeason | null>(null);
   const [seasonStats, setSeasonStats] = useState<TeamStatsSeason | null>(null);
   const [advanced, setAdvanced] = useState<AdvancedSeason | null>(null);
+  const [exploratory, setExploratory] = useState<ExploratorySeason | null>(null);
   const [advancedStatus, setAdvancedStatus] = useState<"loading" | "ready" | "locked" | "missing">("loading");
+  const [exploratoryStatus, setExploratoryStatus] = useState<"loading" | "ready" | "locked" | "missing">("loading");
   const [loading, setLoading] = useState(true);
   const [week, setWeek] = useState(0);
   const [xMetric, setXMetric] = useState("ratings.sosRank");
@@ -277,13 +298,15 @@ export default function ChartsClient() {
     let active = true;
     setLoading(true);
     setAdvancedStatus("loading");
+    setExploratoryStatus("loading");
 
     Promise.allSettled([
       getRankingsSeason(year),
       getTeamStatsWeeklySeason(year),
       getTeamStatsSeason(year),
       getAdvancedSeason(year),
-    ]).then(([rankResult, weeklyResult, seasonResult, advancedResult]) => {
+      getExploratorySeason(year),
+    ]).then(([rankResult, weeklyResult, seasonResult, advancedResult, exploratoryResult]) => {
       if (!active) return;
       if (rankResult.status === "fulfilled") {
         setRankings(rankResult.value);
@@ -302,6 +325,14 @@ export default function ChartsClient() {
         const message = advancedResult.reason instanceof Error ? advancedResult.reason.message.toLowerCase() : "";
         setAdvancedStatus(message.includes("subscription") || message.includes("sign in") ? "locked" : "missing");
       }
+      if (exploratoryResult.status === "fulfilled") {
+        setExploratory(exploratoryResult.value);
+        setExploratoryStatus("ready");
+      } else {
+        setExploratory(null);
+        const message = exploratoryResult.reason instanceof Error ? exploratoryResult.reason.message.toLowerCase() : "";
+        setExploratoryStatus(message.includes("subscription") || message.includes("sign in") ? "locked" : "missing");
+      }
       setLoading(false);
     });
 
@@ -318,9 +349,14 @@ export default function ChartsClient() {
     const ratingRows = closestRows(rankings, week);
     const statsRows = weeklyStats ? closestRows(weeklyStats, week) : seasonStats?.teams ?? [];
     const advancedRows = closestRows(advanced, week);
+    const exploratoryStart = exploratory?.weeks?.[0] ?? week;
+    const exploratoryRows = exploratory
+      ? aggregateExploratory(exploratory.byWeek, exploratory.weeks, exploratoryStart, week)
+      : [];
 
     const statsById = new Map(statsRows.map((row) => [row.teamId, row]));
     const advancedById = new Map(advancedRows.map((row) => [row.teamId, row]));
+    const exploratoryById = new Map(exploratoryRows.map((row) => [row.teamId, row]));
 
     return ratingRows.map((rating) => {
       const values: Record<string, number | null> = {};
@@ -332,6 +368,18 @@ export default function ChartsClient() {
         advancedById.get(rating.teamId) as unknown as Record<string, unknown> | undefined,
         new Set([...META_KEYS, ...ADVANCED_DUPES])
       );
+
+      const exploratoryRow = exploratoryById.get(rating.teamId);
+      if (exploratoryRow) {
+        for (const section of SECTIONS) {
+          for (const column of section.columns) {
+            const value = exploratoryRow[column.key];
+            values[`exploratory.${column.key}`] =
+              typeof value === "number" && Number.isFinite(value) ? value : null;
+          }
+        }
+      }
+
       return {
         team: rating.team,
         slug: rating.slug,
@@ -340,7 +388,7 @@ export default function ChartsClient() {
         values,
       };
     });
-  }, [rankings, weeklyStats, seasonStats, advanced, week]);
+  }, [rankings, weeklyStats, seasonStats, advanced, exploratory, week]);
 
   const metrics = useMemo(() => buildMetricCatalog(points), [points]);
   const metricMap = useMemo(() => new Map(metrics.map((metric) => [metric.key, metric])), [metrics]);
@@ -512,12 +560,18 @@ export default function ChartsClient() {
           <div className={styles.accessState}>
             <span className={advancedStatus === "ready" ? styles.readyDot : styles.mutedDot} />
             <div>
-              <strong>{advancedStatus === "ready" ? "Advanced connected" : advancedStatus === "loading" ? "Loading Advanced…" : "Public data mode"}</strong>
+              <strong>
+                {advancedStatus === "ready" && exploratoryStatus === "ready"
+                  ? "Advanced + Exploratory connected"
+                  : advancedStatus === "loading" || exploratoryStatus === "loading"
+                    ? "Loading premium metrics…"
+                    : "Public data mode"}
+              </strong>
               <small>
-                {advancedStatus === "ready"
-                  ? "Advanced metrics are available in the selectors."
-                  : advancedStatus === "locked"
-                    ? "Sign in with Advanced access to unlock premium metrics."
+                {advancedStatus === "ready" && exploratoryStatus === "ready"
+                  ? "Advanced and research-stage exploratory metrics are available in the selectors."
+                  : advancedStatus === "locked" || exploratoryStatus === "locked"
+                    ? "Sign in with Advanced access to unlock premium and exploratory metrics."
                     : "Ratings and public team stats remain available."}
               </small>
             </div>
