@@ -406,40 +406,72 @@
   will-change: transform, opacity;
 }
 
-.prime-home-matchup__slide--next {
-  animation: prime-watchlist-next .28s cubic-bezier(.22,.75,.24,1) both;
+.prime-home-matchup__slide--out-next {
+  animation: prime-watchlist-out-left .18s cubic-bezier(.4,0,1,1) both;
 }
 
-.prime-home-matchup__slide--prev {
-  animation: prime-watchlist-prev .28s cubic-bezier(.22,.75,.24,1) both;
+.prime-home-matchup__slide--out-prev {
+  animation: prime-watchlist-out-right .18s cubic-bezier(.4,0,1,1) both;
 }
 
-@keyframes prime-watchlist-next {
+.prime-home-matchup__slide--in-next {
+  animation: prime-watchlist-in-right .3s cubic-bezier(.16,1,.3,1) both;
+}
+
+.prime-home-matchup__slide--in-prev {
+  animation: prime-watchlist-in-left .3s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes prime-watchlist-out-left {
   from {
-    opacity: .12;
-    transform: translateX(18px);
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-42px) scale(.985);
+  }
+}
+
+@keyframes prime-watchlist-out-right {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(42px) scale(.985);
+  }
+}
+
+@keyframes prime-watchlist-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(42px) scale(.985);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
 }
 
-@keyframes prime-watchlist-prev {
+@keyframes prime-watchlist-in-left {
   from {
-    opacity: .12;
-    transform: translateX(-18px);
+    opacity: 0;
+    transform: translateX(-42px) scale(.985);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .prime-home-matchup__slide--next,
-  .prime-home-matchup__slide--prev {
-    animation: none;
+  .prime-home-matchup__slide--out-next,
+  .prime-home-matchup__slide--out-prev,
+  .prime-home-matchup__slide--in-next,
+  .prime-home-matchup__slide--in-prev {
+    animation-duration: .01ms;
   }
 }
 
