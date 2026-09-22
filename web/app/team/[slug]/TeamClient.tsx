@@ -768,7 +768,7 @@ function offenseGroups(
     {
       title: "Explosiveness",
       metrics: [
-        { label: "Adjusted", value: signed(stats.adjustedExplosivenessOffense, 2), rank: adjExp.rank, totalTeams: adjExp.total },
+        { label: "Adjusted", value: signed(stats.adjustedExplosivenessOffense, 3), rank: adjExp.rank, totalTeams: adjExp.total },
         { label: "Raw %", value: pct(stats.explosivePlayRate), rank: stats.explosivePlayRateRank, totalTeams: totalStatted },
       ],
     },
@@ -829,7 +829,7 @@ function defenseGroups(
     {
       title: "Explosiveness",
       metrics: [
-        { label: "Adjusted", value: signed(stats.adjustedExplosivenessDefense, 2), rank: stats.adjustedExplosivenessDefenseRank, totalTeams: totalStatted },
+        { label: "Adjusted", value: signed(stats.adjustedExplosivenessDefense, 3), rank: stats.adjustedExplosivenessDefenseRank, totalTeams: totalStatted },
         { label: "Allowed %", value: pct(stats.explosivePlayRateAllowed), rank: stats.explosivePlayRateAllowedRank, totalTeams: totalStatted },
       ],
     },
