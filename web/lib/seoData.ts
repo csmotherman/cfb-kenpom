@@ -163,6 +163,11 @@ export type MatchupSide = {
   /** Position in The PRIME 25, only when the ratings shown are current and the team is in it. */
   prime25: number | null;
   rank: number | null;
+  /** Overall record entering the matchup, including games against FCS opponents. */
+  overallRecord: string;
+  /** FBS-only record entering the matchup. */
+  fbsRecord: string;
+  /** Published record from the rating snapshot. */
   record: string | null;
   form: TeamGameRow[];
 };
@@ -208,9 +213,29 @@ export async function getGameContext(seasonParam: string, gameId: string): Promi
   const primeApplies = ratingWeek !== null && prime?.throughWeek === ratingWeek;
   const side = (name: string, slug: string): MatchupSide => {
     const row = rows.find((r) => r.slug === slug) ?? null;
-    const form = all
+    const completedGames = all
       .filter((g) => g.completed && g.week < game.week && (g.homeSlug === slug || g.awaySlug === slug))
-      .sort(gameSort)
+      .sort(gameSort);
+    const recordFor = (games: ScheduleGame[]) => games.reduce(
+      (record, g) => {
+        const home = g.homeSlug === slug;
+        const pointsFor = home ? g.homePoints : g.awayPoints;
+        const pointsAgainst = home ? g.awayPoints : g.homePoints;
+        if (pointsFor === null || pointsAgainst === null) return record;
+        if (pointsFor > pointsAgainst) record.wins += 1;
+        else if (pointsFor < pointsAgainst) record.losses += 1;
+        else record.ties += 1;
+        return record;
+      },
+      { wins: 0, losses: 0, ties: 0 }
+    );
+    const formatRecord = (record: ReturnType<typeof recordFor>) =>
+      `${record.wins}-${record.losses}${record.ties ? `-${record.ties}` : ""}`;
+    const overall = recordFor(completedGames);
+    const fbs = recordFor(completedGames.filter((g) => profiles.has(g.homeSlug === slug ? g.awaySlug : g.homeSlug)));
+    const overallRecord = formatRecord(overall);
+    const fbsRecord = formatRecord(fbs);
+    const form = completedGames
       .slice(-3)
       .map((g): TeamGameRow => {
         const home = g.homeSlug === slug;
@@ -224,7 +249,7 @@ export async function getGameContext(seasonParam: string, gameId: string): Promi
           result: scored ? (pointsFor! > pointsAgainst! ? "W" : pointsFor! < pointsAgainst! ? "L" : "T") : null,
         };
       });
-    return { name, fullName: fullTeamName(name), slug, hasProfile: profiles.has(slug), row, prime25: primeApplies ? primeSlugs.get(slug) ?? null : null, rank: row?.rank ?? null, record: row?.record ?? null, form };
+    return { name, fullName: fullTeamName(name), slug, hasProfile: profiles.has(slug), row, prime25: primeApplies ? primeSlugs.get(slug) ?? null : null, rank: row?.rank ?? null, overallRecord, fbsRecord, record: row?.record ?? null, form };
   };
   const away = side(game.awayTeam, game.awaySlug);
   const home = side(game.homeTeam, game.homeSlug);
