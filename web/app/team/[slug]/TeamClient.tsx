@@ -551,7 +551,7 @@ function TeamProfile({ slug, fullName, seo }: { slug: string; fullName: string; 
         {seo?.after}
       </main>
 
-      <SiteFooter note="Team profiles use PRIME's latest published season snapshot. PRIME 25 Rank is the résumé ranking built from equal-standardized Power Rating + SOR. Power Rating is the team's overall model rating and uses PRIME v6's field-position-adjusted possession APR plus opponent-adjusted Success Rate and Explosiveness. Schedule links use the corresponding pregame Power Rating snapshot." />
+      <SiteFooter note="Team profiles use PRIME's latest published season snapshot. PRIME 25 Rank is the résumé ranking built from equal-standardized Power Rating + SOR. Power Rating is the team's overall model rating and uses PRIME v6's field-position-adjusted possession efficiency plus opponent-adjusted Success Rate and Explosiveness. Schedule links use the corresponding pregame Power Rating snapshot." />
     </>
   );
 }
