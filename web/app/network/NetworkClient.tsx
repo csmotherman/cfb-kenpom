@@ -303,7 +303,7 @@ export default function NetworkClient() {
                     {selected.minGames === selected.maxGames
                       ? `Every team has played ${selected.minGames} game${selected.minGames === 1 ? "" : "s"}.`
                       : `Games played per team ranges from ${selected.minGames} to ${selected.maxGames} -- a wide range means part of this network is still thinly connected.`}
-                    {selected.avgEm !== null ? ` Average Net APR: ${selected.avgEm >= 0 ? "+" : ""}${selected.avgEm.toFixed(1)}.` : ""}
+                    {selected.avgEm !== null ? ` Average Net Rating: ${selected.avgEm >= 0 ? "+" : ""}${selected.avgEm.toFixed(1)}.` : ""}
                   </p>
                 </div>
                 <div className="network-detail__table-wrap">
@@ -313,7 +313,7 @@ export default function NetworkClient() {
                         <th>Rk</th>
                         <th>Team</th>
                         <th>Record</th>
-                        <th>Net APR</th>
+                        <th>Net Rating</th>
                         <th>Games</th>
                       </tr>
                     </thead>
