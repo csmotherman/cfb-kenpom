@@ -12,11 +12,8 @@ import {
 } from "@/lib/data";
 import { logoUrl } from "@/lib/teamCode";
 import type {
-  AdvancedRow,
   AdvancedSeason,
-  RankingsRow,
   RankingsSeason,
-  TeamStatsRow,
   TeamStatsSeason,
   TeamStatsWeeklySeason,
 } from "@/lib/types";
