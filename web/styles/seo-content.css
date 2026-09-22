@@ -236,6 +236,141 @@
   }
 }
 
+/* Matchup comparison card: team identities lead, stats stay easy to scan. */
+.matchup-v2-main > .matchup-comparison h2 {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.matchup-v2-main .matchup-comparison .seo-table-wrap {
+  max-width: 760px;
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--color-hairline-strong);
+  border-top: 3px solid var(--color-gold);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(16, 42, 70, .07);
+}
+
+.matchup-v2-main .matchup-comparison .seo-table {
+  table-layout: fixed;
+}
+
+.matchup-v2-main .matchup-comparison .seo-table thead th {
+  width: 34%;
+  padding: 14px 10px 12px;
+  background: linear-gradient(180deg, rgba(21, 51, 82, .06), rgba(255, 255, 255, .18));
+  vertical-align: middle;
+}
+
+.matchup-v2-main .matchup-comparison .seo-table thead th:nth-child(2) {
+  width: 32%;
+}
+
+.matchup-comparison__team {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: var(--color-navy);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: .065em;
+  text-align: center;
+}
+
+.matchup-comparison__team img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 4px rgba(16, 42, 70, .14));
+}
+
+.matchup-comparison__versus {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(184, 137, 45, .55);
+  border-radius: 999px;
+  background: var(--color-paper);
+  color: var(--color-gold-dark);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.matchup-v2-main .matchup-comparison .seo-table tbody tr:nth-child(even) {
+  background: rgba(21, 51, 82, .025);
+}
+
+.matchup-v2-main .matchup-comparison .seo-table tbody td {
+  color: var(--color-navy);
+  font-size: 13px;
+  font-weight: 750;
+  vertical-align: middle;
+}
+
+.matchup-v2-main .matchup-comparison .seo-table tbody th {
+  padding-block: 10px;
+  vertical-align: middle;
+}
+
+.matchup-v2-main .matchup-comparison .seo-note {
+  max-width: 760px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .matchup-v2-main > .matchup-comparison h2 {
+    margin-bottom: 9px;
+    font-size: 16px;
+  }
+
+  .matchup-v2-main .matchup-comparison .seo-table-wrap {
+    border-top-width: 2px;
+    border-radius: 6px;
+  }
+
+  .matchup-v2-main .matchup-comparison .seo-table thead th {
+    padding: 11px 5px 9px;
+  }
+
+  .matchup-comparison__team {
+    gap: 5px;
+    font-size: 9px;
+    letter-spacing: .045em;
+  }
+
+  .matchup-comparison__team img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .matchup-comparison__versus {
+    width: 25px;
+    height: 25px;
+    font-size: 7px;
+  }
+
+  .matchup-v2-main .matchup-comparison .seo-table tbody td {
+    padding-inline: 4px;
+    font-size: 11px;
+  }
+
+  .matchup-v2-main .matchup-comparison .seo-table tbody th {
+    padding: 8px 3px;
+    font-size: 8.5px;
+    line-height: 1.2;
+  }
+}
+
 
 /* Mobile matchup SEO/content blocks should read like the rest of the PRIME
    scouting sheet, not like generic article/table chrome. */
@@ -299,5 +434,18 @@
   .matchup-v2-main .seo-links li {
     font-size: 9px;
     line-height: 1.35;
+  }
+
+  .matchup-v2-main > .matchup-comparison h2 {
+    margin-bottom: 9px;
+    font-size: 16px;
+  }
+
+  .matchup-v2-main .matchup-comparison .seo-table-wrap {
+    border-top-width: 2px;
+  }
+
+  .matchup-v2-main .matchup-comparison .seo-table thead th {
+    padding: 11px 5px 9px;
   }
 }
