@@ -607,10 +607,46 @@ export default function ChartsClient() {
 
   const cloneSvgWithEmbeddedLogos = async () => {
     if (!svgRef.current) throw new Error("Chart is not ready.");
-    const clone = svgRef.current.cloneNode(true) as SVGSVGElement;
+    const original = svgRef.current;
+    const clone = original.cloneNode(true) as SVGSVGElement;
     clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     clone.setAttribute("width", String(dimensions.width));
     clone.setAttribute("height", String(dimensions.height));
+
+    // A serialized SVG does not inherit the page stylesheet or loaded web fonts.
+    // Inline the rendered styles so clipboard/SVG exports match the chart instead
+    // of falling back to browser-default serif text.
+    const originalNodes = Array.from(original.querySelectorAll("*"));
+    const cloneNodes = Array.from(clone.querySelectorAll("*"));
+    const exportStyleProperties = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-dasharray",
+      "opacity",
+      "font-family",
+      "font-size",
+      "font-style",
+      "font-weight",
+      "letter-spacing",
+      "text-transform",
+    ];
+
+    originalNodes.forEach((sourceNode, index) => {
+      const targetNode = cloneNodes[index] as SVGElement | undefined;
+      if (!targetNode) return;
+      const computed = window.getComputedStyle(sourceNode);
+      for (const property of exportStyleProperties) {
+        const value = computed.getPropertyValue(property);
+        if (value) targetNode.style.setProperty(property, value);
+      }
+    });
+
+    // Keep export typography deterministic even when browser image rendering
+    // cannot access the site's webfont files.
+    clone.querySelectorAll("text").forEach((textNode) => {
+      textNode.style.fontFamily = "Arial, Helvetica, sans-serif";
+    });
 
     const images = Array.from(clone.querySelectorAll("image"));
     await Promise.all(
@@ -932,9 +968,9 @@ export default function ChartsClient() {
                 <rect x={margin.left} y={76} width={Math.min(plotWidth * 0.62, 670)} height={6} rx={3} fill="#c99a35" />
                 <text x={margin.left} y={112} className={styles.svgSubtitle}>{resolvedSubtitle}</text>
 
-                <g transform={`translate(${dimensions.width - 180} 42)`}>
-                  <text x={0} y={0} className={styles.svgBrand}>PRIME</text>
-                  <text x={0} y={25} className={styles.svgBrandSub}>COLLEGE FOOTBALL ANALYTICS</text>
+                <g transform={`translate(${dimensions.width - margin.right} 42)`}>
+                  <text x={0} y={0} textAnchor="end" className={styles.svgBrand}>PRIME</text>
+                  <text x={0} y={25} textAnchor="end" className={styles.svgBrandSub}>COLLEGE FOOTBALL ANALYTICS</text>
                 </g>
 
                 {xTicks.map((tick, index) => {
