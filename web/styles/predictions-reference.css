@@ -53,15 +53,32 @@ body:has(#predictionsContent) .predictions-showcase__week {
   align-self: center;
 }
 
-body:has(#predictionsContent) .predictions-showcase__week select {
-  min-width: 126px;
+body:has(#predictionsContent) .predictions-showcase__week--locked {
+  min-width: 116px;
   min-height: 50px;
-  border: 1px solid #c9bfaf;
-  border-radius: 10px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  padding: 7px 14px;
+  border: 1px solid #d2cabd;
+  border-radius: 9px;
   background: #fff;
+  text-align: center;
+}
+
+body:has(#predictionsContent) .predictions-showcase__week--locked span {
+  color: #8b8172;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+body:has(#predictionsContent) .predictions-showcase__week--locked strong {
   color: var(--color-navy);
-  font-size: 16px;
-  font-weight: 850;
+  font-size: 14px;
+  line-height: 1.05;
 }
 
 /* Featured game */
@@ -223,35 +240,40 @@ body:has(#predictionsContent) .featured-game > footer button {
   font-size: 11px;
 }
 
-/* Upset watch */
+/* Upset watch — compact editorial alert, not a second matchup card */
 body:has(#predictionsContent) .upset-watch {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(184, 134, 31, .30);
-  border-left: 4px solid #c59732;
-  border-radius: 12px;
-  background:
-    linear-gradient(105deg, rgba(197,154,67,.10) 0%, rgba(255,249,232,.92) 34%, #fffaf0 100%);
-  box-shadow: 0 7px 20px rgba(20, 39, 66, .045);
+  border: 1px solid #ded7ca;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 5px 16px rgba(20,39,66,.045);
 }
 
-body:has(#predictionsContent) .upset-watch::after {
+body:has(#predictionsContent) .upset-watch::before {
   content: "";
   position: absolute;
-  width: 150px;
-  height: 150px;
-  top: -92px;
-  right: -64px;
-  border: 1px solid rgba(197,154,67,.10);
-  border-radius: 50%;
-  pointer-events: none;
+  inset: 0 0 auto;
+  height: 3px;
+  background: #c69a3b;
+}
+
+body:has(#predictionsContent) .upset-watch > header {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 17px 10px;
+  border-bottom: 1px solid #ece6db;
+  background: #fffcf5;
 }
 
 body:has(#predictionsContent) .upset-watch__title {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
 }
 
 body:has(#predictionsContent) .upset-watch__caution {
@@ -260,139 +282,191 @@ body:has(#predictionsContent) .upset-watch__caution {
   flex: 0 0 28px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(155,116,31,.24);
-  border-radius: 7px;
-  background: #f2c75d;
-  box-shadow: 0 2px 8px rgba(155,116,31,.12);
 }
 
 body:has(#predictionsContent) .upset-watch__caution svg {
-  width: 18px;
-  height: 18px;
+  width: 26px;
+  height: 26px;
   overflow: visible;
 }
 
-body:has(#predictionsContent) .upset-watch__caution svg path:first-child {
-  fill: #17304f;
-  stroke: #17304f;
-  stroke-width: 1.4;
+body:has(#predictionsContent) .upset-watch__caution svg > path:first-child {
+  fill: #f1c75b;
+  stroke: #9b741f;
+  stroke-width: 1.15;
   stroke-linejoin: round;
 }
 
-body:has(#predictionsContent) .upset-watch__caution svg path:not(:first-child) {
+body:has(#predictionsContent) .upset-watch__caution svg > path:nth-child(2) {
   fill: none;
-  stroke: #f7d97f;
+  stroke: #17304f;
   stroke-width: 2;
   stroke-linecap: round;
 }
 
-body:has(#predictionsContent) .upset-watch__body {
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 18px;
-  padding: 8px 20px 12px;
+body:has(#predictionsContent) .upset-watch__caution svg > circle {
+  fill: #17304f;
 }
 
-body:has(#predictionsContent) .upset-watch__team {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 10px;
-}
-
-body:has(#predictionsContent) .upset-watch__team--right {
-  grid-template-columns: minmax(0, 1fr) 52px;
-}
-
-body:has(#predictionsContent) .upset-watch__team img {
-  width: 52px;
-  height: 52px;
-}
-
-body:has(#predictionsContent) .upset-watch__team > span {
+body:has(#predictionsContent) .upset-watch__title > div {
   min-width: 0;
   display: grid;
-  gap: 3px;
-}
-
-body:has(#predictionsContent) .upset-watch__team--right > img {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-body:has(#predictionsContent) .upset-watch__team--right > span {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-body:has(#predictionsContent) .upset-watch__team strong {
-  overflow: visible;
-  color: var(--color-navy);
-  font-size: 14px;
-  line-height: 1.05;
-  text-overflow: clip;
-  white-space: normal;
-}
-
-body:has(#predictionsContent) .upset-watch__team small {
-  color: #747d8c;
-  font-size: 9px;
-}
-
-body:has(#predictionsContent) .upset-watch__score {
-  display: grid;
-  justify-items: center;
   gap: 2px;
-  font-size: inherit;
 }
 
-body:has(#predictionsContent) .upset-watch__score small {
-  color: #7b8290;
+body:has(#predictionsContent) .upset-watch__title > div > span {
+  color: #9b741f;
   font-family: var(--font-mono);
   font-size: 8px;
-  font-style: normal;
-  font-weight: 700;
-  letter-spacing: .06em;
+  font-weight: 850;
+  letter-spacing: .11em;
+  line-height: 1;
   text-transform: uppercase;
 }
 
-body:has(#predictionsContent) .upset-watch__score strong {
+body:has(#predictionsContent) .upset-watch__title > div > strong {
   color: var(--color-navy);
-  font-family: var(--font-display);
-  font-size: 33px;
-  line-height: 1;
+  font-size: 14px;
+  line-height: 1.1;
 }
 
-body:has(#predictionsContent) .upset-watch > footer {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 12px;
-  padding: 0 20px 12px;
-}
-
-body:has(#predictionsContent) .upset-watch > footer p {
-  margin: 0;
-  color: #334155;
-  font-size: 10px;
-  line-height: 1.35;
-}
-
-body:has(#predictionsContent) .upset-watch__confidence {
-  padding: 6px 12px;
-  border: 1px solid rgba(155,116,31,.14);
-  background: #f6d77f;
-  color: #4f3d16;
-  box-shadow: 0 1px 0 rgba(255,255,255,.55) inset;
+body:has(#predictionsContent) .upset-watch > header > span {
+  flex: 0 0 auto;
+  color: #777d88;
+  font-family: var(--font-mono);
   font-size: 8px;
+  font-weight: 700;
+  text-align: right;
+  text-transform: uppercase;
 }
 
-body:has(#predictionsContent) .upset-watch > footer button {
-  padding: 0;
+body:has(#predictionsContent) .upset-watch__body {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(220px,1.15fr) minmax(180px,.9fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 17px;
   border: 0;
   background: transparent;
-  color: #9b741f;
-  font-size: 24px;
-  line-height: 1;
+  color: var(--color-navy);
+  text-align: left;
   cursor: pointer;
+}
+
+body:has(#predictionsContent) .upset-watch__pick {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 52px minmax(0,1fr);
+  align-items: center;
+  gap: 11px;
+}
+
+body:has(#predictionsContent) .upset-watch__pick > img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+body:has(#predictionsContent) .upset-watch__pick > span,
+body:has(#predictionsContent) .upset-watch__over,
+body:has(#predictionsContent) .upset-watch__numbers > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+body:has(#predictionsContent) .upset-watch__pick small,
+body:has(#predictionsContent) .upset-watch__over small,
+body:has(#predictionsContent) .upset-watch__numbers small {
+  color: #8c8274;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  line-height: 1;
+}
+
+body:has(#predictionsContent) .upset-watch__pick > span > small {
+  color: #9b741f;
+}
+
+body:has(#predictionsContent) .upset-watch__pick strong {
+  overflow: hidden;
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:has(#predictionsContent) .upset-watch__pick em,
+body:has(#predictionsContent) .upset-watch__over em {
+  overflow: hidden;
+  color: #747b87;
+  font-size: 8px;
+  font-style: normal;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:has(#predictionsContent) .upset-watch__over {
+  padding-left: 18px;
+  border-left: 1px solid #e6dfd3;
+}
+
+body:has(#predictionsContent) .upset-watch__over strong {
+  overflow: hidden;
+  color: #435066;
+  font-size: 14px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:has(#predictionsContent) .upset-watch__numbers {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 17px;
+}
+
+body:has(#predictionsContent) .upset-watch__numbers > span {
+  justify-items: end;
+  text-align: right;
+}
+
+body:has(#predictionsContent) .upset-watch__numbers > span > strong {
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body:has(#predictionsContent) .upset-watch__numbers > span:first-child > strong {
+  color: #9b741f;
+}
+
+body:has(#predictionsContent) .upset-watch__numbers > i {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d7c69e;
+  border-radius: 50%;
+  color: #9b741f;
+  font-size: 17px;
+  font-style: normal;
+  transition: transform .14s ease, background .14s ease;
+}
+
+body:has(#predictionsContent) .upset-watch__body:hover .upset-watch__numbers > i {
+  transform: translateX(2px);
+  background: #fff8e5;
 }
 
 /* Performance + controls */
@@ -492,12 +566,19 @@ body:has(#predictionsContent) .prediction-card footer {
     margin-top: 11px;
   }
 
-  body:has(#predictionsContent) .predictions-showcase__week select {
-    min-width: 86px;
+  body:has(#predictionsContent) .predictions-showcase__week--locked {
+    min-width: 84px;
     min-height: 42px;
-    padding: 0 27px 0 12px;
+    padding: 6px 9px;
     border-radius: 8px;
-    font-size: 12px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__week--locked span {
+    font-size: 5.8px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__week--locked strong {
+    font-size: 11px;
   }
 
   body:has(#predictionsContent) .prediction-highlights {
@@ -616,91 +697,117 @@ body:has(#predictionsContent) .prediction-card footer {
   }
 
   body:has(#predictionsContent) .upset-watch {
-    border-left-width: 3px;
     border-radius: 9px;
   }
 
+  body:has(#predictionsContent) .upset-watch > header {
+    min-height: 48px;
+    gap: 8px;
+    padding: 10px 10px 8px;
+  }
+
   body:has(#predictionsContent) .upset-watch__title {
-    gap: 6px;
+    gap: 7px;
   }
 
   body:has(#predictionsContent) .upset-watch__caution {
-    width: 22px;
-    height: 22px;
-    flex-basis: 22px;
-    border-radius: 6px;
+    width: 23px;
+    height: 23px;
+    flex-basis: 23px;
   }
 
   body:has(#predictionsContent) .upset-watch__caution svg {
-    width: 14px;
-    height: 14px;
+    width: 22px;
+    height: 22px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__title > div > span {
+    font-size: 6.3px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__title > div > strong {
+    font-size: 10px;
+  }
+
+  body:has(#predictionsContent) .upset-watch > header > span {
+    max-width: 42%;
+    font-size: 6.3px;
+    line-height: 1.25;
   }
 
   body:has(#predictionsContent) .upset-watch__body {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    gap: 6px;
-    padding: 7px 10px 9px;
+    grid-template-columns: minmax(0,1fr) auto;
+    gap: 9px 10px;
+    padding: 11px 10px 10px;
   }
 
-  body:has(#predictionsContent) .upset-watch__team,
-  body:has(#predictionsContent) .upset-watch__team--right {
+  body:has(#predictionsContent) .upset-watch__pick {
+    grid-column: 1;
+    grid-row: 1;
+    grid-template-columns: 42px minmax(0,1fr);
+    gap: 8px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__pick > img {
+    width: 42px;
+    height: 42px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__pick small,
+  body:has(#predictionsContent) .upset-watch__over small,
+  body:has(#predictionsContent) .upset-watch__numbers small {
+    font-size: 5.8px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__pick strong {
+    font-size: 17px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__pick em,
+  body:has(#predictionsContent) .upset-watch__over em {
+    font-size: 6.6px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__numbers {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 9px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__numbers > span:nth-child(2) {
+    display: none;
+  }
+
+  body:has(#predictionsContent) .upset-watch__numbers > span > strong {
+    font-size: 18px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__numbers > i {
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
+    font-size: 15px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__over {
+    grid-column: 1 / -1;
+    grid-row: 2;
     display: flex;
-    flex-direction: row;
-    gap: 5px;
+    align-items: baseline;
+    gap: 6px;
+    padding: 8px 0 0;
+    border-top: 1px solid #ece6db;
+    border-left: 0;
   }
 
-  body:has(#predictionsContent) .upset-watch__team--right {
-    flex-direction: row-reverse;
+  body:has(#predictionsContent) .upset-watch__over strong {
+    font-size: 10px;
   }
 
-  body:has(#predictionsContent) .upset-watch__team img {
-    width: 35px;
-    height: 35px;
-    flex: 0 0 35px;
-  }
-
-  body:has(#predictionsContent) .upset-watch__team > span {
-    gap: 2px;
-  }
-
-  body:has(#predictionsContent) .upset-watch__team strong {
-    font-size: 9.5px;
-    line-height: 1.05;
-  }
-
-  body:has(#predictionsContent) .upset-watch__team small {
-    font-size: 6.8px;
-  }
-
-  body:has(#predictionsContent) .upset-watch__score small {
-    font-size: 6.5px;
-  }
-
-  body:has(#predictionsContent) .upset-watch__score strong {
-    font-size: 23px;
-  }
-
-  body:has(#predictionsContent) .upset-watch__score i {
-    margin-inline: 4px;
-  }
-
-  body:has(#predictionsContent) .upset-watch > footer {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    gap: 7px;
-    padding: 0 10px 10px;
-  }
-
-  body:has(#predictionsContent) .upset-watch > footer p {
-    font-size: 7.5px;
-  }
-
-  body:has(#predictionsContent) .upset-watch__confidence {
-    padding: 4px 8px;
-    font-size: 6.5px;
-  }
-
-  body:has(#predictionsContent) .upset-watch > footer button {
-    font-size: 20px;
+  body:has(#predictionsContent) .upset-watch__over em {
+    margin-left: auto;
+    max-width: 52%;
+    text-align: right;
   }
 
   body:has(#predictionsContent) .predictions-main--compact .prediction-performance-strip {
@@ -861,8 +968,8 @@ body:has(#predictionsContent) .prediction-card footer {
     font-size: 30px;
   }
 
-  body:has(#predictionsContent) .predictions-showcase__week select {
-    min-width: 78px;
-    padding-left: 9px;
+  body:has(#predictionsContent) .predictions-showcase__week--locked {
+    min-width: 76px;
+    padding-inline: 7px;
   }
 }
