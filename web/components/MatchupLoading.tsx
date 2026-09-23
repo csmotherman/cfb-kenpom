@@ -1,9 +1,9 @@
-export default function MatchupLoading() {
+export default function MatchupLoading({ detail = "Preparing your matchup" }: { detail?: string }) {
   return (
-    <div className="matchup-loading" role="status" aria-live="polite">
+    <div className="matchup-loading" role="status" aria-live="polite" aria-busy="true">
       <span className="matchup-loading__ring" aria-hidden="true" />
       <strong>PRIME</strong>
-      <span>Preparing your matchup</span>
+      <span>{detail}</span>
     </div>
   );
 }
