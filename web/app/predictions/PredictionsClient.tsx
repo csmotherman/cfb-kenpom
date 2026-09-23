@@ -1,7 +1,7 @@
 "use client";
 
 import type { PredictionsInitial } from "@/lib/initialData";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
@@ -211,23 +211,6 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
     return () => { cancelled = true; };
   }, [initial]);
 
-  // The server sent only the current week's games and ratings. Browsing to another week loads the full season once
-  // (through the shared cache) and swaps it in; it is also started when the week picker gains focus.
-  const fullLoad = useRef<Promise<void> | null>(null);
-  function ensureFullSeason(): Promise<void> {
-    if (!initial) return Promise.resolve();
-    if (!fullLoad.current) {
-      fullLoad.current = Promise.all([getScheduleSeason(initial.season), getRankingsSeason(initial.season), getMarketLinesSeason(initial.season)])
-        .then(([scheduleData, rankingData, marketData]) => {
-          if (scheduleData) setSchedule(scheduleData);
-          setRankings(rankingData);
-          setMarketLines(marketData);
-        })
-        .catch(() => { fullLoad.current = null; });
-    }
-    return fullLoad.current;
-  }
-
   // Fetch each week's predictions on demand as the user browses weeks, and
   // remember a season-wide "locked" verdict the first time we see one so we
   // stop making requests we already know will 401/403 -- the game list
@@ -413,25 +396,10 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
                 <h1 id="predictionsTitle">Weekly Predictions</h1>
                 <p>{rows.length} games · {updatedLabel ?? "Pregame model projections"}</p>
               </div>
-              <label className="predictions-showcase__week">
-                  <span className="sr-only">Week</span>
-                  <select
-                    value={selectedWeek ?? ""}
-                    onFocus={() => void ensureFullSeason()}
-                    onPointerDown={() => void ensureFullSeason()}
-                    onChange={(e) => {
-                      const next = Number(e.target.value);
-                      void ensureFullSeason().then(() => setSelectedWeek(next));
-                    }}
-                    aria-label="Prediction week"
-                  >
-                    {schedule.weeks.map((week) => (
-                      <option key={week} value={week}>
-                        {schedule.weekLabels?.[String(week)] || `Wk ${week}`}
-                      </option>
-                    ))}
-                  </select>
-              </label>
+              <div className="predictions-showcase__week predictions-showcase__week--locked" aria-label={`Current prediction week: ${selectedWeek}`}>
+                <span>Current slate</span>
+                <strong>Week {selectedWeek}</strong>
+              </div>
             </section>
 
             {featuredPicks.gameOfWeek || featuredPicks.upset ? (
@@ -659,50 +627,71 @@ function UpsetWatchCard({ row, market, onOpen }: {
   const { game, prediction, awayRating, homeRating } = row;
   const scores = projectedScores(row, market);
   const time = gameTimeParts(game);
-  const winner = prediction?.predictedWinner ?? "Model pick";
-  const winnerIsAway = winner === game.awayTeam;
+  const winner = prediction?.predictedWinner ?? game.awayTeam;
+  const winnerIsHome = winner === game.homeTeam;
+  const winnerTeamId = winnerIsHome ? game.homeTeamId : game.awayTeamId;
+  const winnerRating = winnerIsHome ? homeRating : awayRating;
+  const winnerConference = winnerIsHome ? game.homeConference : game.awayConference;
+  const spread = market?.primary?.spread;
+  const marketFavorite =
+    spread === null || spread === undefined || spread === 0
+      ? (winnerIsHome ? game.awayTeam : game.homeTeam)
+      : spread < 0
+        ? game.homeTeam
+        : game.awayTeam;
+  const winnerScore = scores ? (winnerIsHome ? scores.home : scores.away) : null;
+  const favoriteScore = scores ? (winnerIsHome ? scores.away : scores.home) : null;
+
   return (
     <article className="upset-watch">
       <header>
         <div className="upset-watch__title">
           <span className="upset-watch__caution" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 3.5 21 20H3L12 3.5Z" />
-              <path d="M12 8.5v5.5" />
-              <path d="M12 17.25h.01" />
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2.75 22 20.5H2L12 2.75Z" />
+              <path d="M12 8v6" />
+              <circle cx="12" cy="17.25" r="1" />
             </svg>
           </span>
-          <h2>Upset Watch</h2>
+          <div>
+            <span>Upset Watch</span>
+            <strong>PRIME is calling an underdog</strong>
+          </div>
         </div>
         <span>{time.date} · {time.time || "Time TBA"}</span>
       </header>
-      <button type="button" onClick={onOpen} className="upset-watch__body">
-        <span className="upset-watch__team">
+
+      <button type="button" onClick={onOpen} className="upset-watch__body" aria-label={`View upset pick: ${winner} over ${marketFavorite}`}>
+        <span className="upset-watch__pick">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoUrl(game.awayTeamId)} alt="" />
+          <img src={logoUrl(winnerTeamId)} alt="" />
           <span>
-            <strong>{game.awayTeam}</strong>
-            <small>{recordLine(awayRating?.record, game.awayConference)}</small>
+            <small>PRIME PICK</small>
+            <strong>{winner}</strong>
+            <em>{recordLine(winnerRating?.record, winnerConference)}</em>
           </span>
         </span>
-        <span className="upset-watch__score">
-          <small>Projected</small>
-          <strong>{scores?.away ?? "—"}<i>–</i>{scores?.home ?? "—"}</strong>
+
+        <span className="upset-watch__over">
+          <small>TO BEAT</small>
+          <strong>{marketFavorite}</strong>
+          <em>{marketSummary(market)}</em>
         </span>
-        <span className="upset-watch__team upset-watch__team--right">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoUrl(game.homeTeamId)} alt="" />
+
+        <span className="upset-watch__numbers">
           <span>
-            <strong>{game.homeTeam}</strong>
-            <small>{recordLine(homeRating?.record, game.homeConference)}</small>
+            <small>WIN PROB.</small>
+            <strong>{pct(prediction?.confidence ?? null)}</strong>
           </span>
+          {winnerScore !== null && favoriteScore !== null ? (
+            <span>
+              <small>PROJECTED</small>
+              <strong>{winnerScore}–{favoriteScore}</strong>
+            </span>
+          ) : null}
+          <i aria-hidden="true">→</i>
         </span>
       </button>
-      <footer>
-        <p>{winner} is projected to beat the market favorite{winnerIsAway ? " on the road" : ""}.</p>
-        <span className="upset-watch__confidence">{pct(prediction?.confidence ?? null)} confidence</span>
-        <button type="button" onClick={onOpen} aria-label="View upset matchup">→</button>
-      </footer>
     </article>
   );
 }
