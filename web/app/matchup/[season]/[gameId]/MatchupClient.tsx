@@ -9,7 +9,7 @@ import SiteFooter from "@/components/SiteFooter";
 import type { MatchupSeoParts } from "@/components/seo/MatchupSeoContent";
 import MatchupEdgesSection from "@/components/MatchupEdgesSection";
 import GameResultsSheet from "@/components/GameResultsSheet";
-import PrimeLoadingState from "@/components/PrimeLoadingState";
+import MatchupLoading from "@/components/MatchupLoading";
 import {
   getRankingsSeason,
   getScheduleSeason,
@@ -132,6 +132,16 @@ type HeadlineRow = {
 
 export default function MatchupClient({ season: seasonParam, gameId, heading, seo }: { season: string; gameId: string; heading: string; seo: MatchupSeoParts | null }) {
   const season = Number.parseInt(seasonParam, 10);
+  const routeKey = `${season}/${gameId}`;
+  const [contextReady, setContextReady] = useState("");
+  const [edgesReady, setEdgesReady] = useState("");
+  const [coreReady, setCoreReady] = useState("");
+  const pageReady = contextReady === routeKey && edgesReady === routeKey;
+  useEffect(() => {
+    const ready = (event: Event) => setContextReady((event as CustomEvent<string>).detail);
+    window.addEventListener("prime-matchup-context-ready", ready);
+    return () => window.removeEventListener("prime-matchup-context-ready", ready);
+  }, []);
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [schedule, setSchedule] = useState<ScheduleSeason | null | undefined>(undefined);
   const [rankings, setRankings] = useState<RankingsSeason | null>(null);
@@ -143,7 +153,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
     let cancelled = false;
     if (!Number.isFinite(season)) {
       Promise.resolve().then(() => {
-        if (!cancelled) setSchedule(null);
+        if (!cancelled) { setSchedule(null); setCoreReady(`${season}/${gameId}`); }
       });
       return () => {
         cancelled = true;
@@ -164,6 +174,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
         setTeamStatsWeekly(teamStatsData);
         setMatchupAdvanced(advancedData);
         setTeamGameAdvanced(teamGameAdvancedData);
+        setCoreReady(`${season}/${gameId}`);
       })
       .catch((error: Error) => {
         if (!cancelled) setLoadError(error);
@@ -224,17 +235,12 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
 
   if (loadError) throw loadError;
 
-  if (schedule === undefined) {
+  if (schedule === undefined || coreReady !== routeKey) {
     return (
       <>
         <SiteHeader tagline="College Football Matchup Analysis" />
         <SiteNav />
-        {seo?.loading}
-        {seo ? null : (
-          <main className="container weekly-state">
-            <PrimeLoadingState variant="matchup" compact />
-          </main>
-        )}
+        <MatchupLoading />
       </>
     );
   }
@@ -297,7 +303,8 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
         <SiteHeader tagline="College Football Matchup Analysis" />
         <SiteNav />
 
-        <main id="matchupContent" className="container matchup-v2-main">
+        {edgesReady !== routeKey ? <MatchupLoading /> : null}
+        <main id="matchupContent" className="container matchup-v2-main" aria-busy={edgesReady !== routeKey} style={edgesReady !== routeKey ? { visibility: "hidden", position: "absolute", pointerEvents: "none" } : undefined} inert={edgesReady !== routeKey}>
           {seo?.lede ?? <h1 className="sr-only">{heading}</h1>}
           <GameResultsSheet
             leftTeam={{
@@ -318,7 +325,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
               node is present -- this is that target for the completed-game view. */}
           <div className="matchup-v2-center matchup-v2-center--results" />
 
-          <MatchupEdgesSection season={season} gameId={gameId} />
+          <MatchupEdgesSection season={season} gameId={gameId} onReady={setEdgesReady} />
           {seo?.facts}
         </main>
 
@@ -333,7 +340,8 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
       <SiteHeader tagline="College Football Matchup Analysis" />
       <SiteNav />
 
-      <main id="matchupContent" className="container matchup-v2-main">
+      {!pageReady ? <MatchupLoading /> : null}
+      <main id="matchupContent" className="container matchup-v2-main" aria-busy={!pageReady} style={!pageReady ? { visibility: "hidden", position: "absolute", pointerEvents: "none" } : undefined} inert={!pageReady}>
           {seo?.lede ?? <h1 className="sr-only">{heading}</h1>}
         <section className="matchup-v2-gamebar" aria-label="Game information">
           <div className="matchup-v2-gamebar__meta">
@@ -384,7 +392,7 @@ export default function MatchupClient({ season: seasonParam, gameId, heading, se
           />
         </div>
 
-        <MatchupEdgesSection season={season} gameId={gameId} />
+        <MatchupEdgesSection season={season} gameId={gameId} onReady={setEdgesReady} />
         {seo?.facts}
       </main>
 

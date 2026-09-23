@@ -33,8 +33,6 @@ export default function MatchupPredictionPortal() {
     if (!route) return;
 
     let cancelled = false;
-    let frame = 0;
-    let attempts = 0;
 
     const findTarget = () => {
       if (cancelled) return;
@@ -43,14 +41,14 @@ export default function MatchupPredictionPortal() {
         setTarget(node);
         return;
       }
-      attempts += 1;
-      if (attempts < 60) frame = requestAnimationFrame(findTarget);
     };
 
+    const observer = new MutationObserver(findTarget);
+    observer.observe(document.body, { childList: true, subtree: true });
     findTarget();
     return () => {
       cancelled = true;
-      if (frame) cancelAnimationFrame(frame);
+      observer.disconnect();
     };
   }, [route]);
 
@@ -109,6 +107,11 @@ export default function MatchupPredictionPortal() {
       controller.abort();
     };
   }, [route]);
+
+  useEffect(() => {
+    if (!target?.isConnected || prediction.key !== routeKey || market.key !== routeKey) return;
+    window.dispatchEvent(new CustomEvent("prime-matchup-context-ready", { detail: routeKey }));
+  }, [target, prediction.key, market.key, routeKey]);
 
   if (!route || !target) return null;
   const predictionReady = prediction.key === routeKey && prediction.status !== "none";

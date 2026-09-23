@@ -73,7 +73,7 @@ function EdgeCard({ edge }: { edge: MatchupEdge }) {
   );
 }
 
-export default function MatchupEdgesSection({ season, gameId }: { season: number; gameId: string }) {
+export default function MatchupEdgesSection({ season, gameId, onReady }: { season: number; gameId: string; onReady?: (key: string) => void }) {
   const routeKey = `${season}/${gameId}`;
   const [state, setState] = useState<LoadState>({ key: "", status: "loading" });
 
@@ -113,6 +113,10 @@ export default function MatchupEdgesSection({ season, gameId }: { season: number
       controller.abort();
     };
   }, [season, gameId, routeKey]);
+
+  useEffect(() => {
+    if (state.key === routeKey && state.status !== "loading") onReady?.(routeKey);
+  }, [state.key, state.status, routeKey, onReady]);
 
   if (state.key !== routeKey) return null;
   if (state.status === "loading" || state.status === "none") return null;
