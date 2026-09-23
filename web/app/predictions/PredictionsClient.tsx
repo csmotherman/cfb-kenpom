@@ -113,6 +113,28 @@ function number(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
+function formatUpdatedAt(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const day = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "America/New_York",
+  });
+  const time = date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+  });
+  return `Updated ${day}, ${time}`;
+}
+
+function recordLine(record: string | undefined, conference: string | null | undefined): string {
+  if (record && conference) return `${record} (${conference})`;
+  return record || conference || "Record unavailable";
+}
+
 function marketSummary(market: MarketLinesSeason["games"][string] | undefined): string {
   const quote = market?.primary;
   if (!market || !quote) return "Market unavailable";
@@ -263,6 +285,7 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
   }, [predictionsByWeek, selectedWeek]);
 
   const marketByGameId = useMemo(() => marketLines?.games ?? {}, [marketLines]);
+  const updatedLabel = useMemo(() => formatUpdatedAt(marketLines?.generatedAt), [marketLines?.generatedAt]);
 
   const rows = useMemo((): Row[] => {
     if (!schedule || selectedWeek === null) return [];
@@ -369,7 +392,7 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
               <div>
                 <span className="eyebrow">Week {selectedWeek} · {season}</span>
                 <h1 id="predictionsTitle">Weekly Predictions</h1>
-                <p>{rows.length} games · Pregame model projections</p>
+                <p>{rows.length} games · {updatedLabel ?? "Pregame model projections"}</p>
               </div>
               <label className="predictions-showcase__week">
                   <span className="sr-only">Week</span>
@@ -527,12 +550,12 @@ function PredictionCard({ row, market, access, homeRank, awayRank, onOpen }: {
           <span>{marketSummary(market)}</span>
         </span>
         <span className="prediction-card__matchup">
-          <PredictionTeam team={game.awayTeam} teamId={game.awayTeamId} rank={awayRank} record={awayRating?.record} />
+          <PredictionTeam team={game.awayTeam} teamId={game.awayTeamId} rank={awayRank} record={awayRating?.record} conference={game.awayConference} />
           <span className="prediction-card__score">
             <small>{game.completed ? "Final" : "Projected"}</small>
             <strong>{game.completed ? game.awayPoints ?? "—" : scores?.away ?? "—"}<i>–</i>{game.completed ? game.homePoints ?? "—" : scores?.home ?? "—"}</strong>
           </span>
-          <PredictionTeam team={game.homeTeam} teamId={game.homeTeamId} rank={homeRank} record={homeRating?.record} align="right" />
+          <PredictionTeam team={game.homeTeam} teamId={game.homeTeamId} rank={homeRank} record={homeRating?.record} conference={game.homeConference} align="right" />
         </span>
         {homeProbability !== null ? (
           <span className="prediction-card__probability-group">
@@ -582,12 +605,12 @@ function FeaturedGameCard({ label, row, market, awayRank, homeRank, onOpen }: {
         <span>{time.date} · {time.time || "Time TBA"}</span>
       </header>
       <button type="button" className="featured-game__body" onClick={onOpen}>
-        <PredictionTeam team={game.awayTeam} teamId={game.awayTeamId} rank={awayRank} record={awayRating?.record} featured />
+        <PredictionTeam team={game.awayTeam} teamId={game.awayTeamId} rank={awayRank} record={awayRating?.record} conference={game.awayConference} featured />
         <span className="featured-game__score">
           <small>Projected</small>
           <strong>{scores?.away ?? "—"}<i>–</i>{scores?.home ?? "—"}</strong>
         </span>
-        <PredictionTeam team={game.homeTeam} teamId={game.homeTeamId} rank={homeRank} record={homeRating?.record} align="right" featured />
+        <PredictionTeam team={game.homeTeam} teamId={game.homeTeamId} rank={homeRank} record={homeRating?.record} conference={game.homeConference} align="right" featured />
       </button>
       {homeProbability !== null ? (
         <div className="featured-game__probability">
@@ -596,8 +619,13 @@ function FeaturedGameCard({ label, row, market, awayRank, homeRank, onOpen }: {
           <span><strong>{pct(homeProbability)}</strong>{game.homeTeam}</span>
         </div>
       ) : null}
+      {winnerProbability !== null ? (
+        <div className="featured-game__pickline">
+          <span>{pct(winnerProbability)} {winner}</span>
+        </div>
+      ) : null}
       <footer>
-        <span>{winnerProbability === null ? "Projection unavailable" : `${pct(winnerProbability)} ${winner}`}</span>
+        <p>Top matchup by pregame ranking and projected competitiveness.</p>
         <button type="button" onClick={onOpen}>Full preview <span aria-hidden="true">→</span></button>
       </footer>
     </article>
@@ -609,9 +637,11 @@ function UpsetWatchCard({ row, market, onOpen }: {
   market: MarketLinesSeason["games"][string] | undefined;
   onOpen: () => void;
 }) {
-  const { game, prediction } = row;
+  const { game, prediction, awayRating, homeRating } = row;
   const scores = projectedScores(row, market);
   const time = gameTimeParts(game);
+  const winner = prediction?.predictedWinner ?? "Model pick";
+  const winnerIsAway = winner === game.awayTeam;
   return (
     <article className="upset-watch">
       <header>
@@ -622,26 +652,39 @@ function UpsetWatchCard({ row, market, onOpen }: {
         <span className="upset-watch__team">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logoUrl(game.awayTeamId)} alt="" />
-          <strong>{game.awayTeam}</strong>
+          <span>
+            <strong>{game.awayTeam}</strong>
+            <small>{recordLine(awayRating?.record, game.awayConference)}</small>
+          </span>
         </span>
-        <span className="upset-watch__score">{scores?.away ?? "—"}<i>–</i>{scores?.home ?? "—"}</span>
+        <span className="upset-watch__score">
+          <small>Projected</small>
+          <strong>{scores?.away ?? "—"}<i>–</i>{scores?.home ?? "—"}</strong>
+        </span>
         <span className="upset-watch__team upset-watch__team--right">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logoUrl(game.homeTeamId)} alt="" />
-          <strong>{game.homeTeam}</strong>
+          <span>
+            <strong>{game.homeTeam}</strong>
+            <small>{recordLine(homeRating?.record, game.homeConference)}</small>
+          </span>
         </span>
-        <span className="upset-watch__confidence">{pct(prediction?.confidence ?? null)} confidence</span>
-        <span className="upset-watch__arrow" aria-hidden="true">→</span>
       </button>
+      <footer>
+        <p>{winner} is projected to beat the market favorite{winnerIsAway ? " on the road" : ""}.</p>
+        <span className="upset-watch__confidence">{pct(prediction?.confidence ?? null)} confidence</span>
+        <button type="button" onClick={onOpen} aria-label="View upset matchup">→</button>
+      </footer>
     </article>
   );
 }
 
-function PredictionTeam({ team, teamId, rank, record, align = "left", featured = false }: {
+function PredictionTeam({ team, teamId, rank, record, conference, align = "left", featured = false }: {
   team: string;
   teamId: number;
   rank: number | null;
   record?: string;
+  conference?: string | null;
   align?: "left" | "right";
   featured?: boolean;
 }) {
@@ -651,7 +694,7 @@ function PredictionTeam({ team, teamId, rank, record, align = "left", featured =
       <img src={logoUrl(teamId)} alt="" loading="lazy" decoding="async" />
       <span className="prediction-card__team-name">
         <strong>{rank !== null ? <small>#{rank}</small> : null}{team}</strong>
-        <small>{record || "Record unavailable"}</small>
+        <small>{recordLine(record, conference)}</small>
       </span>
     </span>
   );
