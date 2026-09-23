@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import MatchupLoading from "@/components/MatchupLoading";
 import { logoUrl, teamCode } from "@/lib/teamCode";
 
 type PrimeRankingTeam = {
@@ -53,6 +54,7 @@ function RankingTile({ team, featured = false }: { team: PrimeRankingTeam; featu
 export default function RankingsClient({ seo, initial }: { seo?: ReactNode; initial?: RankingsInitial | null }) {
   // The server already read the PRIME 25 snapshot; the browser only fetches when it was not provided.
   const [snapshot, setSnapshot] = useState<PrimeRankingSnapshot | null>((initial?.snapshot as unknown as PrimeRankingSnapshot) ?? null);
+  const [loading, setLoading] = useState(!initial);
 
   useEffect(() => {
     if (initial) return;
@@ -62,13 +64,25 @@ export default function RankingsClient({ seo, initial }: { seo?: ReactNode; init
         return response.json();
       })
       .then(setSnapshot)
-      .catch(() => setSnapshot(null));
+      .catch(() => setSnapshot(null))
+      .finally(() => setLoading(false));
   }, [initial]);
 
   const teams = snapshot?.teams ?? [];
   const fullRankings = snapshot?.allTeams ?? teams;
   const topFive = teams.slice(0, 5);
   const rest = teams.slice(5);
+
+  if (loading) {
+    return (
+      <>
+        <a className="skip-link" href="#prime25">Skip to rankings</a>
+        <SiteHeader tagline="The PRIME 25" />
+        <SiteNav />
+        <MatchupLoading detail="Loading rankings" />
+      </>
+    );
+  }
 
   return (
     <>
