@@ -6,7 +6,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import type { HomeInitial } from "@/lib/initialData";
-import { logoUrl } from "@/lib/teamCode";
+import { logoUrl, teamCode } from "@/lib/teamCode";
 import type { ScheduleGame } from "@/lib/types";
 
 function kickoffLabel(game: ScheduleGame | null): string {
@@ -195,17 +195,17 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
 
                 <div className="prime-home-matchup__metrics" aria-label="Featured matchup PRIME ratings">
                   <div>
-                    <span>Overall</span>
+                    <span>{teamCode(featuredGame.awayTeam)} OVR</span>
                     <strong>{featuredAway?.adjEM === null || featuredAway?.adjEM === undefined ? "—" : featuredAway.adjEM.toFixed(1)}</strong>
                     <small>{featuredAway?.rank ? `#${featuredAway.rank}` : ""}</small>
                   </div>
                   <div>
-                    <span>Off</span>
+                    <span>{teamCode(featuredGame.awayTeam)} OFF</span>
                     <strong>{featuredAway?.adjO === null || featuredAway?.adjO === undefined ? "—" : featuredAway.adjO.toFixed(1)}</strong>
                     <small>{featuredAway?.adjORank ? `#${featuredAway.adjORank}` : ""}</small>
                   </div>
                   <div>
-                    <span>Def</span>
+                    <span>{teamCode(featuredGame.awayTeam)} DEF</span>
                     <strong>{featuredAway?.adjD === null || featuredAway?.adjD === undefined ? "—" : featuredAway.adjD.toFixed(1)}</strong>
                     <small>{featuredAway?.adjDRank ? `#${featuredAway.adjDRank}` : ""}</small>
                   </div>
@@ -216,17 +216,17 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
                   </div>
 
                   <div>
-                    <span>Off</span>
+                    <span>{teamCode(featuredGame.homeTeam)} OFF</span>
                     <strong>{featuredHome?.adjO === null || featuredHome?.adjO === undefined ? "—" : featuredHome.adjO.toFixed(1)}</strong>
                     <small>{featuredHome?.adjORank ? `#${featuredHome.adjORank}` : ""}</small>
                   </div>
                   <div>
-                    <span>Def</span>
+                    <span>{teamCode(featuredGame.homeTeam)} DEF</span>
                     <strong>{featuredHome?.adjD === null || featuredHome?.adjD === undefined ? "—" : featuredHome.adjD.toFixed(1)}</strong>
                     <small>{featuredHome?.adjDRank ? `#${featuredHome.adjDRank}` : ""}</small>
                   </div>
                   <div>
-                    <span>Overall</span>
+                    <span>{teamCode(featuredGame.homeTeam)} OVR</span>
                     <strong>{featuredHome?.adjEM === null || featuredHome?.adjEM === undefined ? "—" : featuredHome.adjEM.toFixed(1)}</strong>
                     <small>{featuredHome?.rank ? `#${featuredHome.rank}` : ""}</small>
                   </div>
@@ -238,8 +238,8 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
               </div>
             ) : (
               <div className="prime-home-matchup__empty">
-                <strong>Next slate loading</strong>
-                <span>Upcoming games will appear as soon as the schedule refreshes.</span>
+                <strong>Next slate not published</strong>
+                <span>Upcoming games will appear when the next schedule slate is available.</span>
                 <Link href="/predictions">View Weekly Predictions →</Link>
               </div>
             )}
@@ -268,7 +268,7 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
                     <b>{team.team}</b>
                   </span>
                   <span>{team.record}</span>
-                  <b>#{team.sorRank}</b>
+                  <b>{team.sorRank ? `#${team.sorRank}` : "—"}</b>
                 </Link>
               ))}
             </div>
@@ -285,7 +285,7 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
               ) : null}
               <strong>{bestOffense?.team ?? "—"}</strong>
             </div>
-            <p>{bestOffense?.adjO === null || !bestOffense ? "Loading" : `${bestOffense.adjO.toFixed(1)} Off Rating`}</p>
+            <p>{bestOffense?.adjO === null || !bestOffense ? "Not available yet" : `${bestOffense.adjO.toFixed(1)} Off Rating`}</p>
           </article>
 
           <article className="prime-home-insight prime-home-insight--riser">
@@ -309,7 +309,7 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
               ) : null}
               <strong>{toughestSchedule?.team ?? "—"}</strong>
             </div>
-            <p>{toughestSchedule?.sosRank ? `#${toughestSchedule.sosRank} SOS` : "Loading"}</p>
+            <p>{toughestSchedule?.sosRank ? `#${toughestSchedule.sosRank} SOS` : "Not available yet"}</p>
           </article>
 
           <article className="prime-home-insight prime-home-insight--defense">
@@ -321,7 +321,7 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
               ) : null}
               <strong>{bestDefense?.team ?? "—"}</strong>
             </div>
-            <p>{bestDefense?.adjD === null || !bestDefense ? "Loading" : `${bestDefense.adjD.toFixed(1)} Def Rating`}</p>
+            <p>{bestDefense?.adjD === null || !bestDefense ? "Not available yet" : `${bestDefense.adjD.toFixed(1)} Def Rating`}</p>
           </article>
         </section>
 
@@ -338,9 +338,9 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
               <div><strong>Advanced Stats</strong><small>EPA, success rate, explosiveness and more.</small></div>
               <b>→</b>
             </Link>
-            <Link href="/ratings">
+            <Link href="/teams">
               <span className="prime-home-v2__explore-icon">▤</span>
-              <div><strong>Team Profiles</strong><small>Find every FBS team through the ratings table.</small></div>
+              <div><strong>Team Profiles</strong><small>Browse every FBS team and open its full PRIME profile.</small></div>
               <b>→</b>
             </Link>
             <Link href="/methodology">
