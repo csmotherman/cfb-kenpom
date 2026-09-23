@@ -664,7 +664,16 @@ function UpsetWatchCard({ row, market, onOpen }: {
   return (
     <article className="upset-watch">
       <header>
-        <h2>Upset Watch</h2>
+        <div className="upset-watch__title">
+          <span className="upset-watch__caution" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 3.5 21 20H3L12 3.5Z" />
+              <path d="M12 8.5v5.5" />
+              <path d="M12 17.25h.01" />
+            </svg>
+          </span>
+          <h2>Upset Watch</h2>
+        </div>
         <span>{time.date} · {time.time || "Time TBA"}</span>
       </header>
       <button type="button" onClick={onOpen} className="upset-watch__body">
