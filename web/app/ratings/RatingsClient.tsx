@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import MatchupLoading from "@/components/MatchupLoading";
 import CfpTeamCell from "@/components/CfpTeamCell";
 import { TipTrigger } from "@/components/Tooltip";
 import { getMeta, seedCfpResultsSeason, seedMeta, seedProjectionSeason, seedRankingsSeason, useCfpResultsSeason, useProjectionSeason, useRankingsSeason } from "@/lib/data";
@@ -213,6 +214,18 @@ export default function RatingsClient({ seo, initial }: { seo?: ReactNode; initi
   const isFiltered = !!filter.trim() || !!conference;
 
   if (loadError) throw loadError;
+
+  const pageLoading = loading || projection === undefined || cfpResults === undefined;
+  if (pageLoading) {
+    return (
+      <>
+        <a className="skip-link" href="#mainContent">Skip to ratings</a>
+        <SiteHeader tagline="PRIME Ratings" />
+        <SiteNav />
+        <MatchupLoading detail="Loading ratings" />
+      </>
+    );
+  }
 
   return (
     <>
