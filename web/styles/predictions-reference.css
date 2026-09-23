@@ -679,7 +679,9 @@ body:has(#predictionsContent) .prediction-card footer {
   body:has(#predictionsContent) .predictions-showcase__find input {
     min-height: 46px;
     padding-left: 43px;
-    font-size: 11px;
+    /* iOS Safari auto-zooms focused form controls below 16px. Keep this at
+       16px so tapping Search never changes the page zoom level. */
+    font-size: 16px;
   }
 
   body:has(#predictionsContent) .predictions-showcase__filter-menu > summary {
