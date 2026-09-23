@@ -27,7 +27,7 @@ import type {
   ScheduleSeason,
 } from "@/lib/types";
 
-type GamesFilter = "best" | "top25" | "all";
+type GamesFilter = "all" | "top25" | "best" | "upsets";
 type Access = "unknown" | "locked" | "unlocked";
 
 // The early-season model only scores games when it has enough information to
@@ -47,9 +47,10 @@ type Row = {
 };
 
 const FILTERS: { key: GamesFilter; label: string }[] = [
-  { key: "best", label: "Featured" },
-  { key: "top25", label: "Top 25" },
   { key: "all", label: "All Games" },
+  { key: "top25", label: "Top 25" },
+  { key: "best", label: "Best Matchups" },
+  { key: "upsets", label: "Potential Upsets" },
 ];
 
 function na(v: unknown): v is null | undefined {
@@ -184,7 +185,7 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
   const [selectedWeek, setSelectedWeek] = useState<number | null>(initial?.selectedWeek ?? null);
   const [predictionsByWeek, setPredictionsByWeek] = useState<Map<number, PredictionGame[]>>(new Map());
   const [access, setAccess] = useState<Access>("unknown");
-  const [filter, setFilter] = useState<GamesFilter>("best");
+  const [filter, setFilter] = useState<GamesFilter>("all");
   const [search, setSearch] = useState("");
   const [conference, setConference] = useState("");
 
@@ -305,11 +306,21 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
     );
   }, [rows, conference]);
 
-  const rowsByFilter = useMemo(() => ({
-    all: conferenceRows,
-    top25: conferenceRows.filter((r) => topRanked.has(r.game.homeTeamId) || topRanked.has(r.game.awayTeamId)),
-    best: conferenceRows.filter((r) => topRanked.has(r.game.homeTeamId) && topRanked.has(r.game.awayTeamId)),
-  }), [conferenceRows, topRanked]);
+  const rowsByFilter = useMemo(() => {
+    const potentialUpsets = conferenceRows.filter((row) => {
+      const spread = marketByGameId[row.game.gameId]?.primary?.spread;
+      if (!row.prediction || spread === null || spread === undefined || spread === 0) return false;
+      const marketFavorite = spread < 0 ? row.game.homeTeam : row.game.awayTeam;
+      return row.prediction.predictedWinner !== marketFavorite;
+    });
+
+    return {
+      all: conferenceRows,
+      top25: conferenceRows.filter((r) => topRanked.has(r.game.homeTeamId) || topRanked.has(r.game.awayTeamId)),
+      best: conferenceRows.filter((r) => topRanked.has(r.game.homeTeamId) && topRanked.has(r.game.awayTeamId)),
+      upsets: potentialUpsets,
+    };
+  }, [conferenceRows, topRanked, marketByGameId]);
 
   const searched = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -339,8 +350,7 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
       return aRank - bRank || Math.abs(a.prediction!.predictedMargin) - Math.abs(b.prediction!.predictedMargin);
     })[0];
     const upsetOfWeek = upsets.find((row) => row.game.gameId !== gameOfWeek?.game.gameId) ?? upsets[0];
-    const potentialUpsets = upsets.filter((row) => row.game.gameId !== upsetOfWeek?.game.gameId);
-    return { upsetOfWeek, potentialUpsets, gameOfWeek };
+    return { upsetOfWeek, gameOfWeek };
   }, [rows, marketByGameId, topRanked]);
 
   const groupedRows = useMemo(() => {
@@ -426,14 +436,6 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
                   />
                 ) : null}
               </section>
-            ) : null}
-
-            {featuredPicks.potentialUpsets.length ? (
-              <PotentialUpsets
-                rows={featuredPicks.potentialUpsets}
-                marketByGameId={marketByGameId}
-                onOpen={goToMatchup}
-              />
             ) : null}
 
             <PredictionsPerformanceSummary initial={initial?.performance} />
@@ -695,73 +697,6 @@ function UpsetWatchCard({ row, market, onOpen }: {
   );
 }
 
-
-function PotentialUpsets({ rows, marketByGameId, onOpen }: {
-  rows: Row[];
-  marketByGameId: MarketLinesSeason["games"];
-  onOpen: (gameId: string) => void;
-}) {
-  return (
-    <section className="potential-upsets" aria-labelledby="potentialUpsetsTitle">
-      <header className="potential-upsets__header">
-        <div>
-          <span className="eyebrow">Market disagreement</span>
-          <h2 id="potentialUpsetsTitle">Potential Upsets</h2>
-        </div>
-        <p>Games where PRIME picks the market underdog to win outright.</p>
-      </header>
-
-      <div className="potential-upsets__grid">
-        {rows.map((row) => {
-          const { game, prediction } = row;
-          const market = marketByGameId[game.gameId];
-          const spread = market?.primary?.spread;
-          const winner = prediction?.predictedWinner ?? game.awayTeam;
-          const winnerIsHome = winner === game.homeTeam;
-          const winnerTeamId = winnerIsHome ? game.homeTeamId : game.awayTeamId;
-          const marketFavorite =
-            spread === null || spread === undefined || spread === 0
-              ? (winnerIsHome ? game.awayTeam : game.homeTeam)
-              : spread < 0
-                ? game.homeTeam
-                : game.awayTeam;
-          const time = gameTimeParts(game);
-
-          return (
-            <button
-              type="button"
-              className="potential-upset"
-              key={game.gameId}
-              onClick={() => onOpen(game.gameId)}
-              aria-label={`View ${winner} upset pick over ${marketFavorite}`}
-            >
-              <span className="potential-upset__pick">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logoUrl(winnerTeamId)} alt="" />
-                <span>
-                  <small>PRIME PICK</small>
-                  <strong>{winner}</strong>
-                  <em>over {marketFavorite}</em>
-                </span>
-              </span>
-
-              <span className="potential-upset__market">
-                <small>MARKET</small>
-                <strong>{marketSummary(market)}</strong>
-              </span>
-
-              <span className="potential-upset__meta">
-                <strong>{pct(prediction?.confidence ?? null)}</strong>
-                <small>{time.time || "TBA"}</small>
-                <i aria-hidden="true">→</i>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
 function PredictionTeam({ team, teamId, rank, record, conference, align = "left", featured = false }: {
   team: string;
