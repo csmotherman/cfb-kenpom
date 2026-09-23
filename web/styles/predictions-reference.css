@@ -225,11 +225,65 @@ body:has(#predictionsContent) .featured-game > footer button {
 
 /* Upset watch */
 body:has(#predictionsContent) .upset-watch {
+  position: relative;
   overflow: hidden;
-  border: 1px solid rgba(197, 154, 67, .24);
+  border: 1px solid rgba(184, 134, 31, .30);
+  border-left: 4px solid #c59732;
   border-radius: 12px;
-  background: #fff9e8;
-  box-shadow: 0 5px 16px rgba(20, 39, 66, .03);
+  background:
+    linear-gradient(105deg, rgba(197,154,67,.10) 0%, rgba(255,249,232,.92) 34%, #fffaf0 100%);
+  box-shadow: 0 7px 20px rgba(20, 39, 66, .045);
+}
+
+body:has(#predictionsContent) .upset-watch::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  top: -92px;
+  right: -64px;
+  border: 1px solid rgba(197,154,67,.10);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+body:has(#predictionsContent) .upset-watch__title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+body:has(#predictionsContent) .upset-watch__caution {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(155,116,31,.24);
+  border-radius: 7px;
+  background: #f2c75d;
+  box-shadow: 0 2px 8px rgba(155,116,31,.12);
+}
+
+body:has(#predictionsContent) .upset-watch__caution svg {
+  width: 18px;
+  height: 18px;
+  overflow: visible;
+}
+
+body:has(#predictionsContent) .upset-watch__caution svg path:first-child {
+  fill: #17304f;
+  stroke: #17304f;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+body:has(#predictionsContent) .upset-watch__caution svg path:not(:first-child) {
+  fill: none;
+  stroke: #f7d97f;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 body:has(#predictionsContent) .upset-watch__body {
@@ -324,6 +378,10 @@ body:has(#predictionsContent) .upset-watch > footer p {
 
 body:has(#predictionsContent) .upset-watch__confidence {
   padding: 6px 12px;
+  border: 1px solid rgba(155,116,31,.14);
+  background: #f6d77f;
+  color: #4f3d16;
+  box-shadow: 0 1px 0 rgba(255,255,255,.55) inset;
   font-size: 8px;
 }
 
@@ -558,7 +616,24 @@ body:has(#predictionsContent) .prediction-card footer {
   }
 
   body:has(#predictionsContent) .upset-watch {
+    border-left-width: 3px;
     border-radius: 9px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__title {
+    gap: 6px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__caution {
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+    border-radius: 6px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__caution svg {
+    width: 14px;
+    height: 14px;
   }
 
   body:has(#predictionsContent) .upset-watch__body {
