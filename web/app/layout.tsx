@@ -58,6 +58,7 @@ import "@/styles/predictions-mobile-width-fix.css";
 import "@/styles/predictions-model.css";
 import "@/styles/predictions-performance.css";
 import "@/styles/market-odds.css";
+import "@/styles/predictions-showcase.css";
 import "@/styles/loading-state.css";
 import "@/styles/trust-state.css";
 import "@/styles/home-rankings.css";

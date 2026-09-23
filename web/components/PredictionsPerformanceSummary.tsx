@@ -73,7 +73,7 @@ export default function PredictionsPerformanceSummary({ initial }: { initial?: S
       </div>
 
       <Link className="prediction-performance-strip__link" href="/predictions/performance">
-        Detailed performance <span aria-hidden="true">→</span>
+        Full report <span aria-hidden="true">→</span>
       </Link>
     </section>
   );

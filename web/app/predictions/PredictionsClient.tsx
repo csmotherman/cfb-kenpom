@@ -7,7 +7,6 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import MarketOddsCard from "@/components/MarketOddsCard";
 import PrimeLoadingState from "@/components/PrimeLoadingState";
 import PredictionsPerformanceSummary from "@/components/PredictionsPerformanceSummary";
 import { logoUrl } from "@/lib/teamCode";
@@ -28,8 +27,7 @@ import type {
   ScheduleSeason,
 } from "@/lib/types";
 
-type GamesFilter = "all" | "top25" | "best";
-type SortKey = "kickoff" | "matchup" | "pick" | "confidence";
+type GamesFilter = "best" | "top25" | "all";
 type Access = "unknown" | "locked" | "unlocked";
 
 // The early-season model only scores games when it has enough information to
@@ -49,9 +47,9 @@ type Row = {
 };
 
 const FILTERS: { key: GamesFilter; label: string }[] = [
-  { key: "all", label: "All Games" },
+  { key: "best", label: "Featured" },
   { key: "top25", label: "Top 25" },
-  { key: "best", label: "Best Matchups" },
+  { key: "all", label: "All Games" },
 ];
 
 function na(v: unknown): v is null | undefined {
@@ -111,6 +109,47 @@ function pickText(winner: string, margin: number): string {
   return `${winner} to win by ${Math.abs(margin).toFixed(1)}`;
 }
 
+function number(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function marketSummary(market: MarketLinesSeason["games"][string] | undefined): string {
+  const quote = market?.primary;
+  if (!market || !quote) return "Market unavailable";
+  const spread = quote.formattedSpread || (quote.spread === null
+    ? "Spread —"
+    : quote.spread === 0
+      ? "PK"
+      : quote.spread < 0
+        ? `${market.homeTeam} ${quote.spread.toFixed(1)}`
+        : `${market.awayTeam} ${(-quote.spread).toFixed(1)}`);
+  return `${spread}${quote.overUnder === null ? "" : `  |  O/U ${number(quote.overUnder)}`}`;
+}
+
+function projectedScores(row: Row, market: MarketLinesSeason["games"][string] | undefined): { away: number; home: number } | null {
+  const total = market?.primary?.overUnder;
+  if (!row.prediction || total === null || total === undefined) return null;
+  const homeMargin = row.prediction.predictedWinner === row.game.homeTeam
+    ? row.prediction.predictedMargin
+    : -row.prediction.predictedMargin;
+  return {
+    home: Math.max(0, Math.round((total + homeMargin) / 2)),
+    away: Math.max(0, Math.round((total - homeMargin) / 2)),
+  };
+}
+
+function modelEdge(row: Row, market: MarketLinesSeason["games"][string] | undefined): string | null {
+  const spread = market?.primary?.spread;
+  if (!row.prediction || spread === null || spread === undefined) return null;
+  const homeMargin = row.prediction.predictedWinner === row.game.homeTeam
+    ? row.prediction.predictedMargin
+    : -row.prediction.predictedMargin;
+  const homeValue = homeMargin + spread;
+  if (Math.abs(homeValue) < 0.5) return "No meaningful model edge";
+  const team = homeValue > 0 ? row.game.homeTeam : row.game.awayTeam;
+  return `${team} by ${Math.abs(homeValue).toFixed(1)} pts vs market`;
+}
+
 export default function PredictionsClient({ seo, initial }: { seo?: { lede: ReactNode; content: ReactNode }; initial?: PredictionsInitial | null }) {
   const router = useRouter();
   const [loadError, setLoadError] = useState<Error | null>(null);
@@ -123,11 +162,9 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
   const [selectedWeek, setSelectedWeek] = useState<number | null>(initial?.selectedWeek ?? null);
   const [predictionsByWeek, setPredictionsByWeek] = useState<Map<number, PredictionGame[]>>(new Map());
   const [access, setAccess] = useState<Access>("unknown");
-  const [filter, setFilter] = useState<GamesFilter>("all");
+  const [filter, setFilter] = useState<GamesFilter>("best");
   const [search, setSearch] = useState("");
   const [conference, setConference] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("kickoff");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
     let cancelled = false;
@@ -272,46 +309,42 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
     const needle = search.trim().toLowerCase();
     const base = rowsByFilter[filter];
     if (!needle) return base;
-    return base.filter((r) => r.game.homeTeam.toLowerCase().includes(needle) || r.game.awayTeam.toLowerCase().includes(needle));
+    return base.filter((r) => [r.game.homeTeam, r.game.awayTeam, r.game.homeConference, r.game.awayConference].some((value) => value?.toLowerCase().includes(needle)));
   }, [rowsByFilter, filter, search]);
 
-  const sorted = useMemo(() => {
-    const dir = sortDir === "asc" ? 1 : -1;
-    const out = [...searched];
-    out.sort((a, b) => {
-      switch (sortKey) {
-        case "matchup":
-          return a.game.homeTeam.localeCompare(b.game.homeTeam) * dir;
-        case "pick": {
-          const av = a.edgeIsRealPick ? a.edgeValue : null;
-          const bv = b.edgeIsRealPick ? b.edgeValue : null;
-          if (av === null) return bv === null ? 0 : 1;
-          if (bv === null) return -1;
-          return (Math.abs(av) - Math.abs(bv)) * dir;
-        }
-        case "confidence": {
-          const av = a.prediction?.confidence ?? null;
-          const bv = b.prediction?.confidence ?? null;
-          if (av === null) return bv === null ? 0 : 1;
-          if (bv === null) return -1;
-          return (av - bv) * dir;
-        }
-        case "kickoff":
-        default:
-          return (kickoffMs(a.game) - kickoffMs(b.game)) * dir;
-      }
-    });
-    return out;
-  }, [searched, sortKey, sortDir]);
+  const sorted = useMemo(() => [...searched].sort((a, b) => kickoffMs(a.game) - kickoffMs(b.game)), [searched]);
 
-  function onHeaderClick(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir(key === "kickoff" || key === "matchup" ? "asc" : "desc");
+  const featuredPicks = useMemo(() => {
+    const predicted = rows.filter((row) => row.prediction?.confidence !== null && row.prediction?.confidence !== undefined);
+    const bestBet = [...predicted].sort((a, b) => (b.prediction?.confidence ?? 0) - (a.prediction?.confidence ?? 0))[0];
+    const upset = predicted
+      .filter((row) => {
+        const spread = marketByGameId[row.game.gameId]?.primary?.spread;
+        if (spread === null || spread === undefined || spread === 0) return false;
+        const marketFavorite = spread < 0 ? row.game.homeTeam : row.game.awayTeam;
+        return row.prediction?.predictedWinner !== marketFavorite;
+      })
+      .sort((a, b) => (b.prediction?.confidence ?? 0) - (a.prediction?.confidence ?? 0))[0];
+    const gameOfWeek = [...predicted].sort((a, b) => {
+      const aRank = (topRanked.get(a.game.homeTeamId) ?? 40) + (topRanked.get(a.game.awayTeamId) ?? 40);
+      const bRank = (topRanked.get(b.game.homeTeamId) ?? 40) + (topRanked.get(b.game.awayTeamId) ?? 40);
+      return aRank - bRank || Math.abs(a.prediction!.predictedMargin) - Math.abs(b.prediction!.predictedMargin);
+    })[0];
+    return [
+      { label: "Best Bet", row: bestBet },
+      { label: "Upset Alert", row: upset },
+      { label: "Game of the Week", row: gameOfWeek },
+    ].filter((pick): pick is { label: string; row: Row } => Boolean(pick.row));
+  }, [rows, marketByGameId, topRanked]);
+
+  const groupedRows = useMemo(() => {
+    const groups = new Map<string, Row[]>();
+    for (const row of sorted) {
+      const key = gameTimeParts(row.game).date;
+      groups.set(key, [...(groups.get(key) ?? []), row]);
     }
-  }
+    return [...groups.entries()];
+  }, [sorted]);
 
   function goToMatchup(gameId: string) {
     if (season === null) return;
@@ -327,7 +360,6 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
       <SiteNav />
 
       <main id="predictionsContent" className="container predictions-main predictions-main--compact">
-        <PredictionsPerformanceSummary initial={initial?.performance} />
         {schedule === undefined ? (
           <>
             {seo?.lede ?? <h1 className="sr-only">College Football Predictions &amp; Matchup Analytics</h1>}
@@ -337,15 +369,14 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
           <p className="network-loading">Weekly schedule data is publishing with the next ratings refresh.</p>
         ) : (
           <>
-            <section className="predictions-toolbar" aria-labelledby="predictionsTitle">
-              <div className="predictions-toolbar__primary">
-                <div className="predictions-toolbar__title">
-                  <h1 id="predictionsTitle">{season ? `${season} College Football Predictions` : "College Football Predictions"}</h1>
-                  <span>{sorted.length} games</span>
-                </div>
-
-                <label className="predictions-toolbar__field predictions-toolbar__field--week">
-                  <span>Week</span>
+            <section className="predictions-showcase__intro" aria-labelledby="predictionsTitle">
+              <div>
+                <span className="eyebrow">Week {selectedWeek} · {season}</span>
+                <h1 id="predictionsTitle">Weekly Predictions</h1>
+                <p>{rows.length} games · Pregame model projections</p>
+              </div>
+              <label className="predictions-showcase__week">
+                  <span className="sr-only">Week</span>
                   <select
                     value={selectedWeek ?? ""}
                     onFocus={() => void ensureFullSeason()}
@@ -362,36 +393,41 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
                       </option>
                     ))}
                   </select>
-                </label>
+              </label>
+            </section>
 
-                <div className="predictions-toolbar__search">
-                  <label className="sr-only" htmlFor="predictionsSearch">Search teams</label>
-                  <input
-                    id="predictionsSearch"
-                    type="search"
-                    placeholder="Search team…"
-                    autoComplete="off"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
+            {featuredPicks.length ? (
+              <section className="prime-picks" aria-labelledby="primePicksTitle">
+                <header>
+                  <h2 id="primePicksTitle">PRIME PICKS</h2>
+                  <span>Our top model picks this week</span>
+                </header>
+                <div className="prime-picks__list">
+                  {featuredPicks.map(({ label, row }) => (
+                    <button key={label} type="button" className="prime-pick" onClick={() => goToMatchup(row.game.gameId)}>
+                      <span className="prime-pick__label">{label}</span>
+                      <span className="prime-pick__teams">
+                        <TeamCell team={row.game.awayTeam} teamId={row.game.awayTeamId} rank={topRanked.get(row.game.awayTeamId) ?? null} />
+                        <TeamCell team={row.game.homeTeam} teamId={row.game.homeTeamId} rank={topRanked.get(row.game.homeTeamId) ?? null} />
+                      </span>
+                      <span className="prime-pick__scores" title="Score estimates use model margin and market total">
+                        <strong>{projectedScores(row, marketByGameId[row.game.gameId])?.away ?? "—"}</strong>
+                        <strong>{projectedScores(row, marketByGameId[row.game.gameId])?.home ?? "—"}</strong>
+                      </span>
+                      <span className="prime-pick__call">
+                        <strong>{pickText(row.prediction!.predictedWinner, row.prediction!.predictedMargin)}</strong>
+                        <small>{pct(row.prediction!.confidence)} confidence</small>
+                      </span>
+                      <span className="prime-pick__arrow" aria-hidden="true">›</span>
+                    </button>
+                  ))}
                 </div>
+              </section>
+            ) : null}
 
-                <label className="predictions-toolbar__field predictions-toolbar__field--conference">
-                  <span className="sr-only">Conference</span>
-                  <select
-                    value={conference}
-                    onChange={(e) => setConference(e.target.value)}
-                    aria-label="Filter predictions by conference"
-                  >
-                    <option value="">All conferences</option>
-                    {conferences.map((name) => (
-                      <option key={name} value={name}>{name}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+            <PredictionsPerformanceSummary initial={initial?.performance} />
 
-              <div className="predictions-toolbar__secondary">
+            <section className="predictions-showcase__controls" aria-label="Prediction filters">
                 <div className="predictions-filters" role="tablist" aria-label="Filter games">
                   {FILTERS.map((f) => (
                     <button
@@ -403,16 +439,37 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
                       onClick={() => setFilter(f.key)}
                     >
                       {f.label}
-                      <span className="predictions-filters__count">{rowsByFilter[f.key].length}</span>
                     </button>
                   ))}
+                </div>
+                <div className="predictions-showcase__find">
+                  <label>
+                    <span className="sr-only">Search teams</span>
+                    <input
+                      id="predictionsSearch"
+                      type="search"
+                      placeholder="Search teams, conferences…"
+                      autoComplete="off"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </label>
+                  <details className="predictions-showcase__filter-menu">
+                    <summary>Filters</summary>
+                    <label>
+                      <span>Conference</span>
+                      <select value={conference} onChange={(e) => setConference(e.target.value)} aria-label="Filter predictions by conference">
+                        <option value="">All conferences</option>
+                        {conferences.map((name) => <option key={name} value={name}>{name}</option>)}
+                      </select>
+                    </label>
+                  </details>
                 </div>
                 {access === "locked" ? (
                   <Link className="utility-link predictions-unlock-link" href="/upgrade?feature=predictions">
                     Unlock picks &amp; win % →
                   </Link>
                 ) : null}
-              </div>
             </section>
 
             {sorted.length === 0 ? (
@@ -420,97 +477,28 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
                 {search.trim() ? `No games match "${search}".` : "No games involving an FBS team are listed for this week."}
               </p>
             ) : (
-              <div className="table-scroll" role="region" aria-label="Weekly predictions table" tabIndex={0}>
-                <table className="data-table predictions-table">
-                  <thead>
-                    <tr>
-                      <th scope="col" className="sortable" aria-sort={sortKey === "kickoff" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                        <button type="button" className="column-sort" onClick={() => onHeaderClick("kickoff")}>Kickoff</button>
-                        <span className="sort-indicator">{sortKey === "kickoff" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
-                      </th>
-                      <th scope="col" className="sortable" aria-sort={sortKey === "matchup" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                        <button type="button" className="column-sort" onClick={() => onHeaderClick("matchup")}>Matchup</button>
-                        <span className="sort-indicator">{sortKey === "matchup" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
-                      </th>
-                      <th scope="col" className="num sortable" aria-sort={sortKey === "pick" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                        <button type="button" className="column-sort" onClick={() => onHeaderClick("pick")}>Pick</button>
-                        <span className="sort-indicator">{sortKey === "pick" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
-                      </th>
-                      <th scope="col" className="num sortable" aria-sort={sortKey === "confidence" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                        <button type="button" className="column-sort" onClick={() => onHeaderClick("confidence")}>Win %</button>
-                        <span className="sort-indicator">{sortKey === "confidence" ? (sortDir === "asc" ? "▲" : "▼") : ""}</span>
-                      </th>
-                      <th scope="col" className="predictions-table__market-head">Market</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sorted.map(({ game, prediction, edgeIsRealPick }) => {
-                      const hasPrediction = edgeIsRealPick && prediction?.confidence !== null && prediction?.confidence !== undefined;
-                      return (
-                        <tr
-                          key={game.gameId}
-                          className={`predictions-table__row${game.completed ? " predictions-table__row--final" : ""}`}
-                          tabIndex={0}
-                          role="link"
-                          aria-label={`View matchup preview: ${game.awayTeam} at ${game.homeTeam}`}
-                          onClick={() => goToMatchup(game.gameId)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              goToMatchup(game.gameId);
-                            }
-                          }}
-                        >
-                          <td className="predictions-table__time">
-                            {game.completed && game.awayPoints !== null && game.homePoints !== null ? (
-                              <span className="mono">{game.awayPoints}–{game.homePoints} Final</span>
-                            ) : (
-                              (() => {
-                                const parts = gameTimeParts(game);
-                                return (
-                                  <span className="predictions-kickoff">
-                                    <strong>{parts.date}</strong>
-                                    {parts.time ? <small>{parts.time}</small> : null}
-                                  </span>
-                                );
-                              })()
-                            )}
-                          </td>
-                          <td>
-                            <div className="predictions-table__matchup">
-                              <TeamCell team={game.awayTeam} teamId={game.awayTeamId} rank={topRanked.get(game.awayTeamId) ?? null} />
-                              <span className="predictions-table__at">{game.neutralSite ? "vs" : "@"}</span>
-                              <TeamCell team={game.homeTeam} teamId={game.homeTeamId} rank={topRanked.get(game.homeTeamId) ?? null} />
-                            </div>
-                          </td>
-                          <td className="num">
-                            {access === "locked" ? (
-                              <span className="predictions-table__locked">🔒 Locked</span>
-                            ) : hasPrediction ? (
-                              <span className="predictions-table__pick">
-                                {pickText(prediction!.predictedWinner, prediction!.predictedMargin)}
-                              </span>
-                            ) : (
-                              <span className="predictions-table__context">Not enough data</span>
-                            )}
-                          </td>
-                          <td className="num">
-                            {access === "locked" ? (
-                              <span className="predictions-table__dash">—</span>
-                            ) : hasPrediction ? (
-                              <span className="mono">{pct(prediction!.confidence)}</span>
-                            ) : (
-                              <span className="predictions-table__dash">N/A</span>
-                            )}
-                          </td>
-                          <td className="predictions-table__market">
-                            <MarketOddsCard market={marketByGameId[game.gameId]} compact />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="predictions-showcase__slate">
+                {groupedRows.map(([date, dateRows]) => (
+                  <section className="prediction-date" key={date} aria-labelledby={`date-${date.replace(/\W/g, "")}`}>
+                    <header>
+                      <h2 id={`date-${date.replace(/\W/g, "")}`}>{date}</h2>
+                      <span>{dateRows.length} game{dateRows.length === 1 ? "" : "s"}</span>
+                    </header>
+                    <div className="prediction-date__games">
+                      {dateRows.map((row) => (
+                        <PredictionCard
+                          key={row.game.gameId}
+                          row={row}
+                          market={marketByGameId[row.game.gameId]}
+                          access={access}
+                          homeRank={topRanked.get(row.game.homeTeamId) ?? null}
+                          awayRank={topRanked.get(row.game.awayTeamId) ?? null}
+                          onOpen={() => goToMatchup(row.game.gameId)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ))}
               </div>
             )}
           </>
@@ -522,6 +510,82 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
 
       <SiteFooter note="Weekly Predictions are model-generated projections, not betting advice. Games without a complete graded model output are labeled Not enough data rather than being shown as substitute predictions." />
     </>
+  );
+}
+
+function PredictionCard({ row, market, access, homeRank, awayRank, onOpen }: {
+  row: Row;
+  market: MarketLinesSeason["games"][string] | undefined;
+  access: Access;
+  homeRank: number | null;
+  awayRank: number | null;
+  onOpen: () => void;
+}) {
+  const { game, prediction, awayRating, homeRating } = row;
+  const scores = projectedScores(row, market);
+  const confidence = prediction?.confidence ?? null;
+  const winnerIsHome = prediction?.predictedWinner === game.homeTeam;
+  const homeProbability = confidence === null ? null : winnerIsHome ? confidence : 1 - confidence;
+  const awayProbability = homeProbability === null ? null : 1 - homeProbability;
+  const edge = modelEdge(row, market);
+  const time = gameTimeParts(game);
+
+  return (
+    <article className={`prediction-card${game.completed ? " prediction-card--final" : ""}`}>
+      <button className="prediction-card__body" type="button" onClick={onOpen} aria-label={`View matchup: ${game.awayTeam} at ${game.homeTeam}`}>
+        <span className="prediction-card__meta">
+          <strong>{game.completed ? "Final" : time.time || "Time TBA"}</strong>
+          <span>{marketSummary(market)}</span>
+        </span>
+        <span className="prediction-card__teams">
+          <PredictionTeam team={game.awayTeam} teamId={game.awayTeamId} rank={awayRank} record={awayRating?.record} score={game.completed ? game.awayPoints : scores?.away} probability={awayProbability} />
+          <PredictionTeam team={game.homeTeam} teamId={game.homeTeamId} rank={homeRank} record={homeRating?.record} score={game.completed ? game.homePoints : scores?.home} probability={homeProbability} />
+        </span>
+        {homeProbability !== null ? (
+          <span className="prediction-card__probability" aria-label={`${Math.round(awayProbability! * 100)} percent ${game.awayTeam}, ${Math.round(homeProbability * 100)} percent ${game.homeTeam}`}>
+            <i style={{ width: `${Math.round(awayProbability! * 100)}%` }} />
+            <b>{Math.round(awayProbability! * 100)}%</b>
+            <b>{Math.round(homeProbability * 100)}%</b>
+          </span>
+        ) : null}
+      </button>
+      <footer>
+        <span>
+          <strong>PRIME {edge ? "edge" : "pick"}:</strong>{" "}
+          {access === "locked" ? "Locked" : edge || (prediction ? pickText(prediction.predictedWinner, prediction.predictedMargin) : "Not enough data")}
+        </span>
+        <button type="button" onClick={onOpen}>View matchup <span aria-hidden="true">→</span></button>
+      </footer>
+      {scores && !game.completed ? <p className="prediction-card__estimate-note">Score estimate: model margin + market total. Win probability is not cover probability.</p> : null}
+    </article>
+  );
+}
+
+function PredictionTeam({ team, teamId, rank, record, score, probability }: {
+  team: string;
+  teamId: number;
+  rank: number | null;
+  record?: string;
+  score?: number | null;
+  probability: number | null;
+}) {
+  return (
+    <span className="prediction-card__team">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={logoUrl(teamId)} alt="" loading="lazy" decoding="async" />
+      <span className="prediction-card__team-name">
+        <strong>{rank !== null ? <small>#{rank}</small> : null}{team}</strong>
+        <small>{record || "Record unavailable"}</small>
+      </span>
+      <span className="prediction-card__projection">
+        <small>Projected</small>
+        <strong>{score ?? "—"}</strong>
+      </span>
+      <span className="prediction-card__win-prob">
+        <strong>{probability === null ? "—" : `${Math.round(probability * 100)}%`}</strong>
+        <small>Win prob</small>
+      </span>
+    </span>
   );
 }
 
