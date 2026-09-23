@@ -5,6 +5,7 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import MatchupLoading from "@/components/MatchupLoading";
 import CfpTeamCell from "@/components/CfpTeamCell";
 import { TipTrigger } from "@/components/Tooltip";
 import GameLogModal from "@/components/GameLogModal";
@@ -600,6 +601,18 @@ export default function AdvancedClient() {
   }
 
   if (loadError) throw loadError;
+
+  const pageLoading = loading || !year || startWeek === null || endWeek === null || cfpResults === undefined;
+  if (pageLoading) {
+    return (
+      <>
+        <a className="skip-link" href="#advancedTable">Skip to advanced analytics</a>
+        <SiteHeader tagline="Advanced Stats" />
+        <SiteNav />
+        <MatchupLoading detail="Loading advanced stats" />
+      </>
+    );
+  }
 
   return (
     <>
