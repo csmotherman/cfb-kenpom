@@ -329,14 +329,18 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
         const marketFavorite = spread < 0 ? row.game.homeTeam : row.game.awayTeam;
         return row.prediction?.predictedWinner !== marketFavorite;
       })
-      .sort((a, b) => (b.prediction?.confidence ?? 0) - (a.prediction?.confidence ?? 0));
+      .sort((a, b) =>
+        (b.prediction?.confidence ?? 0) - (a.prediction?.confidence ?? 0)
+        || Math.abs(b.prediction?.predictedMargin ?? 0) - Math.abs(a.prediction?.predictedMargin ?? 0)
+      );
     const gameOfWeek = [...predicted].sort((a, b) => {
       const aRank = (topRanked.get(a.game.homeTeamId) ?? 40) + (topRanked.get(a.game.awayTeamId) ?? 40);
       const bRank = (topRanked.get(b.game.homeTeamId) ?? 40) + (topRanked.get(b.game.awayTeamId) ?? 40);
       return aRank - bRank || Math.abs(a.prediction!.predictedMargin) - Math.abs(b.prediction!.predictedMargin);
     })[0];
-    const upset = upsets.find((row) => row.game.gameId !== gameOfWeek?.game.gameId);
-    return { upset, gameOfWeek };
+    const upsetOfWeek = upsets.find((row) => row.game.gameId !== gameOfWeek?.game.gameId) ?? upsets[0];
+    const potentialUpsets = upsets.filter((row) => row.game.gameId !== upsetOfWeek?.game.gameId);
+    return { upsetOfWeek, potentialUpsets, gameOfWeek };
   }, [rows, marketByGameId, topRanked]);
 
   const groupedRows = useMemo(() => {
@@ -402,7 +406,7 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
               </div>
             </section>
 
-            {featuredPicks.gameOfWeek || featuredPicks.upset ? (
+            {featuredPicks.gameOfWeek || featuredPicks.upsetOfWeek ? (
               <section className="prediction-highlights" aria-label="Featured predictions">
                 {featuredPicks.gameOfWeek ? (
                   <FeaturedGameCard
@@ -414,14 +418,22 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
                     onOpen={() => goToMatchup(featuredPicks.gameOfWeek!.game.gameId)}
                   />
                 ) : null}
-                {featuredPicks.upset ? (
+                {featuredPicks.upsetOfWeek ? (
                   <UpsetWatchCard
-                    row={featuredPicks.upset}
-                    market={marketByGameId[featuredPicks.upset.game.gameId]}
-                    onOpen={() => goToMatchup(featuredPicks.upset!.game.gameId)}
+                    row={featuredPicks.upsetOfWeek}
+                    market={marketByGameId[featuredPicks.upsetOfWeek.game.gameId]}
+                    onOpen={() => goToMatchup(featuredPicks.upsetOfWeek!.game.gameId)}
                   />
                 ) : null}
               </section>
+            ) : null}
+
+            {featuredPicks.potentialUpsets.length ? (
+              <PotentialUpsets
+                rows={featuredPicks.potentialUpsets}
+                marketByGameId={marketByGameId}
+                onOpen={goToMatchup}
+              />
             ) : null}
 
             <PredictionsPerformanceSummary initial={initial?.performance} />
@@ -644,7 +656,7 @@ function UpsetWatchCard({ row, market, onOpen }: {
               <circle cx="12" cy="17.2" r="1" />
             </svg>
           </span>
-          Upset Watch
+          Upset of the Week
         </h2>
         <span>{time.date} · {time.time || "Time TBA"}</span>
       </header>
@@ -680,6 +692,74 @@ function UpsetWatchCard({ row, market, onOpen }: {
         <button type="button" onClick={onOpen} aria-label="View upset matchup">→</button>
       </footer>
     </article>
+  );
+}
+
+
+function PotentialUpsets({ rows, marketByGameId, onOpen }: {
+  rows: Row[];
+  marketByGameId: MarketLinesSeason["games"];
+  onOpen: (gameId: string) => void;
+}) {
+  return (
+    <section className="potential-upsets" aria-labelledby="potentialUpsetsTitle">
+      <header className="potential-upsets__header">
+        <div>
+          <span className="eyebrow">Market disagreement</span>
+          <h2 id="potentialUpsetsTitle">Potential Upsets</h2>
+        </div>
+        <p>Games where PRIME picks the market underdog to win outright.</p>
+      </header>
+
+      <div className="potential-upsets__grid">
+        {rows.map((row) => {
+          const { game, prediction } = row;
+          const market = marketByGameId[game.gameId];
+          const spread = market?.primary?.spread;
+          const winner = prediction?.predictedWinner ?? game.awayTeam;
+          const winnerIsHome = winner === game.homeTeam;
+          const winnerTeamId = winnerIsHome ? game.homeTeamId : game.awayTeamId;
+          const marketFavorite =
+            spread === null || spread === undefined || spread === 0
+              ? (winnerIsHome ? game.awayTeam : game.homeTeam)
+              : spread < 0
+                ? game.homeTeam
+                : game.awayTeam;
+          const time = gameTimeParts(game);
+
+          return (
+            <button
+              type="button"
+              className="potential-upset"
+              key={game.gameId}
+              onClick={() => onOpen(game.gameId)}
+              aria-label={`View ${winner} upset pick over ${marketFavorite}`}
+            >
+              <span className="potential-upset__pick">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logoUrl(winnerTeamId)} alt="" />
+                <span>
+                  <small>PRIME PICK</small>
+                  <strong>{winner}</strong>
+                  <em>over {marketFavorite}</em>
+                </span>
+              </span>
+
+              <span className="potential-upset__market">
+                <small>MARKET</small>
+                <strong>{marketSummary(market)}</strong>
+              </span>
+
+              <span className="potential-upset__meta">
+                <strong>{pct(prediction?.confidence ?? null)}</strong>
+                <small>{time.time || "TBA"}</small>
+                <i aria-hidden="true">→</i>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
