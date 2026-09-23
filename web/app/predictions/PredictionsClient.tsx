@@ -628,70 +628,57 @@ function UpsetWatchCard({ row, market, onOpen }: {
   const scores = projectedScores(row, market);
   const time = gameTimeParts(game);
   const winner = prediction?.predictedWinner ?? game.awayTeam;
-  const winnerIsHome = winner === game.homeTeam;
-  const winnerTeamId = winnerIsHome ? game.homeTeamId : game.awayTeamId;
-  const winnerRating = winnerIsHome ? homeRating : awayRating;
-  const winnerConference = winnerIsHome ? game.homeConference : game.awayConference;
-  const spread = market?.primary?.spread;
-  const marketFavorite =
-    spread === null || spread === undefined || spread === 0
-      ? (winnerIsHome ? game.awayTeam : game.homeTeam)
-      : spread < 0
-        ? game.homeTeam
-        : game.awayTeam;
-  const winnerScore = scores ? (winnerIsHome ? scores.home : scores.away) : null;
-  const favoriteScore = scores ? (winnerIsHome ? scores.away : scores.home) : null;
+  const winnerIsAway = winner === game.awayTeam;
+  const favoriteRating = winnerIsAway ? homeRating : awayRating;
+  const top25Favorite = favoriteRating?.rank !== null && favoriteRating?.rank !== undefined && favoriteRating.rank <= 25;
+  const upsetCopy = `${winner} looks to pull ${top25Favorite ? "a top-25 upset" : "the upset"}${winnerIsAway ? " on the road" : " at home"}.`;
 
   return (
     <article className="upset-watch">
       <header>
-        <div className="upset-watch__title">
+        <h2>
           <span className="upset-watch__caution" aria-hidden="true">
             <svg viewBox="0 0 24 24">
-              <path d="M12 2.75 22 20.5H2L12 2.75Z" />
+              <path d="M12 3 21 20H3L12 3Z" />
               <path d="M12 8v6" />
-              <circle cx="12" cy="17.25" r="1" />
+              <circle cx="12" cy="17.2" r="1" />
             </svg>
           </span>
-          <div>
-            <span>Upset Watch</span>
-            <strong>PRIME is calling an underdog</strong>
-          </div>
-        </div>
+          Upset Watch
+        </h2>
         <span>{time.date} · {time.time || "Time TBA"}</span>
       </header>
 
-      <button type="button" onClick={onOpen} className="upset-watch__body" aria-label={`View upset pick: ${winner} over ${marketFavorite}`}>
-        <span className="upset-watch__pick">
+      <button type="button" onClick={onOpen} className="upset-watch__body" aria-label={`View ${game.awayTeam} vs ${game.homeTeam} upset preview`}>
+        <span className="upset-watch__team">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoUrl(winnerTeamId)} alt="" />
+          <img src={logoUrl(game.awayTeamId)} alt="" />
           <span>
-            <small>PRIME PICK</small>
-            <strong>{winner}</strong>
-            <em>{recordLine(winnerRating?.record, winnerConference)}</em>
+            <strong>{game.awayTeam}</strong>
+            <small>{recordLine(awayRating?.record, game.awayConference)}</small>
           </span>
         </span>
 
-        <span className="upset-watch__over">
-          <small>TO BEAT</small>
-          <strong>{marketFavorite}</strong>
-          <em>{marketSummary(market)}</em>
+        <span className="upset-watch__score">
+          <small>Projected</small>
+          <strong>{scores?.away ?? "—"}<i>–</i>{scores?.home ?? "—"}</strong>
         </span>
 
-        <span className="upset-watch__numbers">
+        <span className="upset-watch__team upset-watch__team--right">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logoUrl(game.homeTeamId)} alt="" />
           <span>
-            <small>WIN PROB.</small>
-            <strong>{pct(prediction?.confidence ?? null)}</strong>
+            <strong>{game.homeTeam}</strong>
+            <small>{recordLine(homeRating?.record, game.homeConference)}</small>
           </span>
-          {winnerScore !== null && favoriteScore !== null ? (
-            <span>
-              <small>PROJECTED</small>
-              <strong>{winnerScore}–{favoriteScore}</strong>
-            </span>
-          ) : null}
-          <i aria-hidden="true">→</i>
         </span>
       </button>
+
+      <footer>
+        <p>{upsetCopy}</p>
+        <span className="upset-watch__confidence">{pct(prediction?.confidence ?? null)} confidence</span>
+        <button type="button" onClick={onOpen} aria-label="View upset matchup">→</button>
+      </footer>
     </article>
   );
 }
