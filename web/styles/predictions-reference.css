@@ -1,0 +1,791 @@
+/* ==========================================================================
+   PRIME Weekly Predictions — approved editorial mobile composition
+   This layer intentionally loads last and only touches the predictions route.
+   ========================================================================== */
+
+body:has(#predictionsContent) {
+  background: #f8f6f0;
+}
+
+body:has(#predictionsContent) #predictionsContent.predictions-main--compact {
+  width: 100%;
+  max-width: 1040px;
+  padding: 30px 28px 64px;
+}
+
+body:has(#predictionsContent) .predictions-showcase__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 22px;
+  margin-bottom: 24px;
+}
+
+body:has(#predictionsContent) .predictions-showcase__intro .eyebrow {
+  display: block;
+  color: #9b741f;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  line-height: 1;
+}
+
+body:has(#predictionsContent) .predictions-showcase__intro h1 {
+  margin: 7px 0 0;
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: clamp(46px, 5vw, 62px);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  line-height: .92;
+  white-space: nowrap;
+}
+
+body:has(#predictionsContent) .predictions-showcase__intro p {
+  margin-top: 9px;
+  color: #777d88;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+body:has(#predictionsContent) .predictions-showcase__week {
+  align-self: center;
+}
+
+body:has(#predictionsContent) .predictions-showcase__week select {
+  min-width: 126px;
+  min-height: 50px;
+  border: 1px solid #c9bfaf;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-navy);
+  font-size: 16px;
+  font-weight: 850;
+}
+
+/* Featured game */
+body:has(#predictionsContent) .prediction-highlights {
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+body:has(#predictionsContent) .featured-game {
+  border-top: 6px solid #c69a3b;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(25, 43, 65, .07);
+}
+
+body:has(#predictionsContent) .featured-game > header,
+body:has(#predictionsContent) .upset-watch > header {
+  padding: 17px 20px 9px;
+}
+
+body:has(#predictionsContent) .featured-game > header h2,
+body:has(#predictionsContent) .upset-watch > header h2 {
+  color: #9b741f;
+  font-size: 27px;
+  letter-spacing: .035em;
+}
+
+body:has(#predictionsContent) .featured-game > header span,
+body:has(#predictionsContent) .upset-watch > header span {
+  color: #596376;
+  font-size: 9px;
+  letter-spacing: .02em;
+}
+
+body:has(#predictionsContent) .featured-game__body {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 22px;
+  padding: 8px 24px 14px;
+}
+
+body:has(#predictionsContent) .featured-game .prediction-card__team--featured,
+body:has(#predictionsContent) .featured-game .prediction-card__team--featured.prediction-card__team--right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-align: center;
+}
+
+body:has(#predictionsContent) .featured-game .prediction-card__team--featured > img {
+  width: 78px;
+  height: 78px;
+}
+
+body:has(#predictionsContent) .featured-game .prediction-card__team-name {
+  width: 100%;
+  justify-items: center;
+  gap: 3px;
+}
+
+body:has(#predictionsContent) .featured-game .prediction-card__team-name > strong {
+  overflow: visible;
+  color: var(--color-navy);
+  font-size: 17px;
+  line-height: 1.05;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+body:has(#predictionsContent) .featured-game .prediction-card__team-name > strong small {
+  margin-right: 4px;
+  font-size: 10px;
+}
+
+body:has(#predictionsContent) .featured-game .prediction-card__team-name > small {
+  color: #747d8c;
+  font-size: 10px;
+}
+
+body:has(#predictionsContent) .featured-game__score {
+  gap: 4px;
+}
+
+body:has(#predictionsContent) .featured-game__score small {
+  font-size: 8px;
+  letter-spacing: .08em;
+}
+
+body:has(#predictionsContent) .featured-game__score strong {
+  font-size: 48px;
+  letter-spacing: -.025em;
+}
+
+body:has(#predictionsContent) .featured-game__probability {
+  grid-template-columns: 112px minmax(0, 1fr) 112px;
+  gap: 12px;
+  padding: 0 24px 6px;
+}
+
+body:has(#predictionsContent) .featured-game__probability > span {
+  gap: 2px;
+  color: #565f70;
+  font-size: 9px;
+}
+
+body:has(#predictionsContent) .featured-game__probability > span strong {
+  font-size: 23px;
+}
+
+body:has(#predictionsContent) .featured-game__probability > i {
+  height: 15px;
+}
+
+body:has(#predictionsContent) .featured-game__pickline {
+  display: flex;
+  justify-content: center;
+  padding: 0 20px 10px;
+}
+
+body:has(#predictionsContent) .featured-game__pickline > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 18px;
+  border-radius: 999px;
+  background: #ffe8a5;
+  color: #584720;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .025em;
+  text-transform: uppercase;
+}
+
+body:has(#predictionsContent) .featured-game > footer {
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 20px;
+  border-top: 1px solid #e8e2d7;
+}
+
+body:has(#predictionsContent) .featured-game > footer p {
+  margin: 0;
+  color: #28374d;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+body:has(#predictionsContent) .featured-game > footer button {
+  min-height: 30px;
+  padding-left: 18px;
+  border-left: 1px solid #ded7ca;
+  color: #9a741f;
+  font-size: 11px;
+}
+
+/* Upset watch */
+body:has(#predictionsContent) .upset-watch {
+  overflow: hidden;
+  border: 1px solid rgba(197, 154, 67, .24);
+  border-radius: 12px;
+  background: #fff9e8;
+  box-shadow: 0 5px 16px rgba(20, 39, 66, .03);
+}
+
+body:has(#predictionsContent) .upset-watch__body {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 18px;
+  padding: 8px 20px 12px;
+}
+
+body:has(#predictionsContent) .upset-watch__team {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 10px;
+}
+
+body:has(#predictionsContent) .upset-watch__team--right {
+  grid-template-columns: minmax(0, 1fr) 52px;
+}
+
+body:has(#predictionsContent) .upset-watch__team img {
+  width: 52px;
+  height: 52px;
+}
+
+body:has(#predictionsContent) .upset-watch__team > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+body:has(#predictionsContent) .upset-watch__team--right > img {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+body:has(#predictionsContent) .upset-watch__team--right > span {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+body:has(#predictionsContent) .upset-watch__team strong {
+  overflow: visible;
+  color: var(--color-navy);
+  font-size: 14px;
+  line-height: 1.05;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+body:has(#predictionsContent) .upset-watch__team small {
+  color: #747d8c;
+  font-size: 9px;
+}
+
+body:has(#predictionsContent) .upset-watch__score {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  font-size: inherit;
+}
+
+body:has(#predictionsContent) .upset-watch__score small {
+  color: #7b8290;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+body:has(#predictionsContent) .upset-watch__score strong {
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-size: 33px;
+  line-height: 1;
+}
+
+body:has(#predictionsContent) .upset-watch > footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 12px;
+}
+
+body:has(#predictionsContent) .upset-watch > footer p {
+  margin: 0;
+  color: #334155;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+body:has(#predictionsContent) .upset-watch__confidence {
+  padding: 6px 12px;
+  font-size: 8px;
+}
+
+body:has(#predictionsContent) .upset-watch > footer button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #9b741f;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Performance + controls */
+body:has(#predictionsContent) .predictions-main--compact .prediction-performance-strip {
+  margin: 0 0 17px;
+  padding: 11px 5px;
+}
+
+body:has(#predictionsContent) .predictions-showcase__controls {
+  margin-bottom: 25px;
+}
+
+body:has(#predictionsContent) .predictions-showcase__controls > .predictions-filters {
+  margin-bottom: 13px;
+}
+
+body:has(#predictionsContent) .predictions-showcase__controls .predictions-filters__btn {
+  min-height: 42px;
+  font-size: 12px;
+}
+
+body:has(#predictionsContent) .predictions-showcase__find input {
+  min-height: 48px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+body:has(#predictionsContent) .predictions-showcase__filter-menu > summary {
+  width: 48px;
+  height: 48px;
+}
+
+/* Daily slate */
+body:has(#predictionsContent) .predictions-showcase__slate {
+  gap: 30px;
+}
+
+body:has(#predictionsContent) .prediction-date > header {
+  margin-bottom: 11px;
+}
+
+body:has(#predictionsContent) .prediction-date > header h2 {
+  font-size: 30px;
+}
+
+body:has(#predictionsContent) .prediction-card {
+  border: 1px solid rgba(215, 209, 198, .48);
+  border-radius: 10px;
+  box-shadow: 0 5px 17px rgba(20, 39, 66, .055);
+}
+
+body:has(#predictionsContent) .prediction-card__meta {
+  padding: 10px 15px;
+}
+
+body:has(#predictionsContent) .prediction-card__matchup {
+  padding: 16px 15px 13px;
+}
+
+body:has(#predictionsContent) .prediction-card footer {
+  background: linear-gradient(90deg, #fff8e5, #fffdf8);
+}
+
+/* Mobile: reproduce the approved reference proportions and hierarchy. */
+@media (max-width: 640px) {
+  body:has(#predictionsContent) #predictionsContent.predictions-main--compact {
+    max-width: none;
+    padding: 23px 14px 46px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__intro {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 9px;
+    margin-bottom: 20px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__intro .eyebrow {
+    font-size: 10px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__intro h1 {
+    margin-top: 6px;
+    font-size: clamp(31px, 8.7vw, 36px);
+    line-height: .94;
+    white-space: nowrap;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__intro p {
+    margin-top: 7px;
+    font-size: 8.5px;
+    white-space: nowrap;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__week {
+    align-self: center;
+    margin-top: 11px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__week select {
+    min-width: 86px;
+    min-height: 42px;
+    padding: 0 27px 0 12px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  body:has(#predictionsContent) .prediction-highlights {
+    gap: 13px;
+    margin-bottom: 16px;
+  }
+
+  body:has(#predictionsContent) .featured-game {
+    border-top-width: 5px;
+    border-radius: 10px;
+  }
+
+  body:has(#predictionsContent) .featured-game > header,
+  body:has(#predictionsContent) .upset-watch > header {
+    gap: 8px;
+    padding: 13px 12px 7px;
+  }
+
+  body:has(#predictionsContent) .featured-game > header h2,
+  body:has(#predictionsContent) .upset-watch > header h2 {
+    font-size: 21px;
+  }
+
+  body:has(#predictionsContent) .featured-game > header span,
+  body:has(#predictionsContent) .upset-watch > header span {
+    max-width: 49%;
+    font-size: 7px;
+    line-height: 1.25;
+  }
+
+  body:has(#predictionsContent) .featured-game__body {
+    gap: 7px;
+    padding: 8px 9px 10px;
+  }
+
+  body:has(#predictionsContent) .featured-game .prediction-card__team--featured,
+  body:has(#predictionsContent) .featured-game .prediction-card__team--featured.prediction-card__team--right {
+    gap: 3px;
+  }
+
+  body:has(#predictionsContent) .featured-game .prediction-card__team--featured > img {
+    width: 55px;
+    height: 55px;
+  }
+
+  body:has(#predictionsContent) .featured-game .prediction-card__team-name > strong {
+    font-size: 12px;
+    line-height: 1.03;
+  }
+
+  body:has(#predictionsContent) .featured-game .prediction-card__team-name > strong small {
+    font-size: 7.5px;
+  }
+
+  body:has(#predictionsContent) .featured-game .prediction-card__team-name > small {
+    font-size: 7.5px;
+    line-height: 1.15;
+  }
+
+  body:has(#predictionsContent) .featured-game__score small {
+    font-size: 7px;
+  }
+
+  body:has(#predictionsContent) .featured-game__score strong {
+    font-size: 32px;
+  }
+
+  body:has(#predictionsContent) .featured-game__score i {
+    margin-inline: 5px;
+  }
+
+  body:has(#predictionsContent) .featured-game__probability {
+    grid-template-columns: 62px minmax(0, 1fr) 62px;
+    gap: 7px;
+    padding: 0 10px 5px;
+  }
+
+  body:has(#predictionsContent) .featured-game__probability > span {
+    font-size: 6.5px;
+  }
+
+  body:has(#predictionsContent) .featured-game__probability > span strong {
+    font-size: 17px;
+  }
+
+  body:has(#predictionsContent) .featured-game__probability > i {
+    height: 11px;
+  }
+
+  body:has(#predictionsContent) .featured-game__pickline {
+    padding: 0 10px 8px;
+  }
+
+  body:has(#predictionsContent) .featured-game__pickline > span {
+    min-height: 24px;
+    padding: 3px 13px;
+    font-size: 7.5px;
+  }
+
+  body:has(#predictionsContent) .featured-game > footer {
+    min-height: 45px;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  body:has(#predictionsContent) .featured-game > footer p {
+    font-size: 8px;
+    line-height: 1.35;
+  }
+
+  body:has(#predictionsContent) .featured-game > footer button {
+    min-height: 26px;
+    padding-left: 10px;
+    font-size: 8.5px;
+    white-space: nowrap;
+  }
+
+  body:has(#predictionsContent) .upset-watch {
+    border-radius: 9px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__body {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 6px;
+    padding: 7px 10px 9px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__team,
+  body:has(#predictionsContent) .upset-watch__team--right {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__team--right {
+    flex-direction: row-reverse;
+  }
+
+  body:has(#predictionsContent) .upset-watch__team img {
+    width: 35px;
+    height: 35px;
+    flex: 0 0 35px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__team > span {
+    gap: 2px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__team strong {
+    font-size: 9.5px;
+    line-height: 1.05;
+  }
+
+  body:has(#predictionsContent) .upset-watch__team small {
+    font-size: 6.8px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__score small {
+    font-size: 6.5px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__score strong {
+    font-size: 23px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__score i {
+    margin-inline: 4px;
+  }
+
+  body:has(#predictionsContent) .upset-watch > footer {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 7px;
+    padding: 0 10px 10px;
+  }
+
+  body:has(#predictionsContent) .upset-watch > footer p {
+    font-size: 7.5px;
+  }
+
+  body:has(#predictionsContent) .upset-watch__confidence {
+    padding: 4px 8px;
+    font-size: 6.5px;
+  }
+
+  body:has(#predictionsContent) .upset-watch > footer button {
+    font-size: 20px;
+  }
+
+  body:has(#predictionsContent) .predictions-main--compact .prediction-performance-strip {
+    gap: 6px;
+    margin-bottom: 13px;
+    padding: 9px 2px;
+  }
+
+  body:has(#predictionsContent) .prediction-performance-strip__icon {
+    width: 18px;
+  }
+
+  body:has(#predictionsContent) .predictions-main--compact .prediction-performance-strip h2 {
+    display: block;
+    font-size: 8px;
+  }
+
+  body:has(#predictionsContent) .predictions-main--compact .prediction-performance-strip p {
+    gap: 4px;
+    font-size: 7.5px;
+    white-space: nowrap;
+  }
+
+  body:has(#predictionsContent) .predictions-main--compact .prediction-performance-strip__link {
+    padding-left: 8px;
+    font-size: 7.5px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__controls {
+    margin-bottom: 20px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__controls > .predictions-filters {
+    justify-content: flex-start;
+    gap: 16px;
+    margin-bottom: 11px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__controls .predictions-filters__btn {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding-inline: 7px;
+    font-size: 10.5px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__find {
+    grid-template-columns: minmax(0, 1fr) 46px;
+    gap: 9px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__find input {
+    min-height: 46px;
+    padding-left: 43px;
+    font-size: 11px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__filter-menu > summary {
+    width: 46px;
+    height: 46px;
+  }
+
+  body:has(#predictionsContent) .prediction-date > header {
+    margin-bottom: 9px;
+  }
+
+  body:has(#predictionsContent) .prediction-date > header h2 {
+    font-size: 25px;
+  }
+
+  body:has(#predictionsContent) .prediction-date > header span {
+    font-size: 8px;
+  }
+
+  body:has(#predictionsContent) .prediction-date__games {
+    gap: 10px;
+  }
+
+  body:has(#predictionsContent) .prediction-card {
+    border-radius: 9px;
+  }
+
+  body:has(#predictionsContent) .prediction-card__meta {
+    padding: 8px 10px;
+    font-size: 7.5px;
+  }
+
+  body:has(#predictionsContent) .prediction-card__matchup {
+    gap: 5px;
+    padding: 12px 10px 10px;
+  }
+
+  body:has(#predictionsContent) .prediction-card__team {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  body:has(#predictionsContent) .prediction-card__team > img {
+    width: 34px;
+    height: 34px;
+  }
+
+  body:has(#predictionsContent) .prediction-card__team--right {
+    grid-template-columns: minmax(0, 1fr) 34px;
+  }
+
+  body:has(#predictionsContent) .prediction-card__team-name > strong {
+    overflow: visible;
+    font-size: 10px;
+    line-height: 1.05;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  body:has(#predictionsContent) .prediction-card__team-name > strong small {
+    font-size: 7px;
+  }
+
+  body:has(#predictionsContent) .prediction-card__team-name > small {
+    font-size: 6.8px;
+    line-height: 1.15;
+  }
+
+  body:has(#predictionsContent) .prediction-card__score small {
+    font-size: 6.5px;
+  }
+
+  body:has(#predictionsContent) .prediction-card__score strong {
+    font-size: 24px;
+  }
+
+  body:has(#predictionsContent) .prediction-card__probability-labels {
+    margin: 0 10px 5px;
+    font-size: 7.5px;
+  }
+
+  body:has(#predictionsContent) .prediction-card__probability {
+    height: 10px;
+    margin: 0 10px 9px;
+  }
+
+  body:has(#predictionsContent) .prediction-card footer {
+    min-height: 39px;
+    padding: 7px 10px;
+    font-size: 7.5px;
+  }
+
+  body:has(#predictionsContent) .prediction-card footer > span strong,
+  body:has(#predictionsContent) .prediction-card footer button {
+    font-size: 7.5px;
+  }
+}
+
+/* The reference keeps the title and week control on one line even on compact phones. */
+@media (max-width: 360px) {
+  body:has(#predictionsContent) .predictions-showcase__intro h1 {
+    font-size: 30px;
+  }
+
+  body:has(#predictionsContent) .predictions-showcase__week select {
+    min-width: 78px;
+    padding-left: 9px;
+  }
+}
