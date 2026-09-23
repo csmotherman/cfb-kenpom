@@ -120,8 +120,23 @@
 }
 
 .prime-pick__teams { display: grid; gap: 5px; }
+.prime-pick__matchup-card {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-navy);
+  min-width: 0;
+}
+.prime-pick__matchup-card .predictions-table__team { color: var(--color-navy); }
+.prime-pick__matchup-card .predictions-table__rank { color: var(--color-gold-dark); }
 .prime-pick__scores { display: grid; gap: 5px; font-size: 16px; line-height: 25px; }
 .prime-pick__teams .predictions-table__team { color: white; font-size: 14px; }
+.prime-pick__matchup-card .predictions-table__team { color: var(--color-navy); }
 .prime-pick__teams .predictions-table__team img { width: 25px; height: 25px; }
 .prime-pick__teams .predictions-table__rank { color: #f2bd48; }
 .prime-pick__call { display: grid; gap: 3px; }
@@ -313,9 +328,13 @@
   margin: 0 16px 16px;
   overflow: hidden;
   border-radius: 7px;
-  background: linear-gradient(90deg, var(--color-navy), #e3af3e);
+  background: #c59a43;
 }
-.prediction-card__probability i { position: absolute; top: 0; bottom: 0; left: 0; border-right: 2px solid white; }
+.prediction-card__probability i { position: absolute; top: 0; bottom: 0; left: 0; background: var(--color-navy); border-right: 2px solid white; }
+.prediction-card__probability-group { display: block; }
+.prediction-card__probability-labels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0 16px 6px; font-size: 12px; color: var(--color-navy); }
+.prediction-card__probability-labels > span:last-child { text-align: right; }
+.prediction-card__probability-labels strong { white-space: nowrap; }
 .prediction-card__probability b { position: relative; z-index: 1; padding: 5px 9px; color: white; font-family: var(--font-mono); font-size: 10px; }
 .prediction-card footer {
   display: flex;

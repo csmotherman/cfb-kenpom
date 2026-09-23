@@ -316,7 +316,6 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
 
   const featuredPicks = useMemo(() => {
     const predicted = rows.filter((row) => row.prediction?.confidence !== null && row.prediction?.confidence !== undefined);
-    const bestBet = [...predicted].sort((a, b) => (b.prediction?.confidence ?? 0) - (a.prediction?.confidence ?? 0))[0];
     const upset = predicted
       .filter((row) => {
         const spread = marketByGameId[row.game.gameId]?.primary?.spread;
@@ -331,7 +330,6 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
       return aRank - bRank || Math.abs(a.prediction!.predictedMargin) - Math.abs(b.prediction!.predictedMargin);
     })[0];
     return [
-      { label: "Best Bet", row: bestBet },
       { label: "Upset Alert", row: upset },
       { label: "Game of the Week", row: gameOfWeek },
     ].filter((pick): pick is { label: string; row: Row } => Boolean(pick.row));
@@ -406,6 +404,7 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
                   {featuredPicks.map(({ label, row }) => (
                     <button key={label} type="button" className="prime-pick" onClick={() => goToMatchup(row.game.gameId)}>
                       <span className="prime-pick__label">{label}</span>
+                      <span className="prime-pick__matchup-card">
                       <span className="prime-pick__teams">
                         <TeamCell team={row.game.awayTeam} teamId={row.game.awayTeamId} rank={topRanked.get(row.game.awayTeamId) ?? null} />
                         <TeamCell team={row.game.homeTeam} teamId={row.game.homeTeamId} rank={topRanked.get(row.game.homeTeamId) ?? null} />
@@ -413,6 +412,7 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
                       <span className="prime-pick__scores" title="Score estimates use model margin and market total">
                         <strong>{projectedScores(row, marketByGameId[row.game.gameId])?.away ?? "—"}</strong>
                         <strong>{projectedScores(row, marketByGameId[row.game.gameId])?.home ?? "—"}</strong>
+                      </span>
                       </span>
                       <span className="prime-pick__call">
                         <strong>{pickText(row.prediction!.predictedWinner, row.prediction!.predictedMargin)}</strong>
@@ -542,10 +542,14 @@ function PredictionCard({ row, market, access, homeRank, awayRank, onOpen }: {
           <PredictionTeam team={game.homeTeam} teamId={game.homeTeamId} rank={homeRank} record={homeRating?.record} score={game.completed ? game.homePoints : scores?.home} probability={homeProbability} />
         </span>
         {homeProbability !== null ? (
-          <span className="prediction-card__probability" aria-label={`${Math.round(awayProbability! * 100)} percent ${game.awayTeam}, ${Math.round(homeProbability * 100)} percent ${game.homeTeam}`}>
+          <span className="prediction-card__probability-group">
+          <span className="prediction-card__probability-labels">
+            <span>{game.awayTeam} <strong>{pct(awayProbability)}</strong></span>
+            <span>{game.homeTeam} <strong>{pct(homeProbability)}</strong></span>
+          </span>
+          <span className="prediction-card__probability" aria-hidden="true">
             <i style={{ width: `${Math.round(awayProbability! * 100)}%` }} />
-            <b>{Math.round(awayProbability! * 100)}%</b>
-            <b>{Math.round(homeProbability * 100)}%</b>
+          </span>
           </span>
         ) : null}
       </button>
