@@ -64,7 +64,7 @@ import "@/styles/trust-state.css";
 import "@/styles/home-rankings.css";
 import "@/styles/rankings-prime25.css";
 import "@/styles/site-chrome.css";
-import "@/styles/seo-content.css";
+import "@/styles/seo-content.css";\nimport "@/styles/teams-directory.css";
 /* Approved Weekly Predictions reference layer loads last to win the route-specific cascade. */
 import "@/styles/predictions-reference.css";
 
