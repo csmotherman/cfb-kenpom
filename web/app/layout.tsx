@@ -65,6 +65,8 @@ import "@/styles/home-rankings.css";
 import "@/styles/rankings-prime25.css";
 import "@/styles/site-chrome.css";
 import "@/styles/seo-content.css";
+/* Approved Weekly Predictions reference layer loads last to win the route-specific cascade. */
+import "@/styles/predictions-reference.css";
 
 export const viewport: Viewport = {
   themeColor: THEME_COLOR,
