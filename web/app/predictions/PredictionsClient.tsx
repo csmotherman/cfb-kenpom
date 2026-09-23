@@ -316,23 +316,21 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
 
   const featuredPicks = useMemo(() => {
     const predicted = rows.filter((row) => row.prediction?.confidence !== null && row.prediction?.confidence !== undefined);
-    const upset = predicted
+    const upsets = predicted
       .filter((row) => {
         const spread = marketByGameId[row.game.gameId]?.primary?.spread;
         if (spread === null || spread === undefined || spread === 0) return false;
         const marketFavorite = spread < 0 ? row.game.homeTeam : row.game.awayTeam;
         return row.prediction?.predictedWinner !== marketFavorite;
       })
-      .sort((a, b) => (b.prediction?.confidence ?? 0) - (a.prediction?.confidence ?? 0))[0];
+      .sort((a, b) => (b.prediction?.confidence ?? 0) - (a.prediction?.confidence ?? 0));
     const gameOfWeek = [...predicted].sort((a, b) => {
       const aRank = (topRanked.get(a.game.homeTeamId) ?? 40) + (topRanked.get(a.game.awayTeamId) ?? 40);
       const bRank = (topRanked.get(b.game.homeTeamId) ?? 40) + (topRanked.get(b.game.awayTeamId) ?? 40);
       return aRank - bRank || Math.abs(a.prediction!.predictedMargin) - Math.abs(b.prediction!.predictedMargin);
     })[0];
-    return [
-      { label: "Upset Alert", row: upset },
-      { label: "Game of the Week", row: gameOfWeek },
-    ].filter((pick): pick is { label: string; row: Row } => Boolean(pick.row));
+    const upset = upsets.find((row) => row.game.gameId !== gameOfWeek?.game.gameId);
+    return { upset, gameOfWeek };
   }, [rows, marketByGameId, topRanked]);
 
   const groupedRows = useMemo(() => {
@@ -394,34 +392,25 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
               </label>
             </section>
 
-            {featuredPicks.length ? (
-              <section className="prime-picks" aria-labelledby="primePicksTitle">
-                <header>
-                  <h2 id="primePicksTitle">PRIME PICKS</h2>
-                  <span>Our top model picks this week</span>
-                </header>
-                <div className="prime-picks__list">
-                  {featuredPicks.map(({ label, row }) => (
-                    <button key={label} type="button" className="prime-pick" onClick={() => goToMatchup(row.game.gameId)}>
-                      <span className="prime-pick__label">{label}</span>
-                      <span className="prime-pick__matchup-card">
-                      <span className="prime-pick__teams">
-                        <TeamCell team={row.game.awayTeam} teamId={row.game.awayTeamId} rank={topRanked.get(row.game.awayTeamId) ?? null} />
-                        <TeamCell team={row.game.homeTeam} teamId={row.game.homeTeamId} rank={topRanked.get(row.game.homeTeamId) ?? null} />
-                      </span>
-                      <span className="prime-pick__scores" title="Score estimates use model margin and market total">
-                        <strong>{projectedScores(row, marketByGameId[row.game.gameId])?.away ?? "—"}</strong>
-                        <strong>{projectedScores(row, marketByGameId[row.game.gameId])?.home ?? "—"}</strong>
-                      </span>
-                      </span>
-                      <span className="prime-pick__call">
-                        <strong>{pickText(row.prediction!.predictedWinner, row.prediction!.predictedMargin)}</strong>
-                        <small>{pct(row.prediction!.confidence)} confidence</small>
-                      </span>
-                      <span className="prime-pick__arrow" aria-hidden="true">›</span>
-                    </button>
-                  ))}
-                </div>
+            {featuredPicks.gameOfWeek || featuredPicks.upset ? (
+              <section className="prediction-highlights" aria-label="Featured predictions">
+                {featuredPicks.gameOfWeek ? (
+                  <FeaturedGameCard
+                    label="Game of the Week"
+                    row={featuredPicks.gameOfWeek}
+                    market={marketByGameId[featuredPicks.gameOfWeek.game.gameId]}
+                    awayRank={topRanked.get(featuredPicks.gameOfWeek.game.awayTeamId) ?? null}
+                    homeRank={topRanked.get(featuredPicks.gameOfWeek.game.homeTeamId) ?? null}
+                    onOpen={() => goToMatchup(featuredPicks.gameOfWeek!.game.gameId)}
+                  />
+                ) : null}
+                {featuredPicks.upset ? (
+                  <UpsetWatchCard
+                    row={featuredPicks.upset}
+                    market={marketByGameId[featuredPicks.upset.game.gameId]}
+                    onOpen={() => goToMatchup(featuredPicks.upset!.game.gameId)}
+                  />
+                ) : null}
               </section>
             ) : null}
 
@@ -455,7 +444,7 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
                     />
                   </label>
                   <details className="predictions-showcase__filter-menu">
-                    <summary>Filters</summary>
+                    <summary aria-label="Filters"><span className="sr-only">Filters</span></summary>
                     <label>
                       <span>Conference</span>
                       <select value={conference} onChange={(e) => setConference(e.target.value)} aria-label="Filter predictions by conference">
@@ -537,9 +526,13 @@ function PredictionCard({ row, market, access, homeRank, awayRank, onOpen }: {
           <strong>{game.completed ? "Final" : time.time || "Time TBA"}</strong>
           <span>{marketSummary(market)}</span>
         </span>
-        <span className="prediction-card__teams">
-          <PredictionTeam team={game.awayTeam} teamId={game.awayTeamId} rank={awayRank} record={awayRating?.record} score={game.completed ? game.awayPoints : scores?.away} probability={awayProbability} />
-          <PredictionTeam team={game.homeTeam} teamId={game.homeTeamId} rank={homeRank} record={homeRating?.record} score={game.completed ? game.homePoints : scores?.home} probability={homeProbability} />
+        <span className="prediction-card__matchup">
+          <PredictionTeam team={game.awayTeam} teamId={game.awayTeamId} rank={awayRank} record={awayRating?.record} />
+          <span className="prediction-card__score">
+            <small>{game.completed ? "Final" : "Projected"}</small>
+            <strong>{game.completed ? game.awayPoints ?? "—" : scores?.away ?? "—"}<i>–</i>{game.completed ? game.homePoints ?? "—" : scores?.home ?? "—"}</strong>
+          </span>
+          <PredictionTeam team={game.homeTeam} teamId={game.homeTeamId} rank={homeRank} record={homeRating?.record} align="right" />
         </span>
         {homeProbability !== null ? (
           <span className="prediction-card__probability-group">
@@ -560,46 +553,106 @@ function PredictionCard({ row, market, access, homeRank, awayRank, onOpen }: {
         </span>
         <button type="button" onClick={onOpen}>View matchup <span aria-hidden="true">→</span></button>
       </footer>
-      {scores && !game.completed ? <p className="prediction-card__estimate-note">Score estimate: model margin + market total. Win probability is not cover probability.</p> : null}
     </article>
   );
 }
 
-function PredictionTeam({ team, teamId, rank, record, score, probability }: {
+function FeaturedGameCard({ label, row, market, awayRank, homeRank, onOpen }: {
+  label: string;
+  row: Row;
+  market: MarketLinesSeason["games"][string] | undefined;
+  awayRank: number | null;
+  homeRank: number | null;
+  onOpen: () => void;
+}) {
+  const { game, prediction, awayRating, homeRating } = row;
+  const scores = projectedScores(row, market);
+  const homeProbability = prediction?.confidence === null || prediction?.confidence === undefined
+    ? null
+    : prediction.predictedWinner === game.homeTeam ? prediction.confidence : 1 - prediction.confidence;
+  const awayProbability = homeProbability === null ? null : 1 - homeProbability;
+  const winner = prediction?.predictedWinner;
+  const winnerProbability = prediction?.confidence ?? null;
+  const time = gameTimeParts(game);
+
+  return (
+    <article className="featured-game">
+      <header>
+        <h2>{label}</h2>
+        <span>{time.date} · {time.time || "Time TBA"}</span>
+      </header>
+      <button type="button" className="featured-game__body" onClick={onOpen}>
+        <PredictionTeam team={game.awayTeam} teamId={game.awayTeamId} rank={awayRank} record={awayRating?.record} featured />
+        <span className="featured-game__score">
+          <small>Projected</small>
+          <strong>{scores?.away ?? "—"}<i>–</i>{scores?.home ?? "—"}</strong>
+        </span>
+        <PredictionTeam team={game.homeTeam} teamId={game.homeTeamId} rank={homeRank} record={homeRating?.record} align="right" featured />
+      </button>
+      {homeProbability !== null ? (
+        <div className="featured-game__probability">
+          <span><strong>{pct(awayProbability)}</strong>{game.awayTeam}</span>
+          <i aria-hidden="true"><b style={{ width: `${Math.round(awayProbability! * 100)}%` }} /></i>
+          <span><strong>{pct(homeProbability)}</strong>{game.homeTeam}</span>
+        </div>
+      ) : null}
+      <footer>
+        <span>{winnerProbability === null ? "Projection unavailable" : `${pct(winnerProbability)} ${winner}`}</span>
+        <button type="button" onClick={onOpen}>Full preview <span aria-hidden="true">→</span></button>
+      </footer>
+    </article>
+  );
+}
+
+function UpsetWatchCard({ row, market, onOpen }: {
+  row: Row;
+  market: MarketLinesSeason["games"][string] | undefined;
+  onOpen: () => void;
+}) {
+  const { game, prediction } = row;
+  const scores = projectedScores(row, market);
+  const time = gameTimeParts(game);
+  return (
+    <article className="upset-watch">
+      <header>
+        <h2>Upset Watch</h2>
+        <span>{time.date} · {time.time || "Time TBA"}</span>
+      </header>
+      <button type="button" onClick={onOpen} className="upset-watch__body">
+        <span className="upset-watch__team">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logoUrl(game.awayTeamId)} alt="" />
+          <strong>{game.awayTeam}</strong>
+        </span>
+        <span className="upset-watch__score">{scores?.away ?? "—"}<i>–</i>{scores?.home ?? "—"}</span>
+        <span className="upset-watch__team upset-watch__team--right">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logoUrl(game.homeTeamId)} alt="" />
+          <strong>{game.homeTeam}</strong>
+        </span>
+        <span className="upset-watch__confidence">{pct(prediction?.confidence ?? null)} confidence</span>
+        <span className="upset-watch__arrow" aria-hidden="true">→</span>
+      </button>
+    </article>
+  );
+}
+
+function PredictionTeam({ team, teamId, rank, record, align = "left", featured = false }: {
   team: string;
   teamId: number;
   rank: number | null;
   record?: string;
-  score?: number | null;
-  probability: number | null;
+  align?: "left" | "right";
+  featured?: boolean;
 }) {
   return (
-    <span className="prediction-card__team">
+    <span className={`prediction-card__team prediction-card__team--${align}${featured ? " prediction-card__team--featured" : ""}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={logoUrl(teamId)} alt="" loading="lazy" decoding="async" />
       <span className="prediction-card__team-name">
         <strong>{rank !== null ? <small>#{rank}</small> : null}{team}</strong>
         <small>{record || "Record unavailable"}</small>
       </span>
-      <span className="prediction-card__projection">
-        <small>Projected</small>
-        <strong>{score ?? "—"}</strong>
-      </span>
-      <span className="prediction-card__win-prob">
-        <strong>{probability === null ? "—" : `${Math.round(probability * 100)}%`}</strong>
-        <small>Win prob</small>
-      </span>
-    </span>
-  );
-}
-
-function TeamCell({ team, teamId, rank }: { team: string; teamId: number; rank: number | null }) {
-  return (
-    <span className="predictions-table__team">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={logoUrl(teamId)} alt="" loading="lazy" decoding="async" />
-      {rank !== null ? <span className="predictions-table__rank">#{rank}</span> : null}
-      {team}
     </span>
   );
 }
