@@ -7,7 +7,7 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import PrimeLoadingState from "@/components/PrimeLoadingState";
+import MatchupLoading from "@/components/MatchupLoading";
 import PredictionsPerformanceSummary from "@/components/PredictionsPerformanceSummary";
 import { logoUrl } from "@/lib/teamCode";
 import {
@@ -372,6 +372,25 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
 
   if (loadError) throw loadError;
 
+  const predictionsReady =
+    schedule === null ||
+    (
+      schedule !== undefined &&
+      selectedWeek !== null &&
+      (access === "locked" || predictionsByWeek.has(selectedWeek))
+    );
+
+  if (!predictionsReady) {
+    return (
+      <>
+        <a className="skip-link" href="#predictionsContent">Skip to predictions</a>
+        <SiteHeader tagline="Weekly Predictions" />
+        <SiteNav />
+        <MatchupLoading detail="Loading weekly predictions" />
+      </>
+    );
+  }
+
   return (
     <>
       <a className="skip-link" href="#predictionsContent">Skip to predictions</a>
@@ -382,7 +401,7 @@ export default function PredictionsClient({ seo, initial }: { seo?: { lede: Reac
         {schedule === undefined ? (
           <>
             {seo?.lede ?? <h1 className="sr-only">College Football Predictions &amp; Matchup Analytics</h1>}
-            <PrimeLoadingState variant="predictions" />
+            <MatchupLoading detail="Loading weekly predictions" />
           </>
         ) : schedule === null ? (
           <p className="network-loading">Weekly schedule data is publishing with the next ratings refresh.</p>
