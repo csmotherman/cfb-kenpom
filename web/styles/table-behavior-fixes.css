@@ -194,3 +194,62 @@ table th[data-column="rank"] .tip-trigger {
     font-size: 7.75px !important;
   }
 }
+
+
+/* Ratings mobile team identity metadata */
+.team-meta-row {
+  display: block;
+  min-width: 0;
+}
+
+.team-record-inline {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  /* W-L belongs with the team identity on phones; removing the standalone
+     column gives the actual rating metrics more room above the fold. */
+  #ratingsTable .record-cell {
+    display: none !important;
+  }
+
+  #ratingsTable {
+    min-width: 502px !important;
+  }
+
+  #ratingsTable .team-meta-row {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: calc(100% - 26px);
+    max-width: calc(100% - 26px);
+    margin: 2px 0 0 26px !important;
+    overflow: hidden;
+    line-height: 1;
+  }
+
+  #ratingsTable .team-meta-row .team-conf-label {
+    display: block !important;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    text-align: left !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #ratingsTable .team-record-inline {
+    display: block;
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: var(--color-ink-secondary);
+    font-family: var(--font-mono);
+    font-size: 8.25px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+  }
+}
