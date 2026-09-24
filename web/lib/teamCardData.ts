@@ -60,7 +60,7 @@ function rankFor(rows: AdvancedRow[], team: AdvancedRow | null, key: CardMetricK
 
 export async function getTeamCardData(slug: string): Promise<TeamCardData | null> {
   const snapshot = await getTeamSnapshot(slug);
-  if (!snapshot?.latest || year === null || week === null) return null;
+  if (!snapshot?.latest || snapshot.year === null || snapshot.week === null) return null;
 
   const year = snapshot.year;
   const week = snapshot.week;
@@ -78,7 +78,7 @@ export async function getTeamCardData(slug: string): Promise<TeamCardData | null
       .maybeSingle();
 
     const season = data?.payload as AdvancedSeason | undefined;
-    const availableWeeks = season?.weeks?.filter((week) => week <= week) ?? [];
+    const availableWeeks = season?.weeks?.filter((candidateWeek) => candidateWeek <= week) ?? [];
     const advancedWeek = availableWeeks.length ? Math.max(...availableWeeks) : null;
     rows = advancedWeek === null ? [] : season?.byWeek?.[String(advancedWeek)] ?? [];
     advanced = rows.find((row) => row.slug === slug) ?? null;
@@ -99,8 +99,8 @@ export async function getTeamCardData(slug: string): Promise<TeamCardData | null
     nickname: teamMascot(snapshot.entry.team) ?? "",
     teamId: snapshot.entry.teamId,
     logo: logoUrl(snapshot.entry.teamId, 256),
-    year: year,
-    week: week,
+    year,
+    week,
     record: snapshot.latest.record,
     conference: conferenceName(snapshot.entry.conf),
     primeRank: snapshot.prime25Rank,
