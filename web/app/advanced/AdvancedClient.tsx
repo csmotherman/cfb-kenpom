@@ -401,8 +401,23 @@ export default function AdvancedClient() {
   useEffect(() => {
     getMeta().then((meta) => {
       setUpdatedAt(meta.generatedAt ?? null);
-      setYears(meta.advancedYears);
-      setYear(String(meta.advancedYears[meta.advancedYears.length - 1]));
+
+      // Advanced normally publishes its own season list. During a metadata
+      // refresh that array can briefly be empty even though the current
+      // premium dataset already exists. Never turn that transient state into
+      // an /api/premium/advanced/undefined request; fall back to the published
+      // ratings seasons and wait for a real numeric season.
+      const availableYears = meta.advancedYears?.length
+        ? meta.advancedYears
+        : meta.rankingsYears ?? [];
+      const latestYear = availableYears[availableYears.length - 1];
+
+      setYears(availableYears);
+      if (Number.isFinite(latestYear)) {
+        setYear(String(latestYear));
+      } else {
+        setLoadError(new Error("No published Advanced Analytics season is available."));
+      }
     }).catch(setLoadError);
   }, []);
 
