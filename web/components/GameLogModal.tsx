@@ -151,6 +151,13 @@ export default function GameLogModal({
           </div>
         </div>
 
+        {hasOpponentContext ? (
+          <div className="game-log-modal__mobile-help">
+            <span>Δ vs Avg</span>
+            <p>This game minus what the opponent usually allowed entering the game.</p>
+          </div>
+        ) : null}
+
         <p className="game-log-modal__note">
           <strong>How to read this:</strong> “This game” is {team}&apos;s actual performance.
           {hasOpponentContext
@@ -165,88 +172,146 @@ export default function GameLogModal({
         ) : games.length === 0 ? (
           <p className="game-log-modal__empty">No games in this selected range yet.</p>
         ) : (
-          <div className="game-log-modal__table-wrap">
-            <table className="game-log-modal__table">
-              <thead>
-                <tr>
-                  <th>Week</th>
-                  <th>Opponent</th>
-                  <th>Result</th>
-                  <th>{team} this game</th>
-                  <th>{hasOpponentContext ? "Opponent usually allows" : "Baseline"}</th>
-                  <th>{hasOpponentContext ? "+/- vs avg" : "Difference"}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {games.map((g) => {
-                  const ownNum = sumField(g.own, column.num);
-                  const ownDen = sumField(g.own, column.den);
-                  const ownValue = rate(ownNum, ownDen);
-                  const oppValue = hasOpponentContext && g.opponentContext
-                    ? rate(sumField(g.opponentContext, column.opponentNum), sumField(g.opponentContext, column.opponentDen))
-                    : null;
-                  const diff = ownValue !== null && oppValue !== null ? ownValue - oppValue : null;
-                  const diffGood = diff === null ? null : column.lowerBetter ? diff < 0 : diff > 0;
-                  const venue = g.homeAway === "home" ? "vs" : g.homeAway === "away" ? "@" : "N";
-                  const score = g.pointsFor === null || g.pointsAgainst === null
-                    ? ""
-                    : ` ${g.pointsFor}-${g.pointsAgainst}`;
-                  return (
-                    <tr key={g.gameId}>
-                      <td className="num game-log-modal__week" data-label="Week">{weekLabel(g.week)}</td>
-                      <td className="game-log-modal__opponent" data-label="Opponent">
+          <>
+            <div className="game-log-modal__table-wrap game-log-modal__desktop-breakdown">
+              <table className="game-log-modal__table">
+                <thead>
+                  <tr>
+                    <th>Week</th>
+                    <th>Opponent</th>
+                    <th>Result</th>
+                    <th>{team} this game</th>
+                    <th>{hasOpponentContext ? "Opponent usually allows" : "Baseline"}</th>
+                    <th>{hasOpponentContext ? "+/- vs avg" : "Difference"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {games.map((g) => {
+                    const ownNum = sumField(g.own, column.num);
+                    const ownDen = sumField(g.own, column.den);
+                    const ownValue = rate(ownNum, ownDen);
+                    const oppValue = hasOpponentContext && g.opponentContext
+                      ? rate(sumField(g.opponentContext, column.opponentNum), sumField(g.opponentContext, column.opponentDen))
+                      : null;
+                    const diff = ownValue !== null && oppValue !== null ? ownValue - oppValue : null;
+                    const diffGood = diff === null ? null : column.lowerBetter ? diff < 0 : diff > 0;
+                    const venue = g.homeAway === "home" ? "vs" : g.homeAway === "away" ? "@" : "N";
+                    const score = g.pointsFor === null || g.pointsAgainst === null
+                      ? ""
+                      : ` ${g.pointsFor}-${g.pointsAgainst}`;
+                    return (
+                      <tr key={g.gameId}>
+                        <td className="num game-log-modal__week">{weekLabel(g.week)}</td>
+                        <td className="game-log-modal__opponent">
+                          <span className="game-log-modal__venue">{venue}</span>
+                          {g.opponentTeamId && g.opponentSlug ? (
+                            <TeamLink team={g.opponent} teamId={g.opponentTeamId} slug={g.opponentSlug} />
+                          ) : (
+                            <span className="game-log-modal__opponent-name">{g.opponent}</span>
+                          )}
+                        </td>
+                        <td className={`num game-log-modal__result${g.win ? " win" : " loss"}`}>
+                          <strong>{g.win ? "W" : "L"}</strong>{score}
+                        </td>
+                        <td className="num game-log-modal__actual"><strong>{format(ownValue)}</strong></td>
+                        <td className="num game-log-modal__baseline">
+                          {oppValue === null ? (
+                            <span className="game-log-modal__dash">{hasOpponentContext ? "No prior games" : "—"}</span>
+                          ) : (
+                            <strong>{format(oppValue)}</strong>
+                          )}
+                        </td>
+                        <td className="num game-log-modal__delta">
+                          {diff === null ? (
+                            <span className="game-log-modal__dash">—</span>
+                          ) : (
+                            <span className={`game-log-modal__diff${diffGood ? " good" : " bad"}`}>
+                              {diff >= 0 ? "+" : ""}
+                              {diff.toFixed(diff < 1 && diff > -1 && diff !== 0 ? 3 : 1)}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={3}>Selected sample</td>
+                    <td className="num"><strong>{format(totals.value)}</strong></td>
+                    <td className="num">{games.length} games</td>
+                    <td className="num">—</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <div className="game-log-mobile-list" aria-label="Game-by-game breakdown">
+              {games.map((g) => {
+                const ownNum = sumField(g.own, column.num);
+                const ownDen = sumField(g.own, column.den);
+                const ownValue = rate(ownNum, ownDen);
+                const oppValue = hasOpponentContext && g.opponentContext
+                  ? rate(sumField(g.opponentContext, column.opponentNum), sumField(g.opponentContext, column.opponentDen))
+                  : null;
+                const diff = ownValue !== null && oppValue !== null ? ownValue - oppValue : null;
+                const diffGood = diff === null ? null : column.lowerBetter ? diff < 0 : diff > 0;
+                const venue = g.homeAway === "home" ? "vs" : g.homeAway === "away" ? "@" : "N";
+                const score = g.pointsFor === null || g.pointsAgainst === null
+                  ? null
+                  : `${g.pointsFor}-${g.pointsAgainst}`;
+
+                return (
+                  <article className="game-log-mobile-card" key={g.gameId}>
+                    <header className="game-log-mobile-card__head">
+                      <div className="game-log-mobile-card__opponent">
+                        <span className="game-log-mobile-card__week">{weekLabel(g.week)}</span>
                         <span className="game-log-modal__venue">{venue}</span>
                         {g.opponentTeamId && g.opponentSlug ? (
                           <TeamLink team={g.opponent} teamId={g.opponentTeamId} slug={g.opponentSlug} />
                         ) : (
                           <span className="game-log-modal__opponent-name">{g.opponent}</span>
                         )}
-                        <span className="game-log-modal__mobile-meta">
-                          {weekLabel(g.week)} · {g.win ? "W" : "L"}{score}
-                        </span>
-                      </td>
-                      <td className={`num game-log-modal__result${g.win ? " win" : " loss"}`} data-label="Result">
-                        <strong>{g.win ? "W" : "L"}</strong>{score}
-                      </td>
-                      <td className="num game-log-modal__actual" data-label="This game">
+                      </div>
+                      <div className={`game-log-mobile-card__result${g.win ? " win" : " loss"}`}>
+                        <strong>{g.win ? "W" : "L"}</strong>
+                        {score ? <span>{score}</span> : null}
+                      </div>
+                    </header>
+
+                    <div className="game-log-mobile-card__comparison">
+                      <div>
+                        <span>This game</span>
                         <strong>{format(ownValue)}</strong>
-                      </td>
-                      <td className="num game-log-modal__baseline" data-label="Opponent avg">
-                        {oppValue === null ? (
-                          <span className="game-log-modal__dash">
-                            {hasOpponentContext ? "No prior games" : "—"}
-                          </span>
-                        ) : (
-                          <strong>{format(oppValue)}</strong>
-                        )}
-                      </td>
-                      <td className="num game-log-modal__delta" data-label="+/- vs avg">
+                      </div>
+                      <div>
+                        <span>Opponent avg</span>
+                        <strong>{oppValue === null ? "—" : format(oppValue)}</strong>
+                        {oppValue === null && hasOpponentContext ? <small>No prior games</small> : null}
+                      </div>
+                      <div className="game-log-mobile-card__delta">
+                        <span>Δ vs avg</span>
                         {diff === null ? (
-                          <span className="game-log-modal__dash">—</span>
+                          <strong className="neutral">—</strong>
                         ) : (
-                          <span
-                            className={`game-log-modal__diff${diffGood ? " good" : " bad"}`}
-                            title={`${diff >= 0 ? "+" : ""}${diff.toFixed(diff < 1 && diff > -1 && diff !== 0 ? 3 : 1)} versus what the opponent usually allowed entering the game`}
-                          >
+                          <strong className={diffGood ? "good" : "bad"}>
                             {diff >= 0 ? "+" : ""}
                             {diff.toFixed(diff < 1 && diff > -1 && diff !== 0 ? 3 : 1)}
-                          </span>
+                          </strong>
                         )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colSpan={3}>Selected sample</td>
-                  <td className="num"><strong>{format(totals.value)}</strong></td>
-                  <td className="num">{games.length} games</td>
-                  <td className="num">—</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+
+              <div className="game-log-mobile-sample">
+                <span>Selected sample</span>
+                <strong>{format(totals.value)}</strong>
+                <small>{games.length} games</small>
+              </div>
+            </div>
+          </>
         )}
 
         <footer className="game-log-modal__footer">
