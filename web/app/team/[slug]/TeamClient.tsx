@@ -271,7 +271,6 @@ function TeamProfile({ slug, fullName, seo }: { slug: string; fullName: string; 
 
   useEffect(() => {
     let cancelled = false;
-    setPageReady(false);
     getMeta().then(async (meta) => {
       const sortedYears = meta.rankingsYears.slice().sort((a, b) => b - a);
       if (cancelled) return;
