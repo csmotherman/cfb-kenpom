@@ -20,9 +20,11 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 
 from hydrate_premium_data import config, fetch_json  # noqa: E402
+from premium_integrity import is_versioned_hash, payload_hash  # noqa: E402
 
 OUTPUT = REPO / "web" / "lib" / "team-game-percentile-baseline.ts"
 LOCAL_TEAM_GAME_DIR = REPO / "web" / "public" / "data" / "team-game-advanced"
+DEFAULT_HISTORY_CACHE_DIR = REPO / ".cache" / "premium-history" / "team-game-advanced"
 
 # The direction belongs to the metric definition, not to an individual UI row.
 # That prevents accidental inversions such as treating a negative EPA loss as
@@ -89,10 +91,10 @@ def percentile_cont(values: list[float], q: float) -> float:
     return ordered[low] + (ordered[high] - ordered[low]) * fraction
 
 
-def private_catalog(base_url: str, secret: str) -> list[int]:
+def private_catalog(base_url: str, secret: str) -> dict[int, str | None]:
     query = urlencode(
         {
-            "select": "season",
+            "select": "season,source_sha",
             "dataset_type": "eq.team_game_advanced",
             "week": "eq.0",
             "order": "season.asc",
@@ -100,13 +102,36 @@ def private_catalog(base_url: str, secret: str) -> list[int]:
         safe=",.",
     )
     rows = fetch_json(base_url, secret, f"/rest/v1/premium_datasets?{query}")
-    return sorted({int(row["season"]) for row in rows})
+    return {int(row["season"]): row.get("source_sha") for row in rows}
 
 
-def fetch_private_payload(base_url: str, secret: str, season: int) -> dict:
+def fetch_private_payload(
+    base_url: str,
+    secret: str,
+    season: int,
+    expected_sha: str | None,
+    cache_dir: Path,
+) -> dict:
+    cache_path = cache_dir / f"{season}.json"
+    if cache_path.exists():
+        try:
+            cached = json.loads(cache_path.read_text())
+        except (OSError, json.JSONDecodeError):
+            cached = None
+        if isinstance(cached, dict):
+            payload = cached.get("payload")
+            cached_sha = cached.get("source_sha")
+            if (
+                isinstance(payload, dict)
+                and (expected_sha is None or cached_sha == expected_sha)
+                and (not is_versioned_hash(cached_sha) or payload_hash(payload) == cached_sha)
+            ):
+                print(f"Historical team-game season {season}: cache hit.")
+                return payload
+
     query = urlencode(
         {
-            "select": "payload",
+            "select": "payload,source_sha",
             "dataset_type": "eq.team_game_advanced",
             "season": f"eq.{season}",
             "week": "eq.0",
@@ -117,7 +142,23 @@ def fetch_private_payload(base_url: str, secret: str, season: int) -> dict:
     rows = fetch_json(base_url, secret, f"/rest/v1/premium_datasets?{query}")
     if len(rows) != 1 or not isinstance(rows[0].get("payload"), dict):
         raise RuntimeError(f"Expected one team_game_advanced payload for {season}")
-    return rows[0]["payload"]
+
+    row = rows[0]
+    payload = row["payload"]
+    stored_sha = row.get("source_sha")
+    if is_versioned_hash(stored_sha) and payload_hash(payload) != stored_sha:
+        raise RuntimeError(f"team_game_advanced integrity failure for {season}")
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(
+        json.dumps(
+            {"season": season, "source_sha": stored_sha, "payload": payload},
+            separators=(",", ":"),
+            allow_nan=False,
+        )
+    )
+    print(f"Historical team-game season {season}: downloaded once and cached.")
+    return payload
 
 
 def load_local_payload(season: int) -> dict | None:
@@ -205,10 +246,12 @@ def main() -> None:
         help="Use this season's freshly exported local payload in place of the stored Supabase copy.",
     )
     parser.add_argument("--out", type=Path, default=OUTPUT)
+    parser.add_argument("--cache-dir", type=Path, default=DEFAULT_HISTORY_CACHE_DIR)
     args = parser.parse_args()
 
     base_url, secret = config()
-    seasons = private_catalog(base_url, secret)
+    catalog = private_catalog(base_url, secret)
+    seasons = sorted(catalog)
     payloads: dict[int, dict] = {}
     for season in seasons:
         if args.current_season == season:
@@ -219,7 +262,13 @@ def main() -> None:
                 )
             payloads[season] = local
         else:
-            payloads[season] = fetch_private_payload(base_url, secret, season)
+            payloads[season] = fetch_private_payload(
+                base_url,
+                secret,
+                season,
+                catalog[season],
+                args.cache_dir,
+            )
 
     if args.current_season is not None and args.current_season not in payloads:
         local = load_local_payload(args.current_season)
