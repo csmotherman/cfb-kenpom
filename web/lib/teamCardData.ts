@@ -2,7 +2,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getTeamSnapshot } from "@/lib/seoData";
 import { conferenceName, teamMascot } from "@/lib/teamMascots";
 import { logoUrl } from "@/lib/teamCode";
-import type { AdvancedRow, AdvancedSeason } from "@/lib/types";
 
 export type TeamCardMetric = {
   label: string;
@@ -46,17 +45,11 @@ type CardMetricKey =
   | "epaAdj" | "passEpaAdj" | "rushEpaAdj" | "successAdj" | "offExp" | "offHavoc"
   | "epaAdjAllowed" | "passEpaAdjAllowed" | "rushEpaAdjAllowed" | "successAdjAllowed" | "defExp" | "defHavoc";
 
-function rankFor(rows: AdvancedRow[], team: AdvancedRow | null, key: CardMetricKey): number | null {
-  if (!team) return null;
-  const own = team[key];
-  if (own === null || own === undefined || !Number.isFinite(own)) return null;
-  const ranked = rows
-    .map((row) => ({ slug: row.slug, value: row[key] }))
-    .filter((row) => row.value !== null && row.value !== undefined && Number.isFinite(row.value))
-    .sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity));
-  const index = ranked.findIndex((row) => row.slug === team.slug);
-  return index >= 0 ? index + 1 : null;
-}
+type TeamCardAdvancedSlice = {
+  week: number;
+  row: Partial<Record<CardMetricKey, number | null>>;
+  ranks: Partial<Record<CardMetricKey, number | null>>;
+};
 
 export async function getTeamCardData(slug: string): Promise<TeamCardData | null> {
   const snapshot = await getTeamSnapshot(slug);
@@ -64,33 +57,28 @@ export async function getTeamCardData(slug: string): Promise<TeamCardData | null
 
   const year = snapshot.year;
   const week = snapshot.week;
-  let advanced: AdvancedRow | null = null;
-  let rows: AdvancedRow[] = [];
+  let advanced: TeamCardAdvancedSlice | null = null;
 
   try {
     const admin = createAdminClient();
-    const { data } = await admin
-      .from("premium_datasets")
-      .select("payload")
-      .eq("dataset_type", "advanced")
-      .eq("season", year)
-      .eq("week", 0)
-      .maybeSingle();
-
-    const season = data?.payload as AdvancedSeason | undefined;
-    const availableWeeks = season?.weeks?.filter((candidateWeek) => candidateWeek <= week) ?? [];
-    const advancedWeek = availableWeeks.length ? Math.max(...availableWeeks) : null;
-    rows = advancedWeek === null ? [] : season?.byWeek?.[String(advancedWeek)] ?? [];
-    advanced = rows.find((row) => row.slug === slug) ?? null;
+    const { data, error } = await admin.rpc("get_team_card_advanced", {
+      p_season: year,
+      p_week: week,
+      p_slug: slug,
+    });
+    if (error) throw error;
+    advanced = (data as TeamCardAdvancedSlice | null) ?? null;
   } catch {
     // The public identity/rating portion can still render if the advanced
     // dataset is temporarily unavailable.
   }
 
-  const metric = (label: string, value: string, key: CardMetricKey): TeamCardMetric => ({
+  const value = (key: CardMetricKey) => advanced?.row?.[key] ?? null;
+  const rank = (key: CardMetricKey) => advanced?.ranks?.[key] ?? null;
+  const metric = (label: string, formatted: string, key: CardMetricKey): TeamCardMetric => ({
     label,
-    value,
-    rank: rankFor(rows, advanced, key),
+    value: formatted,
+    rank: rank(key),
   });
 
   return {
@@ -110,24 +98,24 @@ export async function getTeamCardData(slug: string): Promise<TeamCardData | null
     strengthOfRecordRank: snapshot.latest.sorRank,
     strengthOfScheduleRank: snapshot.latest.sosRank,
     adjustedScoringMargin: {
-      value: signed(advanced?.asm, 1),
-      rank: rankFor(rows, advanced, "asm"),
+      value: signed(value("asm"), 1),
+      rank: rank("asm"),
     },
     offense: [
-      metric("EPA / Play", signed(advanced?.epaAdj), "epaAdj"),
-      metric("Pass EPA", signed(advanced?.passEpaAdj), "passEpaAdj"),
-      metric("Rush EPA", signed(advanced?.rushEpaAdj), "rushEpaAdj"),
-      metric("Success Rate Edge", pctEdge(advanced?.successAdj), "successAdj"),
-      metric("Explosiveness", signed(advanced?.offExp, 3), "offExp"),
-      metric("Havoc Avoidance", signed(advanced?.offHavoc, 3), "offHavoc"),
+      metric("EPA / Play", signed(value("epaAdj")), "epaAdj"),
+      metric("Pass EPA", signed(value("passEpaAdj")), "passEpaAdj"),
+      metric("Rush EPA", signed(value("rushEpaAdj")), "rushEpaAdj"),
+      metric("Success Rate Edge", pctEdge(value("successAdj")), "successAdj"),
+      metric("Explosiveness", signed(value("offExp"), 3), "offExp"),
+      metric("Havoc Avoidance", signed(value("offHavoc"), 3), "offHavoc"),
     ],
     defense: [
-      metric("EPA / Play", signed(advanced?.epaAdjAllowed), "epaAdjAllowed"),
-      metric("Pass EPA", signed(advanced?.passEpaAdjAllowed), "passEpaAdjAllowed"),
-      metric("Rush EPA", signed(advanced?.rushEpaAdjAllowed), "rushEpaAdjAllowed"),
-      metric("Success Rate Edge", pctEdge(advanced?.successAdjAllowed), "successAdjAllowed"),
-      metric("Explosiveness", signed(advanced?.defExp, 3), "defExp"),
-      metric("Havoc", signed(advanced?.defHavoc, 3), "defHavoc"),
+      metric("EPA / Play", signed(value("epaAdjAllowed")), "epaAdjAllowed"),
+      metric("Pass EPA", signed(value("passEpaAdjAllowed")), "passEpaAdjAllowed"),
+      metric("Rush EPA", signed(value("rushEpaAdjAllowed")), "rushEpaAdjAllowed"),
+      metric("Success Rate Edge", pctEdge(value("successAdjAllowed")), "successAdjAllowed"),
+      metric("Explosiveness", signed(value("defExp"), 3), "defExp"),
+      metric("Havoc", signed(value("defHavoc"), 3), "defHavoc"),
     ],
   };
 }
