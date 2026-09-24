@@ -2140,3 +2140,47 @@
     font-size: 9px;
   }
 }
+
+
+/* Make the two homepage ranking products unmistakably different at a glance. */
+.prime-home-panel__kicker {
+  display: inline-flex !important;
+  align-items: center;
+  width: fit-content;
+  min-height: 20px;
+  margin-bottom: 4px;
+  padding: 0 7px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 3px;
+  font-size: 7.5px !important;
+  letter-spacing: .115em !important;
+  line-height: 1;
+}
+
+.prime-home-panel--ratings .prime-home-panel__kicker {
+  border-color: #d6a43d;
+  background: #d6a43d;
+  color: #102b4a;
+}
+
+.prime-home-panel--rankings .prime-home-panel__kicker {
+  border-color: rgb(240 203 120 / 72%);
+  background: rgb(255 255 255 / 7%);
+  color: #f3cf7c;
+}
+
+.prime-home-panel--ratings .prime-home-panel__head {
+  box-shadow: inset 4px 0 0 #d6a43d;
+}
+
+.prime-home-panel--rankings .prime-home-panel__head {
+  box-shadow: inset -4px 0 0 #d6a43d;
+}
+
+@media (max-width: 760px) {
+  .prime-home-panel__kicker {
+    min-height: 18px;
+    padding-inline: 6px;
+    font-size: 6.8px !important;
+  }
+}
