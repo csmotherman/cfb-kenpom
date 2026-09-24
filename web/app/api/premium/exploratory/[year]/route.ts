@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentEntitlements } from "@/lib/auth/entitlements";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { getPremiumDataset } from "@/lib/premiumDataset";
 import type { ExploratorySeason } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -46,24 +46,15 @@ export async function GET(
   }
 
   try {
-    const admin = createAdminClient();
-    const { data, error } = await admin
-      .from("premium_datasets")
-      .select("payload")
-      .eq("dataset_type", "exploratory")
-      .eq("season", Number(year))
-      .eq("week", 0)
-      .maybeSingle();
-
-    if (error) throw error;
-    if (!data) {
+    const exploratory = await getPremiumDataset<ExploratorySeason>("exploratory", Number(year));
+    if (!exploratory) {
       return NextResponse.json(
         { code: "NOT_FOUND", message: "Exploratory data is not published for this season." },
         { status: 404, headers: PRIVATE_HEADERS }
       );
     }
 
-    return NextResponse.json(data.payload as ExploratorySeason, {
+    return NextResponse.json(exploratory, {
       status: 200,
       headers: PRIVATE_HEADERS,
     });
