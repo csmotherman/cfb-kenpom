@@ -173,7 +173,6 @@ export default function ExploratoryClient() {
 
   function openProfile(team: Aggregated) {
     setProfileTeam(team);
-    ensureSample(team.slug, team.teamId);
   }
 
   async function copyShareLink() {
