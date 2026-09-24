@@ -40,6 +40,7 @@ export default function CfpTeamCell({
   status,
   year,
   className = "team-cell",
+  record,
 }: {
   team: string;
   teamId: number;
@@ -48,6 +49,7 @@ export default function CfpTeamCell({
   status: CfpStatus;
   year: string;
   className?: string;
+  record?: string;
 }) {
   const label = cfpLabel(status);
   const modifier = cfpModifier(status);
@@ -58,7 +60,10 @@ export default function CfpTeamCell({
         <div className="team-cell-stack team-cell-stack--cfp">
           <div className="cfp-team-copy">
             <TeamLink team={team} teamId={teamId} slug={slug} />
-            <span className="team-conf-label">{conf}</span>
+            <span className="team-meta-row">
+              <span className="team-conf-label">{conf}</span>
+              {record ? <span className="team-record-inline">{record}</span> : null}
+            </span>
           </div>
           <span className={`cfp-badge cfp-badge--${modifier}`}>
             <CfpBadgeIcon status={status} />
@@ -68,7 +73,10 @@ export default function CfpTeamCell({
       ) : (
         <div className="team-cell-stack">
           <TeamLink team={team} teamId={teamId} slug={slug} />
-          <span className="team-conf-label">{conf}</span>
+          <span className="team-meta-row">
+            <span className="team-conf-label">{conf}</span>
+            {record ? <span className="team-record-inline">{record}</span> : null}
+          </span>
         </div>
       )}
     </td>
