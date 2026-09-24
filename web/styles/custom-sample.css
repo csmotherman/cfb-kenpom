@@ -234,3 +234,89 @@
 .cs-inline__tools { display: flex; gap: 8px; }
 .cs-inline .cs-btn { min-height: 36px; padding: 0 10px; }
 .cs-inline .cs-games { max-height: 320px; overflow-y: auto; }
+
+
+/* Advanced table: keep record and per-team game filter legible without
+   clipping the control into the first metric column. */
+#advancedTable .advanced-record-cell {
+  white-space: nowrap;
+}
+
+#advancedTable .advanced-record-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+#advancedTable .advanced-record-value {
+  display: inline-block;
+  min-width: 27px;
+  font: 800 12px/1 var(--font-mono);
+  color: var(--color-ink-secondary);
+  text-align: center;
+}
+
+#advancedTable .cs-chip {
+  min-width: 58px;
+  height: 27px;
+  margin-left: 0;
+  gap: 5px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: #f8f5ed;
+  font-size: 8px;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+#advancedTable .cs-chip svg {
+  flex: 0 0 13px;
+  width: 13px;
+  height: 13px;
+}
+
+#advancedTable .cs-chip__label {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+#advancedTable .cs-chip--custom {
+  border-color: var(--color-gold-dark);
+  background: #e7bd61;
+  color: var(--color-navy);
+}
+
+@media (min-width: 641px) {
+  #advancedTable .adv-table .record-cell {
+    width: 112px;
+    min-width: 112px;
+    max-width: 112px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  #advancedTable .advanced-record-control {
+    gap: 4px;
+  }
+
+  #advancedTable .advanced-record-value {
+    min-width: 24px;
+    font-size: 10px;
+  }
+
+  #advancedTable .cs-chip {
+    min-width: 28px;
+    width: 28px;
+    height: 25px;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  #advancedTable .cs-chip__label {
+    display: none;
+  }
+}
