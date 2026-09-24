@@ -907,19 +907,24 @@ export default function AdvancedClient() {
                       <tr key={team.slug} className={team._custom ? "cs-custom-row" : undefined}>
                         <td className="num rank-cell">{team._rank ? String(team._rank) : "—"}</td>
                         <CfpTeamCell team={team.team} teamId={team.teamId} slug={team.slug} conf={team.conf} status={cfpStatusByTeamId.get(team.teamId)} year={year} />
-                        <td className="num record-cell">
-                          {team.record}
-                          <button
-                            type="button"
-                            className={`cs-chip${team._custom ? " cs-chip--custom" : ""}`}
-                            aria-label={team._custom ? `${team.team}: custom sample, ${team._custom.included} of ${team._custom.total} games. Edit games` : `Customize ${team.team}'s games`}
-                            title={team._custom ? "Custom sample — click to edit games" : "Choose which games count"}
-                            onClick={() => openSampleSheet(team)}
-                          >
-                            {team._custom ? `${team._custom.included}/${team._custom.total}` : (
-                              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7" /><circle cx="10.5" cy="4.5" r="1.7" /><circle cx="5.5" cy="11.5" r="1.7" /></svg>
-                            )}
-                          </button>
+                        <td className="num record-cell advanced-record-cell">
+                          <div className="advanced-record-control">
+                            <span className="advanced-record-value">{team.record}</span>
+                            <button
+                              type="button"
+                              className={`cs-chip${team._custom ? " cs-chip--custom" : ""}`}
+                              aria-label={team._custom ? `${team.team}: custom sample, ${team._custom.included} of ${team._custom.total} games. Edit games` : `Filter ${team.team}'s games`}
+                              title={team._custom ? "Custom sample — click to edit games" : "Filter games"}
+                              onClick={() => openSampleSheet(team)}
+                            >
+                              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+                                <path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7" />
+                                <circle cx="10.5" cy="4.5" r="1.7" />
+                                <circle cx="5.5" cy="11.5" r="1.7" />
+                              </svg>
+                              <span className="cs-chip__label">{team._custom ? `${team._custom.included}/${team._custom.total}` : "Games"}</span>
+                            </button>
+                          </div>
                         </td>
                         {visibleColumns.map((col) => {
                           const value = team[col.key] as number | null;
