@@ -101,7 +101,6 @@ const GENERAL_SECTIONS: AdvSection[] = [
   {
     title: "Field Position",
     columns: [
-      { key: "fieldPos", label: "Adj", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Opponent-adjusted starting field-position edge, as of the end week. Research-stage model." },
       { key: "offFieldPosRaw", label: "Off Start", fmt: "fieldpos", rankable: true, lowerBetter: true, kind: "rate", num: ["fieldPosSum"], den: ["fieldPosCount"], tooltip: "Average offensive starting field position, shown as a yard line. Lower is better." },
       { key: "defFieldPosRaw", label: "Opp Start", fmt: "fieldpos", rankable: true, kind: "rate", num: ["fieldPosSumA"], den: ["fieldPosCountA"], tooltip: "Average opponent starting field position, shown as a yard line. Higher (deeper in their own territory) is better." },
     ],
@@ -274,9 +273,9 @@ const STATIC_TABS: Record<"general" | "offense" | "defense", Tab> = {
 };
 
 const TAB_LABELS: Array<{ key: TabKey; label: string }> = [
-  { key: "general", label: "General" },
   { key: "offense", label: "Offense" },
   { key: "defense", label: "Defense" },
+  { key: "general", label: "General" },
   { key: "epa", label: "EPA" },
   { key: "successRate", label: "Success Rate" },
   { key: "mistakes", label: "Turnovers & Penalties" },
@@ -346,7 +345,7 @@ export default function AdvancedClient() {
   const [year, setYear] = useState<string>("");
   const [startWeek, setStartWeek] = useState<number | null>(null);
   const [endWeek, setEndWeek] = useState<number | null>(null);
-  const [tab, setTab] = useState<TabKey>("general");
+  const [tab, setTab] = useState<TabKey>("offense");
   const [perspective, setPerspective] = useState<Perspective>("offense");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
