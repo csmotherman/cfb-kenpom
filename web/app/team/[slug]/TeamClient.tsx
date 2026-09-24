@@ -6,6 +6,7 @@ import type { TeamSeoParts } from "@/components/seo/TeamSeoContent";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import MatchupLoading from "@/components/MatchupLoading";
 import { TipTrigger } from "@/components/Tooltip";
 import {
   getMeta,
@@ -256,6 +257,7 @@ export default function TeamClient({ slug, fullName, seo }: { slug: string; full
 
 function TeamProfile({ slug, fullName, seo }: { slug: string; fullName: string; seo: TeamSeoParts | null }) {
   const [loadError, setLoadError] = useState<Error | null>(null);
+  const [pageReady, setPageReady] = useState(false);
   const [seasons, setSeasons] = useState<SeasonRow[] | null>(null);
   const [latestRankings, setLatestRankings] = useState<RankingsSeason | null>(null);
   const [primeRankings, setPrimeRankings] = useState<PrimeRankingSnapshot | null>(null);
@@ -269,6 +271,7 @@ function TeamProfile({ slug, fullName, seo }: { slug: string; fullName: string; 
 
   useEffect(() => {
     let cancelled = false;
+    setPageReady(false);
     getMeta().then(async (meta) => {
       const sortedYears = meta.rankingsYears.slice().sort((a, b) => b - a);
       if (cancelled) return;
@@ -301,6 +304,7 @@ function TeamProfile({ slug, fullName, seo }: { slug: string; fullName: string; 
       setTeamStatsLabel(publicStats?.weekLabel ?? null);
       setSchedule(scheduleData);
       setAdvanced(advancedData);
+      setPageReady(true);
     }).catch((error: Error) => {
       if (!cancelled) setLoadError(error);
     });
@@ -355,13 +359,12 @@ function TeamProfile({ slug, fullName, seo }: { slug: string; fullName: string; 
 
   if (loadError) throw loadError;
 
-  if (seasons === null) {
+  if (!pageReady || seasons === null) {
     return (
       <>
         <SiteHeader tagline="College Football Team Analytics" />
         <SiteNav />
-        {/* Server-rendered team summary (real text and links for crawlers and no-JS readers) until the interactive profile loads. */}
-        {seo?.loading ?? <main className="container weekly-state">Loading team profile…</main>}
+        <MatchupLoading detail="Loading team profile" />
       </>
     );
   }
