@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentEntitlements } from "@/lib/auth/entitlements";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { getPremiumDataset } from "@/lib/premiumDataset";
 import type { PredictionsWeek } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -44,24 +44,18 @@ export async function GET(
   }
 
   try {
-    const admin = createAdminClient();
-    const { data, error } = await admin
-      .from("premium_datasets")
-      .select("payload")
-      .eq("dataset_type", "predictions")
-      .eq("season", Number(season))
-      .eq("week", Number(week))
-      .maybeSingle();
-
-    if (error) throw error;
-    if (!data) {
+    const published = await getPremiumDataset<PredictionsWeek>(
+      "predictions",
+      Number(season),
+      Number(week),
+    );
+    if (!published) {
       return NextResponse.json(
         { code: "NOT_FOUND", message: "Predictions are not published for this week." },
         { status: 404, headers: PRIVATE_HEADERS }
       );
     }
 
-    const published = data.payload as PredictionsWeek;
     const totalGames = published.games.length;
     const response: PredictionsWeek = {
       ...published,
