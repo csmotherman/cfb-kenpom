@@ -191,13 +191,14 @@ jobs:
           path: |
             data/raw
             data/processed
+            .cache/premium-history
           key: cfb-kenpom-data-v3-${{ env.SEASON }}-${{ github.run_id }}
           restore-keys: |
             cfb-kenpom-data-v3-${{ env.SEASON }}-
             cfb-kenpom-data-v2-${{ env.SEASON }}-
 
       - name: Hydrate and verify private premium history
-        run: python scripts/hydrate_premium_data.py
+        run: python scripts/hydrate_premium_data.py --max-season "$((SEASON - 1))" --cache-dir ".cache/premium-history/advanced"
 
       - name: Fetch games, team box scores, drives and play-by-play for changed partitions
         env:
@@ -306,7 +307,7 @@ jobs:
       - name: Audit completed-game source and reconciliation contract
         run: python scripts/audit_game_results_contract.py
       - name: Refresh historical single-game percentile baseline
-        run: python scripts/export_team_game_percentile_baseline.py --current-season "$SEASON"
+        run: python scripts/export_team_game_percentile_baseline.py --current-season "$SEASON" --cache-dir ".cache/premium-history/team-game-advanced"
 
       - name: Test publication gates
         run: python -m unittest discover -s tests
