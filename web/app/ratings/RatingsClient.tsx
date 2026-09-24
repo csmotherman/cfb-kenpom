@@ -372,6 +372,7 @@ export default function RatingsClient({ seo, initial }: { seo?: ReactNode; initi
                       conf={t.conf}
                       status={cfpStatusByTeamId.get(t.teamId)}
                       year={year}
+                      record={t.record}
                     />
                     <td className="num record-cell">{t.record}</td>
                     <StatCell value={t.adjEM} rank={t.rank} primary useSign decimals={1} metricKey="adjEM" bg={heatBackground(t.adjEM, ranges.adjEM)} />
