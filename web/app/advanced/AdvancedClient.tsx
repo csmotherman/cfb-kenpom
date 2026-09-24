@@ -38,7 +38,7 @@ const FORMATTERS: Record<string, (v: number | null) => string> = {
 
 type ColKind = "snapshot" | "rate" | "split";
 type Perspective = "offense" | "defense" | "margin" | "both";
-type TabKey = "core" | "general" | "offense" | "defense" | "epa" | "successRate" | "mistakes";
+type TabKey = "general" | "offense" | "defense" | "epa" | "successRate" | "mistakes";
 
 type AdvColumn = {
   key: string;
@@ -83,7 +83,6 @@ const GENERAL_SECTIONS: AdvSection[] = [
     columns: [
       { key: "adjEM", label: "Net Rating", fmt: "signed1", primary: true, rankable: true, kind: "snapshot", sourceRankKey: "rank", tooltip: "The exact Net Rating rating and national rank from the Ratings page at the selected end week. Net Rating = Off Rating + Def Rating." },
       { key: "asm", label: "ASM", fmt: "signed1", rankable: true, kind: "snapshot", tooltip: "Adjusted Score Matrix: PRIME's opponent-adjusted scoring-margin rating (constrained least squares), with each game's margin capped at 28 points before fitting so blowouts can't dominate a team's number. A scoring-margin counterpart to Net Rating's possession-efficiency rating." },
-      { key: "cfpChancePct", label: "CFP %", fmt: "pct1", rankable: true, kind: "snapshot", tooltip: "Live chance of making the 12-team College Football Playoff field, from a 2,000-trial Monte Carlo simulation of the rest of the season seeded with this week's in-season power, then calibrated against 11 real seasons (2014-2025) of actual outcomes so the percentage reflects real-world accuracy rather than raw model confidence. Conference championship games are simulated, not read from the real schedule, and the committee-selection rule is a statistical proxy validated against real 2024-2025 fields. Blank for past seasons -- this reflects only where things stand right now." },
     ],
   },
   {
@@ -317,32 +316,6 @@ const ALL_COLUMNS: AdvColumn[] = [
   ...SUCCESS_ALL_COLUMNS,
 ];
 
-// Default "Core" view: ratings plus the headline efficiency measures, built from the existing column definitions so every
-// number matches its counterpart in the full tables. "All metrics" opens the complete research tabs.
-const CORE_COLUMN_BY_KEY = new Map(ALL_COLUMNS.map((column) => [column.key, column]));
-function coreColumn(key: string, label: string, tip?: string): AdvColumn {
-  const base = CORE_COLUMN_BY_KEY.get(key);
-  if (!base) throw new Error(`Core column ${key} is not defined`);
-  return { ...base, label, primary: key === "adjEM", tooltip: tip ?? base.tooltip };
-}
-const CORE_SECTIONS: AdvSection[] = [
-  { title: "Rating", columns: [coreColumn("adjEM", "Net Rating"), coreColumn("adjO", "Off Rating"), coreColumn("adjD", "Def Rating")] },
-  {
-    title: "Efficiency",
-    columns: [
-      coreColumn("epaAdj", "Off EPA/Play", "Opponent-adjusted offensive EPA per play (CFBD's PPA model). Higher is better."),
-      coreColumn("offSuccess", "Off Success"),
-      coreColumn("offYpp", "Off YPP"),
-      coreColumn("offExpRaw", "Off Expl %"),
-    ],
-  },
-  { title: "Havoc & finishing", columns: [coreColumn("defHavocRaw", "Def Havoc"), coreColumn("offFinRaw", "Off Pts/Opp")] },
-];
-const CORE_TAB: Tab = {
-  label: "Core", primaryKey: "adjEM", sections: CORE_SECTIONS, columns: CORE_SECTIONS.flatMap((section) => section.columns),
-  note: "Core metrics: the ratings plus the headline efficiency measures. Off = offense, Def = defense. Open All metrics for every family.",
-};
-
 function sumField(wk: Record<string, number>, fields: string[]): number {
   let total = 0;
   fields.forEach((field) => { if (wk[field] !== undefined) total += wk[field]; });
@@ -373,15 +346,13 @@ export default function AdvancedClient() {
   const [year, setYear] = useState<string>("");
   const [startWeek, setStartWeek] = useState<number | null>(null);
   const [endWeek, setEndWeek] = useState<number | null>(null);
-  const [tab, setTab] = useState<TabKey>("core");
-  const [lastAllTab, setLastAllTab] = useState<TabKey>("general");
+  const [tab, setTab] = useState<TabKey>("general");
   const [perspective, setPerspective] = useState<Perspective>("offense");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filter, setFilter] = useState("");
   const [conference, setConference] = useState("");
   const [gameLogTarget, setGameLogTarget] = useState<{ team: Aggregated; column: AdvColumn } | null>(null);
-  const [showAllColumns, setShowAllColumns] = useState(true);
   const [showDrillDownTip, setShowDrillDownTip] = useState(false);
   /* eslint-disable react-hooks/set-state-in-effect -- one-time client-only
      localStorage read on mount (matches the query-string-read pattern in
@@ -529,7 +500,6 @@ export default function AdvancedClient() {
   const tabDef = useMemo<Tab>(() => {
     if (tab === "mistakes") return buildMistakesTab(perspective) as Tab;
     if (tab === "epa" || tab === "successRate") return specialTab(tab, perspective);
-    if (tab === "core") return CORE_TAB;
     return STATIC_TABS[tab];
   }, [tab, perspective]);
 
@@ -584,9 +554,8 @@ export default function AdvancedClient() {
   }, [teams, tabDef]);
 
   const sectionStartKeys = useMemo(() => new Set(tabDef.sections.map((section) => section.columns[0]?.key).filter(Boolean)), [tabDef]);
-  const specialColumnsTab = tab === "core" || tab === "epa" || tab === "successRate" || tab === "mistakes";
-  const visibleSections = showAllColumns ? tabDef.sections : tabDef.sections.slice(0, 1);
-  const visibleColumns = useMemo(() => visibleSections.flatMap((section) => section.columns), [visibleSections]);
+  const visibleSections = tabDef.sections;
+  const visibleColumns = useMemo(() => tabDef.sections.flatMap((section) => section.columns), [tabDef]);
   const conferences = useMemo(() => [...new Set(teams.map((team) => team.conf))].filter(Boolean).sort(), [teams]);
   const tableLoading = loading || (tab === "mistakes" && year === "2025" && !mistakesSeason);
 
@@ -602,17 +571,14 @@ export default function AdvancedClient() {
 
   function selectTab(nextTab: TabKey) {
     setTab(nextTab);
-    if (nextTab !== "core") setLastAllTab(nextTab);
     setSortKey(null);
     setSortDir("asc");
-    setShowAllColumns(nextTab === "core" || nextTab === "epa" || nextTab === "successRate" || nextTab === "mistakes");
   }
 
   function selectPerspective(nextPerspective: Perspective) {
     setPerspective(nextPerspective);
     setSortKey(null);
     setSortDir("asc");
-    setShowAllColumns(true);
   }
 
   if (loadError) throw loadError;
@@ -694,17 +660,11 @@ export default function AdvancedClient() {
           </div>
 
           <div className="container tab-bar advanced-tab-bar">
-            <div className="advanced-view-toggle" role="group" aria-label="Metric set">
-              <button type="button" className={tab === "core" ? "active" : undefined} aria-pressed={tab === "core"} onClick={() => selectTab("core")}>Core</button>
-              <button type="button" className={tab !== "core" ? "active" : undefined} aria-pressed={tab !== "core"} onClick={() => selectTab(lastAllTab)}>All metrics</button>
-            </div>
-            {tab !== "core" ? (
-              <nav className="tab-nav" aria-label="Analytics category">
-                {TAB_LABELS.map(({ key, label }) => (
-                  <button key={key} type="button" className={tab === key ? "active" : undefined} aria-pressed={tab === key} onClick={() => selectTab(key)}>{label}</button>
-                ))}
-              </nav>
-            ) : null}
+            <nav className="tab-nav" aria-label="Analytics category">
+              {TAB_LABELS.map(({ key, label }) => (
+                <button key={key} type="button" className={tab === key ? "active" : undefined} aria-pressed={tab === key} onClick={() => selectTab(key)}>{label}</button>
+              ))}
+            </nav>
 
             {tabDef.supportsPerspective ? (
               <div className="advanced-perspective" role="group" aria-label={`${tabDef.label} perspective`}>
@@ -740,11 +700,6 @@ export default function AdvancedClient() {
             <div className="advanced-table-summary">
               <span aria-hidden="true">{tabDef.label}</span>
               <span aria-hidden="true">{visibleSections.map((section) => section.title).join(" • ")}</span>
-              {tabDef.sections.length > 1 ? (
-                <button type="button" className={`show-all-columns-toggle${specialColumnsTab ? " show-all-columns-toggle--mobile-only" : ""}`} onClick={() => setShowAllColumns((v) => !v)}>
-                  {showAllColumns ? "Show fewer columns" : `Show all columns (+${tabDef.sections.length - 1} more section${tabDef.sections.length - 1 === 1 ? "" : "s"})`}
-                </button>
-              ) : null}
             </div>
             <div className="table-scroll" role="region" aria-label="Advanced CFF analytics table" tabIndex={0}>
               <table className="data-table adv-table" data-view={tab} data-perspective={tabDef.supportsPerspective ? perspective : undefined}>
