@@ -87,3 +87,30 @@
     font-size: 7px;
   }
 }
+
+
+.ct-generated-card-wrap {
+  width: min(620px, 100%);
+  margin: 0 auto;
+}
+
+.ct-generated-card {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #cfc9bd;
+  box-shadow: 0 22px 60px #102b4a1c;
+  background: #f9f7f1;
+}
+
+@media (max-width: 650px) {
+  .ct-generated-card-wrap {
+    width: 100%;
+  }
+
+  .ct-generated-card {
+    border-left: 0;
+    border-right: 0;
+    box-shadow: none;
+  }
+}
