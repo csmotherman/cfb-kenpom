@@ -91,10 +91,19 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
             <div className="prime-home-v2__hero-copy">
               <span className="prime-home-v2__eyebrow">PRIME CFB Analytics</span>
               <h1>
-                College Football,
-                <span>Measured by Performance.</span>
+                The Signal
+                <span>Behind College Football.</span>
               </h1>
-              <p>Opponent-adjusted ratings. Data-driven rankings. Smarter predictions. A deeper look at the game.</p>
+              <p className="prime-home-v2__pillars" aria-label="PRIME stands for Performance, Ratings, Intelligence, Merit, Efficiency">
+                <span><b>P</b>erformance</span><i>•</i>
+                <span><b>R</b>atings</span><i>•</i>
+                <span><b>I</b>ntelligence</span><i>•</i>
+                <span><b>M</b>erit</span><i>•</i>
+                <span><b>E</b>fficiency</span>
+              </p>
+              <p className="prime-home-v2__hero-description">
+                Opponent-adjusted ratings, résumé rankings, predictions, and advanced stats built to show what the scoreboard misses.
+              </p>
             </div>
 
             <aside className="prime-home-v2__hero-meta" aria-label="Current PRIME season">
@@ -352,9 +361,12 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
         </section>
 
         <section className="prime-home-v2__definition container">
-          <span><b>Ratings</b> = how well you&apos;ve played.</span>
-          <i />
-          <span><b>PRIME 25</b> = what you&apos;ve earned.</span>
+          <span className="prime-home-v2__definition-brand"><b>PRIME</b><i />College Football Analytics</span>
+          <span className="prime-home-v2__definition-copy">
+            <span><b>Ratings</b> = how well you&apos;ve played.</span>
+            <i />
+            <span><b>PRIME 25</b> = what you&apos;ve earned.</span>
+          </span>
         </section>
       </main>
 
