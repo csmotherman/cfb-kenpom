@@ -41,14 +41,19 @@ const pctEdge = (value: number | null | undefined) =>
     ? (value >= 0 ? "+" : "") + (value * 100).toFixed(1) + "%"
     : "—";
 
-function rankFor(rows: AdvancedRow[], team: AdvancedRow | null, key: keyof AdvancedRow): number | null {
+type CardMetricKey =
+  | "asm"
+  | "epaAdj" | "passEpaAdj" | "rushEpaAdj" | "successAdj" | "offExp" | "offHavoc"
+  | "epaAdjAllowed" | "passEpaAdjAllowed" | "rushEpaAdjAllowed" | "successAdjAllowed" | "defExp" | "defHavoc";
+
+function rankFor(rows: AdvancedRow[], team: AdvancedRow | null, key: CardMetricKey): number | null {
   if (!team) return null;
   const own = team[key];
-  if (typeof own !== "number" || !Number.isFinite(own)) return null;
+  if (own === null || own === undefined || !Number.isFinite(own)) return null;
   const ranked = rows
     .map((row) => ({ slug: row.slug, value: row[key] }))
-    .filter((row): row is { slug: string; value: number } => typeof row.value === "number" && Number.isFinite(row.value))
-    .sort((a, b) => b.value - a.value);
+    .filter((row) => row.value !== null && row.value !== undefined && Number.isFinite(row.value))
+    .sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity));
   const index = ranked.findIndex((row) => row.slug === team.slug);
   return index >= 0 ? index + 1 : null;
 }
@@ -80,7 +85,7 @@ export async function getTeamCardData(slug: string): Promise<TeamCardData | null
     // dataset is temporarily unavailable.
   }
 
-  const metric = (label: string, value: string, key: keyof AdvancedRow): TeamCardMetric => ({
+  const metric = (label: string, value: string, key: CardMetricKey): TeamCardMetric => ({
     label,
     value,
     rank: rankFor(rows, advanced, key),
