@@ -122,3 +122,75 @@ table th[data-column="rank"] .tip-trigger {
     z-index: 40 !important;
   }
 }
+
+
+/* Ratings mobile compact metric columns */
+@media (max-width: 640px) {
+  /* Ratings is the compact public table. Keep the frozen identity rail useful
+     while allowing more rating columns to sit in view at once. */
+  #ratingsTable {
+    min-width: 550px !important;
+  }
+
+  #ratingsTable .record-cell {
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    padding-left: 3px !important;
+    padding-right: 3px !important;
+  }
+
+  #ratingsTable .metric-cell:not(.rank-cell):not(.team-cell) {
+    width: 66px !important;
+    min-width: 66px !important;
+    max-width: 66px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  #ratingsTable thead .metric-cell:not(.rank-cell):not(.team-cell) {
+    position: relative;
+    padding-left: 3px !important;
+    padding-right: 16px !important;
+    overflow: visible !important;
+    font-size: 8.5px !important;
+    letter-spacing: 0 !important;
+  }
+
+  #ratingsTable thead .metric-cell:not(.rank-cell):not(.team-cell) .column-sort {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    padding: 0 !important;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+    line-height: 1.05;
+    text-align: center;
+  }
+
+  #ratingsTable thead .metric-cell:not(.rank-cell):not(.team-cell) .sort-indicator {
+    width: 5px;
+    margin-left: 1px;
+  }
+
+  #ratingsTable thead .metric-cell:not(.rank-cell):not(.team-cell) .tip-trigger {
+    position: absolute !important;
+    top: 50%;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    margin: 0 !important;
+    transform: translateY(-50%);
+    font-size: 7px;
+    z-index: 2;
+  }
+
+  #ratingsTable tbody .metric-cell:not(.rank-cell):not(.team-cell) {
+    font-size: 11px !important;
+  }
+
+  #ratingsTable tbody .rank-sub {
+    font-size: 7.75px !important;
+  }
+}
