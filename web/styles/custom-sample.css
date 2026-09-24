@@ -288,7 +288,7 @@
   color: var(--color-navy);
 }
 
-@media (min-width: 641px) {
+@media (min-width: 901px) {
   #advancedTable .adv-table .record-cell {
     width: 112px;
     min-width: 112px;
@@ -298,25 +298,59 @@
   }
 }
 
-@media (max-width: 640px) {
+/* The Advanced table becomes horizontally constrained well before the site's
+   640px phone breakpoint. Collapse the game picker anywhere the table is in
+   its compact/narrow state so it never overlaps the first metric column. */
+@media (max-width: 900px) {
+  #advancedTable .adv-table .record-cell {
+    width: 76px !important;
+    min-width: 76px !important;
+    max-width: 76px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
   #advancedTable .advanced-record-control {
+    display: flex;
     gap: 4px;
+    width: 100%;
   }
 
   #advancedTable .advanced-record-value {
-    min-width: 24px;
+    flex: 0 0 30px;
+    min-width: 30px;
     font-size: 10px;
   }
 
   #advancedTable .cs-chip {
+    flex: 0 0 28px;
     min-width: 28px;
     width: 28px;
-    height: 25px;
+    height: 26px;
+    gap: 0;
     padding: 0;
     border-radius: 50%;
   }
 
   #advancedTable .cs-chip__label {
     display: none;
+  }
+
+  /* When a sample is active, the count is more useful than the sliders icon.
+     Keep it tiny enough to remain inside the W-L column. */
+  #advancedTable .cs-chip--custom {
+    width: 32px;
+    min-width: 32px;
+    flex-basis: 32px;
+    border-radius: 13px;
+    font-size: 7.5px;
+  }
+
+  #advancedTable .cs-chip--custom svg {
+    display: none;
+  }
+
+  #advancedTable .cs-chip--custom .cs-chip__label {
+    display: inline-block;
   }
 }
