@@ -66,6 +66,7 @@ import "@/styles/rankings-prime25.css";
 import "@/styles/site-chrome.css";
 import "@/styles/seo-content.css";
 import "@/styles/teams-directory.css";
+import "@/styles/card-template.css";
 /* Approved Weekly Predictions reference layer loads last to win the route-specific cascade. */
 import "@/styles/predictions-reference.css";
 
