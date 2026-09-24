@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentEntitlements } from "@/lib/auth/entitlements";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { getPremiumPredictionSeasonRows } from "@/lib/premiumDataset";
 import type { PredictionGame, PredictionsWeek } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -25,19 +25,11 @@ export async function GET(
   }
 
   try {
-    const admin = createAdminClient();
-    const { data, error } = await admin
-      .from("premium_datasets")
-      .select("payload,week")
-      .eq("dataset_type", "predictions")
-      .eq("season", Number(season))
-      .order("week", { ascending: true });
-
-    if (error) throw error;
+    const rows = await getPremiumPredictionSeasonRows<PredictionsWeek>(Number(season));
 
     let prediction: PredictionGame | null = null;
-    for (const row of data ?? []) {
-      const published = row.payload as PredictionsWeek;
+    for (const row of rows) {
+      const published = row.payload;
       const match = published.games?.find((game) => game.gameId === gameId);
       if (match) {
         prediction = match;
