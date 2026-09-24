@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { canonicalizeAdvancedSeason } from "@/lib/advanced-contract";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { getPremiumDataset } from "@/lib/premiumDataset";
 import type {
   AdvancedRow,
   AdvancedSeason,
@@ -118,20 +118,11 @@ export async function GET(
     const week = pregameWeek(context.rankings, game);
     if (week === null) return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
 
-    const admin = createAdminClient();
-    const { data, error } = await admin
-      .from("premium_datasets")
-      .select("payload")
-      .eq("dataset_type", "advanced")
-      .eq("season", Number(year))
-      .eq("week", 0)
-      .maybeSingle();
-
-    if (error) throw error;
-    if (!data) return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
+    const advanced = await getPremiumDataset<AdvancedSeason>("advanced", Number(year));
+    if (!advanced) return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
 
     const canonical = canonicalizeAdvancedSeason(
-      data.payload as AdvancedSeason,
+      advanced,
       context.rankings,
       context.schedule,
       year,
