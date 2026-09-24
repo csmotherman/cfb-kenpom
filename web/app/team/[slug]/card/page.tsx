@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getTeamDirectory } from "@/lib/seoData";
 import { getTeamCardData } from "@/lib/teamCardData";
 import TeamCardClient from "./TeamCardClient";
 
 type Params = { params: Promise<{ slug: string }> };
 
-export const dynamicParams = false;
-
-export async function generateStaticParams() {
-  return (await getTeamDirectory()).map((team) => ({ slug: team.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
