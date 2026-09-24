@@ -146,15 +146,15 @@ export default function GameLogModal({
             <strong>{games.length ? format(totals.value) : "—"}</strong>
           </div>
           <div className="game-log-modal__summary-context">
-            <span>Opponent comparison</span>
-            <strong>{hasOpponentContext ? "Entering game" : "Not available"}</strong>
+            <span>Comparison</span>
+            <strong>{hasOpponentContext ? "Vs opponent avg" : "Not available"}</strong>
           </div>
         </div>
 
         <p className="game-log-modal__note">
           <strong>How to read this:</strong> “This game” is {team}&apos;s actual performance.
           {hasOpponentContext
-            ? " “Opponent entering” shows what that opponent had allowed before the game; the small +/- is the difference."
+            ? " “Opponent usually allows” is that opponent’s season-to-date average entering the game. The +/- shows how far this game was above or below that opponent average."
             : " This metric does not have an opponent baseline."}
         </p>
 
@@ -173,7 +173,7 @@ export default function GameLogModal({
                   <th>Opponent</th>
                   <th>Result</th>
                   <th>{team} this game</th>
-                  <th>{hasOpponentContext ? "Opponent entering" : "Baseline"}</th>
+                  <th>{hasOpponentContext ? "Opponent usually allows" : "Baseline"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -207,7 +207,7 @@ export default function GameLogModal({
                       <td className="num game-log-modal__actual" data-label="This game">
                         <strong>{format(ownValue)}</strong>
                       </td>
-                      <td className="num game-log-modal__baseline" data-label="Opponent entering">
+                      <td className="num game-log-modal__baseline" data-label="Opponent usually allows">
                         {oppValue === null ? (
                           <span className="game-log-modal__dash">
                             {hasOpponentContext ? "No prior games" : "—"}
@@ -216,9 +216,13 @@ export default function GameLogModal({
                           <>
                             <strong>{format(oppValue)}</strong>
                             {diff !== null ? (
-                              <span className={`game-log-modal__diff${diffGood ? " good" : " bad"}`}>
+                              <span
+                                className={`game-log-modal__diff${diffGood ? " good" : " bad"}`}
+                                title={`${diff >= 0 ? "+" : ""}${diff.toFixed(diff < 1 && diff > -1 && diff !== 0 ? 3 : 1)} versus what the opponent usually allowed entering the game`}
+                              >
                                 {diff >= 0 ? "+" : ""}
                                 {diff.toFixed(diff < 1 && diff > -1 && diff !== 0 ? 3 : 1)}
+                                <em>vs avg</em>
                               </span>
                             ) : null}
                           </>
