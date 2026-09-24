@@ -2184,3 +2184,49 @@
     font-size: 6.8px !important;
   }
 }
+
+
+/* Homepage table headers need enough vertical room for kicker + title + copy. */
+.prime-home-panel__head {
+  min-height: 88px;
+  box-sizing: border-box;
+}
+
+.prime-home-panel__head h2 {
+  margin-bottom: 0;
+}
+
+.prime-home-panel__head p {
+  display: block;
+  margin-bottom: 0;
+  white-space: normal;
+  overflow: visible;
+}
+
+@media (min-width: 1181px) {
+  .prime-home-panel__head {
+    flex: 0 0 88px;
+    min-height: 88px;
+    padding: 9px 11px 8px;
+  }
+}
+
+@media (min-width: 1181px) and (max-height: 790px) {
+  .prime-home-panel__head {
+    flex-basis: 84px;
+    min-height: 84px;
+  }
+}
+
+@media (max-width: 760px) {
+  .prime-home-panel__head {
+    min-height: 88px;
+    padding: 9px 10px 8px;
+  }
+
+  .prime-home-panel__head p {
+    max-width: 260px;
+    margin-top: 4px;
+    line-height: 1.25;
+  }
+}
