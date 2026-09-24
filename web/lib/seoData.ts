@@ -24,7 +24,15 @@ export const readPublicData = cache(async (relativePath: string): Promise<unknow
 });
 
 export type PrimeRankingEntry = {
-  rank: number; team: string; slug: string; teamId: number; conf: string; record: string; ratingRank: number; sorRank: number;
+  rank: number;
+  team: string;
+  slug: string;
+  teamId: number;
+  conf: string;
+  record: string;
+  ratingRank: number;
+  sorRank: number;
+  primeScore: number;
 };
 export type PrimeRankingsFile = { season: number; throughWeek: number; releasedAt: string; label: string; teams: PrimeRankingEntry[]; allTeams?: PrimeRankingEntry[] };
 
