@@ -119,9 +119,9 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
           <article className="prime-home-panel prime-home-panel--ratings">
             <header className="prime-home-panel__head">
               <div>
-                <span>Performance</span>
-                <h2>PRIME Ratings</h2>
-                <p>Opponent-adjusted performance across all phases.</p>
+                <span>Ratings</span>
+                <h2>Prime Power Ratings</h2>
+                <p>Opponent-adjusted neutral-field performance margins.</p>
               </div>
               <Link href="/ratings">Full Ratings →</Link>
             </header>
@@ -257,16 +257,16 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
           <article className="prime-home-panel prime-home-panel--rankings">
             <header className="prime-home-panel__head">
               <div>
-                <span>Résumé</span>
+                <span>Rankings</span>
                 <h2>The PRIME 25</h2>
-                <p>What teams have earned through current-season results.</p>
+                <p>50% Power Rating + 50% Strength of Record.</p>
               </div>
               <Link href="/rankings">Full Rankings →</Link>
             </header>
 
             <div className="prime-home-v2-table prime-home-v2-table--prime25">
               <div className="prime-home-v2-table__head">
-                <span>#</span><span>Team</span><span>Record</span><span>SOR</span>
+                <span>#</span><span>Team</span><span>Record</span><span>SOR</span><span>PRIME Score</span>
               </div>
               {topRankings.map((team) => (
                 <Link href={`/team/${team.slug}`} className="prime-home-v2-table__row" key={team.slug}>
@@ -278,6 +278,7 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
                   </span>
                   <span>{team.record}</span>
                   <b>{team.sorRank ? `#${team.sorRank}` : "—"}</b>
+                  <b className="prime-home-v2-table__score">{Number.isFinite(team.primeScore) ? team.primeScore.toFixed(2) : "—"}</b>
                 </Link>
               ))}
             </div>
