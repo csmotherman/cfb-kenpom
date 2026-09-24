@@ -1,13 +1,13 @@
 """Hydrate private premium datasets into ignored build files.
 
-This is used only in trusted local/CI environments. Hydrated files are ignored
-by Git and must never be committed publicly. Premium integrity hashes are v2
-semantic hashes that survive PostgreSQL jsonb number normalization. Legacy v1
-hash metadata is migrated in place after schema validation; payload bytes are
-never changed by that migration.
+Historical Advanced payloads are cached in the GitHub Actions data cache so
+routine refreshes do not repeatedly download tens of megabytes from Supabase.
+The tiny Supabase catalog (season + source_sha) is still checked every run, so
+an intentionally changed historical payload invalidates only that season.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import random
@@ -21,6 +21,7 @@ from premium_integrity import is_versioned_hash, payload_hash
 
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_SUPABASE_URL = "https://wmlzqmtsxqqxuiekmrqm.supabase.co"
+DEFAULT_CACHE_DIR = REPO / ".cache" / "premium-history" / "advanced"
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
 
@@ -91,6 +92,38 @@ def legacy_hash(value) -> bool:
     )
 
 
+def cache_path(cache_dir: Path, season: int) -> Path:
+    return cache_dir / f"{season}.json"
+
+
+def read_cached_row(cache_dir: Path, season: int, expected_sha: str | None) -> dict | None:
+    path = cache_path(cache_dir, season)
+    if not path.exists():
+        return None
+    try:
+        row = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(row, dict) or int(row.get("season", -1)) != season:
+        return None
+    if expected_sha and row.get("source_sha") != expected_sha:
+        return None
+    payload = row.get("payload")
+    if not isinstance(payload, dict):
+        return None
+    validate_advanced_payload(payload, season)
+    stored_sha = row.get("source_sha")
+    if is_versioned_hash(stored_sha) and payload_hash(payload) != stored_sha:
+        return None
+    return row
+
+
+def write_cached_row(cache_dir: Path, row: dict) -> None:
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    path = cache_path(cache_dir, int(row["season"]))
+    path.write_text(json.dumps(row, separators=(",", ":"), allow_nan=False))
+
+
 def migrate_legacy_hash(base_url: str, secret: str, season: int, stable_hash: str) -> None:
     query = urlencode(
         {
@@ -137,11 +170,20 @@ def migrate_legacy_hash(base_url: str, secret: str, season: int, stable_hash: st
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--max-season",
+        type=int,
+        help="Hydrate only seasons at or before this year. Refresh CI uses the prior season because the current season is rebuilt locally.",
+    )
+    parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
+    args = parser.parse_args()
+
     base_url, secret = config()
 
     catalog_query = urlencode(
         {
-            "select": "season",
+            "select": "season,source_sha",
             "dataset_type": "eq.advanced",
             "week": "eq.0",
             "order": "season.asc",
@@ -149,12 +191,22 @@ def main() -> None:
         safe=",.",
     )
     catalog = fetch_json(base_url, secret, f"/rest/v1/premium_datasets?{catalog_query}")
-    seasons = sorted({int(row["season"]) for row in catalog})
+    expected_sha_by_season = {int(row["season"]): row.get("source_sha") for row in catalog}
+    seasons = sorted(expected_sha_by_season)
+    if args.max_season is not None:
+        seasons = [season for season in seasons if season <= args.max_season]
     if not seasons:
         raise RuntimeError("No private Advanced Analytics seasons are available in Supabase")
 
     rows: list[dict] = []
     for season in seasons:
+        expected_sha = expected_sha_by_season[season]
+        row = read_cached_row(args.cache_dir, season, expected_sha)
+        if row is not None:
+            rows.append(row)
+            print(f"Hydrated private Advanced season {season} from local history cache.")
+            continue
+
         season_query = urlencode(
             {
                 "select": "season,payload,source_sha",
@@ -180,18 +232,15 @@ def main() -> None:
                     f"Private Advanced payload integrity failure for {season}: v2 source_sha does not match payload"
                 )
         elif legacy_hash(expected_sha):
-            # v1 hashed the pre-jsonb number spelling. That representation is
-            # irretrievably normalized by PostgreSQL, so it cannot be verified
-            # after readback. Migrate metadata only after the full payload has
-            # passed structural validation, then verify the PATCH persisted.
             migrate_legacy_hash(base_url, secret, season, actual_sha)
             row["source_sha"] = actual_sha
             print(f"Migrated legacy premium integrity metadata for season {season} to v2.")
         else:
             raise RuntimeError(f"Private Advanced payload for {season} has an invalid source_sha format")
 
+        write_cached_row(args.cache_dir, row)
         rows.append(row)
-        print(f"Hydrated and integrity-verified private Advanced season {season} from Supabase.")
+        print(f"Downloaded and cached private Advanced season {season} from Supabase.")
 
     years: list[int] = []
     weeks: dict[str, list[int]] = {}
@@ -214,14 +263,17 @@ def main() -> None:
 
     target = REPO / "site" / "advanced-data.js"
     text = (
-        "// PRIVATE BUILD ARTIFACT. Hydrated from Supabase; never commit this file.\n"
+        "// PRIVATE BUILD ARTIFACT. Hydrated from Supabase/history cache; never commit this file.\n"
         "window.CFF_ADV_YEARS = " + json.dumps(years) + ";\n"
         "window.CFF_ADV_WEEKS = " + json.dumps(weeks, separators=(",", ":")) + ";\n"
         "window.CFF_ADV_WEEK_LABELS = " + json.dumps(week_labels, separators=(",", ":")) + ";\n"
         "window.CFF_ADV_DATA = " + json.dumps(data, separators=(",", ":"), allow_nan=False) + ";\n"
     )
     target.write_text(text)
-    print(f"Hydrated {len(years)} integrity-verified private Advanced Analytics seasons for this build.")
+    print(
+        f"Hydrated {len(years)} integrity-verified private Advanced Analytics seasons "
+        f"({sum(1 for row in rows if cache_path(args.cache_dir, int(row['season'])).exists())} cached)."
+    )
 
 
 if __name__ == "__main__":
