@@ -10,8 +10,8 @@ import CfpTeamCell from "@/components/CfpTeamCell";
 import { TipTrigger } from "@/components/Tooltip";
 import GameLogModal from "@/components/GameLogModal";
 import GameSampleSheet, { type SampleStatus } from "@/components/GameSampleSheet";
-import { getMeta, getTeamSample, useAdvancedSeason, useCfpResultsSeason, useExploratorySeason } from "@/lib/data";
-import { computeSample, parseExclusions, serializeExclusions, verifyParity, type SampleResult, type TeamSampleData } from "@/lib/custom-sample";
+import { getConferenceOnlySamples, getMeta, getTeamSample, useAdvancedSeason, useCfpResultsSeason, useExploratorySeason } from "@/lib/data";
+import { computeSample, parseExclusions, serializeExclusions, verifyParity, type ConferenceOnlySampleResponse, type SampleResult, type TeamSampleData } from "@/lib/custom-sample";
 import { buildCfpStatusMap } from "@/lib/cfp";
 import { buildMistakesTab, computeMistakesMetrics } from "@/lib/advanced-mistakes";
 import { columnRange, heatBackground } from "@/lib/heatmap";
@@ -360,6 +360,9 @@ export default function AdvancedClient() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filter, setFilter] = useState("");
   const [conference, setConference] = useState("");
+  const [conferenceOnly, setConferenceOnly] = useState(false);
+  const [conferenceOnlyData, setConferenceOnlyData] = useState<ConferenceOnlySampleResponse | null>(null);
+  const [conferenceOnlyStatus, setConferenceOnlyStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [gameLogTarget, setGameLogTarget] = useState<{ team: Aggregated; column: AdvColumn } | null>(null);
   const [showDrillDownTip, setShowDrillDownTip] = useState(false);
   // Custom game samples: which games each team has dropped (independent per team,
@@ -528,6 +531,15 @@ export default function AdvancedClient() {
     return results;
   }, [excluded, samples, year, endWeek, rangeAllowsCustom]);
 
+  const effectiveSampleResults = useMemo(() => {
+    if (!conferenceOnly || !conferenceOnlyData) return customResults;
+    const results: Record<string, SampleResult> = {};
+    Object.entries(conferenceOnlyData.teams).forEach(([slug, sample]) => {
+      results[slug] = sample.result;
+    });
+    return results;
+  }, [conferenceOnly, conferenceOnlyData, customResults]);
+
   function updateExclusions(slug: string, ids: string[]) {
     setExcluded((previous) => {
       const next = { ...previous };
@@ -549,6 +561,35 @@ export default function AdvancedClient() {
   function openSampleSheet(team: { slug: string; team: string; teamId: number }) {
     setSheetTeam({ slug: team.slug, team: team.team, teamId: team.teamId });
     ensureSample(team.slug, team.teamId);
+  }
+
+  async function toggleConferenceOnly() {
+    if (conferenceOnly) {
+      setConferenceOnly(false);
+      setConferenceOnlyStatus("idle");
+      return;
+    }
+
+    if (weeks.length) {
+      setStartWeek(weeks[0]);
+      setEndWeek(weeks[weeks.length - 1]);
+    }
+    setSheetTeam(null);
+    setConferenceOnly(true);
+    setConferenceOnlyStatus("loading");
+    try {
+      const data = await getConferenceOnlySamples(year);
+      if (!data) {
+        setConferenceOnly(false);
+        setConferenceOnlyStatus("error");
+        return;
+      }
+      setConferenceOnlyData(data);
+      setConferenceOnlyStatus("ready");
+    } catch {
+      setConferenceOnly(false);
+      setConferenceOnlyStatus("error");
+    }
   }
 
   async function copyShareLink() {
@@ -583,7 +624,7 @@ export default function AdvancedClient() {
       const snap = snapshotBySlug[acc.slug];
       // A team with a custom sample is recomputed from its chosen games only;
       // every other team is untouched (samples are independent per team).
-      const custom = customResults[acc.slug];
+      const custom = effectiveSampleResults[acc.slug];
       const counts = custom ? custom.raw : acc.wk;
       const wins = counts.wins || 0;
       const losses = counts.losses || 0;
@@ -594,7 +635,7 @@ export default function AdvancedClient() {
         conf: acc.conf,
         record: `${wins}-${losses}`,
         wins,
-        _custom: custom ? { included: custom.included, total: custom.total } : null,
+        _custom: !conferenceOnly && custom ? { included: custom.included, total: custom.total } : null,
       };
 
       ALL_COLUMNS.forEach((col) => {
@@ -625,7 +666,7 @@ export default function AdvancedClient() {
       Object.assign(out, computeMistakesMetrics(custom?.ex ?? mistakesCountsBySlug[acc.slug]));
       return out;
     });
-  }, [seasonByWeek, snapshotBySlug, mistakesCountsBySlug, customResults, weeks, startWeek, endWeek]);
+  }, [seasonByWeek, snapshotBySlug, mistakesCountsBySlug, effectiveSampleResults, conferenceOnly, weeks, startWeek, endWeek]);
 
   const tabDef = useMemo<Tab>(() => {
     if (tab === "mistakes") return buildMistakesTab(perspective) as Tab;
@@ -690,7 +731,7 @@ export default function AdvancedClient() {
   const visibleSections = tabDef.sections;
   const visibleColumns = useMemo(() => tabDef.sections.flatMap((section) => section.columns), [tabDef]);
   const conferences = useMemo(() => [...new Set(teams.map((team) => team.conf))].filter(Boolean).sort(), [teams]);
-  const tableLoading = loading || (tab === "mistakes" && year === "2025" && !mistakesSeason);
+  const tableLoading = loading || (tab === "mistakes" && year === "2025" && !mistakesSeason) || (conferenceOnly && conferenceOnlyStatus === "loading");
 
   function onHeaderClick(key: string) {
     if ((sortKey || "rank") === key) {
