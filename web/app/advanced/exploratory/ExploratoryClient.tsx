@@ -600,71 +600,120 @@ export default function ExploratoryClient() {
             </div>
 
             <div className="exploratory-profile-body">
-              {PROFILE_SECTIONS.map((group, groupIndex) => (
-                <section
-                  className={`exploratory-profile-section${groupIndex === PROFILE_SECTIONS.length - 1 ? " exploratory-profile-section--wide" : ""}`}
-                  key={group.title}
-                >
-                  <div className="exploratory-profile-section-head">
-                    <h3>{group.title}</h3>
-                    <span>{group.columns.length} metrics</span>
-                  </div>
-                  <table className="exploratory-profile-table">
-                    <thead>
-                      <tr>
-                        <th scope="col">Metric</th>
-                        <th scope="col">Value</th>
-                        <th scope="col">National</th>
-                        <th scope="col">Read</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {group.columns.map((col) => {
-                        const value = profile[col.key] as number | null;
-                        const n = profile[`${col.key}_n`] as number;
-                        const rank = profile[`_rank_${col.key}`] as number | null;
-                        const smallSample = n < minimumN(col);
-                        const eligibleCount = eligibleCounts[col.key] ?? 0;
-                        const format = FORMATTERS[col.fmt ?? "pct1"];
-                        const tier = fanTier(rank, eligibleCount, smallSample, col.noHeatmap);
-                        return (
-                          <tr key={col.key}>
-                            <td className="profile-metric-name">
-                              <div className="profile-metric-label">
+              {PROFILE_SECTIONS.map((group, groupIndex) => {
+                const isStyleRisk = groupIndex === PROFILE_SECTIONS.length - 1;
+                return (
+                  <section
+                    className={`exploratory-profile-section${isStyleRisk ? " exploratory-profile-section--wide" : ""}`}
+                    key={group.title}
+                  >
+                    <div className="exploratory-profile-section-head">
+                      <h3>{group.title}</h3>
+                      <span>{group.columns.length} metrics</span>
+                    </div>
+
+                    {isStyleRisk ? (
+                      <div className="exploratory-style-grid">
+                        {group.columns.map((col) => {
+                          const value = profile[col.key] as number | null;
+                          const n = profile[`${col.key}_n`] as number;
+                          const rank = profile[`_rank_${col.key}`] as number | null;
+                          const smallSample = n < minimumN(col);
+                          const eligibleCount = eligibleCounts[col.key] ?? 0;
+                          const format = FORMATTERS[col.fmt ?? "pct1"];
+                          const tier = fanTier(rank, eligibleCount, smallSample, col.noHeatmap);
+                          return (
+                            <div className="exploratory-style-metric" key={col.key}>
+                              <div className="exploratory-style-metric__name">
                                 <strong>{col.label}</strong>
                                 <TipTrigger text={`${col.tooltip} Formula: ${col.profileFormula}.`} />
                               </div>
-                            </td>
-                            <td
-                              className={`profile-rate${smallSample ? " profile-rate--sample" : ""}`}
-                              style={!smallSample && !col.noHeatmap ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined}
-                            >
-                              <strong>{format(value)}</strong>
-                              <small>N={n}</small>
-                            </td>
-                            <td className="profile-rank">
-                              {rank ? (
-                                <>
-                                  <strong>#{rank}</strong>
-                                  <small>of {eligibleCount}</small>
-                                </>
-                              ) : (
-                                <>
-                                  <strong>—</strong>
-                                  <small>small sample</small>
-                                </>
-                              )}
-                            </td>
-                            <td className="profile-read">
-                              <span className={`profile-tier ${tier.className}`}>{tier.label}</span>
-                            </td>
+                              <div
+                                className={`exploratory-style-metric__value${smallSample ? " profile-rate--sample" : ""}`}
+                                style={!smallSample && !col.noHeatmap ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined}
+                              >
+                                <strong>{format(value)}</strong>
+                                <small>N={n}</small>
+                              </div>
+                              <div className="exploratory-style-metric__rank">
+                                {rank ? (
+                                  <>
+                                    <strong>#{rank}</strong>
+                                    <small>of {eligibleCount}</small>
+                                  </>
+                                ) : (
+                                  <>
+                                    <strong>—</strong>
+                                    <small>small sample</small>
+                                  </>
+                                )}
+                              </div>
+                              <div className="exploratory-style-metric__read">
+                                <span className={`profile-tier ${tier.className}`}>{tier.label}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <table className="exploratory-profile-table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Metric</th>
+                            <th scope="col">Value</th>
+                            <th scope="col">National</th>
+                            <th scope="col">Read</th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </section>
-              ))}
+                        </thead>
+                        <tbody>
+                          {group.columns.map((col) => {
+                            const value = profile[col.key] as number | null;
+                            const n = profile[`${col.key}_n`] as number;
+                            const rank = profile[`_rank_${col.key}`] as number | null;
+                            const smallSample = n < minimumN(col);
+                            const eligibleCount = eligibleCounts[col.key] ?? 0;
+                            const format = FORMATTERS[col.fmt ?? "pct1"];
+                            const tier = fanTier(rank, eligibleCount, smallSample, col.noHeatmap);
+                            return (
+                              <tr key={col.key}>
+                                <td className="profile-metric-name">
+                                  <div className="profile-metric-label">
+                                    <strong>{col.label}</strong>
+                                    <TipTrigger text={`${col.tooltip} Formula: ${col.profileFormula}.`} />
+                                  </div>
+                                </td>
+                                <td
+                                  className={`profile-rate${smallSample ? " profile-rate--sample" : ""}`}
+                                  style={!smallSample && !col.noHeatmap ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined}
+                                >
+                                  <strong>{format(value)}</strong>
+                                  <small>N={n}</small>
+                                </td>
+                                <td className="profile-rank">
+                                  {rank ? (
+                                    <>
+                                      <strong>#{rank}</strong>
+                                      <small>of {eligibleCount}</small>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <strong>—</strong>
+                                      <small>small sample</small>
+                                    </>
+                                  )}
+                                </td>
+                                <td className="profile-read">
+                                  <span className={`profile-tier ${tier.className}`}>{tier.label}</span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    )}
+                  </section>
+                );
+              })}}
             </div>
 
             <footer className="exploratory-profile-footer">
