@@ -46,9 +46,9 @@ export default async function CardTemplatePage() {
         <div className="ct-identity"><h1>{team}</h1><p>{nickname}</p><div>{year}<i />{record}<i />{conf}</div></div>
         <div className="ct-rating"><span>NET RATING</span><strong>{netText}</strong><p>{ratingRank ? <><b>#{ratingRank}</b> NATIONALLY</> : "UNRANKED"}</p></div>
       </section>
-      <StatSection title="OFFENSE" rows={offense} />
+      <div className="ct-adjusted"><span>PRIME ADVANCED PROFILE</span><b>ALL METRICS OPPONENT-ADJUSTED</b></div>\n      <StatSection title="OFFENSE" rows={offense} />
       <StatSection title="DEFENSE" rows={defense} />
-      <footer><span>DATA. CONTEXT. A CLEARER PICTURE.</span><b>PRIMECFB.COM</b></footer>
+      <footer><span>THE SIGNAL BEHIND COLLEGE FOOTBALL.</span><b>PRIMECFB.COM</b></footer>
     </article>
   </main>;
 }
