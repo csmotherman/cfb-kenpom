@@ -713,7 +713,7 @@ export default function ExploratoryClient() {
                     )}
                   </section>
                 );
-              })}}
+              })}
             </div>
 
             <footer className="exploratory-profile-footer">
