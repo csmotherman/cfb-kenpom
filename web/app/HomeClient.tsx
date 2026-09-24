@@ -119,9 +119,9 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
           <article className="prime-home-panel prime-home-panel--ratings">
             <header className="prime-home-panel__head">
               <div>
-                <span>Ratings</span>
-                <h2>Prime Power Ratings</h2>
-                <p>Opponent-adjusted neutral-field performance margins.</p>
+                <span className="prime-home-panel__kicker">Power Ratings</span>
+                <h2>PRIME Power Ratings</h2>
+                <p>How strong each team has played on a neutral field.</p>
               </div>
               <Link href="/ratings">Full Ratings →</Link>
             </header>
@@ -257,9 +257,9 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
           <article className="prime-home-panel prime-home-panel--rankings">
             <header className="prime-home-panel__head">
               <div>
-                <span>Rankings</span>
+                <span className="prime-home-panel__kicker">Official PRIME Rankings</span>
                 <h2>The PRIME 25</h2>
-                <p>50% Power Rating + 50% Strength of Record.</p>
+                <p>PRIME&apos;s official ranking: 50% Power Rating + 50% Strength of Record.</p>
               </div>
               <Link href="/rankings">Full Rankings →</Link>
             </header>
