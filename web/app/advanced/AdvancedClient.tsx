@@ -783,7 +783,7 @@ export default function AdvancedClient() {
             <p className="ratings-hero__description">Compare opponent-adjusted efficiency, success rate, explosiveness, field position, turnovers, penalties, and situational performance across FBS teams.</p>
           </div>
           <div className="ratings-hero__meta">
-            <span className="ratings-status">{loading ? "Loading season…" : `${year} • ${startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : ""} • ${teams.length} teams${customTeams.length ? " • CUSTOM SAMPLES" : ""}`}</span>
+            <span className="ratings-status">{loading ? "Loading season…" : `${year} • ${startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : ""} • ${teams.length} teams${conferenceOnly ? " • IN-CONFERENCE ONLY" : customTeams.length ? " • CUSTOM SAMPLES" : ""}`}</span>
             <Link className="utility-link" href="/methodology">Methodology ↗</Link>
             {updatedAt ? <time className="data-updated" dateTime={updatedAt}>Data updated {new Date(updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} UTC</time> : null}
           </div>
@@ -799,7 +799,7 @@ export default function AdvancedClient() {
             <span className="control-label">Season</span>
             <nav className="year-nav" aria-label="Season">
               {[...years].reverse().map((seasonYear) => (
-                <button key={seasonYear} type="button" className={String(seasonYear) === year ? "active" : undefined} aria-pressed={String(seasonYear) === year} onClick={() => { setYear(String(seasonYear)); setConference(""); setExcluded({}); setSheetTeam(null); }}>
+                <button key={seasonYear} type="button" className={String(seasonYear) === year ? "active" : undefined} aria-pressed={String(seasonYear) === year} onClick={() => { setYear(String(seasonYear)); setConference(""); setConferenceOnly(false); setConferenceOnlyData(null); setConferenceOnlyStatus("idle"); setExcluded({}); setSheetTeam(null); }}>
                   {seasonYear}
                 </button>
               ))}
@@ -815,6 +815,17 @@ export default function AdvancedClient() {
                 {conferences.map((conf) => <option key={conf} value={conf}>{conf}</option>)}
               </select>
             </div>
+            <button
+              type="button"
+              className={`conference-games-toggle${conferenceOnly ? " active" : ""}`}
+              aria-pressed={conferenceOnly}
+              disabled={conferenceOnlyStatus === "loading"}
+              onClick={toggleConferenceOnly}
+              title="Recalculate team stats using conference games only"
+            >
+              <span className="conference-games-toggle__check" aria-hidden="true">{conferenceOnly ? "✓" : ""}</span>
+              <span>{conferenceOnlyStatus === "loading" ? "Loading Conference Games…" : "Only In-Conference Games"}</span>
+            </button>
             <span className="row-count" aria-live="polite">{filter || conference ? `${visibleTeams.length} of ${teams.length} teams` : `${teams.length} teams`}</span>
           </div>
 
@@ -822,12 +833,12 @@ export default function AdvancedClient() {
             <span className="control-label">Weeks</span>
             <div className="week-range">
               <span className="control-label week-range__label">Start</span>
-              <select aria-label="Start week" value={startWeek ?? ""} onChange={(event) => { const value = Number(event.target.value); setStartWeek(value); if (endWeek !== null && value > endWeek) setEndWeek(value); }}>
+              <select aria-label="Start week" value={startWeek ?? ""} onChange={(event) => { const value = Number(event.target.value); setConferenceOnly(false); setConferenceOnlyStatus("idle"); setStartWeek(value); if (endWeek !== null && value > endWeek) setEndWeek(value); }}>
                 {weeks.map((week) => <option key={week} value={week}>{weekLabel(week)}</option>)}
               </select>
               <span className="week-range__sep">–</span>
               <span className="control-label week-range__label">End</span>
-              <select aria-label="End week" value={endWeek ?? ""} onChange={(event) => { const value = Number(event.target.value); setEndWeek(value); if (startWeek !== null && value < startWeek) setStartWeek(value); }}>
+              <select aria-label="End week" value={endWeek ?? ""} onChange={(event) => { const value = Number(event.target.value); setConferenceOnly(false); setConferenceOnlyStatus("idle"); setEndWeek(value); if (startWeek !== null && value < startWeek) setStartWeek(value); }}>
                 {weeks.map((week) => <option key={week} value={week}>{weekLabel(week)}</option>)}
               </select>
             </div>
@@ -869,11 +880,12 @@ export default function AdvancedClient() {
           ) : null}
         </div>
 
-        {customTeams.length > 0 || customPaused ? (
+        {conferenceOnly || customTeams.length > 0 || customPaused ? (
           <div className="container">
-            <div className="cs-banner" role="status">
-              <strong>Custom samples</strong>
-              {customTeams.length > 0 ? (
+            <div className={`cs-banner${conferenceOnly ? " cs-banner--conference" : ""}`} role="status">
+              <strong>{conferenceOnly ? "In-conference games only" : "Custom samples"}</strong>
+              {conferenceOnly ? <p className="cs-conference-note">Rate and opponent-adjusted Advanced stats use conference games only. PRIME Ratings and official rating ranks remain unchanged.</p> : null}
+              {!conferenceOnly && customTeams.length > 0 ? (
                 <div className="cs-banner__teams">
                   {customTeams.map((team) => (
                     <button key={team.slug} type="button" className="cs-banner__team" onClick={() => openSampleSheet(team)} aria-label={`Edit ${team.team} games`}>
@@ -883,15 +895,21 @@ export default function AdvancedClient() {
                 </div>
               ) : null}
               <div className="cs-banner__actions">
-                <button type="button" className="cs-link" onClick={copyShareLink}>{linkNote || "Copy link"}</button>
-                <button type="button" className="cs-link" onClick={() => { setExcluded({}); setSheetTeam(null); }}>Reset all to full games</button>
+                {conferenceOnly ? (
+                  <button type="button" className="cs-link" onClick={() => { setConferenceOnly(false); setConferenceOnlyStatus("idle"); }}>Show all games</button>
+                ) : (
+                  <>
+                    <button type="button" className="cs-link" onClick={copyShareLink}>{linkNote || "Copy link"}</button>
+                    <button type="button" className="cs-link" onClick={() => { setExcluded({}); setSheetTeam(null); }}>Reset all to full games</button>
+                  </>
+                )}
               </div>
-              <p className="cs-banner__paused">
+              {!conferenceOnly ? <p className="cs-banner__paused">
                 {customPaused
                   ? "Custom samples are paused while the week range is narrowed. "
                   : "Highlighted teams are NOT the official season stats. Only their opponent-adjusted stats, rates, and rankings in this table use the games you chose; PRIME Ratings, PRIME 25, and predictions are unchanged. "}
                 {customPaused ? <button type="button" className="cs-link" onClick={() => { if (weeks.length) { setStartWeek(weeks[0]); setEndWeek(weeks[weeks.length - 1]); } }}>Show the full season</button> : null}
-              </p>
+              </p> : null}
             </div>
           </div>
         ) : null}
@@ -951,7 +969,7 @@ export default function AdvancedClient() {
                         <td className="num record-cell advanced-record-cell">
                           <div className="advanced-record-control">
                             <span className="advanced-record-value">{team.record}</span>
-                            <button
+                            {!conferenceOnly ? <button
                               type="button"
                               className={`cs-chip${team._custom ? " cs-chip--custom" : ""}`}
                               aria-label={team._custom ? `${team.team}: custom sample, ${team._custom.included} of ${team._custom.total} games. Edit games` : `Filter ${team.team}'s games`}
@@ -964,7 +982,7 @@ export default function AdvancedClient() {
                                 <circle cx="5.5" cy="11.5" r="1.7" />
                               </svg>
                               <span className="cs-chip__label">{team._custom ? `${team._custom.included}/${team._custom.total}` : "Games"}</span>
-                            </button>
+                            </button> : null}
                           </div>
                         </td>
                         {visibleColumns.map((col) => {
