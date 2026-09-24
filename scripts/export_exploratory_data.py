@@ -175,7 +175,7 @@ def build_games_payload(season: int) -> dict:
         teams.setdefault(f"t{info['teamId']}", {"slug": info["slug"], "team": team, "teamId": info["teamId"], "games": []})["games"].append(entry)
 
     return {
-        "meta": {"version": GAMES_VERSION, "season": season, "weekThrough": max(site_week_by_game.values(), default=0), "fields": ordered},
+        "meta": {"version": GAMES_VERSION, "season": season, "weekThrough": max((e["w"] for t in teams.values() for e in t["games"]), default=0), "fields": ordered},
         "teams": teams,
     }
 

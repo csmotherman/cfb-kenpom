@@ -115,7 +115,8 @@ export default function ExploratoryClient() {
     if (weeks.length) aggregateExploratory(seasonByWeek, weeks, weeks[0], weeks[weeks.length - 1]).forEach((team) => bySlug.set(team.slug, team));
     return bySlug;
   }, [seasonByWeek, weeks]);
-  const rangeAllowsCustom = startWeek !== null && weeks.length > 0 && startWeek === weeks[0];
+  // Full season to date: from the first week through the last week that has data.
+  const rangeAllowsCustom = startWeek !== null && endWeek !== null && weeks.length > 0 && startWeek === weeks[0] && endWeek >= weeks[weeks.length - 1];
 
   const ensureSample = useCallback((slug: string, teamId: number) => {
     const key = `${year}:${slug}`;
@@ -189,7 +190,7 @@ export default function ExploratoryClient() {
       const ids = excluded[team.slug];
       const entry = samples[`${year}:${team.slug}`];
       const data = entry?.status === "ready" ? entry.data : null;
-      if (!ids?.length || !data || data.meta.season !== Number(year) || endWeek < data.meta.weekThrough) return team;
+      if (!ids?.length || !data || data.meta.season !== Number(year)) return team;
       const drop = new Set(ids);
       const sum = sumExploratory(data, new Set(data.team.games.map((game) => game.g).filter((id) => !drop.has(id))));
       if (sum.included >= sum.total) return team;
@@ -699,7 +700,7 @@ export default function ExploratoryClient() {
             games={data ? data.team.games : null}
             scopeNote={`Only ${sheetTeam.team}'s row, profile, and rankings here change. PRIME Ratings and predictions always use the full official sample.`}
             excluded={excluded[sheetTeam.slug] ?? []}
-            rangeEnabled={rangeAllowsCustom && (!data || (endWeek ?? 0) >= data.meta.weekThrough)}
+            rangeEnabled={rangeAllowsCustom}
             weekLabel={weekLabel}
             onChange={(ids) => updateExclusions(sheetTeam.slug, ids)}
             onToggle={(id) => toggleExcluded(sheetTeam.slug, id)}

@@ -471,7 +471,14 @@ export default function AdvancedClient() {
   // Custom samples recompute adjusted stats against the latest opponent ratings,
   // so they only apply to the full season to date (the range where an all-games
   // selection is exactly the official table).
-  const rangeAllowsCustom = startWeek !== null && weeks.length > 0 && startWeek === weeks[0];
+  // Last week with real games (calendar-only weeks after it carry the same snapshot forward).
+  const lastDataWeek = useMemo(() => {
+    for (let i = weeks.length - 1; i >= 0; i -= 1) {
+      if ((seasonByWeek[String(weeks[i])] || []).some((row) => Object.keys(row.wk || {}).length > 0)) return weeks[i];
+    }
+    return weeks.length ? weeks[0] : null;
+  }, [weeks, seasonByWeek]);
+  const rangeAllowsCustom = startWeek !== null && endWeek !== null && lastDataWeek !== null && startWeek === weeks[0] && endWeek >= lastDataWeek;
 
   const ensureSample = useCallback((slug: string, teamId: number) => {
     const key = `${year}:${slug}`;
@@ -513,7 +520,7 @@ export default function AdvancedClient() {
       const entry = samples[`${year}:${slug}`];
       const data = entry?.status === "ready" ? entry.data : null;
       if (!data || !ids.length) return;
-      if (data.meta.season !== Number(year) || endWeek < data.meta.weekThrough) return;
+      if (data.meta.season !== Number(year)) return;
       const drop = new Set(ids);
       const result = computeSample(data, new Set(data.team.games.map((game) => game.g).filter((id) => !drop.has(id))));
       if (result.included < result.total) results[slug] = result;
@@ -950,7 +957,7 @@ export default function AdvancedClient() {
             status={entry?.status ?? "loading"}
             games={data ? data.team.games : null}
             excluded={excluded[sheetTeam.slug] ?? []}
-            rangeEnabled={rangeAllowsCustom && (!data || (endWeek ?? 0) >= data.meta.weekThrough)}
+            rangeEnabled={rangeAllowsCustom}
             weekLabel={weekLabel}
             onChange={(ids) => updateExclusions(sheetTeam.slug, ids)}
             onToggle={(id) => toggleExcluded(sheetTeam.slug, id)}

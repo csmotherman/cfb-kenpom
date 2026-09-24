@@ -124,6 +124,8 @@ class ExploratoryCustomSampleTests(unittest.TestCase):
                     totals[row["slug"]][field] += value
         fields = games["meta"]["fields"]
         self.assertGreaterEqual(len(fields), 70)
+        # weekThrough must be the last week with data, not the season's last SCHEDULED week.
+        self.assertEqual(games["meta"]["weekThrough"], published["weeks"][-1])
         self.assertEqual(len(games["teams"]), len(totals))
         for team in games["teams"].values():
             for index, field in enumerate(fields):
