@@ -114,3 +114,5 @@
     box-shadow: none;
   }
 }
+
+/* Export preview uses the same PNG bytes as Copy/Download. */
