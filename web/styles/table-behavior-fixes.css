@@ -220,36 +220,43 @@ table th[data-column="rank"] .tip-trigger {
   #ratingsTable .team-meta-row {
     display: flex !important;
     align-items: center;
-    justify-content: space-between;
-    gap: 6px;
+    justify-content: flex-start;
+    gap: 5px;
     width: calc(100% - 26px);
     max-width: calc(100% - 26px);
     margin: 2px 0 0 26px !important;
-    overflow: hidden;
+    overflow: visible !important;
     line-height: 1;
+    text-align: left !important;
   }
 
   #ratingsTable .team-meta-row .team-conf-label {
     display: block !important;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
     max-width: none !important;
     margin: 0 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     text-align: left !important;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   #ratingsTable .team-record-inline {
-    display: block;
+    display: inline-flex !important;
+    align-items: center;
     flex: 0 0 auto;
-    margin-left: auto;
+    margin: 0 !important;
     color: var(--color-ink-secondary);
     font-family: var(--font-mono);
     font-size: 8.25px;
     font-weight: 700;
     line-height: 1;
     white-space: nowrap;
+  }
+
+  #ratingsTable .team-record-inline::before {
+    content: "·";
+    margin-right: 5px;
+    color: var(--color-ink-tertiary);
   }
 }
