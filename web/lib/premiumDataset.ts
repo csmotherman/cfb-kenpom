@@ -28,7 +28,7 @@ const loadPremiumDatasetCached = unstable_cache(
     return data?.payload ?? null;
   },
   ["premium-dataset-v1"],
-  { revalidate: 300 },
+  { revalidate: 3600 },
 );
 
 const loadPredictionSeasonCached = unstable_cache(
@@ -45,7 +45,7 @@ const loadPredictionSeasonCached = unstable_cache(
     return (data ?? []) as PredictionRow[];
   },
   ["premium-prediction-season-v1"],
-  { revalidate: 300 },
+  { revalidate: 3600 },
 );
 
 export async function getPremiumDataset<T>(
