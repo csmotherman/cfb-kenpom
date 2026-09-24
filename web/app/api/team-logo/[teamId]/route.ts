@@ -5,7 +5,7 @@ const CACHE_HEADERS = {
 };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   const { teamId } = await params;
@@ -14,7 +14,9 @@ export async function GET(
     return new Response("Invalid team id.", { status: 400 });
   }
 
-  const source = `https://cdn.collegefootballdata.com/logos/128/${teamId}.png`;
+  // 128 by default; the team card asks for 256 so its 2x export stays sharp.
+  const size = new URL(request.url).searchParams.get("size") === "256" ? 256 : 128;
+  const source = `https://cdn.collegefootballdata.com/logos/${size}/${teamId}.png`;
 
   try {
     const response = await fetch(source, {
