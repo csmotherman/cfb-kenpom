@@ -174,6 +174,7 @@ export default function GameLogModal({
                   <th>Result</th>
                   <th>{team} this game</th>
                   <th>{hasOpponentContext ? "Opponent usually allows" : "Baseline"}</th>
+                  <th>{hasOpponentContext ? "+/- vs avg" : "Difference"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -200,6 +201,9 @@ export default function GameLogModal({
                         ) : (
                           <span className="game-log-modal__opponent-name">{g.opponent}</span>
                         )}
+                        <span className="game-log-modal__mobile-meta">
+                          {weekLabel(g.week)} · {g.win ? "W" : "L"}{score}
+                        </span>
                       </td>
                       <td className={`num game-log-modal__result${g.win ? " win" : " loss"}`} data-label="Result">
                         <strong>{g.win ? "W" : "L"}</strong>{score}
@@ -207,25 +211,26 @@ export default function GameLogModal({
                       <td className="num game-log-modal__actual" data-label="This game">
                         <strong>{format(ownValue)}</strong>
                       </td>
-                      <td className="num game-log-modal__baseline" data-label="Opponent usually allows">
+                      <td className="num game-log-modal__baseline" data-label="Opponent avg">
                         {oppValue === null ? (
                           <span className="game-log-modal__dash">
                             {hasOpponentContext ? "No prior games" : "—"}
                           </span>
                         ) : (
-                          <>
-                            <strong>{format(oppValue)}</strong>
-                            {diff !== null ? (
-                              <span
-                                className={`game-log-modal__diff${diffGood ? " good" : " bad"}`}
-                                title={`${diff >= 0 ? "+" : ""}${diff.toFixed(diff < 1 && diff > -1 && diff !== 0 ? 3 : 1)} versus what the opponent usually allowed entering the game`}
-                              >
-                                {diff >= 0 ? "+" : ""}
-                                {diff.toFixed(diff < 1 && diff > -1 && diff !== 0 ? 3 : 1)}
-                                <em>vs avg</em>
-                              </span>
-                            ) : null}
-                          </>
+                          <strong>{format(oppValue)}</strong>
+                        )}
+                      </td>
+                      <td className="num game-log-modal__delta" data-label="+/- vs avg">
+                        {diff === null ? (
+                          <span className="game-log-modal__dash">—</span>
+                        ) : (
+                          <span
+                            className={`game-log-modal__diff${diffGood ? " good" : " bad"}`}
+                            title={`${diff >= 0 ? "+" : ""}${diff.toFixed(diff < 1 && diff > -1 && diff !== 0 ? 3 : 1)} versus what the opponent usually allowed entering the game`}
+                          >
+                            {diff >= 0 ? "+" : ""}
+                            {diff.toFixed(diff < 1 && diff > -1 && diff !== 0 ? 3 : 1)}
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -237,6 +242,7 @@ export default function GameLogModal({
                   <td colSpan={3}>Selected sample</td>
                   <td className="num"><strong>{format(totals.value)}</strong></td>
                   <td className="num">{games.length} games</td>
+                  <td className="num">—</td>
                 </tr>
               </tfoot>
             </table>
