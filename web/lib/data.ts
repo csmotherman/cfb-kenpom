@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { extendRankingsToCurrentWeek } from "./rankingsExtend";
+import type { TeamSampleData } from "./custom-sample";
 import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, MarketLinesSeason, PredictionsTrackRecord, PredictionsWeek, ProjectionSeason, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -295,6 +296,36 @@ export function getTeamStatsWeeklySeason(year: number | string): Promise<TeamSta
       throw error;
     });
     teamStatsWeeklyInflight.set(key, entry);
+  }
+  return entry;
+}
+
+// Custom-sample ingredients for ONE team (~10 KB), fetched only when a user
+// opens that team's game selector (or a shared link references it) and kept for
+// the life of the tab. `null` = not published for this team/season.
+const teamSampleData = new Map<string, TeamSampleData | null>();
+const teamSampleInflight = new Map<string, Promise<TeamSampleData | null>>();
+
+export function getTeamSample(year: number | string, teamId: number | string): Promise<TeamSampleData | null> {
+  const key = `${year}:${teamId}`;
+  if (teamSampleData.has(key)) return Promise.resolve(teamSampleData.get(key) ?? null);
+  let entry = teamSampleInflight.get(key);
+  if (!entry) {
+    entry = fetchPremiumJson<TeamSampleData>(`/api/premium/advanced/${year}/games/${teamId}`)
+      .then((data) => data, (error: Error) => {
+        if (error instanceof PremiumAccessError) throw error;
+        if (/404|not available/i.test(error.message)) return null;
+        throw error;
+      })
+      .then((data) => {
+        teamSampleData.set(key, data);
+        teamSampleInflight.delete(key);
+        return data;
+      }, (error: Error) => {
+        teamSampleInflight.delete(key);
+        throw error;
+      });
+    teamSampleInflight.set(key, entry);
   }
   return entry;
 }

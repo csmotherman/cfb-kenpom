@@ -21,6 +21,7 @@ node_modules/
 # Never commit these files to the public repository.
 site/advanced-data.js
 web/public/data/advanced/
+web/public/data/advanced-games/
 web/public/data/predictions/
 web/public/data/exploratory/
 web/public/data/team-game-advanced/

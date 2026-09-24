@@ -31,6 +31,7 @@ import "@/styles/team-profile-v2.css";
 import "@/styles/methodology.css";
 import "@/styles/network.css";
 import "@/styles/game-log.css";
+import "@/styles/custom-sample.css";
 import "@/styles/game-history.css";
 import "@/styles/article.css";
 import "@/styles/upgrade.css";

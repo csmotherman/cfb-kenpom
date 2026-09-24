@@ -10,7 +10,8 @@
     "seo:audit": "node scripts/audit-seo.mjs",
     "seo:links": "node scripts/link-graph.mjs",
     "indexnow": "node scripts/indexnow.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.6",

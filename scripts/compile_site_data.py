@@ -67,8 +67,30 @@ def load_existing_site_data(site_dir=None):
     )
 
 
-def build_season_payload(year, rating_model):
-    weeks, week_labels, model_metadata = build_year(year, rating_model=rating_model)
+CUSTOM_SAMPLE_DIR = REPO / "web" / "public" / "data" / "advanced-games"
+
+
+def write_custom_sample_artifact(year, artifact):
+    """Private per-team/per-game export for the Advanced custom-sample feature
+    (published to Supabase by publish_premium_data.py, never committed). It is
+    an optional extra: a failure here must not block the site's ratings refresh,
+    and a missing/stale artifact simply disables the feature client-side."""
+    try:
+        if not artifact or not artifact.get("teams"):
+            print(f"season {year}: no custom-sample artifact produced")
+            return
+        CUSTOM_SAMPLE_DIR.mkdir(parents=True, exist_ok=True)
+        path = CUSTOM_SAMPLE_DIR / f"{year}.json"
+        tmp = path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(artifact, separators=(",", ":"), allow_nan=False))
+        tmp.replace(path)
+        print(f"season {year}: custom-sample artifact {path.stat().st_size:,} bytes, {len(artifact['teams'])} teams")
+    except Exception as exc:  # noqa: BLE001
+        print(f"::warning::custom-sample artifact for {year} failed: {exc}")
+
+
+def build_season_payload(year, rating_model, custom_sample_out=None):
+    weeks, week_labels, model_metadata = build_year(year, rating_model=rating_model, custom_sample_out=custom_sample_out)
     source = RATING_SOURCE_KEYS[rating_model]
     if not weeks:
         return None
@@ -190,7 +212,9 @@ def main():
         target_years = YEARS
 
     for year in target_years:
-        built = build_season_payload(year, rating_model=args.rating_model)
+        custom_sample = {}
+        built = build_season_payload(year, rating_model=args.rating_model, custom_sample_out=custom_sample)
+        write_custom_sample_artifact(year, custom_sample)
         key = str(year)
         if built is None:
             raise RuntimeError(f"season {year}: no valid ratings payload available")

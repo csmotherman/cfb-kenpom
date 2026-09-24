@@ -270,6 +270,38 @@ def publish_team_game_advanced(base_url: str, secret: str, season: int | None) -
     return count
 
 
+def publish_advanced_games(base_url: str, secret: str, season: int | None) -> int:
+    """Per-team/per-game Advanced custom-sample ingredients (see custom_sample.py).
+
+    Stored as dataset_type='advanced', week=1 -- the same private table and an
+    already-allowed dataset type, so no schema migration is needed (the season's
+    main Advanced blob is week=0). The API route reads a single team out of the
+    JSON with a PostgREST path selector, so a click never pulls the whole season.
+    """
+    directory = REPO / "web" / "public" / "data" / "advanced-games"
+    if not directory.exists():
+        return 0
+    paths = [directory / f"{season}.json"] if season else sorted(directory.glob("*.json"))
+    count = 0
+    for path in paths:
+        if not path.exists():
+            continue
+        payload = json.loads(path.read_text())
+        upsert(
+            base_url,
+            secret,
+            {
+                "dataset_type": "advanced",
+                "season": int(path.stem),
+                "week": 1,
+                "payload": payload,
+                "source_sha": payload_hash(payload),
+            },
+        )
+        count += 1
+    return count
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--season", type=int, help="Publish only one season's generated premium files")
@@ -281,11 +313,16 @@ def main() -> None:
     exploratory = publish_exploratory(base_url, secret, args.season)
     exploratory_matchups = publish_exploratory_matchups(base_url, secret, args.season)
     team_game_advanced = publish_team_game_advanced(base_url, secret, args.season)
+    try:
+        advanced_games = publish_advanced_games(base_url, secret, args.season)
+    except Exception as exc:  # noqa: BLE001 - optional feature; never block the core publish
+        advanced_games = 0
+        print(f"::warning::Advanced custom-sample artifact was not published: {exc}")
     print(
         f"Published and read-after-write verified {advanced} Advanced Analytics season(s), "
         f"{predictions} prediction week(s), {exploratory} Exploratory season(s), "
         f"{exploratory_matchups} Exploratory Matchups season(s), and {team_game_advanced} "
-        f"Team-Game Advanced season(s) in private Supabase storage."
+        f"Team-Game Advanced season(s) ({advanced_games} custom-sample season(s)) in private Supabase storage."
     )
 
 

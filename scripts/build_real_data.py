@@ -547,7 +547,7 @@ def load_processed_team_games(year):
     return games, weeks_present, week_labels
 
 
-def build_year(year, rating_model, use_prior_season_baseline=True):
+def build_year(year, rating_model, use_prior_season_baseline=True, custom_sample_out=None):
     rating_models.require_mode(rating_model)
     hierarchical = rating_model == "hierarchical_hfa"
     prior_offense = prior_defense = None
@@ -613,6 +613,8 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
     # actual game predictions keeps its strict before-this-game cut --
     # that one really would leak if it looked ahead.)
     team_game_log = defaultdict(list)
+    # (gameId, team) -> that opponent's walk-forward SRS, for the custom-sample export.
+    opp_srs_by_key = {}
 
     # Every FBS team's result against an FCS/lower-division opponent this
     # season, walk-forward like team_game_log above. Used only to calibrate
@@ -815,6 +817,7 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
                 opp_prefix = "away_" if prefix == "home_" else "home_"
                 opp_srs = iter_row.get(opp_prefix[:-1] + "Srs")
                 if num(opp_srs):
+                    opp_srs_by_key[(str(row.get("gameId") or row.get("game_id")), name)] = opp_srs
                     wr = wk_raw[name]
                     wr["opponentSrsSum"] += opp_srs
                     wr["opponentSrsCount"] += 1
@@ -972,6 +975,20 @@ def build_year(year, rating_model, use_prior_season_baseline=True):
             })
 
         out_by_week[wk] = week_rows  # wk is already a real chronological site-week (see build_site_week_map)
+
+        if custom_sample_out is not None and wk == weeks_present[-1]:
+            # Optional per-team/per-game export for the Advanced "custom sample"
+            # feature. Built from this exact final-week fit so an all-games
+            # selection reproduces the published values (see custom_sample.py).
+            try:
+                import custom_sample
+                custom_sample_out.update(custom_sample.build_artifact(
+                    year=year, week_through=wk, games=games, metric_ratings=metric_ratings,
+                    opp_srs_by_key=opp_srs_by_key, poss_seconds=poss_seconds,
+                ))
+            except Exception as exc:  # noqa: BLE001 - optional export, never block ratings
+                custom_sample_out.clear()
+                print(f"::warning::custom-sample export for {year} failed: {exc}")
 
     model_metadata = rating_models.rating_model_metadata(
         rating_model, season=year,

@@ -338,7 +338,12 @@ def fit_metric_ratings(
     offense = {team: value - off_mean for team, value in offense.items()}
     defense = {team: value - def_mean for team, value in defense.items()}
     league_mean = league_mean + off_mean - def_mean
-    return {"leagueMean": league_mean, "offense": offense, "defense": defense, "iterations": iteration, "converged": converged, "maxDelta": max_delta}
+    # offenseMean/defenseMean are the constants subtracted by the centering step
+    # above. Published (centered) ratings satisfy, for any subset S of a team's
+    # games, edge_S = (sum_S a_g - shrinkage * mean) / (sum_S w_g + shrinkage) with a_g
+    # built from the OTHER side's centered ratings -- the advanced custom-sample
+    # export (scripts/custom_sample.py) needs them to reproduce the fit exactly.
+    return {"leagueMean": league_mean, "offense": offense, "defense": defense, "iterations": iteration, "converged": converged, "maxDelta": max_delta, "offenseMean": off_mean, "defenseMean": def_mean, "shrinkage": shrinkage}
 
 
 def fit_all_ratings(rows: list[dict[str, Any]], **kwargs: Any) -> dict[str, dict[str, Any]]:

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
@@ -9,7 +9,9 @@ import MatchupLoading from "@/components/MatchupLoading";
 import CfpTeamCell from "@/components/CfpTeamCell";
 import { TipTrigger } from "@/components/Tooltip";
 import GameLogModal from "@/components/GameLogModal";
-import { getMeta, useAdvancedSeason, useCfpResultsSeason, useExploratorySeason } from "@/lib/data";
+import GameSampleSheet, { type SampleStatus } from "@/components/GameSampleSheet";
+import { getMeta, getTeamSample, useAdvancedSeason, useCfpResultsSeason, useExploratorySeason } from "@/lib/data";
+import { computeSample, parseExclusions, serializeExclusions, verifyParity, type SampleResult, type TeamSampleData } from "@/lib/custom-sample";
 import { buildCfpStatusMap } from "@/lib/cfp";
 import { buildMistakesTab, computeMistakesMetrics } from "@/lib/advanced-mistakes";
 import { columnRange, heatBackground } from "@/lib/heatmap";
@@ -57,6 +59,12 @@ type AdvColumn = {
 };
 
 type AdvSection = { title: string; columns: AdvColumn[] };
+
+// Headline ratings are official model outputs: a custom game sample never
+// recomputes them (or any ranking), so their cells stay official and are marked.
+const OFFICIAL_ONLY_KEYS = new Set(["adjEM", "asm", "adjO", "adjD"]);
+
+type SampleEntry = { status: SampleStatus; data: TeamSampleData | null };
 type Tab = {
   label: string;
   primaryKey: string;
@@ -332,6 +340,7 @@ type Aggregated = {
   conf: string;
   record: string;
   wins: number;
+  _custom?: { included: number; total: number } | null;
   [key: string]: unknown;
 };
 
@@ -353,6 +362,13 @@ export default function AdvancedClient() {
   const [conference, setConference] = useState("");
   const [gameLogTarget, setGameLogTarget] = useState<{ team: Aggregated; column: AdvColumn } | null>(null);
   const [showDrillDownTip, setShowDrillDownTip] = useState(false);
+  // Custom game samples: which games each team has dropped (independent per team,
+  // keyed by slug), the per-team data loaded on demand, and the open selector.
+  const [excluded, setExcluded] = useState<Record<string, string[]>>({});
+  const [samples, setSamples] = useState<Record<string, SampleEntry>>({});
+  const [sheetTeam, setSheetTeam] = useState<{ slug: string; team: string; teamId: number } | null>(null);
+  const [urlHydrated, setUrlHydrated] = useState(false);
+  const [linkNote, setLinkNote] = useState("");
   /* eslint-disable react-hooks/set-state-in-effect -- one-time client-only
      localStorage read on mount (matches the query-string-read pattern in
      app/page.tsx and the SSR-safe mount flag in GameLogModal). */
@@ -383,8 +399,14 @@ export default function AdvancedClient() {
       const latestYear = availableYears[availableYears.length - 1];
 
       setYears(availableYears);
+      // Shareable custom samples: ?y=2026&x=michigan:4018.4019;iowa:4020
+      const params = new URLSearchParams(window.location.search);
+      const requestedYear = Number(params.get("y"));
+      const sharedExclusions = parseExclusions(params.get("x"));
+      if (Object.keys(sharedExclusions).length) setExcluded(sharedExclusions);
+      setUrlHydrated(true);
       if (Number.isFinite(latestYear)) {
-        setYear(String(latestYear));
+        setYear(String(availableYears.includes(requestedYear) && Object.keys(sharedExclusions).length ? requestedYear : latestYear));
       } else {
         setLoadError(new Error("No published Advanced Analytics season is available."));
       }
@@ -439,6 +461,89 @@ export default function AdvancedClient() {
     setEndWeek(season.weeks[season.weeks.length - 1]);
   }
 
+  // ---- Custom game samples -------------------------------------------------
+  const lastWeek = weeks.length ? weeks[weeks.length - 1] : null;
+  const officialRows = useMemo(() => {
+    const rows = new Map<string, AdvancedRow>();
+    (lastWeek === null ? [] : seasonByWeek[String(lastWeek)] || []).forEach((row) => rows.set(row.slug, row));
+    return rows;
+  }, [seasonByWeek, lastWeek]);
+  // Custom samples recompute adjusted stats against the latest opponent ratings,
+  // so they only apply to the full season to date (the range where an all-games
+  // selection is exactly the official table).
+  const rangeAllowsCustom = startWeek !== null && weeks.length > 0 && startWeek === weeks[0];
+
+  const ensureSample = useCallback((slug: string, teamId: number) => {
+    const key = `${year}:${slug}`;
+    setSamples((previous) => (previous[key] ? previous : { ...previous, [key]: { status: "loading", data: null } }));
+    getTeamSample(year, teamId)
+      .then((data) => {
+        if (!data) {
+          setSamples((previous) => ({ ...previous, [key]: { status: "unavailable", data: null } }));
+          return;
+        }
+        const official = officialRows.get(slug);
+        const parity = official ? verifyParity(data, official as unknown as Record<string, unknown>) : { ok: false };
+        setSamples((previous) => ({ ...previous, [key]: { status: parity.ok ? "ready" : "stale", data: parity.ok ? data : null } }));
+      })
+      .catch(() => setSamples((previous) => ({ ...previous, [key]: { status: "error", data: null } })));
+  }, [year, officialRows]);
+
+  // Load the per-team sample data referenced by a shared link once the season's team ids are known.
+  useEffect(() => {
+    Object.keys(excluded).forEach((slug) => {
+      const row = officialRows.get(slug);
+      if (row && !samples[`${year}:${slug}`]) ensureSample(slug, row.teamId);
+    });
+  }, [excluded, officialRows, samples, year, ensureSample]);
+
+  useEffect(() => {
+    if (!urlHydrated || !year) return;
+    const params = new URLSearchParams(window.location.search);
+    const value = serializeExclusions(excluded);
+    if (value) { params.set("x", value); params.set("y", year); } else { params.delete("x"); params.delete("y"); }
+    const query = params.toString();
+    window.history.replaceState(null, "", window.location.pathname + (query ? `?${query}` : "") + window.location.hash);
+  }, [excluded, year, urlHydrated]);
+
+  const customResults = useMemo(() => {
+    const results: Record<string, SampleResult> = {};
+    if (!rangeAllowsCustom || endWeek === null) return results;
+    Object.entries(excluded).forEach(([slug, ids]) => {
+      const entry = samples[`${year}:${slug}`];
+      const data = entry?.status === "ready" ? entry.data : null;
+      if (!data || !ids.length) return;
+      if (data.meta.season !== Number(year) || endWeek < data.meta.weekThrough) return;
+      const drop = new Set(ids);
+      const result = computeSample(data, new Set(data.team.games.map((game) => game.g).filter((id) => !drop.has(id))));
+      if (result.included < result.total) results[slug] = result;
+    });
+    return results;
+  }, [excluded, samples, year, endWeek, rangeAllowsCustom]);
+
+  function updateExclusions(slug: string, ids: string[]) {
+    setExcluded((previous) => {
+      const next = { ...previous };
+      if (ids.length) next[slug] = ids; else delete next[slug];
+      return next;
+    });
+  }
+
+  function openSampleSheet(team: { slug: string; team: string; teamId: number }) {
+    setSheetTeam({ slug: team.slug, team: team.team, teamId: team.teamId });
+    ensureSample(team.slug, team.teamId);
+  }
+
+  async function copyShareLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkNote("Link copied");
+    } catch {
+      setLinkNote("Copy the address bar to share");
+    }
+    setTimeout(() => setLinkNote(""), 2500);
+  }
+
   const teams = useMemo<Aggregated[]>(() => {
     if (startWeek === null || endWeek === null) return [];
     const selectedWeeks = weeks.filter((week) => week >= startWeek && week <= endWeek);
@@ -459,8 +564,12 @@ export default function AdvancedClient() {
 
     return Array.from(byTeam.values()).map((acc) => {
       const snap = snapshotBySlug[acc.slug];
-      const wins = acc.wk.wins || 0;
-      const losses = acc.wk.losses || 0;
+      // A team with a custom sample is recomputed from its chosen games only;
+      // every other team is untouched (samples are independent per team).
+      const custom = customResults[acc.slug];
+      const counts = custom ? custom.raw : acc.wk;
+      const wins = counts.wins || 0;
+      const losses = counts.losses || 0;
       const out: Aggregated = {
         team: acc.team,
         slug: acc.slug,
@@ -468,15 +577,20 @@ export default function AdvancedClient() {
         conf: acc.conf,
         record: `${wins}-${losses}`,
         wins,
+        _custom: custom ? { included: custom.included, total: custom.total } : null,
       };
 
       ALL_COLUMNS.forEach((col) => {
         if (col.kind === "snapshot") {
-          const value = snap ? (snap as unknown as Record<string, unknown>)[col.key] : null;
-          out[col.key] = na(value) ? null : value;
+          if (custom && col.key in custom.adjusted) {
+            out[col.key] = custom.adjusted[col.key];
+          } else {
+            const value = snap ? (snap as unknown as Record<string, unknown>)[col.key] : null;
+            out[col.key] = na(value) ? null : value;
+          }
         } else {
-          const num = sumField(acc.wk, col.num!);
-          const den = sumField(acc.wk, col.den!);
+          const num = sumField(counts, col.num!);
+          const den = sumField(counts, col.den!);
           out[col.key] = rate(num, den);
         }
       });
@@ -491,10 +605,10 @@ export default function AdvancedClient() {
         out[`${metric.prefix}Margin`] = na(offenseValue) || na(defenseAllowedValue) ? null : offenseValue + defenseAllowedValue;
       });
 
-      Object.assign(out, computeMistakesMetrics(mistakesCountsBySlug[acc.slug]));
+      Object.assign(out, computeMistakesMetrics(custom?.ex ?? mistakesCountsBySlug[acc.slug]));
       return out;
     });
-  }, [seasonByWeek, snapshotBySlug, mistakesCountsBySlug, weeks, startWeek, endWeek]);
+  }, [seasonByWeek, snapshotBySlug, mistakesCountsBySlug, customResults, weeks, startWeek, endWeek]);
 
   const tabDef = useMemo<Tab>(() => {
     if (tab === "mistakes") return buildMistakesTab(perspective) as Tab;
@@ -542,6 +656,9 @@ export default function AdvancedClient() {
       return ((av as number) - (bv as number)) * direction;
     });
   }, [rankedTeams, filter, conference, sortKey, sortDir]);
+
+  const customTeams = useMemo(() => teams.filter((team) => team._custom), [teams]);
+  const customPaused = !rangeAllowsCustom && Object.keys(excluded).length > 0;
 
   const columnRanges = useMemo(() => {
     const ranges: Record<string, { min: number; max: number }> = {};
@@ -608,7 +725,7 @@ export default function AdvancedClient() {
             <p className="ratings-hero__description">Compare opponent-adjusted efficiency, success rate, explosiveness, field position, turnovers, penalties, and situational performance across FBS teams.</p>
           </div>
           <div className="ratings-hero__meta">
-            <span className="ratings-status">{loading ? "Loading season…" : `${year} • ${startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : ""} • ${teams.length} teams`}</span>
+            <span className="ratings-status">{loading ? "Loading season…" : `${year} • ${startWeek !== null && endWeek !== null ? weekRangeLabel(startWeek, endWeek) : ""} • ${teams.length} teams${customTeams.length ? " • CUSTOM SAMPLES" : ""}`}</span>
             <Link className="utility-link" href="/methodology">Methodology ↗</Link>
             {updatedAt ? <time className="data-updated" dateTime={updatedAt}>Data updated {new Date(updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} UTC</time> : null}
           </div>
@@ -624,7 +741,7 @@ export default function AdvancedClient() {
             <span className="control-label">Season</span>
             <nav className="year-nav" aria-label="Season">
               {[...years].reverse().map((seasonYear) => (
-                <button key={seasonYear} type="button" className={String(seasonYear) === year ? "active" : undefined} aria-pressed={String(seasonYear) === year} onClick={() => { setYear(String(seasonYear)); setConference(""); }}>
+                <button key={seasonYear} type="button" className={String(seasonYear) === year ? "active" : undefined} aria-pressed={String(seasonYear) === year} onClick={() => { setYear(String(seasonYear)); setConference(""); setExcluded({}); setSheetTeam(null); }}>
                   {seasonYear}
                 </button>
               ))}
@@ -694,6 +811,33 @@ export default function AdvancedClient() {
           ) : null}
         </div>
 
+        {customTeams.length > 0 || customPaused ? (
+          <div className="container">
+            <div className="cs-banner" role="status">
+              <strong>Custom samples</strong>
+              {customTeams.length > 0 ? (
+                <div className="cs-banner__teams">
+                  {customTeams.map((team) => (
+                    <button key={team.slug} type="button" className="cs-banner__team" onClick={() => openSampleSheet(team)} aria-label={`Edit ${team.team} games`}>
+                      {team.team} <span>{team._custom!.included}/{team._custom!.total} games</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <div className="cs-banner__actions">
+                <button type="button" className="cs-link" onClick={copyShareLink}>{linkNote || "Copy link"}</button>
+                <button type="button" className="cs-link" onClick={() => { setExcluded({}); setSheetTeam(null); }}>Reset all to full games</button>
+              </div>
+              <p className="cs-banner__paused">
+                {customPaused
+                  ? "Custom samples are paused while the week range is narrowed. "
+                  : "Highlighted teams are NOT the official season stats. Only their opponent-adjusted stats, rates, and rankings in this table use the games you chose; PRIME Ratings, PRIME 25, and predictions are unchanged. "}
+                {customPaused ? <button type="button" className="cs-link" onClick={() => { if (weeks.length) { setStartWeek(weeks[0]); setEndWeek(weeks[weeks.length - 1]); } }}>Show the full season</button> : null}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
         <main id="advancedTable" className="table-main container">
           <div className="advanced-table-shell">
             <div className="advanced-table-summary">
@@ -743,16 +887,29 @@ export default function AdvancedClient() {
                     <tr className="empty-row"><td colSpan={3 + visibleColumns.length}>No teams match &ldquo;{filter}&rdquo;.</td></tr>
                   ) : (
                     visibleTeams.map((team) => (
-                      <tr key={team.slug}>
+                      <tr key={team.slug} className={team._custom ? "cs-custom-row" : undefined}>
                         <td className="num rank-cell">{team._rank ? String(team._rank) : "—"}</td>
                         <CfpTeamCell team={team.team} teamId={team.teamId} slug={team.slug} conf={team.conf} status={cfpStatusByTeamId.get(team.teamId)} year={year} />
-                        <td className="num record-cell">{team.record}</td>
+                        <td className="num record-cell">
+                          {team.record}
+                          <button
+                            type="button"
+                            className={`cs-chip${team._custom ? " cs-chip--custom" : ""}`}
+                            aria-label={team._custom ? `${team.team}: custom sample, ${team._custom.included} of ${team._custom.total} games. Edit games` : `Customize ${team.team}'s games`}
+                            title={team._custom ? "Custom sample — click to edit games" : "Choose which games count"}
+                            onClick={() => openSampleSheet(team)}
+                          >
+                            {team._custom ? `${team._custom.included}/${team._custom.total}` : (
+                              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7" /><circle cx="10.5" cy="4.5" r="1.7" /><circle cx="5.5" cy="11.5" r="1.7" /></svg>
+                            )}
+                          </button>
+                        </td>
                         {visibleColumns.map((col) => {
                           const value = team[col.key] as number | null;
                           const rank = team[`_rank_${col.key}`] as number | null;
                           const drillable = col.kind === "rate" && col.fmt !== "split0" && !!col.num && !!col.den;
                           return (
-                            <td key={col.key} className={`num stat-cell metric-cell${col.primary ? " primary" : ""}${sectionStartKeys.has(col.key) ? " section-start" : ""}${drillable ? " drillable" : ""}`} data-metric-key={col.key} style={col.rankable ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined} role={drillable ? "button" : undefined} tabIndex={drillable ? 0 : undefined} aria-label={drillable ? `${team.team} ${col.label} game log` : undefined} onClick={drillable ? () => setGameLogTarget({ team, column: col }) : undefined} onKeyDown={drillable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setGameLogTarget({ team, column: col }); } } : undefined}>
+                            <td key={col.key} className={`num stat-cell metric-cell${col.primary ? " primary" : ""}${sectionStartKeys.has(col.key) ? " section-start" : ""}${drillable ? " drillable" : ""}${team._custom && OFFICIAL_ONLY_KEYS.has(col.key) ? " cs-official" : ""}`} title={team._custom && OFFICIAL_ONLY_KEYS.has(col.key) ? "Official PRIME rating — not affected by custom samples" : undefined} data-metric-key={col.key} style={col.rankable ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined} role={drillable ? "button" : undefined} tabIndex={drillable ? 0 : undefined} aria-label={drillable ? `${team.team} ${col.label} game log` : undefined} onClick={drillable ? () => setGameLogTarget({ team, column: col }) : undefined} onKeyDown={drillable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setGameLogTarget({ team, column: col }); } } : undefined}>
                               <span className="metric-value">{col.fmt === "split0" ? splitText(value) : FORMATTERS[col.fmt](value)}</span>
                               {col.rankable && rank ? <span className="rank-sub">#{rank}</span> : null}
                             </td>
@@ -771,6 +928,26 @@ export default function AdvancedClient() {
           <SiteFooter note="Records and metrics include completed FBS-vs-FBS games only. Advanced CFF combines selected-range rate statistics with end-week opponent-adjusted model snapshots." />
         </div>
       </div>
+
+      {sheetTeam ? (() => {
+        const entry = samples[`${year}:${sheetTeam.slug}`];
+        const data = entry?.status === "ready" ? entry.data : null;
+        return (
+          <GameSampleSheet
+            team={sheetTeam.team}
+            teamId={sheetTeam.teamId}
+            year={year}
+            status={entry?.status ?? "loading"}
+            data={data}
+            excluded={excluded[sheetTeam.slug] ?? []}
+            rangeEnabled={rangeAllowsCustom && (!data || (endWeek ?? 0) >= data.meta.weekThrough)}
+            weekLabel={weekLabel}
+            onChange={(ids) => updateExclusions(sheetTeam.slug, ids)}
+            onShowFullRange={() => { if (weeks.length) { setStartWeek(weeks[0]); setEndWeek(weeks[weeks.length - 1]); } }}
+            onClose={() => setSheetTeam(null)}
+          />
+        );
+      })() : null}
 
       {gameLogTarget && startWeek !== null && endWeek !== null ? (
         <GameLogModal team={gameLogTarget.team.team} teamId={gameLogTarget.team.teamId} slug={gameLogTarget.team.slug} year={year} column={gameLogTarget.column} startWeek={startWeek} endWeek={endWeek} weekLabel={weekLabel} format={(v) => (gameLogTarget.column.fmt === "split0" ? splitText(v) : FORMATTERS[gameLogTarget.column.fmt](v))} onClose={() => setGameLogTarget(null)} />

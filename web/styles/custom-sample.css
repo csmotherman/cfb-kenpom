@@ -1,0 +1,218 @@
+/* ========================================================================== */
+/* Advanced -- custom game samples (per-team game selector)                   */
+/* ========================================================================== */
+
+/* Row control in the record cell: a compact chip that becomes a gold badge. */
+.cs-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 22px;
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: 11px;
+  background: var(--color-paper-soft);
+  color: var(--color-ink-secondary);
+  font: 700 9.5px/1 var(--font-mono);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.cs-chip:hover, .cs-chip:focus-visible { border-color: var(--color-navy); color: var(--color-navy); outline: none; }
+.cs-chip svg { width: 12px; height: 12px; }
+.cs-chip--custom {
+  border-color: var(--color-gold-dark);
+  background: var(--color-gold);
+  color: var(--color-navy);
+}
+
+/* Customized rows and the cells that intentionally stay official. */
+.adv-table tbody tr.cs-custom-row > td:first-child { box-shadow: inset 3px 0 0 var(--color-gold-dark); }
+.adv-table tbody tr.cs-custom-row { background: #f7efd9 !important; }
+.adv-table td.cs-official { position: relative; }
+.adv-table td.cs-official::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-ink-tertiary);
+  opacity: 0.55;
+}
+
+/* Always-visible banner so a modified table is never mistaken for official numbers. */
+.cs-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 8px auto 0;
+  padding: 9px 12px;
+  border: 1px solid var(--color-gold-dark);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  background: #fbf3dc;
+  color: var(--color-navy);
+  font-size: 12px;
+}
+.cs-banner strong { font: 800 10.5px/1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.cs-banner__teams { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 200px; min-width: 0; }
+.cs-banner__team {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: 16px;
+  background: var(--color-paper-soft);
+  color: var(--color-navy);
+  font: 700 11px/1 var(--font-body);
+  cursor: pointer;
+}
+.cs-banner__team span { font: 700 10px/1 var(--font-mono); color: var(--color-gold-dark); }
+.cs-banner__actions { display: flex; gap: 8px; }
+.cs-link {
+  min-height: 32px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--color-navy);
+  font: 800 11px/1 var(--font-body);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.cs-banner__paused { flex-basis: 100%; margin: 0; color: var(--color-ink-secondary); }
+
+/* Sheet: centered dialog on desktop, bottom sheet on phones. */
+.cs-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(23, 23, 23, 0.55);
+}
+.cs-sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  max-height: min(86vh, 720px);
+  background: var(--color-paper-soft);
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+}
+.cs-sheet__grab { display: none; }
+.cs-sheet__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--color-hairline);
+}
+.cs-eyebrow { display: block; font: 800 10px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-gold-dark); }
+.cs-sheet__header h2 { margin: 4px 0 0; font: 800 26px/1 var(--font-display); text-transform: uppercase; color: var(--color-navy); }
+.cs-sheet__count { margin: 6px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--color-ink-secondary); }
+.cs-badge { padding: 3px 8px; border-radius: 10px; background: var(--color-gold); color: var(--color-navy); font: 800 10px/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.cs-close {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  margin: -6px -8px 0 0;
+  border: 0;
+  background: none;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--color-ink-secondary);
+  cursor: pointer;
+}
+.cs-sheet__body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: var(--space-3) var(--space-4) var(--space-2); }
+.cs-sheet__tools { display: flex; gap: 8px; margin-bottom: var(--space-3); }
+.cs-sheet__message { padding: var(--space-5) var(--space-2); text-align: center; font-size: 13px; color: var(--color-ink-secondary); }
+.cs-sheet__message .cs-btn { margin-top: var(--space-3); }
+.cs-sheet__warning { margin: var(--space-3) 0 0; padding: 10px 12px; border-radius: var(--radius-md); background: #f3dcdc; color: var(--color-down); font-size: 12.5px; }
+.cs-sheet__note { margin: var(--space-3) 0 var(--space-2); font-size: 11.5px; line-height: 1.45; color: var(--color-ink-tertiary); }
+.cs-sheet__footer {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--color-hairline);
+  background: var(--color-paper-soft);
+}
+.cs-btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-navy);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper-soft);
+  color: var(--color-navy);
+  font: 800 11px/1 var(--font-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.cs-btn:disabled { opacity: 0.45; cursor: default; }
+.cs-btn--primary { background: var(--color-navy); color: #fff; border-color: var(--color-gold-dark); }
+
+.cs-games { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cs-game {
+  display: grid;
+  grid-template-columns: 28px 44px 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cs-game.is-on { border-color: var(--color-navy); background: #fff; }
+.cs-game:not(.is-on) .cs-game__logo, .cs-game:not(.is-on) .cs-game__main, .cs-game:not(.is-on) .cs-game__result { opacity: 0.45; }
+.cs-game:not(.is-on) .cs-game__opp { text-decoration: line-through; }
+.cs-game__check {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--color-hairline-strong);
+  border-radius: 50%;
+  font: 800 14px/1 var(--font-body);
+  color: #fff;
+}
+.cs-game.is-on .cs-game__check { border-color: var(--color-navy); background: var(--color-navy); }
+.cs-game__week { font: 800 10px/1.15 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-ink-tertiary); }
+.cs-game__logo { width: 32px; height: 32px; object-fit: contain; }
+.cs-game__logo--blank { display: grid; place-items: center; border-radius: 50%; background: var(--color-paper-raised); font: 800 10px/1 var(--font-mono); color: var(--color-ink-tertiary); }
+.cs-game__main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cs-game__opp { font: 700 14px/1.15 var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-game__meta { display: flex; gap: 6px; align-items: center; font: 700 10px/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-ink-tertiary); }
+.cs-tag { padding: 2px 5px; border: 1px solid var(--color-hairline-strong); border-radius: 3px; }
+.cs-game__result { font: 800 12px/1 var(--font-mono); white-space: nowrap; }
+.cs-game__result.is-win { color: var(--color-up); }
+.cs-game__result.is-loss { color: var(--color-down); }
+
+@media (max-width: 650px) {
+  .cs-backdrop { align-items: flex-end; padding: 0; }
+  .cs-sheet { max-width: none; max-height: 90dvh; border-radius: 16px 16px 0 0; border-bottom: 0; }
+  .cs-sheet__grab { display: block; width: 40px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: var(--color-hairline-strong); }
+  .cs-game { grid-template-columns: 26px 38px 30px minmax(0, 1fr) auto; gap: 8px; padding: 8px; }
+  .cs-game__week { font-size: 9px; }
+  .cs-banner { margin-inline: 10px; }
+}
