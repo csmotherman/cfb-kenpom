@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import TeamLink from "@/components/TeamLink";
 import { getGameLogSeason } from "@/lib/data";
+import { logoUrl } from "@/lib/teamCode";
 import type { GameLogEntry, GameLogFields } from "@/lib/types";
 
 export type GameLogColumn = {
@@ -77,7 +78,12 @@ export default function GameLogModal({
       if (e.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
   }, [onClose]);
 
   const games = useMemo(() => {
@@ -101,49 +107,73 @@ export default function GameLogModal({
 
   const hasOpponentContext = !!(column.opponentNum && column.opponentDen);
 
+  const rangeText = endWeek !== startWeek
+    ? `${weekLabel(startWeek, true)} – ${weekLabel(endWeek, true)}`
+    : weekLabel(startWeek, true);
+
   return createPortal(
-    <div className="game-log-backdrop" role="presentation" onClick={onClose}>
-      <div
+    <div className="game-log-backdrop" role="presentation" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <section
         className="game-log-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="gameLogTitle"
-        onClick={(e) => e.stopPropagation()}
       >
-        <div className="game-log-modal__header">
-          <div className="game-log-modal__title-stack">
-            <span className="game-log-modal__eyebrow">Game log</span>
-            <h2 id="gameLogTitle">
-              <TeamLink team={team} teamId={teamId} slug={slug} /> &middot; {column.label}
-            </h2>
+        <header className="game-log-modal__header">
+          <div className="game-log-modal__identity">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="game-log-modal__team-logo" src={logoUrl(teamId, 128)} alt="" />
+            <div className="game-log-modal__title-stack">
+              <span className="game-log-modal__eyebrow">Game-by-game breakdown</span>
+              <h2 id="gameLogTitle">{team}</h2>
+              <p>{column.label} · {rangeText}</p>
+            </div>
           </div>
-          <button type="button" className="game-log-modal__close" aria-label="Close" onClick={onClose}>
+          <button type="button" className="game-log-modal__close" aria-label="Close game breakdown" onClick={onClose}>
             &times;
           </button>
+        </header>
+
+        <div className="game-log-modal__summary">
+          <div>
+            <span>Games shown</span>
+            <strong>{games.length || "—"}</strong>
+          </div>
+          <div>
+            <span>Sample value</span>
+            <strong>{games.length ? format(totals.value) : "—"}</strong>
+          </div>
+          <div className="game-log-modal__summary-context">
+            <span>Opponent comparison</span>
+            <strong>{hasOpponentContext ? "Entering game" : "Not available"}</strong>
+          </div>
         </div>
 
         <p className="game-log-modal__note">
-          Every game in the selected week range ({weekLabel(startWeek, true)}
-          {endWeek !== startWeek ? ` – ${weekLabel(endWeek, true)}` : ""}), with what {team} actually did that game next
-          to {hasOpponentContext ? "what that opponent had allowed coming in (season-to-date, before this game)." : "—no opponent baseline is defined for this stat."}
+          <strong>How to read this:</strong> “This game” is {team}&apos;s actual performance.
+          {hasOpponentContext
+            ? " “Opponent entering” shows what that opponent had allowed before the game; the small +/- is the difference."
+            : " This metric does not have an opponent baseline."}
         </p>
 
         {error ? (
           <p className="game-log-modal__empty">Couldn&apos;t load the game log for {year}.</p>
         ) : rows === null ? (
-          <p className="game-log-modal__empty">Loading…</p>
+          <p className="game-log-modal__empty">Loading game breakdown…</p>
         ) : games.length === 0 ? (
-          <p className="game-log-modal__empty">No games in this range yet.</p>
+          <p className="game-log-modal__empty">No games in this selected range yet.</p>
         ) : (
           <div className="game-log-modal__table-wrap">
             <table className="game-log-modal__table">
               <thead>
                 <tr>
-                  <th>Wk</th>
+                  <th>Week</th>
                   <th>Opponent</th>
                   <th>Result</th>
                   <th>{team} this game</th>
-                  <th>{hasOpponentContext ? "Opponent coming in" : "—"}</th>
+                  <th>{hasOpponentContext ? "Opponent entering" : "Baseline"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -156,29 +186,35 @@ export default function GameLogModal({
                     : null;
                   const diff = ownValue !== null && oppValue !== null ? ownValue - oppValue : null;
                   const diffGood = diff === null ? null : column.lowerBetter ? diff < 0 : diff > 0;
+                  const venue = g.homeAway === "home" ? "vs" : g.homeAway === "away" ? "@" : "N";
+                  const score = g.pointsFor === null || g.pointsAgainst === null
+                    ? ""
+                    : ` ${g.pointsFor}-${g.pointsAgainst}`;
                   return (
                     <tr key={g.gameId}>
-                      <td className="num">{weekLabel(g.week)}</td>
-                      <td className="game-log-modal__opponent">
-                        {g.opponentTeamId ? (
-                          <TeamLink team={g.opponent} teamId={g.opponentTeamId} slug={g.opponentSlug ?? ""} />
+                      <td className="num game-log-modal__week" data-label="Week">{weekLabel(g.week)}</td>
+                      <td className="game-log-modal__opponent" data-label="Opponent">
+                        <span className="game-log-modal__venue">{venue}</span>
+                        {g.opponentTeamId && g.opponentSlug ? (
+                          <TeamLink team={g.opponent} teamId={g.opponentTeamId} slug={g.opponentSlug} />
                         ) : (
-                          <span>{g.opponent}</span>
+                          <span className="game-log-modal__opponent-name">{g.opponent}</span>
                         )}
-                        <span className="game-log-modal__homeaway">{g.homeAway === "home" ? "vs" : "@"}</span>
                       </td>
-                      <td className={`num game-log-modal__result${g.win ? " win" : " loss"}`}>
-                        {g.win ? "W" : "L"} {g.pointsFor}-{g.pointsAgainst}
+                      <td className={`num game-log-modal__result${g.win ? " win" : " loss"}`} data-label="Result">
+                        <strong>{g.win ? "W" : "L"}</strong>{score}
                       </td>
-                      <td className="num">{format(ownValue)}</td>
-                      <td className="num">
+                      <td className="num game-log-modal__actual" data-label="This game">
+                        <strong>{format(ownValue)}</strong>
+                      </td>
+                      <td className="num game-log-modal__baseline" data-label="Opponent entering">
                         {oppValue === null ? (
                           <span className="game-log-modal__dash">
-                            {hasOpponentContext ? "no prior games" : "—"}
+                            {hasOpponentContext ? "No prior games" : "—"}
                           </span>
                         ) : (
                           <>
-                            {format(oppValue)}
+                            <strong>{format(oppValue)}</strong>
                             {diff !== null ? (
                               <span className={`game-log-modal__diff${diffGood ? " good" : " bad"}`}>
                                 {diff >= 0 ? "+" : ""}
@@ -194,15 +230,20 @@ export default function GameLogModal({
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={3}>Total across shown games</td>
-                  <td className="num">{format(totals.value)}</td>
-                  <td className="num">—</td>
+                  <td colSpan={3}>Selected sample</td>
+                  <td className="num"><strong>{format(totals.value)}</strong></td>
+                  <td className="num">{games.length} games</td>
                 </tr>
               </tfoot>
             </table>
           </div>
         )}
-      </div>
+
+        <footer className="game-log-modal__footer">
+          <span>{column.label} · {year}</span>
+          <button type="button" onClick={onClose}>Close</button>
+        </footer>
+      </section>
     </div>,
     document.body
   );
