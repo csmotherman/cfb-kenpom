@@ -275,9 +275,6 @@ export default function ExploratoryClient() {
   if (loadError) throw loadError;
 
   const profile = profileTeam ? rankedTeams.find((team) => team.slug === profileTeam.slug) ?? profileTeam : null;
-  const profileEntry = profile ? samples[`${year}:${profile.slug}`] : undefined;
-  const profileGames = profileEntry?.status === "ready" && profileEntry.data ? profileEntry.data.team.games : null;
-  const profileExcluded = profile ? excluded[profile.slug] ?? [] : [];
   const activeRangeLabel = startWeek !== null && endWeek !== null
     ? weekRangeLabel(startWeek, endWeek)
     : "Selected weeks";
@@ -406,7 +403,7 @@ export default function ExploratoryClient() {
             {customTeams.length > 0 ? (
               <div className="cs-banner__teams">
                 {customTeams.map((team) => (
-                  <button key={team.slug} type="button" className="cs-banner__team" onClick={() => openSampleSheet(team)} aria-label={`Edit ${team.team} games`}>
+                  <button key={team.slug} type="button" className="cs-banner__team" onClick={() => openProfile(team)} aria-label={`Open ${team.team} custom profile`}>
                     {team.team} <span>{(team._custom as { included: number; total: number }).included}/{(team._custom as { included: number; total: number }).total} games</span>
                   </button>
                 ))}
