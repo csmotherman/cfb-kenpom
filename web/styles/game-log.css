@@ -444,6 +444,12 @@
   text-align: center;
 }
 
+
+.game-log-mobile-list,
+.game-log-modal__mobile-help {
+  display: none;
+}
+
 /* Tablet ---------------------------------------------------------------- */
 
 @media (max-width: 820px) {
@@ -470,22 +476,37 @@
   .game-log-backdrop {
     align-items: flex-end;
     padding: 0;
+    background: rgb(4 16 31 / 76%);
   }
 
   .game-log-modal {
     width: 100%;
-    max-height: 96dvh;
+    max-height: 94dvh;
     border: 0;
-    border-radius: 16px 16px 0 0;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -18px 48px rgb(3 17 34 / 34%);
+  }
+
+  .game-log-modal::after {
+    content: "";
+    position: absolute;
+    z-index: 8;
+    top: 7px;
+    left: 50%;
+    width: 38px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 30%);
+    transform: translateX(-50%);
   }
 
   .game-log-modal__header {
-    min-height: 72px;
-    padding: 11px 10px 9px;
+    min-height: 76px;
+    padding: 16px 11px 10px;
   }
 
   .game-log-modal__identity {
-    gap: 8px;
+    gap: 9px;
   }
 
   .game-log-modal__team-logo {
@@ -497,17 +518,18 @@
   .game-log-modal__eyebrow {
     margin-bottom: 3px;
     font-size: 5.8px;
+    letter-spacing: .12em;
   }
 
   .game-log-modal__title-stack h2 {
-    max-width: 62vw;
-    font-size: clamp(22px, 7.2vw, 29px);
+    max-width: 61vw;
+    font-size: clamp(23px, 7.5vw, 30px);
   }
 
   .game-log-modal__title-stack p {
-    max-width: 65vw;
+    max-width: 64vw;
     margin-top: 3px;
-    font-size: 6px;
+    font-size: 6.2px;
     line-height: 1.15;
     white-space: normal;
   }
@@ -519,228 +541,267 @@
     font-size: 20px;
   }
 
-  /* One compact summary row instead of a stacked dashboard. */
   .game-log-modal__summary {
-    grid-template-columns: .8fr 1fr 1.25fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .game-log-modal__summary > div {
-    min-height: 43px;
-    padding: 6px 7px;
-    border-right: 1px solid #d8d1c5;
-    border-top: 0;
-  }
-
-  .game-log-modal__summary > div:last-child {
-    border-right: 0;
+    min-height: 46px;
+    padding: 7px 9px;
   }
 
   .game-log-modal__summary-context {
-    grid-column: auto;
-    border-top: 0;
+    display: none !important;
   }
 
   .game-log-modal__summary span {
-    font-size: 5.2px;
-    letter-spacing: .065em;
+    font-size: 5.6px;
   }
 
   .game-log-modal__summary strong {
-    margin-top: 3px;
-    font-size: 12px;
+    margin-top: 4px;
+    font-size: 14px;
   }
 
-  .game-log-modal__summary-context strong {
+  .game-log-modal__mobile-help {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-bottom: 1px solid #ddd6ca;
+    background: #faf7ef;
+  }
+
+  .game-log-modal__mobile-help > span {
+    flex: 0 0 auto;
+    padding: 4px 6px;
+    border-radius: 999px;
+    background: #e9e2d4;
+    color: #6d5e42;
+    font: 900 6px/1 var(--font-mono);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+
+  .game-log-modal__mobile-help p {
+    margin: 0;
+    color: #677382;
     font-size: 8px;
+    line-height: 1.25;
   }
 
-  /* The desktop explanation is useful, but on a phone it pushes the actual
-     games below the fold. The labels inside each card explain the comparison. */
-  .game-log-modal__note {
+  .game-log-modal__note,
+  .game-log-modal__desktop-breakdown {
     display: none;
   }
 
-  .game-log-modal__table-wrap {
-    padding: 7px;
+  .game-log-mobile-list {
+    min-height: 0;
+    flex: 1 1 auto;
+    display: block;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 8px;
     background: #efebe3;
   }
 
-  .game-log-modal__table,
-  .game-log-modal__table tbody,
-  .game-log-modal__table tfoot {
-    display: block;
-    width: 100%;
-  }
-
-  .game-log-modal__table thead {
-    display: none;
-  }
-
-  .game-log-modal__table tbody tr {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-bottom: 7px;
+  .game-log-mobile-card {
     overflow: hidden;
-    border: 1px solid #d8d1c5;
-    border-radius: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #d6cfc3;
+    border-radius: 10px;
     background: #fffefa;
     box-shadow: 0 2px 8px rgb(17 38 63 / 5%);
   }
 
-  .game-log-modal__table tbody tr:last-child {
-    margin-bottom: 0;
+  .game-log-mobile-card:last-of-type {
+    margin-bottom: 8px;
   }
 
-  .game-log-modal__table tbody td {
-    position: relative;
+  .game-log-mobile-card__head {
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-width: 0;
-    height: auto;
-    min-height: 50px;
-    gap: 4px;
-    padding: 18px 6px 6px;
-    border-bottom: 0;
-    background: #fffefa;
-    text-align: center !important;
-    white-space: normal;
-  }
-
-  .game-log-modal__table tbody td::before {
-    content: attr(data-label);
-    position: absolute;
-    top: 5px;
-    left: 6px;
-    right: 6px;
-    color: #7b838c;
-    font: 800 5.4px/1 var(--font-mono);
-    letter-spacing: .055em;
-    text-align: center;
-    text-transform: uppercase;
-  }
-
-  /* Week/result live in the opponent header on mobile. */
-  .game-log-modal__table tbody .game-log-modal__week,
-  .game-log-modal__table tbody .game-log-modal__result {
-    display: none;
-  }
-
-  .game-log-modal__table tbody .game-log-modal__opponent {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    justify-content: flex-start;
+    justify-content: space-between;
+    gap: 8px;
     min-height: 48px;
-    padding: 8px 9px;
-    border-bottom: 1px solid #ded7ca;
-    text-align: left !important;
+    padding: 7px 9px;
+    border-bottom: 1px solid #e2dcd2;
+    background: #fbf8f1;
   }
 
-  .game-log-modal__table tbody .game-log-modal__opponent::before {
-    display: none;
-  }
-
-  .game-log-modal__opponent .team-link {
-    max-width: calc(100% - 92px);
+  .game-log-mobile-card__opponent {
+    min-width: 0;
+    display: flex;
+    align-items: center;
     gap: 6px;
   }
 
-  .game-log-modal__opponent .team-logo {
-    width: 27px;
-    height: 27px;
-    flex-basis: 27px;
-  }
-
-  .game-log-modal__opponent .team-name,
-  .game-log-modal__opponent-name {
-    font-size: 10.5px;
-  }
-
-  .game-log-modal__venue {
-    min-width: 17px;
-    margin-right: 1px;
-    font-size: 7px;
-  }
-
-  .game-log-modal__mobile-meta {
-    display: inline-flex;
+  .game-log-mobile-card__week {
     flex: 0 0 auto;
-    margin-left: auto;
-    padding-left: 7px;
-    color: #667486;
-    font: 800 7px/1 var(--font-mono);
-    letter-spacing: .035em;
+    color: #8b7550;
+    font: 900 6px/1 var(--font-mono);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .game-log-mobile-card__opponent .game-log-modal__venue {
+    min-width: auto;
+    margin-right: 0;
+  }
+
+  .game-log-mobile-card__opponent .team-link {
+    min-width: 0;
+    max-width: 52vw;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-navy);
+    text-decoration: none;
+  }
+
+  .game-log-mobile-card__opponent .team-logo {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+
+  .game-log-mobile-card__opponent .team-name,
+  .game-log-mobile-card__opponent .game-log-modal__opponent-name {
+    overflow: hidden;
+    color: #17304d;
+    font-family: var(--font-body);
+    font-size: 10.5px;
+    font-weight: 800;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .game-log-modal__table tbody .game-log-modal__actual {
-    grid-column: 1;
-    border-right: 1px solid #ebe5da;
+  .game-log-mobile-card__result {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    font-family: var(--font-mono);
   }
 
-  .game-log-modal__table tbody .game-log-modal__baseline {
-    grid-column: 2;
-    border-right: 1px solid #ebe5da;
+  .game-log-mobile-card__result strong {
+    font-size: 10px;
+    font-weight: 900;
   }
 
-  .game-log-modal__table tbody .game-log-modal__delta {
-    grid-column: 3;
+  .game-log-mobile-card__result span {
+    font-size: 9px;
+    font-weight: 800;
   }
 
-  .game-log-modal__actual strong,
-  .game-log-modal__baseline > strong {
-    font-size: 12px;
+  .game-log-mobile-card__result.win {
+    color: #247044;
   }
 
-  .game-log-modal__dash {
-    font-size: 7px;
+  .game-log-mobile-card__result.loss {
+    color: #9b3d36;
   }
 
-  .game-log-modal__diff {
+  .game-log-mobile-card__comparison {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .game-log-mobile-card__comparison > div {
     min-width: 0;
-    min-height: 21px;
-    margin: 0;
-    padding-inline: 6px;
-    font-size: 7.5px;
+    min-height: 58px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 5px;
+    border-right: 1px solid #e7e1d7;
+    text-align: center;
   }
 
-  .game-log-modal__table tfoot tr {
+  .game-log-mobile-card__comparison > div:last-child {
+    border-right: 0;
+  }
+
+  .game-log-mobile-card__comparison span {
+    color: #77818d;
+    font: 800 5.6px/1.05 var(--font-mono);
+    letter-spacing: .055em;
+    text-transform: uppercase;
+  }
+
+  .game-log-mobile-card__comparison strong {
+    margin-top: 6px;
+    color: #17304d;
+    font: 900 13px/1 var(--font-mono);
+  }
+
+  .game-log-mobile-card__comparison small {
+    margin-top: 4px;
+    color: #91918b;
+    font: 700 5.6px/1 var(--font-mono);
+  }
+
+  .game-log-mobile-card__delta strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 24px;
+    padding: 0 7px;
+    border-radius: 999px;
+    font-size: 9px;
+  }
+
+  .game-log-mobile-card__delta strong.good {
+    background: #d9efdf;
+    color: #25623b;
+  }
+
+  .game-log-mobile-card__delta strong.bad {
+    background: #f5ddda;
+    color: #8e332d;
+  }
+
+  .game-log-mobile-card__delta strong.neutral {
+    background: #ece9e2;
+    color: #777b80;
+  }
+
+  .game-log-mobile-sample {
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
-    min-height: 42px;
-    padding: 0 9px;
-    border: 1px solid #d5cdbf;
-    border-radius: 7px;
-    background: #e9e4da;
+    gap: 2px 10px;
+    min-height: 48px;
+    padding: 8px 10px;
+    border: 1px solid #d2cabd;
+    border-radius: 9px;
+    background: #e7e1d6;
   }
 
-  .game-log-modal__table tfoot td {
-    position: static;
-    display: none;
-    height: auto;
-    padding: 0;
-    border: 0;
-    background: transparent;
+  .game-log-mobile-sample span {
+    color: #6c7784;
+    font: 900 6px/1 var(--font-mono);
+    letter-spacing: .07em;
+    text-transform: uppercase;
   }
 
-  .game-log-modal__table tfoot td:first-child {
-    display: block;
-    grid-column: 1;
-    color: #617083;
-    font-size: 6.5px;
-  }
-
-  .game-log-modal__table tfoot td:nth-child(2) {
-    display: block;
+  .game-log-mobile-sample strong {
     grid-column: 2;
-    color: var(--color-navy);
-    font-size: 11px;
-    text-align: right;
+    grid-row: 1 / span 2;
+    color: #102b4a;
+    font: 900 15px/1 var(--font-mono);
+  }
+
+  .game-log-mobile-sample small {
+    color: #8a8e90;
+    font: 700 6px/1 var(--font-mono);
   }
 
   .game-log-modal__footer {
-    min-height: 43px;
+    min-height: 44px;
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
   }
 
