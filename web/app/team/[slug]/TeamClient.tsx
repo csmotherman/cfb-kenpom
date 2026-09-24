@@ -413,7 +413,12 @@ function TeamProfile({ slug, fullName, seo }: { slug: string; fullName: string; 
               </p>
             </div>
           </div>
-          <div className="team-v2-masthead__note">Value · national rank</div>
+          <div className="team-v2-masthead__actions">
+            <div className="team-v2-masthead__note">Value · national rank</div>
+            <Link className="team-v2-card-link" href={"/team/" + slug + "/card"} prefetch={false}>
+              View Card
+            </Link>
+          </div>
         </section>
 
         <section className="team-v2-rating-strip" aria-label="Current ratings">
