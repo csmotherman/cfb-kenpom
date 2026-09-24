@@ -376,7 +376,7 @@
   text-transform: uppercase;
 }
 
-.game-log-modal__table tfoot td:nth-child(4) strong {
+.game-log-modal__table tfoot td:nth-child(2) strong {
   color: var(--color-navy);
   font-size: 13px;
 }
@@ -683,11 +683,12 @@
     font-size: 7px;
   }
 
-  .game-log-modal__table tfoot td:nth-child(4) {
+  .game-log-modal__table tfoot td:nth-child(2) {
     display: block;
     grid-column: 2;
     color: var(--color-navy);
     font-size: 12px;
+    text-align: right;
   }
 
   .game-log-modal__footer {
