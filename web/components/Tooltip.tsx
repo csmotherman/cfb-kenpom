@@ -7,6 +7,7 @@ type TipState = { text: string; rect: DOMRect } | null;
 const TooltipCtx = createContext<{
   show: (el: HTMLElement, text: string) => void;
   hide: () => void;
+  hideTransient: () => void;
   togglePinned: (el: HTMLElement, text: string) => void;
 } | null>(null);
 
@@ -17,6 +18,7 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
   const bubbleRef = useRef<HTMLDivElement>(null);
 
   const show = useCallback((el: HTMLElement, text: string) => {
+    if (pinnedRef.current) return;
     currentElRef.current = el;
     setTip({ text, rect: el.getBoundingClientRect() });
   }, []);
@@ -27,16 +29,23 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
     setTip(null);
   }, []);
 
+  const hideTransient = useCallback(() => {
+    if (pinnedRef.current) return;
+    currentElRef.current = null;
+    setTip(null);
+  }, []);
+
   const togglePinned = useCallback(
     (el: HTMLElement, text: string) => {
       if (pinnedRef.current && currentElRef.current === el) {
         hide();
         return;
       }
-      show(el, text);
+      currentElRef.current = el;
       pinnedRef.current = true;
+      setTip({ text, rect: el.getBoundingClientRect() });
     },
-    [hide, show]
+    [hide]
   );
 
   useEffect(() => {
@@ -80,7 +89,7 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
   }, [tip]);
 
   return (
-    <TooltipCtx.Provider value={{ show, hide, togglePinned }}>
+    <TooltipCtx.Provider value={{ show, hide, hideTransient, togglePinned }}>
       {children}
       <div
         ref={bubbleRef}
@@ -106,10 +115,11 @@ export function TipTrigger({ text }: { text: string }) {
       data-tip-trigger="1"
       aria-describedby="metric-tooltip"
       onFocus={(e) => ctx.show(e.currentTarget, text)}
-      onBlur={() => ctx.hide()}
+      onBlur={() => ctx.hideTransient()}
       aria-label="Explain this metric"
+      title={text}
       onMouseEnter={(e) => ctx.show(e.currentTarget, text)}
-      onMouseLeave={() => ctx.hide()}
+      onMouseLeave={() => ctx.hideTransient()}
       onClick={(e) => {
         e.stopPropagation();
         ctx.togglePinned(e.currentTarget, text);
