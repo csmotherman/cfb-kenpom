@@ -811,3 +811,206 @@
 .exploratory-profile-section .exploratory-profile-table tbody {
   height: auto;
 }
+
+
+/* Tooltip layer ---------------------------------------------------------- */
+/* TooltipProvider renders at the root of <body>, so it must sit above the
+   modal/backdrop and use viewport coordinates. */
+.tip-bubble {
+  position: fixed;
+  z-index: 10050;
+  width: min(320px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border: 1px solid rgb(197 154 67 / 55%);
+  border-radius: 7px;
+  background: #0f2947;
+  box-shadow: 0 12px 34px rgb(3 17 34 / 30%);
+  color: #fff;
+  font: 600 11px/1.45 var(--font-body);
+  pointer-events: none;
+}
+
+.tip-bubble[hidden] {
+  display: none !important;
+}
+
+.profile-metric-label .tip-trigger {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid #8c96a3;
+  border-radius: 50%;
+  background: transparent;
+  color: #647181;
+  font: 800 10px/1 var(--font-body);
+  cursor: help;
+  transform: none;
+}
+
+.profile-metric-label .tip-trigger:hover,
+.profile-metric-label .tip-trigger:focus-visible {
+  border-color: var(--color-gold-dark);
+  background: rgb(197 154 67 / 10%);
+  color: var(--color-gold-dark);
+  outline: none;
+}
+
+/* Desktop: everything fits in one viewport ------------------------------- */
+@media (min-width: 901px) {
+  .exploratory-modal-backdrop {
+    padding: 14px;
+  }
+
+  .exploratory-profile-modal {
+    width: min(1160px, calc(100vw - 28px));
+    height: min(860px, calc(100dvh - 28px));
+    max-height: calc(100dvh - 28px);
+  }
+
+  .exploratory-profile-header {
+    min-height: 88px;
+    padding-top: 13px;
+    padding-bottom: 12px;
+  }
+
+  .exploratory-profile-logo-shell {
+    flex-basis: 62px;
+    width: 62px;
+    height: 62px;
+  }
+
+  .exploratory-profile-logo-shell img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .exploratory-profile-header h2 {
+    font-size: clamp(31px, 3.1vw, 40px);
+  }
+
+  .exploratory-profile-legend {
+    min-height: 32px;
+  }
+
+  .exploratory-profile-body {
+    overflow: hidden;
+    grid-auto-rows: max-content;
+    gap: 8px 10px;
+    padding: 10px 12px;
+  }
+
+  .exploratory-profile-section-head {
+    min-height: 31px;
+  }
+
+  .exploratory-profile-table thead th {
+    height: 22px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  .exploratory-profile-table tbody tr,
+  .exploratory-profile-table td {
+    height: 34px;
+  }
+
+  .profile-metric-name {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .profile-rate,
+  .profile-rank,
+  .profile-read {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  .profile-rate strong,
+  .profile-rank strong {
+    font-size: 11px;
+  }
+
+  .profile-rate small,
+  .profile-rank small {
+    font-size: 6px;
+  }
+
+  .profile-tier {
+    min-height: 19px;
+    font-size: 6.5px;
+  }
+
+  /* Style / Risk has six metrics. Split those six rows into two columns on
+     desktop so the entire profile fits without any scrolling. */
+  .exploratory-profile-section--wide .exploratory-profile-table tbody {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .exploratory-profile-section--wide .exploratory-profile-table tbody tr {
+    display: grid;
+    grid-template-columns: 46% 18% 16% 20%;
+    min-width: 0;
+    border-bottom: 1px solid #e8e3da;
+  }
+
+  .exploratory-profile-section--wide .exploratory-profile-table tbody tr:nth-child(odd) {
+    border-right: 1px solid #e8e3da;
+  }
+
+  .exploratory-profile-section--wide .exploratory-profile-table tbody tr:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .exploratory-profile-section--wide .exploratory-profile-table tbody td {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    height: 34px;
+    border-bottom: 0;
+  }
+
+  .exploratory-profile-section--wide .profile-rate,
+  .exploratory-profile-section--wide .profile-rank,
+  .exploratory-profile-section--wide .profile-read {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .exploratory-profile-footer {
+    min-height: 43px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+}
+
+/* Mobile/tablet: natural vertical scrolling is intentional. */
+@media (max-width: 900px) {
+  .exploratory-profile-body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .exploratory-profile-section--wide .exploratory-profile-table tbody {
+    display: table-row-group;
+  }
+
+  .exploratory-profile-section--wide .exploratory-profile-table tbody tr {
+    display: table-row;
+  }
+
+  .exploratory-profile-section--wide .exploratory-profile-table tbody td {
+    display: table-cell;
+  }
+
+  .tip-bubble {
+    width: min(300px, calc(100vw - 20px));
+    font-size: 10.5px;
+    pointer-events: auto;
+  }
+}
