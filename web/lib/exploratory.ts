@@ -425,15 +425,18 @@ export function aggregateExploratory(byWeek: Record<string, ExploratoryRow[]>, w
       }
     }
   }
-  return [...byTeam.values()].map(acc => {
-    const out: Aggregated = { ...acc };
-    for (const col of ALL_COLUMNS) {
-      const n = acc.wk[col.den] ?? 0;
-      out[col.key] = n > 0 ? ((acc.wk[col.num] ?? 0) / n) * (col.negate ? -1 : 1) : null;
-      out[`${col.key}_n`] = n;
-    }
-    return out;
-  });
+  return [...byTeam.values()].map(acc => buildAggregated(acc));
+}
+
+/** Derive every column's rate and N from raw counts (also used for custom samples). */
+export function buildAggregated(acc: Aggregated): Aggregated {
+  const out: Aggregated = { ...acc };
+  for (const col of ALL_COLUMNS) {
+    const n = acc.wk[col.den] ?? 0;
+    out[col.key] = n > 0 ? ((acc.wk[col.num] ?? 0) / n) * (col.negate ? -1 : 1) : null;
+    out[`${col.key}_n`] = n;
+  }
+  return out;
 }
 
 export function rankExploratory(teams: Aggregated[]): Aggregated[] {

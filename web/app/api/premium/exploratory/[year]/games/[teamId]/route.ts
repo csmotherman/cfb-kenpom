@@ -3,9 +3,9 @@ import { teamGamesResponse } from "@/lib/teamGamesRoute";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// One team's per-game ingredients for the Advanced "custom sample" feature
-// (see scripts/custom_sample.py and lib/teamGamesRoute.ts for the egress design).
+// One team's per-game Exploratory counts for the "custom sample" feature
+// (see scripts/export_exploratory_data.py and lib/teamGamesRoute.ts).
 export async function GET(_request: Request, { params }: { params: Promise<{ year: string; teamId: string }> }) {
   const { year, teamId } = await params;
-  return teamGamesResponse("advanced", year, teamId);
+  return teamGamesResponse("exploratory", year, teamId);
 }

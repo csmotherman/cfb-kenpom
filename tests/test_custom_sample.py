@@ -104,3 +104,32 @@ class CustomSampleTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+EXPLORATORY_SEASON = 2025
+HAVE_EXPLORATORY = (REPO / f"data/processed/derived/exploratory/season={EXPLORATORY_SEASON}").exists() and (REPO / f"data/canonical/season={EXPLORATORY_SEASON}").exists()
+
+
+@unittest.skipUnless(HAVE_EXPLORATORY, "processed exploratory data not available")
+class ExploratoryCustomSampleTests(unittest.TestCase):
+    def test_all_games_sum_to_the_published_week_counts(self):
+        import export_exploratory_data as exp
+
+        games = exp.build_games_payload(EXPLORATORY_SEASON)
+        published = exp.build_season_payload(EXPLORATORY_SEASON)
+        totals: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+        for rows in published["byWeek"].values():
+            for row in rows:
+                for field, value in row["wk"].items():
+                    totals[row["slug"]][field] += value
+        fields = games["meta"]["fields"]
+        self.assertGreaterEqual(len(fields), 70)
+        self.assertEqual(len(games["teams"]), len(totals))
+        for team in games["teams"].values():
+            for index, field in enumerate(fields):
+                mine = sum(game["x"][index] for game in team["games"])
+                self.assertAlmostEqual(mine, totals[team["slug"]][field], delta=1e-4, msg=f"{team['slug']} {field}")
+            for game in team["games"]:
+                self.assertEqual(len(game["x"]), len(fields))
+
+

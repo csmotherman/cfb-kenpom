@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import TeamLink from "@/components/TeamLink";
+import GameSampleSheet, { GameList, type SampleStatus } from "@/components/GameSampleSheet";
 import CfpTeamCell from "@/components/CfpTeamCell";
 import { TipTrigger } from "@/components/Tooltip";
-import { getMeta, useCfpResultsSeason, useExploratorySeason } from "@/lib/data";
+import { getExploratoryTeamSample, getMeta, useCfpResultsSeason, useExploratorySeason } from "@/lib/data";
+import { parseExclusions, serializeExclusions } from "@/lib/custom-sample";
+import { sumExploratory, verifyExploratoryParity, type ExploratorySampleData } from "@/lib/exploratory-sample";
 import { buildCfpStatusMap } from "@/lib/cfp";
-import { ALL_COLUMNS, SECTIONS, SERIES_OFFENSE, aggregateExploratory, rankExploratory, minimumN, fanTier, type Aggregated } from "@/lib/exploratory";
+import { ALL_COLUMNS, SECTIONS, SERIES_OFFENSE, aggregateExploratory, buildAggregated, rankExploratory, minimumN, fanTier, type Aggregated } from "@/lib/exploratory";
 import { columnRange, heatBackground } from "@/lib/heatmap";
 import type { ExploratorySeason, ExploratoryRow } from "@/lib/types";
 
@@ -49,11 +52,23 @@ export default function ExploratoryClient() {
   const [conference, setConference] = useState("");
   const [profileTeam, setProfileTeam] = useState<Aggregated | null>(null);
   const [tableView, setTableView] = useState<TableView>("series");
+  // Custom game samples (independent per team, keyed by slug) -- see docs/advanced_custom_samples.md.
+  const [excluded, setExcluded] = useState<Record<string, string[]>>({});
+  const [samples, setSamples] = useState<Record<string, { status: SampleStatus; data: ExploratorySampleData | null }>>({});
+  const [sheetTeam, setSheetTeam] = useState<{ slug: string; team: string; teamId: number } | null>(null);
+  const [urlHydrated, setUrlHydrated] = useState(false);
+  const [linkNote, setLinkNote] = useState("");
 
   useEffect(() => {
     getMeta().then((meta) => {
       setYears(meta.advancedYears);
-      setYear(String(meta.advancedYears[meta.advancedYears.length - 1]));
+      const params = new URLSearchParams(window.location.search);
+      const shared = parseExclusions(params.get("x"));
+      const requested = Number(params.get("y"));
+      if (Object.keys(shared).length) setExcluded(shared);
+      setUrlHydrated(true);
+      const latest = meta.advancedYears[meta.advancedYears.length - 1];
+      setYear(String(meta.advancedYears.includes(requested) && Object.keys(shared).length ? requested : latest));
     }).catch(setLoadError);
   }, []);
 
@@ -94,10 +109,95 @@ export default function ExploratoryClient() {
     setEndWeek(season.weeks[season.weeks.length - 1]);
   }
 
+  // Official season-to-date totals: what an all-games sample must equal.
+  const officialFull = useMemo(() => {
+    const bySlug = new Map<string, Aggregated>();
+    if (weeks.length) aggregateExploratory(seasonByWeek, weeks, weeks[0], weeks[weeks.length - 1]).forEach((team) => bySlug.set(team.slug, team));
+    return bySlug;
+  }, [seasonByWeek, weeks]);
+  const rangeAllowsCustom = startWeek !== null && weeks.length > 0 && startWeek === weeks[0];
+
+  const ensureSample = useCallback((slug: string, teamId: number) => {
+    const key = `${year}:${slug}`;
+    setSamples((previous) => (previous[key] ? previous : { ...previous, [key]: { status: "loading", data: null } }));
+    getExploratoryTeamSample(year, teamId)
+      .then((data) => {
+        if (!data) { setSamples((previous) => ({ ...previous, [key]: { status: "unavailable", data: null } })); return; }
+        const official = officialFull.get(slug);
+        const ok = !!official && verifyExploratoryParity(data, official.wk as Record<string, number>);
+        setSamples((previous) => ({ ...previous, [key]: { status: ok ? "ready" : "stale", data: ok ? data : null } }));
+      })
+      .catch(() => setSamples((previous) => ({ ...previous, [key]: { status: "error", data: null } })));
+  }, [year, officialFull]);
+
+  // Load per-team data referenced by a shared link once team ids are known.
+  useEffect(() => {
+    Object.keys(excluded).forEach((slug) => {
+      const team = officialFull.get(slug);
+      if (team && !samples[`${year}:${slug}`]) ensureSample(slug, team.teamId);
+    });
+  }, [excluded, officialFull, samples, year, ensureSample]);
+
+  useEffect(() => {
+    if (!urlHydrated || !year) return;
+    const params = new URLSearchParams(window.location.search);
+    const value = serializeExclusions(excluded);
+    if (value) { params.set("x", value); params.set("y", year); } else { params.delete("x"); params.delete("y"); }
+    const query = params.toString();
+    window.history.replaceState(null, "", window.location.pathname + (query ? `?${query}` : "") + window.location.hash);
+  }, [excluded, year, urlHydrated]);
+
+  function updateExclusions(slug: string, ids: string[]) {
+    setExcluded((previous) => {
+      const next = { ...previous };
+      if (ids.length) next[slug] = ids; else delete next[slug];
+      return next;
+    });
+  }
+
+  function toggleExcluded(slug: string, gameId: string) {
+    setExcluded((previous) => {
+      const current = previous[slug] ?? [];
+      const list = current.includes(gameId) ? current.filter((id) => id !== gameId) : [...current, gameId];
+      const next = { ...previous };
+      if (list.length) next[slug] = list; else delete next[slug];
+      return next;
+    });
+  }
+
+  function openSampleSheet(team: { slug: string; team: string; teamId: number }) {
+    setSheetTeam({ slug: team.slug, team: team.team, teamId: team.teamId });
+    ensureSample(team.slug, team.teamId);
+  }
+
+  function openProfile(team: Aggregated) {
+    setProfileTeam(team);
+    ensureSample(team.slug, team.teamId);
+  }
+
+  async function copyShareLink() {
+    try { await navigator.clipboard.writeText(window.location.href); setLinkNote("Link copied"); } catch { setLinkNote("Copy the address bar to share"); }
+    setTimeout(() => setLinkNote(""), 2500);
+  }
+
   const teams = useMemo<Aggregated[]>(() => {
     if (startWeek === null || endWeek === null) return [];
-    return aggregateExploratory(seasonByWeek, weeks, startWeek, endWeek);
-  }, [seasonByWeek, weeks, startWeek, endWeek]);
+    const official = aggregateExploratory(seasonByWeek, weeks, startWeek, endWeek);
+    if (!rangeAllowsCustom) return official;
+    // A team with a custom sample is recomputed from its chosen games only; every other team is untouched.
+    return official.map((team) => {
+      const ids = excluded[team.slug];
+      const entry = samples[`${year}:${team.slug}`];
+      const data = entry?.status === "ready" ? entry.data : null;
+      if (!ids?.length || !data || data.meta.season !== Number(year) || endWeek < data.meta.weekThrough) return team;
+      const drop = new Set(ids);
+      const sum = sumExploratory(data, new Set(data.team.games.map((game) => game.g).filter((id) => !drop.has(id))));
+      if (sum.included >= sum.total) return team;
+      return { ...buildAggregated({ ...team, wk: sum.counts }), _custom: { included: sum.included, total: sum.total } };
+    });
+  }, [seasonByWeek, weeks, startWeek, endWeek, rangeAllowsCustom, excluded, samples, year]);
+  const customTeams = useMemo(() => teams.filter((team) => team._custom), [teams]);
+  const customPaused = !rangeAllowsCustom && Object.keys(excluded).length > 0;
 
   const rankedTeams = useMemo(() => rankExploratory(teams), [teams]);
 
@@ -173,6 +273,48 @@ export default function ExploratoryClient() {
 
   if (loadError) throw loadError;
 
+  const profile = profileTeam ? rankedTeams.find((team) => team.slug === profileTeam.slug) ?? profileTeam : null;
+  const profileEntry = profile ? samples[`${year}:${profile.slug}`] : undefined;
+  const profileGames = profileEntry?.status === "ready" && profileEntry.data ? profileEntry.data.team.games : null;
+  const profileExcluded = profile ? excluded[profile.slug] ?? [] : [];
+  const profileSample = profile ? (
+    <section className="cs-inline" aria-label="Games included in this profile">
+      <div className="cs-inline__head">
+        <div>
+          <strong>Games in this profile</strong>
+          <span>
+            {profileGames && rangeAllowsCustom
+              ? `${profileGames.filter((game) => !profileExcluded.includes(game.g)).length} of ${profileGames.length} included — tap a game to add or remove it`
+              : "Choose which games count"}
+          </span>
+        </div>
+        {profileGames && rangeAllowsCustom ? (
+          <div className="cs-inline__tools">
+            <button type="button" className="cs-btn" disabled={!profileExcluded.length} onClick={() => updateExclusions(profile.slug, [])}>All games</button>
+            <button type="button" className="cs-btn" onClick={() => updateExclusions(profile.slug, profileGames.map((game) => game.g))}>None</button>
+          </div>
+        ) : null}
+      </div>
+      {!rangeAllowsCustom ? (
+        <p className="cs-sheet__message">Custom samples use the full season to date; your week range is narrowed. <button type="button" className="cs-link" onClick={() => { if (weeks.length) { setStartWeek(weeks[0]); setEndWeek(weeks[weeks.length - 1]); } }}>Show the full season</button></p>
+      ) : !profileEntry || profileEntry.status === "loading" ? (
+        <p className="cs-sheet__message">Loading {profile.team}&apos;s games…</p>
+      ) : profileGames ? (
+        <>
+          <GameList
+            games={[...profileGames].sort((a, b) => a.w - b.w || a.g.localeCompare(b.g))}
+            excluded={new Set(profileExcluded)}
+            onToggle={(id) => toggleExcluded(profile.slug, id)}
+            weekLabel={weekLabel}
+          />
+          {profileGames.length > 0 && profileGames.every((game) => profileExcluded.includes(game.g)) ? <p className="cs-sheet__warning" role="status">No games selected — stats can&apos;t be calculated. Pick at least one game.</p> : null}
+        </>
+      ) : (
+        <p className="cs-sheet__message">{profileEntry.status === "unavailable" ? `Custom game samples aren't published for ${profile.team} in ${year} yet.` : profileEntry.status === "stale" ? "The custom-sample data is refreshing. Check back shortly." : "Couldn't load this team's games."}</p>
+      )}
+    </section>
+  ) : null;
+
   const activeRangeLabel = startWeek !== null && endWeek !== null
     ? weekRangeLabel(startWeek, endWeek)
     : "Selected weeks";
@@ -195,7 +337,7 @@ export default function ExploratoryClient() {
         </div>
         <div className="ratings-hero__meta">
           <span className="ratings-status">
-            {loading ? "Loading season…" : `${year} • ${activeRangeLabel} • ${teams.length} teams`}
+            {loading ? "Loading season…" : `${year} • ${activeRangeLabel} • ${teams.length} teams${customTeams.length ? " • CUSTOM SAMPLES" : ""}`}
           </span>
           <Link className="utility-link" href="/methodology">Methodology ↗</Link>
         </div>
@@ -222,7 +364,7 @@ export default function ExploratoryClient() {
                 type="button"
                 className={String(seasonYear) === year ? "active" : undefined}
                 aria-pressed={String(seasonYear) === year}
-                onClick={() => { setYear(String(seasonYear)); setConference(""); setProfileTeam(null); }}
+                onClick={() => { setYear(String(seasonYear)); setConference(""); setProfileTeam(null); setExcluded({}); setSheetTeam(null); }}
               >
                 {seasonYear}
               </button>
@@ -294,6 +436,33 @@ export default function ExploratoryClient() {
         </p>
       </div>
 
+      {customTeams.length > 0 || customPaused ? (
+        <div className="container">
+          <div className="cs-banner" role="status">
+            <strong>Custom samples</strong>
+            {customTeams.length > 0 ? (
+              <div className="cs-banner__teams">
+                {customTeams.map((team) => (
+                  <button key={team.slug} type="button" className="cs-banner__team" onClick={() => openSampleSheet(team)} aria-label={`Edit ${team.team} games`}>
+                    {team.team} <span>{(team._custom as { included: number; total: number }).included}/{(team._custom as { included: number; total: number }).total} games</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className="cs-banner__actions">
+              <button type="button" className="cs-link" onClick={copyShareLink}>{linkNote || "Copy link"}</button>
+              <button type="button" className="cs-link" onClick={() => { setExcluded({}); setSheetTeam(null); }}>Reset all to full games</button>
+            </div>
+            <p className="cs-banner__paused">
+              {customPaused
+                ? "Custom samples are paused while the week range is narrowed. "
+                : "Highlighted teams are NOT the official season stats: their rows and rankings here use only the games you chose. PRIME Ratings and predictions are unchanged. "}
+              {customPaused ? <button type="button" className="cs-link" onClick={() => { if (weeks.length) { setStartWeek(weeks[0]); setEndWeek(weeks[weeks.length - 1]); } }}>Show the full season</button> : null}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       <main id="exploratoryTable" className="table-main container">
         <nav className="exploratory-table-tabs" aria-label="Exploratory metric groups" role="tablist">
           {TABLE_VIEWS.map((view) => (
@@ -364,7 +533,7 @@ export default function ExploratoryClient() {
                   </tr>
                 ) : (
                   visibleTeams.map((team) => (
-                    <tr key={team.slug}>
+                    <tr key={team.slug} className={team._custom ? "cs-custom-row" : undefined}>
                       <CfpTeamCell
                         team={team.team}
                         teamId={team.teamId}
@@ -374,8 +543,19 @@ export default function ExploratoryClient() {
                         year={year}
                       />
                       <td className="profile-cell">
-                        <button type="button" className="exploratory-profile-button" onClick={() => setProfileTeam(team)}>
+                        <button type="button" className="exploratory-profile-button" onClick={() => openProfile(team)}>
                           View Profile
+                        </button>
+                        <button
+                          type="button"
+                          className={`cs-chip${team._custom ? " cs-chip--custom" : ""}`}
+                          aria-label={team._custom ? `${team.team}: custom sample. Edit games` : `Customize ${team.team}'s games`}
+                          title={team._custom ? "Custom sample — click to edit games" : "Choose which games count"}
+                          onClick={() => openSampleSheet(team)}
+                        >
+                          {team._custom ? `${(team._custom as { included: number }).included}/${(team._custom as { total: number }).total}` : (
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7" /><circle cx="10.5" cy="4.5" r="1.7" /><circle cx="5.5" cy="11.5" r="1.7" /></svg>
+                          )}
                         </button>
                       </td>
                       {activeColumns.map((col) => {
@@ -405,7 +585,7 @@ export default function ExploratoryClient() {
         </div>
       </main>
 
-      {profileTeam && (
+      {profile && (
         <div
           className="exploratory-modal-backdrop"
           role="presentation"
@@ -421,9 +601,9 @@ export default function ExploratoryClient() {
           >
             <header className="exploratory-profile-header">
               <div>
-                <span className="eyebrow">Exploratory Profile · {year} · {activeRangeLabel}</span>
-                <h2 id="exploratoryProfileTitle">{profileTeam.team}</h2>
-                <p>{profileTeam.conf} · How this team wins and loses series</p>
+                <span className="eyebrow">Exploratory Profile · {year} · {activeRangeLabel}{profile._custom ? ` · CUSTOM ${(profile._custom as { included: number }).included}/${(profile._custom as { total: number }).total} GAMES` : ""}</span>
+                <h2 id="exploratoryProfileTitle">{profile.team}</h2>
+                <p>{profile.conf} · How this team wins and loses series</p>
               </div>
               <button
                 type="button"
@@ -434,6 +614,8 @@ export default function ExploratoryClient() {
                 ×
               </button>
             </header>
+
+            {profileSample}
 
             <div className="exploratory-profile-note">
               <strong>Quick read:</strong> green is a strength, red is an area to watch. The label in the last column translates national rank into plain football language.
@@ -453,9 +635,9 @@ export default function ExploratoryClient() {
                   </thead>
                   <tbody>
                     {group.columns.map((col) => {
-                      const value = profileTeam[col.key] as number | null;
-                      const n = profileTeam[`${col.key}_n`] as number;
-                      const rank = profileTeam[`_rank_${col.key}`] as number | null;
+                      const value = profile[col.key] as number | null;
+                      const n = profile[`${col.key}_n`] as number;
+                      const rank = profile[`_rank_${col.key}`] as number | null;
                       const smallSample = n < minimumN(col);
                       const eligibleCount = eligibleCounts[col.key] ?? 0;
                       const format = FORMATTERS[col.fmt ?? "pct1"];
@@ -498,12 +680,34 @@ export default function ExploratoryClient() {
             ))}
 
             <footer className="exploratory-profile-footer">
-              <TeamLink team={profileTeam.team} teamId={profileTeam.teamId} slug={profileTeam.slug} />
+              <TeamLink team={profile.team} teamId={profile.teamId} slug={profile.slug} />
               <button type="button" className="exploratory-profile-done" onClick={() => setProfileTeam(null)}>Close</button>
             </footer>
           </section>
         </div>
       )}
+
+      {sheetTeam ? (() => {
+        const entry = samples[`${year}:${sheetTeam.slug}`];
+        const data = entry?.status === "ready" ? entry.data : null;
+        return (
+          <GameSampleSheet
+            team={sheetTeam.team}
+            teamId={sheetTeam.teamId}
+            year={year}
+            status={entry?.status ?? "loading"}
+            games={data ? data.team.games : null}
+            scopeNote={`Only ${sheetTeam.team}'s row, profile, and rankings here change. PRIME Ratings and predictions always use the full official sample.`}
+            excluded={excluded[sheetTeam.slug] ?? []}
+            rangeEnabled={rangeAllowsCustom && (!data || (endWeek ?? 0) >= data.meta.weekThrough)}
+            weekLabel={weekLabel}
+            onChange={(ids) => updateExclusions(sheetTeam.slug, ids)}
+            onToggle={(id) => toggleExcluded(sheetTeam.slug, id)}
+            onShowFullRange={() => { if (weeks.length) { setStartWeek(weeks[0]); setEndWeek(weeks[weeks.length - 1]); } }}
+            onClose={() => setSheetTeam(null)}
+          />
+        );
+      })() : null}
 
       <div id="methodology" tabIndex={-1}>
         <SiteFooter note="Exploratory statistics include completed FBS-vs-FBS games only and are built from PRIME's canonical play-by-play. They are research-stage and do not feed Adj. Net, Adj. Off, Adj. Def, ASM, or any prediction model." />

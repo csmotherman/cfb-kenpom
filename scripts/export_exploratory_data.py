@@ -125,6 +125,61 @@ def build_season_payload(season: int) -> dict:
     }
 
 
+GAMES_VERSION = "exploratory-custom-sample-v1"
+
+
+def build_games_payload(season: int) -> dict:
+    """Per-team, per-game raw counts behind the Exploratory "custom sample" feature.
+
+    Every published Exploratory number is (sum of raw counts) / (sum of raw
+    counts), so a chosen subset of a team's games is just a subset of the sums.
+    This uses exactly the row filters and field rules of build_season_payload, so
+    summing every game reproduces the published week counts (tests pin this).
+    Private artifact: published to Supabase, never committed (see
+    publish_premium_data.py and docs/advanced_custom_samples.md).
+    """
+    from build_real_data import load_processed_team_games
+
+    site_week_by_game, _num_weeks, _labels = build_site_week_map(season)
+    identity = load_team_identity(season)
+    by_slug_name = {name: info for name, info in identity.items()}
+    processed, _weeks, _week_labels = load_processed_team_games(season)
+    meta_by = {(str(r.get("gameId") or r.get("game_id")), r["team"]): r for r in processed}
+
+    rows = []
+    fields: set[str] = set()
+    for r in load_exploratory_rows(season):
+        if r["team"] not in identity or site_week_by_game.get(str(r["gameId"])) is None:
+            continue
+        rows.append(r)
+        for field, value in r.items():
+            if field not in _IDENTITY_FIELDS and field not in _RATE_FIELDS and _num(value):
+                fields.add(field)
+    ordered = sorted(fields)
+
+    teams: dict[str, dict] = {}
+    for r in sorted(rows, key=lambda x: (x["team"], site_week_by_game[str(x["gameId"])], str(x["gameId"]))):
+        gid, team = str(r["gameId"]), r["team"]
+        info = identity[team]
+        game = meta_by.get((gid, team)) or {}
+        opp = game.get("opponent") or r.get("opponent")
+        opp_info = by_slug_name.get(opp)
+        entry = {
+            "g": gid, "w": site_week_by_game[gid], "o": opp,
+            "oi": opp_info["teamId"] if opp_info else None,
+            "fbs": bool(opp_info) and game.get("opponent_classification") == "fbs",
+            "ha": "N" if game.get("neutral_site") else ("H" if game.get("home_away") == "home" else "A"),
+            "pf": game.get("points_for"), "pa": game.get("points_against"), "win": bool(game.get("win")),
+            "x": [round(float(r[f]), 6) if _num(r.get(f)) else 0 for f in ordered],
+        }
+        teams.setdefault(f"t{info['teamId']}", {"slug": info["slug"], "team": team, "teamId": info["teamId"], "games": []})["games"].append(entry)
+
+    return {
+        "meta": {"version": GAMES_VERSION, "season": season, "weekThrough": max(site_week_by_game.values(), default=0), "fields": ordered},
+        "teams": teams,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--season", type=int, help="Export only one season")
@@ -141,6 +196,13 @@ def main() -> None:
             continue
         meta = {k: payload.pop(k) for k in ("skippedNonFbsRows", "skippedUnmappedGameRows")}
         _atomic_write(out_dir / f"{season}.json", json.dumps(payload, separators=(",", ":")))
+        try:  # optional per-game companion for custom samples; never blocks the export
+            games_payload = build_games_payload(season)
+            games_dir = REPO / "web" / "public" / "data" / "exploratory-games"
+            _atomic_write(games_dir / f"{season}.json", json.dumps(games_payload, separators=(",", ":"), allow_nan=False))
+            print(f"season {season}: exploratory custom-sample artifact, {len(games_payload['teams'])} teams")
+        except Exception as exc:  # noqa: BLE001
+            print(f"::warning::exploratory custom-sample artifact for {season} failed: {exc}")
         team_week_rows = sum(len(v) for v in payload["byWeek"].values())
         print(
             f"season {season}: {len(payload['weeks'])} weeks, {team_week_rows} team-week rows "

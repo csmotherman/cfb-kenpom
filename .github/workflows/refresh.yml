@@ -340,7 +340,7 @@ jobs:
       - name: Remove private build artifacts
         run: |
           rm -f site/advanced-data.js
-          rm -rf web/public/data/advanced web/public/data/advanced-games web/public/data/predictions web/public/data/exploratory web/public/data/team-game-advanced
+          rm -rf web/public/data/advanced web/public/data/advanced-games web/public/data/predictions web/public/data/exploratory web/public/data/exploratory-games web/public/data/team-game-advanced
 
       - name: Commit validated 2026 changes
         id: publish

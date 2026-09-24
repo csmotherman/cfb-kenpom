@@ -215,6 +215,23 @@ def publish_exploratory(base_url: str, secret: str, season: int | None) -> int:
     return count
 
 
+def publish_exploratory_games(base_url: str, secret: str, season: int | None) -> int:
+    """Per-team/per-game Exploratory custom-sample counts: dataset_type='exploratory', week=1
+    (the season's main blob is week 0) -- an already-allowed type, no migration."""
+    directory = REPO / "web" / "public" / "data" / "exploratory-games"
+    if not directory.exists():
+        return 0
+    paths = [directory / f"{season}.json"] if season else sorted(directory.glob("*.json"))
+    count = 0
+    for path in paths:
+        if not path.exists():
+            continue
+        payload = json.loads(path.read_text())
+        upsert(base_url, secret, {"dataset_type": "exploratory", "season": int(path.stem), "week": 1, "payload": payload, "source_sha": payload_hash(payload)})
+        count += 1
+    return count
+
+
 def publish_exploratory_matchups(base_url: str, secret: str, season: int | None) -> int:
     # Source is the private processed tree (not web/public/data): this
     # dataset also carries the fitted model artifacts used to compute each
@@ -318,11 +335,16 @@ def main() -> None:
     except Exception as exc:  # noqa: BLE001 - optional feature; never block the core publish
         advanced_games = 0
         print(f"::warning::Advanced custom-sample artifact was not published: {exc}")
+    try:
+        exploratory_games = publish_exploratory_games(base_url, secret, args.season)
+    except Exception as exc:  # noqa: BLE001
+        exploratory_games = 0
+        print(f"::warning::Exploratory custom-sample artifact was not published: {exc}")
     print(
         f"Published and read-after-write verified {advanced} Advanced Analytics season(s), "
         f"{predictions} prediction week(s), {exploratory} Exploratory season(s), "
         f"{exploratory_matchups} Exploratory Matchups season(s), and {team_game_advanced} "
-        f"Team-Game Advanced season(s) ({advanced_games} custom-sample season(s)) in private Supabase storage."
+        f"Team-Game Advanced season(s) ({advanced_games} Advanced + {exploratory_games} Exploratory custom-sample season(s)) in private Supabase storage."
     )
 
 

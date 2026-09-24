@@ -529,6 +529,16 @@ export default function AdvancedClient() {
     });
   }
 
+  function toggleExcluded(slug: string, gameId: string) {
+    setExcluded((previous) => {
+      const current = previous[slug] ?? [];
+      const list = current.includes(gameId) ? current.filter((id) => id !== gameId) : [...current, gameId];
+      const next = { ...previous };
+      if (list.length) next[slug] = list; else delete next[slug];
+      return next;
+    });
+  }
+
   function openSampleSheet(team: { slug: string; team: string; teamId: number }) {
     setSheetTeam({ slug: team.slug, team: team.team, teamId: team.teamId });
     ensureSample(team.slug, team.teamId);
@@ -938,11 +948,12 @@ export default function AdvancedClient() {
             teamId={sheetTeam.teamId}
             year={year}
             status={entry?.status ?? "loading"}
-            data={data}
+            games={data ? data.team.games : null}
             excluded={excluded[sheetTeam.slug] ?? []}
             rangeEnabled={rangeAllowsCustom && (!data || (endWeek ?? 0) >= data.meta.weekThrough)}
             weekLabel={weekLabel}
             onChange={(ids) => updateExclusions(sheetTeam.slug, ids)}
+            onToggle={(id) => toggleExcluded(sheetTeam.slug, id)}
             onShowFullRange={() => { if (weeks.length) { setStartWeek(weeks[0]); setEndWeek(weeks[weeks.length - 1]); } }}
             onClose={() => setSheetTeam(null)}
           />

@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { extendRankingsToCurrentWeek } from "./rankingsExtend";
 import type { TeamSampleData } from "./custom-sample";
+import type { ExploratorySampleData } from "./exploratory-sample";
 import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, MarketLinesSeason, PredictionsTrackRecord, PredictionsWeek, ProjectionSeason, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -326,6 +327,28 @@ export function getTeamSample(year: number | string, teamId: number | string): P
         throw error;
       });
     teamSampleInflight.set(key, entry);
+  }
+  return entry;
+}
+
+// Same idea for Exploratory: one team's per-game counts (~5 KB), on demand.
+const exploratorySampleData = new Map<string, ExploratorySampleData | null>();
+const exploratorySampleInflight = new Map<string, Promise<ExploratorySampleData | null>>();
+
+export function getExploratoryTeamSample(year: number | string, teamId: number | string): Promise<ExploratorySampleData | null> {
+  const key = `${year}:${teamId}`;
+  if (exploratorySampleData.has(key)) return Promise.resolve(exploratorySampleData.get(key) ?? null);
+  let entry = exploratorySampleInflight.get(key);
+  if (!entry) {
+    entry = fetchPremiumJson<ExploratorySampleData>(`/api/premium/exploratory/${year}/games/${teamId}`)
+      .catch((error: Error) => {
+        if (error instanceof PremiumAccessError) throw error;
+        if (/not available/i.test(error.message)) return null;
+        throw error;
+      })
+      .then((data) => { exploratorySampleData.set(key, data); exploratorySampleInflight.delete(key); return data; },
+        (error: Error) => { exploratorySampleInflight.delete(key); throw error; });
+    exploratorySampleInflight.set(key, entry);
   }
   return entry;
 }

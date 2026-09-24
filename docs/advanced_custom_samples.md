@@ -61,3 +61,17 @@ Only the current season is published by the hourly refresh. To publish a past se
 `python scripts/compile_site_data.py --rating-model hierarchical_hfa --season <year>` then
 `python scripts/publish_premium_data.py --season <year>` (needs the Supabase secret). Seasons without an artifact
 show "not published yet" in the selector.
+
+## Exploratory
+
+The same feature is on `/advanced/exploratory`. Every Exploratory number is a ratio of summed raw counts, so a
+custom sample is simply the sums over the chosen games (exact, no opponent adjustment involved).
+
+* `export_exploratory_data.build_games_payload` writes `web/public/data/exploratory-games/<season>.json` (private,
+  gitignored) with every count per team-game (73 fields, ~5 KB per team); `publish_premium_data.py` stores it as
+  `dataset_type='exploratory', week=1`. The API is `GET /api/premium/exploratory/<season>/games/<teamId>` (shared
+  handler in `web/lib/teamGamesRoute.ts`, same narrow single-team read).
+* **View Profile** now opens with a "Games in this profile" picker: tap games to add/remove them (or "None" then pick
+  only the games you want) and the whole profile, the table row and the ranks update live. The row chip and banner
+  behave as on Advanced; `?y=&x=` links are shared the same way.
+* Guard and range rules are identical (all games must equal the official season-to-date counts; full range only).
