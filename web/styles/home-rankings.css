@@ -145,15 +145,7 @@
 }
 
 .prime-home-panel::before {
-  content: "";
-  display: block;
-  height: 3px;
-  flex: 0 0 3px;
-  background: #17304f;
-}
-
-.prime-home-panel--rankings::before {
-  background: #bd8c2c;
+  content: none;
 }
 
 .prime-home-panel__head {
@@ -161,7 +153,11 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid #ded8cd;
+  padding: 12px 13px 10px;
+  border-bottom: 3px solid #b88629;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255,255,255,.08), transparent 34%),
+    linear-gradient(110deg, #173755 0%, #102b4a 72%, #0d2744 100%);
 }
 
 .prime-home-panel__head > div {
@@ -170,7 +166,7 @@
 
 .prime-home-panel__head span {
   display: block;
-  color: #a47722;
+  color: #e3b54e;
   font-size: 7px;
   font-weight: 900;
   letter-spacing: .13em;
@@ -178,16 +174,16 @@
 }
 
 .prime-home-panel__head h2 {
-  margin-top: 1px;
-  color: #142b47;
-  font-family: Georgia, "Times New Roman", serif;
+  margin-top: 2px;
+  color: #fff;
+  font-family: var(--font-display);
   font-size: clamp(21px, 1.65vw, 29px);
   line-height: .98;
 }
 
 .prime-home-panel__head p {
-  margin-top: 3px;
-  color: #65717e;
+  margin-top: 4px;
+  color: #c4cfdb;
   font-size: 8.5px;
   font-weight: 600;
   line-height: 1.25;
@@ -195,8 +191,8 @@
 
 .prime-home-panel__head > a {
   flex: 0 0 auto;
-  margin-top: 3px;
-  color: #213a57;
+  margin-top: 4px;
+  color: #f0cb78;
   font-size: 7px;
   font-weight: 900;
   letter-spacing: .04em;
@@ -224,14 +220,14 @@
 
 .prime-home-v2-table--prime25 .prime-home-v2-table__head,
 .prime-home-v2-table--prime25 .prime-home-v2-table__row {
-  grid-template-columns: 34px minmax(0,1fr) 62px 42px;
+  grid-template-columns: 30px minmax(0,1fr) 55px 38px 62px;
 }
 
 .prime-home-v2-table__head {
   padding: 0 9px;
-  border-bottom: 1px solid #ddd7cb;
-  background: #f2efe8;
-  color: #69717c;
+  border-bottom: 1px solid #d7d0c4;
+  background: #ece7dd;
+  color: #526174;
   font-size: 6.5px;
   font-weight: 900;
   letter-spacing: .055em;
@@ -253,6 +249,18 @@
 
 .prime-home-v2-table__row:hover {
   background: #f9f3e7;
+}
+
+
+.prime-home-v2-table--prime25 .prime-home-v2-table__head > span:nth-child(n + 3),
+.prime-home-v2-table--prime25 .prime-home-v2-table__row > span:nth-child(n + 3),
+.prime-home-v2-table--prime25 .prime-home-v2-table__row > b {
+  text-align: center;
+}
+
+.prime-home-v2-table__score {
+  color: #a9781d;
+  font-weight: 900;
 }
 
 .prime-home-v2-table__rank {
@@ -1197,7 +1205,7 @@
 
   .prime-home-v2-table--prime25 .prime-home-v2-table__head,
   .prime-home-v2-table--prime25 .prime-home-v2-table__row {
-    grid-template-columns: 30px minmax(0,1fr) 54px 38px;
+    grid-template-columns: 27px minmax(0,1fr) 48px 34px 54px;
   }
 }
 
@@ -1577,7 +1585,7 @@
 
   .prime-home-v2-table--prime25 .prime-home-v2-table__head,
   .prime-home-v2-table--prime25 .prime-home-v2-table__row {
-    grid-template-columns: 27px minmax(0, 1fr) 50px 35px;
+    grid-template-columns: 24px minmax(0, 1fr) 44px 31px 48px;
   }
 
   .prime-home-v2__explore-grid small {
