@@ -40,6 +40,7 @@ export type SampleMeta = {
 
 export type SampleTeam = { slug: string; team: string; teamId: number; games: SampleGame[] };
 export type TeamSampleData = { meta: SampleMeta; team: SampleTeam };
+export type AdvancedSampleArtifact = { meta: SampleMeta; teams: Record<string, SampleTeam> };
 
 export type SampleResult = {
   included: number;
@@ -52,6 +53,17 @@ export type SampleResult = {
   adjusted: Record<string, number | null>;
   /** Turnover/penalty counts (Exploratory), or null when not exported for this team. */
   ex: Record<string, number> | null;
+};
+
+export type ConferenceOnlyTeamSample = {
+  gameIds: string[];
+  result: SampleResult;
+};
+
+export type ConferenceOnlySampleResponse = {
+  season: number;
+  weekThrough: number;
+  teams: Record<string, ConferenceOnlyTeamSample>;
 };
 
 // Directly published adjusted edges: [AdvancedRow key, spec, fit side, decimals].
