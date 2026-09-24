@@ -1,6 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { extendRankingsToCurrentWeek } from "./rankingsExtend";
-import type { TeamSampleData } from "./custom-sample";
+import type { ConferenceOnlySampleResponse, TeamSampleData } from "./custom-sample";
 import type { ExploratorySampleData } from "./exploratory-sample";
 import type { AdvancedSeason, CfpSeasonResult, ExploratorySeason, GameLogSeason, MarketLinesSeason, PredictionsTrackRecord, PredictionsWeek, ProjectionSeason, RankingsSeason, ScheduleSeason, SearchIndexEntry, SiteMeta, TeamStatsSeason, TeamStatsWeeklySeason } from "./types";
 
@@ -306,6 +306,33 @@ export function getTeamStatsWeeklySeason(year: number | string): Promise<TeamSta
 // the life of the tab. `null` = not published for this team/season.
 const teamSampleData = new Map<string, TeamSampleData | null>();
 const teamSampleInflight = new Map<string, Promise<TeamSampleData | null>>();
+const conferenceOnlySampleData = new Map<string, ConferenceOnlySampleResponse | null>();
+const conferenceOnlySampleInflight = new Map<string, Promise<ConferenceOnlySampleResponse | null>>();
+
+export function getConferenceOnlySamples(year: number | string): Promise<ConferenceOnlySampleResponse | null> {
+  const key = String(year);
+  if (conferenceOnlySampleData.has(key)) return Promise.resolve(conferenceOnlySampleData.get(key) ?? null);
+  let entry = conferenceOnlySampleInflight.get(key);
+  if (!entry) {
+    entry = fetchPremiumJson<ConferenceOnlySampleResponse>(`/api/premium/advanced/${key}/conference-only`)
+      .then((data) => data, (error: Error) => {
+        if (error instanceof PremiumAccessError) throw error;
+        if (/404|not available/i.test(error.message)) return null;
+        throw error;
+      })
+      .then((data) => {
+        conferenceOnlySampleData.set(key, data);
+        conferenceOnlySampleInflight.delete(key);
+        return data;
+      }, (error: Error) => {
+        conferenceOnlySampleInflight.delete(key);
+        throw error;
+      });
+    conferenceOnlySampleInflight.set(key, entry);
+  }
+  return entry;
+}
+
 
 export function getTeamSample(year: number | string, teamId: number | string): Promise<TeamSampleData | null> {
   const key = `${year}:${teamId}`;
