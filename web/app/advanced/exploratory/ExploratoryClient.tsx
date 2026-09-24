@@ -5,10 +5,10 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import TeamLink from "@/components/TeamLink";
-import GameSampleSheet, { GameList, type SampleStatus } from "@/components/GameSampleSheet";
+import GameSampleSheet, { type SampleStatus } from "@/components/GameSampleSheet";
 import CfpTeamCell from "@/components/CfpTeamCell";
 import { TipTrigger } from "@/components/Tooltip";
+import { logoUrl } from "@/lib/teamCode";
 import { getExploratoryTeamSample, getMeta, useCfpResultsSeason, useExploratorySeason } from "@/lib/data";
 import { parseExclusions, serializeExclusions } from "@/lib/custom-sample";
 import { sumExploratory, verifyExploratoryParity, type ExploratorySampleData } from "@/lib/exploratory-sample";
@@ -278,44 +278,6 @@ export default function ExploratoryClient() {
   const profileEntry = profile ? samples[`${year}:${profile.slug}`] : undefined;
   const profileGames = profileEntry?.status === "ready" && profileEntry.data ? profileEntry.data.team.games : null;
   const profileExcluded = profile ? excluded[profile.slug] ?? [] : [];
-  const profileSample = profile ? (
-    <section className="cs-inline" aria-label="Games included in this profile">
-      <div className="cs-inline__head">
-        <div>
-          <strong>Games in this profile</strong>
-          <span>
-            {profileGames && rangeAllowsCustom
-              ? `${profileGames.filter((game) => !profileExcluded.includes(game.g)).length} of ${profileGames.length} included — tap a game to add or remove it`
-              : "Choose which games count"}
-          </span>
-        </div>
-        {profileGames && rangeAllowsCustom ? (
-          <div className="cs-inline__tools">
-            <button type="button" className="cs-btn" disabled={!profileExcluded.length} onClick={() => updateExclusions(profile.slug, [])}>All games</button>
-            <button type="button" className="cs-btn" onClick={() => updateExclusions(profile.slug, profileGames.map((game) => game.g))}>None</button>
-          </div>
-        ) : null}
-      </div>
-      {!rangeAllowsCustom ? (
-        <p className="cs-sheet__message">Custom samples use the full season to date; your week range is narrowed. <button type="button" className="cs-link" onClick={() => { if (weeks.length) { setStartWeek(weeks[0]); setEndWeek(weeks[weeks.length - 1]); } }}>Show the full season</button></p>
-      ) : !profileEntry || profileEntry.status === "loading" ? (
-        <p className="cs-sheet__message">Loading {profile.team}&apos;s games…</p>
-      ) : profileGames ? (
-        <>
-          <GameList
-            games={[...profileGames].sort((a, b) => a.w - b.w || a.g.localeCompare(b.g))}
-            excluded={new Set(profileExcluded)}
-            onToggle={(id) => toggleExcluded(profile.slug, id)}
-            weekLabel={weekLabel}
-          />
-          {profileGames.length > 0 && profileGames.every((game) => profileExcluded.includes(game.g)) ? <p className="cs-sheet__warning" role="status">No games selected — stats can&apos;t be calculated. Pick at least one game.</p> : null}
-        </>
-      ) : (
-        <p className="cs-sheet__message">{profileEntry.status === "unavailable" ? `Custom game samples aren't published for ${profile.team} in ${year} yet.` : profileEntry.status === "stale" ? "The custom-sample data is refreshing. Check back shortly." : "Couldn't load this team's games."}</p>
-      )}
-    </section>
-  ) : null;
-
   const activeRangeLabel = startWeek !== null && endWeek !== null
     ? weekRangeLabel(startWeek, endWeek)
     : "Selected weeks";
@@ -547,17 +509,7 @@ export default function ExploratoryClient() {
                         <button type="button" className="exploratory-profile-button" onClick={() => openProfile(team)}>
                           View Profile
                         </button>
-                        <button
-                          type="button"
-                          className={`cs-chip${team._custom ? " cs-chip--custom" : ""}`}
-                          aria-label={team._custom ? `${team.team}: custom sample. Edit games` : `Customize ${team.team}'s games`}
-                          title={team._custom ? "Custom sample — click to edit games" : "Choose which games count"}
-                          onClick={() => openSampleSheet(team)}
-                        >
-                          {team._custom ? `${(team._custom as { included: number }).included}/${(team._custom as { total: number }).total}` : (
-                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7" /><circle cx="10.5" cy="4.5" r="1.7" /><circle cx="5.5" cy="11.5" r="1.7" /></svg>
-                          )}
-                        </button>
+
                       </td>
                       {activeColumns.map((col) => {
                         const value = team[col.key] as number | null;
@@ -601,87 +553,128 @@ export default function ExploratoryClient() {
             aria-labelledby="exploratoryProfileTitle"
           >
             <header className="exploratory-profile-header">
-              <div>
-                <span className="eyebrow">Exploratory Profile · {year} · {activeRangeLabel}{profile._custom ? ` · CUSTOM ${(profile._custom as { included: number }).included}/${(profile._custom as { total: number }).total} GAMES` : ""}</span>
-                <h2 id="exploratoryProfileTitle">{profile.team}</h2>
-                <p>{profile.conf} · How this team wins and loses series</p>
+              <div className="exploratory-profile-identity">
+                <div className="exploratory-profile-logo-shell">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={logoUrl(profile.teamId, 96)} alt="" width={58} height={58} />
+                </div>
+                <div className="exploratory-profile-heading">
+                  <span className="eyebrow">Exploratory Profile · {year}</span>
+                  <div className="exploratory-profile-title-row">
+                    <h2 id="exploratoryProfileTitle">{profile.team}</h2>
+                    {profile._custom ? (
+                      <span className="exploratory-profile-custom-badge">
+                        Custom · {(profile._custom as { included: number }).included}/{(profile._custom as { total: number }).total}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p>{profile.conf} · {activeRangeLabel}</p>
+                </div>
               </div>
-              <button
-                type="button"
-                className="exploratory-modal-close"
-                aria-label="Close exploratory profile"
-                onClick={() => setProfileTeam(null)}
-              >
-                ×
-              </button>
+              <div className="exploratory-profile-actions">
+                <button
+                  type="button"
+                  className={`exploratory-filter-games${profile._custom ? " is-custom" : ""}`}
+                  onClick={() => openSampleSheet(profile)}
+                >
+                  <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+                    <path d="M2 5h8M13 5h3M2 13h3M8 13h8" />
+                    <circle cx="11.5" cy="5" r="2" />
+                    <circle cx="6.5" cy="13" r="2" />
+                  </svg>
+                  <span>Filter Games</span>
+                  {profile._custom ? <b>{(profile._custom as { included: number }).included}/{(profile._custom as { total: number }).total}</b> : null}
+                </button>
+                <button
+                  type="button"
+                  className="exploratory-modal-close"
+                  aria-label="Close exploratory profile"
+                  onClick={() => setProfileTeam(null)}
+                >
+                  ×
+                </button>
+              </div>
             </header>
 
-            {profileSample}
-
-            <div className="exploratory-profile-note">
-              <strong>Quick read:</strong> green is a strength, red is an area to watch. The label in the last column translates national rank into plain football language.
+            <div className="exploratory-profile-legend" aria-label="Profile legend">
+              <span><i className="is-strength" /> Strength</span>
+              <span><i className="is-average" /> Average</span>
+              <span><i className="is-watch" /> Area to watch</span>
+              <em>Tap <b>?</b> for metric definitions.</em>
             </div>
 
-            {PROFILE_SECTIONS.map((group) => (
-              <section className="exploratory-profile-section" key={group.title}>
-                <h3>{group.title}</h3>
-                <table className="exploratory-profile-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">What it measures</th>
-                      <th scope="col">Rate</th>
-                      <th scope="col">National</th>
-                      <th scope="col">Read</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {group.columns.map((col) => {
-                      const value = profile[col.key] as number | null;
-                      const n = profile[`${col.key}_n`] as number;
-                      const rank = profile[`_rank_${col.key}`] as number | null;
-                      const smallSample = n < minimumN(col);
-                      const eligibleCount = eligibleCounts[col.key] ?? 0;
-                      const format = FORMATTERS[col.fmt ?? "pct1"];
-                      const tier = fanTier(rank, eligibleCount, smallSample, col.noHeatmap);
-                      return (
-                        <tr key={col.key}>
-                          <td className="profile-metric-name">
-                            <strong>{col.label}</strong>
-                            <span>{col.profileNote}</span>
-                          </td>
-                          <td
-                            className={`profile-rate${smallSample ? " profile-rate--sample" : ""}`}
-                            style={!smallSample && !col.noHeatmap ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined}
-                          >
-                            <strong>{format(value)}</strong>
-                            <small>N={n}</small>
-                          </td>
-                          <td className="profile-rank">
-                            {rank ? (
-                              <>
-                                <strong>#{rank}</strong>
-                                <small>of {eligibleCount}</small>
-                              </>
-                            ) : (
-                              <>
-                                <strong>—</strong>
-                                <small>small sample</small>
-                              </>
-                            )}
-                          </td>
-                          <td className="profile-read">
-                            <span className={`profile-tier ${tier.className}`}>{tier.label}</span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </section>
-            ))}
+            <div className="exploratory-profile-body">
+              {PROFILE_SECTIONS.map((group, groupIndex) => (
+                <section
+                  className={`exploratory-profile-section${groupIndex === PROFILE_SECTIONS.length - 1 ? " exploratory-profile-section--wide" : ""}`}
+                  key={group.title}
+                >
+                  <div className="exploratory-profile-section-head">
+                    <h3>{group.title}</h3>
+                    <span>{group.columns.length} metrics</span>
+                  </div>
+                  <table className="exploratory-profile-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Metric</th>
+                        <th scope="col">Value</th>
+                        <th scope="col">National</th>
+                        <th scope="col">Read</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.columns.map((col) => {
+                        const value = profile[col.key] as number | null;
+                        const n = profile[`${col.key}_n`] as number;
+                        const rank = profile[`_rank_${col.key}`] as number | null;
+                        const smallSample = n < minimumN(col);
+                        const eligibleCount = eligibleCounts[col.key] ?? 0;
+                        const format = FORMATTERS[col.fmt ?? "pct1"];
+                        const tier = fanTier(rank, eligibleCount, smallSample, col.noHeatmap);
+                        return (
+                          <tr key={col.key}>
+                            <td className="profile-metric-name">
+                              <div className="profile-metric-label">
+                                <strong>{col.label}</strong>
+                                <TipTrigger text={`${col.tooltip} Formula: ${col.profileFormula}.`} />
+                              </div>
+                            </td>
+                            <td
+                              className={`profile-rate${smallSample ? " profile-rate--sample" : ""}`}
+                              style={!smallSample && !col.noHeatmap ? { backgroundColor: heatBackground(value, columnRanges[col.key], col.lowerBetter) } : undefined}
+                            >
+                              <strong>{format(value)}</strong>
+                              <small>N={n}</small>
+                            </td>
+                            <td className="profile-rank">
+                              {rank ? (
+                                <>
+                                  <strong>#{rank}</strong>
+                                  <small>of {eligibleCount}</small>
+                                </>
+                              ) : (
+                                <>
+                                  <strong>—</strong>
+                                  <small>small sample</small>
+                                </>
+                              )}
+                            </td>
+                            <td className="profile-read">
+                              <span className={`profile-tier ${tier.className}`}>{tier.label}</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </section>
+              ))}
+            </div>
 
             <footer className="exploratory-profile-footer">
-              <TeamLink team={profile.team} teamId={profile.teamId} slug={profile.slug} />
+              <Link className="exploratory-profile-team-link" href={`/team/${profile.slug}`}>
+                Full Team Profile <span aria-hidden="true">→</span>
+              </Link>
               <button type="button" className="exploratory-profile-done" onClick={() => setProfileTeam(null)}>Close</button>
             </footer>
           </section>
