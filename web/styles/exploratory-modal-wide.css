@@ -478,6 +478,81 @@
 .exploratory-profile-section--wide .exploratory-profile-table thead th:nth-child(3) { width: 16%; }
 .exploratory-profile-section--wide .exploratory-profile-table thead th:nth-child(4) { width: 20%; }
 
+/* Style / Risk ----------------------------------------------------------- */
+
+.exploratory-style-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: #fffefa;
+}
+
+.exploratory-style-metric {
+  display: grid;
+  grid-template-columns: minmax(0, 46%) 18% 16% 20%;
+  min-width: 0;
+  min-height: 42px;
+  border-bottom: 1px solid #e8e3da;
+}
+
+.exploratory-style-metric:nth-child(odd) {
+  border-right: 1px solid #e8e3da;
+}
+
+.exploratory-style-metric:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.exploratory-style-metric > div {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.exploratory-style-metric__name {
+  gap: 6px;
+  padding: 6px 9px;
+}
+
+.exploratory-style-metric__name strong {
+  min-width: 0;
+  color: var(--color-navy);
+  font: 750 10px/1.12 var(--font-body);
+  overflow-wrap: anywhere;
+}
+
+.exploratory-style-metric__name .tip-trigger {
+  flex: 0 0 18px;
+}
+
+.exploratory-style-metric__value,
+.exploratory-style-metric__rank,
+.exploratory-style-metric__read {
+  justify-content: center;
+  flex-direction: column;
+  padding: 4px 5px;
+  text-align: center;
+}
+
+.exploratory-style-metric__value {
+  border-left: 1px solid rgb(0 39 76 / 6%);
+  border-right: 1px solid rgb(0 39 76 / 6%);
+}
+
+.exploratory-style-metric__value strong,
+.exploratory-style-metric__rank strong {
+  color: #17263a;
+  font: 800 12px/1 var(--font-mono);
+}
+
+.exploratory-style-metric__value small,
+.exploratory-style-metric__rank small {
+  margin-top: 2px;
+  color: #7b817d;
+  font: 700 6px/1 var(--font-mono);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
 /* Footer ----------------------------------------------------------------- */
 
 .exploratory-profile-footer {
@@ -945,42 +1020,29 @@
     font-size: 6.5px;
   }
 
-  /* Style / Risk has six metrics. Split those six rows into two columns on
-     desktop so the entire profile fits without any scrolling. */
-  .exploratory-profile-section--wide .exploratory-profile-table tbody {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .exploratory-style-metric {
+    min-height: 34px;
   }
 
-  .exploratory-profile-section--wide .exploratory-profile-table tbody tr {
-    display: grid;
-    grid-template-columns: 46% 18% 16% 20%;
-    min-width: 0;
-    border-bottom: 1px solid #e8e3da;
+  .exploratory-style-metric__name {
+    padding-top: 4px;
+    padding-bottom: 4px;
   }
 
-  .exploratory-profile-section--wide .exploratory-profile-table tbody tr:nth-child(odd) {
-    border-right: 1px solid #e8e3da;
+  .exploratory-style-metric__name strong {
+    font-size: 9px;
   }
 
-  .exploratory-profile-section--wide .exploratory-profile-table tbody tr:nth-last-child(-n + 2) {
-    border-bottom: 0;
+  .exploratory-style-metric__value strong,
+  .exploratory-style-metric__rank strong {
+    font-size: 11px;
   }
 
-  .exploratory-profile-section--wide .exploratory-profile-table tbody td {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    height: 34px;
-    border-bottom: 0;
+  .exploratory-style-metric__value small,
+  .exploratory-style-metric__rank small {
+    font-size: 5.8px;
   }
 
-  .exploratory-profile-section--wide .profile-rate,
-  .exploratory-profile-section--wide .profile-rank,
-  .exploratory-profile-section--wide .profile-read {
-    justify-content: center;
-    text-align: center;
-  }
 
   .exploratory-profile-footer {
     min-height: 43px;
@@ -996,16 +1058,24 @@
     overflow-x: hidden;
   }
 
-  .exploratory-profile-section--wide .exploratory-profile-table tbody {
-    display: table-row-group;
+  .exploratory-style-grid {
+    grid-template-columns: 1fr;
   }
 
-  .exploratory-profile-section--wide .exploratory-profile-table tbody tr {
-    display: table-row;
+  .exploratory-style-metric {
+    grid-template-columns: 41% 19% 17% 23%;
   }
 
-  .exploratory-profile-section--wide .exploratory-profile-table tbody td {
-    display: table-cell;
+  .exploratory-style-metric:nth-child(odd) {
+    border-right: 0;
+  }
+
+  .exploratory-style-metric:nth-last-child(-n + 2) {
+    border-bottom: 1px solid #e8e3da;
+  }
+
+  .exploratory-style-metric:last-child {
+    border-bottom: 0;
   }
 
   .tip-bubble {
