@@ -224,11 +224,12 @@
   table-layout: fixed;
 }
 
-.game-log-modal__table th:nth-child(1) { width: 72px; }
-.game-log-modal__table th:nth-child(2) { width: 30%; }
-.game-log-modal__table th:nth-child(3) { width: 120px; }
-.game-log-modal__table th:nth-child(4) { width: 155px; }
-.game-log-modal__table th:nth-child(5) { width: 190px; }
+.game-log-modal__table th:nth-child(1) { width: 62px; }
+.game-log-modal__table th:nth-child(2) { width: 27%; }
+.game-log-modal__table th:nth-child(3) { width: 94px; }
+.game-log-modal__table th:nth-child(4) { width: 132px; }
+.game-log-modal__table th:nth-child(5) { width: 164px; }
+.game-log-modal__table th:nth-child(6) { width: 116px; }
 
 .game-log-modal__table th {
   position: sticky;
@@ -303,6 +304,10 @@
   white-space: nowrap;
 }
 
+.game-log-modal__mobile-meta {
+  display: none;
+}
+
 .game-log-modal__venue {
   display: inline-flex;
   align-items: center;
@@ -327,7 +332,8 @@
 }
 
 .game-log-modal__actual strong,
-.game-log-modal__baseline > strong {
+.game-log-modal__baseline > strong,
+.game-log-modal__delta > strong {
   font-size: 13px;
 }
 
@@ -344,9 +350,11 @@
 .game-log-modal__diff {
   display: inline-flex;
   align-items: center;
-  min-height: 20px;
-  margin-left: 7px;
-  padding: 0 6px;
+  justify-content: center;
+  min-height: 22px;
+  min-width: 50px;
+  margin-left: 0;
+  padding: 0 7px;
   border-radius: 999px;
   font-size: 8px;
   font-weight: 900;
@@ -448,11 +456,12 @@
     max-height: calc(100dvh - 24px);
   }
 
-  .game-log-modal__table th:nth-child(1) { width: 58px; }
-  .game-log-modal__table th:nth-child(2) { width: 28%; }
-  .game-log-modal__table th:nth-child(3) { width: 104px; }
-  .game-log-modal__table th:nth-child(4) { width: 135px; }
-  .game-log-modal__table th:nth-child(5) { width: 170px; }
+  .game-log-modal__table th:nth-child(1) { width: 54px; }
+  .game-log-modal__table th:nth-child(2) { width: 25%; }
+  .game-log-modal__table th:nth-child(3) { width: 88px; }
+  .game-log-modal__table th:nth-child(4) { width: 118px; }
+  .game-log-modal__table th:nth-child(5) { width: 146px; }
+  .game-log-modal__table th:nth-child(6) { width: 105px; }
 }
 
 /* Mobile: each game becomes a readable card ----------------------------- */
@@ -471,79 +480,88 @@
   }
 
   .game-log-modal__header {
-    min-height: 82px;
-    padding: 13px 12px 11px;
+    min-height: 72px;
+    padding: 11px 10px 9px;
   }
 
   .game-log-modal__identity {
-    gap: 9px;
+    gap: 8px;
   }
 
   .game-log-modal__team-logo {
-    flex-basis: 48px;
-    width: 48px;
-    height: 48px;
+    flex-basis: 42px;
+    width: 42px;
+    height: 42px;
   }
 
   .game-log-modal__eyebrow {
-    font-size: 6.5px;
+    margin-bottom: 3px;
+    font-size: 5.8px;
   }
 
   .game-log-modal__title-stack h2 {
-    max-width: 58vw;
-    font-size: clamp(24px, 8vw, 32px);
+    max-width: 62vw;
+    font-size: clamp(22px, 7.2vw, 29px);
   }
 
   .game-log-modal__title-stack p {
-    max-width: 62vw;
-    margin-top: 4px;
-    font-size: 6.5px;
+    max-width: 65vw;
+    margin-top: 3px;
+    font-size: 6px;
+    line-height: 1.15;
     white-space: normal;
   }
 
   .game-log-modal__close {
-    flex-basis: 34px;
-    width: 34px;
-    height: 34px;
-    font-size: 22px;
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
   }
 
+  /* One compact summary row instead of a stacked dashboard. */
   .game-log-modal__summary {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: .8fr 1fr 1.25fr;
   }
 
   .game-log-modal__summary > div {
-    min-height: 51px;
-    padding: 7px 10px;
+    min-height: 43px;
+    padding: 6px 7px;
+    border-right: 1px solid #d8d1c5;
+    border-top: 0;
+  }
+
+  .game-log-modal__summary > div:last-child {
+    border-right: 0;
   }
 
   .game-log-modal__summary-context {
-    grid-column: 1 / -1;
-    border-top: 1px solid #d8d1c5;
-    border-right: 0 !important;
+    grid-column: auto;
+    border-top: 0;
   }
 
   .game-log-modal__summary span {
-    font-size: 6px;
+    font-size: 5.2px;
+    letter-spacing: .065em;
   }
 
   .game-log-modal__summary strong {
-    margin-top: 4px;
-    font-size: 14px;
+    margin-top: 3px;
+    font-size: 12px;
   }
 
   .game-log-modal__summary-context strong {
-    font-size: 10px;
+    font-size: 8px;
   }
 
+  /* The desktop explanation is useful, but on a phone it pushes the actual
+     games below the fold. The labels inside each card explain the comparison. */
   .game-log-modal__note {
-    padding: 8px 10px;
-    font-size: 9px;
-    line-height: 1.35;
+    display: none;
   }
 
   .game-log-modal__table-wrap {
-    padding: 8px;
+    padding: 7px;
     background: #efebe3;
   }
 
@@ -560,8 +578,8 @@
 
   .game-log-modal__table tbody tr {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    margin-bottom: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 7px;
     overflow: hidden;
     border: 1px solid #d8d1c5;
     border-radius: 8px;
@@ -577,15 +595,15 @@
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
     min-width: 0;
     height: auto;
-    min-height: 48px;
-    gap: 7px;
-    padding: 18px 9px 6px;
-    border-bottom: 1px solid #ebe5da;
+    min-height: 50px;
+    gap: 4px;
+    padding: 18px 6px 6px;
+    border-bottom: 0;
     background: #fffefa;
-    text-align: right !important;
+    text-align: center !important;
     white-space: normal;
   }
 
@@ -593,55 +611,80 @@
     content: attr(data-label);
     position: absolute;
     top: 5px;
-    left: 9px;
+    left: 6px;
+    right: 6px;
     color: #7b838c;
-    font: 800 5.8px/1 var(--font-mono);
-    letter-spacing: .07em;
+    font: 800 5.4px/1 var(--font-mono);
+    letter-spacing: .055em;
+    text-align: center;
     text-transform: uppercase;
   }
 
-  .game-log-modal__table tbody .game-log-modal__week {
-    grid-column: 1;
-  }
-
+  /* Week/result live in the opponent header on mobile. */
+  .game-log-modal__table tbody .game-log-modal__week,
   .game-log-modal__table tbody .game-log-modal__result {
-    grid-column: 2;
+    display: none;
   }
 
   .game-log-modal__table tbody .game-log-modal__opponent {
     grid-column: 1 / -1;
     grid-row: 1;
     justify-content: flex-start;
-    min-height: 58px;
-    padding-top: 20px;
+    min-height: 48px;
+    padding: 8px 9px;
     border-bottom: 1px solid #ded7ca;
     text-align: left !important;
   }
 
+  .game-log-modal__table tbody .game-log-modal__opponent::before {
+    display: none;
+  }
+
   .game-log-modal__opponent .team-link {
-    max-width: calc(100% - 35px);
+    max-width: calc(100% - 92px);
+    gap: 6px;
   }
 
   .game-log-modal__opponent .team-logo {
-    width: 30px;
-    height: 30px;
-    flex-basis: 30px;
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
   }
 
   .game-log-modal__opponent .team-name,
   .game-log-modal__opponent-name {
-    font-size: 11px;
+    font-size: 10.5px;
+  }
+
+  .game-log-modal__venue {
+    min-width: 17px;
+    margin-right: 1px;
+    font-size: 7px;
+  }
+
+  .game-log-modal__mobile-meta {
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding-left: 7px;
+    color: #667486;
+    font: 800 7px/1 var(--font-mono);
+    letter-spacing: .035em;
+    white-space: nowrap;
   }
 
   .game-log-modal__table tbody .game-log-modal__actual {
     grid-column: 1;
-    border-bottom: 0;
+    border-right: 1px solid #ebe5da;
   }
 
   .game-log-modal__table tbody .game-log-modal__baseline {
     grid-column: 2;
-    border-bottom: 0;
-    border-left: 1px solid #ebe5da;
+    border-right: 1px solid #ebe5da;
+  }
+
+  .game-log-modal__table tbody .game-log-modal__delta {
+    grid-column: 3;
   }
 
   .game-log-modal__actual strong,
@@ -649,19 +692,24 @@
     font-size: 12px;
   }
 
-  .game-log-modal__diff {
-    min-height: 18px;
-    margin-left: 2px;
-    padding-inline: 5px;
+  .game-log-modal__dash {
     font-size: 7px;
+  }
+
+  .game-log-modal__diff {
+    min-width: 0;
+    min-height: 21px;
+    margin: 0;
+    padding-inline: 6px;
+    font-size: 7.5px;
   }
 
   .game-log-modal__table tfoot tr {
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
-    min-height: 46px;
-    padding: 0 10px;
+    min-height: 42px;
+    padding: 0 9px;
     border: 1px solid #d5cdbf;
     border-radius: 7px;
     background: #e9e4da;
@@ -680,31 +728,33 @@
     display: block;
     grid-column: 1;
     color: #617083;
-    font-size: 7px;
+    font-size: 6.5px;
   }
 
   .game-log-modal__table tfoot td:nth-child(2) {
     display: block;
     grid-column: 2;
     color: var(--color-navy);
-    font-size: 12px;
+    font-size: 11px;
     text-align: right;
   }
 
   .game-log-modal__footer {
-    min-height: 47px;
-    padding: 7px 10px calc(7px + env(safe-area-inset-bottom, 0px));
+    min-height: 43px;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
   }
 
   .game-log-modal__footer span {
-    max-width: 60vw;
+    max-width: 62vw;
     overflow: hidden;
-    font-size: 6.5px;
+    font-size: 6px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .game-log-modal__footer button {
-    min-height: 32px;
+    min-width: 70px;
+    min-height: 30px;
+    font-size: 7px;
   }
 }
