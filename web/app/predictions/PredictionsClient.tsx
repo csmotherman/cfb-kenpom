@@ -572,8 +572,16 @@ function PredictionCard({ row, market, access, homeRank, awayRank, onOpen }: {
       </button>
       <footer>
         <span>
-          <strong>PRIME {edge ? "edge" : "pick"}:</strong>{" "}
-          {access === "locked" ? "Locked" : edge || (prediction ? pickText(prediction.predictedWinner, prediction.predictedMargin) : "Not enough data")}
+          <strong>PRIME {game.completed ? "prediction" : edge ? "edge" : "pick"}:</strong>{" "}
+          {access === "locked"
+            ? "Locked"
+            : game.completed
+              ? (scores
+                  ? `${game.awayTeam} ${scores.away} – ${game.homeTeam} ${scores.home}`
+                  : prediction
+                    ? pickText(prediction.predictedWinner, prediction.predictedMargin)
+                    : "Not enough data")
+              : edge || (prediction ? pickText(prediction.predictedWinner, prediction.predictedMargin) : "Not enough data")}
         </span>
         <button type="button" onClick={onOpen}>View matchup <span aria-hidden="true">→</span></button>
       </footer>
