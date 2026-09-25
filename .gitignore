@@ -32,3 +32,8 @@ web/public/data/team-game-advanced/
 # invites drift (and broke the daily refresh once the tree and the
 # committed snapshot disagreed).
 *.egg-info/
+
+# Locally rendered social-post images (e.g. the weekly rankings PNG). Not
+# uploaded anywhere by the generator yet -- inspected locally or via the
+# workflow artifact, never committed.
+build/social/

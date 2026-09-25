@@ -1,0 +1,68 @@
+name: Weekly PRIME 25 rankings post (draft)
+
+# Runs after a successful "Refresh 2026 ratings and metrics" run, gated to
+# Sundays (America/Detroit). refresh.yml runs roughly hourly, so on a Sunday
+# this fires roughly hourly too -- that's intentional, not a bug: the
+# generator itself is idempotent (see generate_rankings_post.py), so every
+# run after the first successful one for a given season/week is a fast
+# no-op. This also means a transient failure early on a Sunday self-heals on
+# the next hourly refresh instead of silently missing the week.
+#
+# DRAFT_ONLY end to end: this job only renders a PNG to a workflow artifact
+# and writes one social_posts row. It never uploads to Storage and never
+# calls Buffer.
+
+on:
+  workflow_run:
+    workflows: ["Refresh 2026 ratings and metrics"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  generate-rankings-post:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check day of week (America/Detroit)
+        id: check_day
+        run: |
+          today=$(TZ=America/Detroit date +%u)  # 1=Monday ... 7=Sunday
+          if [ "$today" = "7" ]; then
+            echo "is_sunday=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_sunday=false" >> "$GITHUB_OUTPUT"
+            echo "Not Sunday in America/Detroit; skipping." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.check_day.outputs.is_sunday == 'true'
+
+      - uses: actions/setup-python@v5
+        if: steps.check_day.outputs.is_sunday == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package with social extras
+        if: steps.check_day.outputs.is_sunday == 'true'
+        run: pip install -e ".[social]"
+
+      - name: Generate PRIME 25 rankings post candidate
+        if: steps.check_day.outputs.is_sunday == 'true'
+        env:
+          SUPABASE_URL: https://wmlzqmtsxqqxuiekmrqm.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python scripts/generate_rankings_post.py
+
+      - name: Upload rendered PNG as a workflow artifact
+        if: steps.check_day.outputs.is_sunday == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rankings-post-png
+          path: build/social/**/*.png
+          if-no-files-found: warn
+          retention-days: 90

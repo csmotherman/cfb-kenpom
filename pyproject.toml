@@ -9,6 +9,12 @@ description = "Reliability-first college football raw data foundation"
 requires-python = ">=3.11"
 dependencies = [
   "httpx>=0.27,<1",
+  # zoneinfo (stdlib) has no bundled tz database on Windows and relies on the
+  # OS's own IANA data everywhere else. tzdata is the officially documented
+  # pure-data fallback, so zoneinfo lookups (e.g. cfb_analytics.social's
+  # America/Detroit scheduling) work the same on every platform/runner
+  # regardless of what the OS happens to ship.
+  "tzdata>=2024.1",
 ]
 
 [project.optional-dependencies]
@@ -19,6 +25,7 @@ models = [
   "scikit-learn>=1.6,<2",
 ]
 publish = ["pyarrow>=18,<22"]
+social = ["pillow>=10,<12"]
 
 [project.scripts]
 cfb-raw = "cfb_analytics.raw.cli:main"
