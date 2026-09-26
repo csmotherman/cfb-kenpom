@@ -21,6 +21,9 @@ class _FakeResponse:
     def __enter__(self):
         return self
 
+    def read(self):
+        return json.dumps(self.payload).encode("utf-8")
+
     def __exit__(self, *args):
         return False
 
