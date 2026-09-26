@@ -348,27 +348,180 @@ class GenerateRankingsPostFreshnessGuardIntegrationTests(unittest.TestCase):
 
 
 class RankingsCardTests(unittest.TestCase):
+    """Renderer tests. Every test mocks logos.fetch_team_logo -- no test in
+    this suite may hit the real CFBD logo CDN."""
+
     def setUp(self):
         try:
-            from cfb_analytics.social.images.rankings_card import RankingsCardRow, render_rankings_card
+            from cfb_analytics.social.images import rankings_card
         except ImportError:
             self.skipTest("Pillow not installed; install with: pip install -e '.[social]'")
-        self.RankingsCardRow = RankingsCardRow
-        self.render_rankings_card = render_rankings_card
+        self.rankings_card = rankings_card
+        self.RankingsCardRow = rankings_card.RankingsCardRow
+        self.render_rankings_card = rankings_card.render_rankings_card
+        patcher = mock.patch.object(rankings_card.logos, "fetch_team_logo", return_value=None)
+        self.mock_fetch_logo = patcher.start()
+        self.addCleanup(patcher.stop)
 
-    def test_renders_with_prime_score_no_movement_fields(self):
-        rows = [
-            self.RankingsCardRow(rank=1, team="Has Data", conference="SEC", record="4-0", prime_score=2.26),
-            self.RankingsCardRow(rank=2, team="Also Fine", conference="ACC", record="3-1", prime_score=1.05),
+    def _rows(self, n, **overrides):
+        names = [
+            "Notre Dame", "Ole Miss", "Texas", "Mississippi State", "USC",
+            "Alabama", "LSU", "Pittsburgh", "Penn State", "Louisville",
+            "Tulsa", "Florida", "Virginia Tech", "Utah", "Michigan",
+            "Nebraska", "West Virginia", "Iowa", "Oklahoma", "BYU",
+            "UCLA", "Duke", "Missouri", "Michigan State", "South Carolina",
         ]
-        with tempfile.TemporaryDirectory() as tmp:
-            out = self.render_rankings_card(season=2026, week=99, rows=rows, output_path=Path(tmp) / "card.png")
-            self.assertTrue(out.exists())
+        rows = []
+        for i in range(n):
+            kwargs = dict(rank=i + 1, team=names[i % len(names)], conference="SEC", record="3-0", team_id=100 + i)
+            kwargs.update(overrides)
+            rows.append(self.RankingsCardRow(**kwargs))
+        return rows
+
+    # -- basic contract --
 
     def test_no_rows_raises(self):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(ValueError):
                 self.render_rankings_card(season=2026, week=1, rows=[], output_path=Path(tmp) / "card.png")
+
+    def test_correct_canvas_dimensions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self.render_rankings_card(season=2026, week=3, rows=self._rows(25), output_path=Path(tmp) / "card.png")
+            from PIL import Image
+            with Image.open(out) as img:
+                self.assertEqual(img.size, (self.rankings_card.CARD_WIDTH, self.rankings_card.CARD_HEIGHT))
+                self.assertEqual(img.size, (1200, 1500))
+
+    def test_render_output_is_a_valid_png(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self.render_rankings_card(season=2026, week=3, rows=self._rows(25), output_path=Path(tmp) / "card.png")
+            from PIL import Image
+            with Image.open(out) as img:
+                img.verify()  # raises if the file is not a structurally valid image
+            with Image.open(out) as img:
+                self.assertEqual(img.format, "PNG")
+
+    def test_25_team_full_render(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self.render_rankings_card(season=2026, week=3, rows=self._rows(25), output_path=Path(tmp) / "card.png")
+            self.assertTrue(out.exists())
+        # every row (5 top5 + 20 grid) should have prompted exactly one logo lookup
+        self.assertEqual(self.mock_fetch_logo.call_count, 25)
+
+    def test_fewer_than_25_teams_does_not_crash(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self.render_rankings_card(season=2026, week=1, rows=self._rows(7), output_path=Path(tmp) / "card.png")
+            self.assertTrue(out.exists())
+
+    # -- logos: success, fallback, in-run caching is exercised via logos.py's own tests --
+
+    def test_successful_logo_is_composited(self):
+        from PIL import Image
+        fake_logo = Image.new("RGBA", (256, 256), (200, 30, 30, 255))
+        self.mock_fetch_logo.return_value = fake_logo
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self.render_rankings_card(season=2026, week=3, rows=self._rows(25), output_path=Path(tmp) / "card.png")
+            with Image.open(out) as img:
+                # Sample the middle of the #1 card's logo box -- it should
+                # show the fake logo's color, not the card's own background.
+                x0, y0, x1, y1 = self.rankings_card._top5_card_box(0)
+                sample = img.convert("RGB").getpixel((round((x0 + x1) / 2), y0 + 100))
+                self.assertEqual(sample, (200, 30, 30))
+
+    def test_missing_logo_falls_back_without_raising(self):
+        self.mock_fetch_logo.return_value = None
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self.render_rankings_card(season=2026, week=3, rows=self._rows(25), output_path=Path(tmp) / "card.png")
+            self.assertTrue(out.exists())  # must not raise; placeholder letter is drawn instead
+
+    def test_no_team_id_falls_back_without_fetching(self):
+        rows = self._rows(3, team_id=None)
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self.render_rankings_card(season=2026, week=3, rows=rows, output_path=Path(tmp) / "card.png")
+            self.assertTrue(out.exists())
+        self.mock_fetch_logo.assert_not_called()
+
+    # -- text fitting --
+
+    def test_long_team_names_fit_within_top5_card_width(self):
+        from PIL import ImageDraw, Image as PILImage
+        draw = ImageDraw.Draw(PILImage.new("RGB", (10, 10)))
+        card_w = self.rankings_card._top5_card_box(0)[2] - self.rankings_card._top5_card_box(0)[0]
+        for name in ["Mississippi State", "South Carolina", "Western Michigan", "Coastal Carolina"]:
+            font = self.rankings_card.fit_font(
+                draw, name, self.rankings_card.brand.body_font, card_w - 20,
+                start_size=21, min_size=12, weight=700,
+            )
+            self.assertLessEqual(draw.textlength(name, font=font), card_w - 20, msg=name)
+
+    def test_long_team_names_fit_within_grid_card_width(self):
+        from PIL import ImageDraw, Image as PILImage
+        draw = ImageDraw.Draw(PILImage.new("RGB", (10, 10)))
+        card_w = self.rankings_card._grid_card_box(0)[2] - self.rankings_card._grid_card_box(0)[0]
+        for name in ["Mississippi State", "South Carolina", "Western Michigan", "Coastal Carolina"]:
+            font = self.rankings_card.fit_font(
+                draw, name, self.rankings_card.brand.body_font, card_w - 16,
+                start_size=15, min_size=10, weight=650,
+            )
+            self.assertLessEqual(draw.textlength(name, font=font), card_w - 16, msg=name)
+
+    def test_fit_font_never_returns_smaller_than_min_size(self):
+        from PIL import ImageDraw, Image as PILImage
+        draw = ImageDraw.Draw(PILImage.new("RGB", (10, 10)))
+        # A width so small nothing could ever fit -- must stop at min_size, not shrink forever.
+        font = self.rankings_card.fit_font(
+            draw, "An Absurdly Long Team Name That Cannot Possibly Fit",
+            self.rankings_card.brand.body_font, max_width=5, start_size=40, min_size=10, weight=700,
+        )
+        self.assertEqual(font.size, 10)
+
+
+class LogoFetchTests(unittest.TestCase):
+    """cfb_analytics.social.images.logos -- no real network calls here."""
+
+    def setUp(self):
+        try:
+            from cfb_analytics.social.images import logos
+        except ImportError:
+            self.skipTest("Pillow not installed; install with: pip install -e '.[social]'")
+        self.logos = logos
+        logos.clear_cache()
+        self.addCleanup(logos.clear_cache)
+
+    def test_successful_fetch_returns_rgba_image(self):
+        from PIL import Image
+        import io as _io
+        buf = _io.BytesIO()
+        Image.new("RGBA", (16, 16), (1, 2, 3, 255)).save(buf, format="PNG")
+        with mock.patch.object(self.logos, "urlopen") as mock_urlopen:
+            mock_urlopen.return_value.__enter__.return_value.read.return_value = buf.getvalue()
+            result = self.logos.fetch_team_logo(87, size=128)
+        self.assertIsNotNone(result)
+        self.assertEqual(result.mode, "RGBA")
+
+    def test_network_failure_returns_none(self):
+        from urllib.error import URLError
+        with mock.patch.object(self.logos, "urlopen", side_effect=URLError("boom")):
+            result = self.logos.fetch_team_logo(87, size=128)
+        self.assertIsNone(result)
+
+    def test_corrupt_image_returns_none(self):
+        with mock.patch.object(self.logos, "urlopen") as mock_urlopen:
+            mock_urlopen.return_value.__enter__.return_value.read.return_value = b"not a png"
+            result = self.logos.fetch_team_logo(87, size=128)
+        self.assertIsNone(result)
+
+    def test_repeated_fetch_uses_cache_not_a_second_request(self):
+        from PIL import Image
+        import io as _io
+        buf = _io.BytesIO()
+        Image.new("RGBA", (16, 16), (1, 2, 3, 255)).save(buf, format="PNG")
+        with mock.patch.object(self.logos, "urlopen") as mock_urlopen:
+            mock_urlopen.return_value.__enter__.return_value.read.return_value = buf.getvalue()
+            self.logos.fetch_team_logo(87, size=128)
+            self.logos.fetch_team_logo(87, size=128)
+        mock_urlopen.assert_called_once()
 
 
 if __name__ == "__main__":

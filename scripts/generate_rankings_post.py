@@ -51,7 +51,7 @@ from cfb_analytics.social.templates import (
 )
 
 REPO = Path(__file__).resolve().parent.parent
-RENDER_VERSION = "rankings_card_v2"
+RENDER_VERSION = "rankings_card_v3"
 TOP_N = 25
 
 # PrimeCFB_ on Buffer (confirmed via Buffer's list_channels). Recorded on the
@@ -209,7 +209,7 @@ def main(argv: list[str] | None = None) -> None:
     card_rows = [
         RankingsCardRow(
             rank=t["rank"], team=t["team"], conference=t.get("conf"),
-            record=t.get("record", "—"), prime_score=t["primeScore"],
+            record=t.get("record", "—"), team_id=t.get("teamId"),
         )
         for t in teams
     ]
