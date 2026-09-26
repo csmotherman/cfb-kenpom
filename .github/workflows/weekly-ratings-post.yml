@@ -1,0 +1,76 @@
+name: Weekly PRIME Power Ratings post
+
+# Runs after a successful ratings/metrics refresh on Sundays. Power Ratings
+# publish at 2:00 PM ET, one hour before the 3:00 PM Composite Rankings post.
+# The generation window opens at 10 AM ET so Saturday's full slate is settled.
+
+on:
+  workflow_run:
+    workflows: ["Refresh 2026 ratings and metrics"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-schedule-ratings-post:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Sunday Power Ratings window (America/Detroit)
+        id: check_window
+        run: |
+          day=$(TZ=America/Detroit date +%u)
+          hour=$(TZ=America/Detroit date +%H)
+          if [ "$day" = "7" ] && [ "$hour" -ge 10 ] && [ "$hour" -lt 14 ]; then
+            echo "in_window=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "in_window=false" >> "$GITHUB_OUTPUT"
+            echo "Outside Sunday 10 AM–2 PM ET Power Ratings generation window; skipping." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.check_window.outputs.in_window == 'true'
+
+      - uses: actions/setup-python@v5
+        if: steps.check_window.outputs.in_window == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package with social extras
+        if: steps.check_window.outputs.in_window == 'true'
+        run: pip install -e ".[social]"
+
+      - name: Generate fresh Power Ratings social candidate
+        id: generate
+        if: steps.check_window.outputs.in_window == 'true'
+        env:
+          SUPABASE_URL: https://wmlzqmtsxqqxuiekmrqm.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python scripts/generate_ratings_post.py
+
+      - name: Schedule Power Ratings in Buffer for 2 PM ET
+        if: steps.check_window.outputs.in_window == 'true'
+        env:
+          SUPABASE_URL: https://wmlzqmtsxqqxuiekmrqm.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          BUFFER_ACCESS_TOKEN: ${{ secrets.BUFFER_ACCESS_TOKEN }}
+          SOCIAL_POST_ID: ${{ steps.generate.outputs.social_post_id }}
+        run: |
+          if [ -z "$SOCIAL_POST_ID" ]; then
+            echo "No Power Ratings candidate was generated; nothing to schedule."
+            exit 0
+          fi
+          python scripts/schedule_social_post.py "$SOCIAL_POST_ID"
+
+      - name: Upload rendered PNG as a workflow artifact
+        if: steps.check_window.outputs.in_window == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: power-ratings-post-png
+          path: build/social/**/*.png
+          if-no-files-found: ignore
+          retention-days: 90
