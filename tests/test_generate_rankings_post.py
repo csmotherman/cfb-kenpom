@@ -78,6 +78,19 @@ class BuildRankingsWeeklyCaptionTests(unittest.TestCase):
         # Every SourceRef must trace to a real field that could be checked in the source files.
         self.assertTrue(all(s.file.startswith("web/public/data/") for s in sources))
 
+    def test_weekly_wording_varies_deterministically(self):
+        text3, _ = build_rankings_weekly_caption(
+            season=2026, week=3, top_teams=self.top_teams, prime_rankings_path=self.prime_rankings_path,
+        )
+        text4, _ = build_rankings_weekly_caption(
+            season=2026, week=4, top_teams=self.top_teams, prime_rankings_path=self.prime_rankings_path,
+        )
+        text3_again, _ = build_rankings_weekly_caption(
+            season=2026, week=3, top_teams=self.top_teams, prime_rankings_path=self.prime_rankings_path,
+        )
+        self.assertNotEqual(text3, text4)
+        self.assertEqual(text3, text3_again)
+
     def test_never_mentions_movement(self):
         # Regression guard: prime-rankings has no week-over-week history of
         # its own, and rankings.json's rankChange describes the broader
