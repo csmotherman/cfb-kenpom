@@ -1,0 +1,108 @@
+name: Manual Buffer draft test (rankings_weekly)
+
+# One-time/manual end-to-end verification of the Buffer promotion path:
+# generate the current PRIME 25 rankings_weekly candidate, upload its PNG to
+# Supabase Storage, and create ONE real unscheduled Buffer draft from it.
+#
+# Manual only: workflow_dispatch, nothing else triggers this. It is
+# intentionally separate from weekly-rankings-post.yml (the real Sunday
+# automation), which still never calls Buffer -- this workflow does not
+# change that, does not touch the Sunday workflow, and does not enable
+# SCHEDULED_AUTO for anything. The result is a DRAFT a human still has to
+# review and manually publish from inside Buffer; nothing here schedules or
+# publishes to X.
+#
+# The rendered PNG is gitignored and never committed, so generation and
+# promotion run in the SAME job/step sequence, sharing one checkout -- this
+# workflow does not (and must not) assume a PNG from an earlier job exists
+# on disk.
+#
+# Delete this workflow (or leave it -- it costs nothing sitting idle) once
+# you're done validating the Buffer integration; it was written as a
+# one-time test harness, not a piece of the real pipeline.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type exactly "create-real-buffer-draft" to confirm this will create a real, live Buffer draft'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  buffer-draft-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        env:
+          CONFIRM_INPUT: ${{ github.event.inputs.confirm }}
+        run: |
+          if [ "$CONFIRM_INPUT" != "create-real-buffer-draft" ]; then
+            echo "::error::confirm input must be exactly 'create-real-buffer-draft'. Aborting before any real write."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install analytics package with social extras
+        run: pip install -e ".[social]"
+
+      - name: Generate the current rankings_weekly candidate (--force)
+        id: generate
+        env:
+          SUPABASE_URL: https://wmlzqmtsxqqxuiekmrqm.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        # --force: intentionally create a real candidate from the current
+        # PRIME 25 release rather than establish a bootstrap baseline (this
+        # is the first-ever rankings_weekly row, so without --force the
+        # freshness guard would correctly do that instead). --season is
+        # deliberately omitted so the active season is resolved dynamically,
+        # same as the real Sunday workflow.
+        run: python scripts/generate_rankings_post.py --force
+
+      - name: Promote to an unscheduled Buffer draft
+        env:
+          SUPABASE_URL: https://wmlzqmtsxqqxuiekmrqm.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          BUFFER_ACCESS_TOKEN: ${{ secrets.BUFFER_ACCESS_TOKEN }}
+        run: python scripts/promote_social_post.py "${{ steps.generate.outputs.social_post_id }}" --to-buffer-draft
+
+      - name: Verify the promoted row
+        env:
+          SUPABASE_URL: https://wmlzqmtsxqqxuiekmrqm.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SOCIAL_POST_ID: ${{ steps.generate.outputs.social_post_id }}
+        shell: python
+        run: |
+          import os
+          from cfb_analytics.social import db
+
+          base_url, secret = db.config()
+          row = db.get_by_id(base_url, secret, os.environ["SOCIAL_POST_ID"])
+          assert row is not None, "social_posts row not found"
+          assert row["status"] == "draft", f"expected status='draft', got {row['status']!r}"
+          assert row["buffer_post_id"], "buffer_post_id is empty"
+          assert row["image_url"], "image_url is empty"
+
+          # Safe to print: a row id, Buffer's own (opaque) post id, and a
+          # public image URL. Never the Supabase or Buffer secret.
+          print("Verified: status='draft', buffer_post_id set, image_url set.")
+          print(f"social_post_id: {row['id']}")
+          print(f"buffer_post_id: {row['buffer_post_id']}")
+          print(f"image_url: {row['image_url']}")
+
+      - name: Upload rendered PNG as a workflow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manual-buffer-draft-test-png
+          path: build/social/**/*.png
+          if-no-files-found: warn
+          retention-days: 30

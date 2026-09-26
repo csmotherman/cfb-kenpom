@@ -9,6 +9,7 @@ to a real database.
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -207,7 +208,10 @@ class GenerateRankingsPostFreshnessGuardIntegrationTests(unittest.TestCase):
         }
         (prime_dir / "2026.json").write_text(json.dumps(payload), encoding="utf-8")
 
-    def _run_main(self, *, through_week: int, released_at: str, prior_released_at: str | None, force: bool = False):
+    def _run_main(
+        self, *, through_week: int, released_at: str, prior_released_at: str | None,
+        force: bool = False, github_output: Path | None = None, existing_row: dict | None = None,
+    ):
         with tempfile.TemporaryDirectory() as tmp:
             repo_root = Path(tmp)
             self._write_prime_rankings(repo_root, through_week=through_week, released_at=released_at)
@@ -220,12 +224,15 @@ class GenerateRankingsPostFreshnessGuardIntegrationTests(unittest.TestCase):
             if force:
                 argv.append("--force")
 
+            env_patch = mock.patch.dict("os.environ", {"GITHUB_OUTPUT": str(github_output)}) if github_output else mock.patch.dict("os.environ", {})
+
             with mock.patch.object(self.grp, "REPO", repo_root), \
                  mock.patch.object(self.grp, "render_rankings_card", return_value=None) as mock_render, \
                  mock.patch("cfb_analytics.social.db.config", return_value=("http://fake.local", "fake-secret")), \
-                 mock.patch("cfb_analytics.social.db.get_by_dedupe_key", return_value=None), \
+                 mock.patch("cfb_analytics.social.db.get_by_dedupe_key", return_value=existing_row), \
                  mock.patch("cfb_analytics.social.db.get_latest_by_event_type", return_value=prior_row) as mock_latest, \
-                 mock.patch("cfb_analytics.social.db.insert_post") as mock_insert:
+                 mock.patch("cfb_analytics.social.db.insert_post") as mock_insert, \
+                 env_patch:
                 mock_insert.return_value = {
                     "id": "fake-id", "status": "candidate",
                     "dedupe_key": f"rankings_weekly:2026:{through_week}",
@@ -307,6 +314,37 @@ class GenerateRankingsPostFreshnessGuardIntegrationTests(unittest.TestCase):
         row = mock_insert.call_args.args[2]
         self.assertEqual(row["status"], "candidate")
         self.assertTrue(row["metadata"]["freshness_override"])
+
+    # -- $GITHUB_OUTPUT emission: how a workflow step captures the row id
+    # deterministically instead of parsing it back out of prose stdout. --
+
+    def test_github_output_receives_id_on_fresh_insert(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_file = Path(tmp) / "github_output.txt"
+            output_file.write_text("", encoding="utf-8")
+            self._run_main(
+                through_week=7, released_at="2026-10-21T12:00:00Z", prior_released_at="2026-10-14T12:00:00Z",
+                github_output=output_file,
+            )
+            self.assertEqual(output_file.read_text(encoding="utf-8").strip(), "social_post_id=fake-id")
+
+    def test_github_output_receives_id_on_duplicate_dedupe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output_file = Path(tmp) / "github_output.txt"
+            output_file.write_text("", encoding="utf-8")
+            self._run_main(
+                through_week=3, released_at="2026-09-21T10:55:00Z", prior_released_at=None,
+                github_output=output_file, existing_row={"id": "already-there-id", "status": "candidate"},
+            )
+            self.assertEqual(output_file.read_text(encoding="utf-8").strip(), "social_post_id=already-there-id")
+
+    def test_no_github_output_env_is_a_noop(self):
+        # Outside CI (no GITHUB_OUTPUT set), nothing should be written anywhere or raise.
+        with mock.patch.dict("os.environ", {}, clear=False):
+            os.environ.pop("GITHUB_OUTPUT", None)
+            self._run_main(
+                through_week=7, released_at="2026-10-21T12:00:00Z", prior_released_at="2026-10-14T12:00:00Z",
+            )  # must not raise
 
 
 class RankingsCardTests(unittest.TestCase):

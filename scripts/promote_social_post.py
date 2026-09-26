@@ -128,7 +128,10 @@ def main(argv: list[str] | None = None) -> None:
         "status": "draft",
         "error": None,
     })
-    print(f"Promoted: social_posts id={updated['id']} status={updated['status']} buffer_post_id={updated['buffer_post_id']}")
+    print(
+        f"Promoted: social_posts id={updated['id']} status={updated['status']} "
+        f"buffer_post_id={updated['buffer_post_id']} image_url={updated['image_url']}"
+    )
 
 
 if __name__ == "__main__":

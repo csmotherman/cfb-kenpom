@@ -66,6 +66,18 @@ def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _emit_github_output(key: str, value: str) -> None:
+    """Write key=value to $GITHUB_OUTPUT for a later workflow step to
+    reference (e.g. steps.generate.outputs.social_post_id) -- a no-op
+    outside GitHub Actions. Lets a caller capture the row id deterministically
+    instead of parsing it back out of the human-readable print statements."""
+    path = os.environ.get("GITHUB_OUTPUT")
+    if not path:
+        return
+    with open(path, "a", encoding="utf-8") as fh:
+        fh.write(f"{key}={value}\n")
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -106,6 +118,7 @@ def main(argv: list[str] | None = None) -> None:
             f"Already generated for {dedupe_key} "
             f"(social_posts id={existing['id']}, status={existing['status']}). Nothing to do."
         )
+        _emit_github_output("social_post_id", existing["id"])
         return
 
     # Freshness guard: prime-rankings/{season}.json is the source of truth
@@ -263,6 +276,7 @@ def main(argv: list[str] | None = None) -> None:
 
     inserted = db.insert_post(base_url, secret, row)
     print(f"Inserted social_posts row id={inserted['id']} status={inserted['status']} dedupe_key={inserted['dedupe_key']}")
+    _emit_github_output("social_post_id", inserted["id"])
 
 
 if __name__ == "__main__":

@@ -210,7 +210,10 @@ class PromoteSocialPostIntegrationTests(unittest.TestCase):
                  mock.patch("cfb_analytics.social.storage.upload_png", return_value="https://proj.supabase.co/x.png") as mock_upload, \
                  mock.patch("cfb_analytics.social.buffer_client.config", return_value=("https://api.buffer.com", "token")), \
                  mock.patch("cfb_analytics.social.buffer_client.create_draft_post", return_value="buffer-post-1") as mock_create:
-                mock_update.return_value = {"id": "row-1", "status": "draft", "buffer_post_id": "buffer-post-1"}
+                mock_update.return_value = {
+                    "id": "row-1", "status": "draft", "buffer_post_id": "buffer-post-1",
+                    "image_url": "https://proj.supabase.co/x.png",
+                }
                 promote_module.main(["row-1", "--to-buffer-draft"])
 
             mock_upload.assert_called_once()
