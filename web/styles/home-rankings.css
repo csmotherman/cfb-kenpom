@@ -406,6 +406,59 @@
   outline-offset: 2px;
 }
 
+
+.prime-home-matchup__count {
+  min-width: 34px;
+  color: #5f6873;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-align: right;
+}
+
+.prime-home-matchup__side-nav {
+  position: absolute;
+  top: 49%;
+  z-index: 8;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(184,134,41,.46);
+  border-radius: 50%;
+  background: rgba(255,253,247,.94);
+  box-shadow: 0 4px 14px rgba(19,43,71,.12);
+  color: #9b6d1e;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: border-color .12s ease, background .12s ease, box-shadow .12s ease, transform .12s ease;
+}
+
+.prime-home-matchup__side-nav--prev {
+  left: 10px;
+}
+
+.prime-home-matchup__side-nav--next {
+  right: 10px;
+}
+
+.prime-home-matchup__side-nav:hover {
+  border-color: rgba(161,123,50,.72);
+  background: #fffaf0;
+  box-shadow: 0 6px 18px rgba(19,43,71,.18);
+  transform: translateY(-50%) scale(1.06);
+}
+
+.prime-home-matchup__side-nav:focus-visible {
+  outline: 2px solid #b88629;
+  outline-offset: 2px;
+}
+
 .prime-home-matchup__slide {
   display: flex;
   min-height: 0;
