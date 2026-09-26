@@ -24,7 +24,7 @@ jobs:
       - name: Install analytics package with social extras
         run: pip install -e '.[social]'
       - name: Run social/Pillow-dependent tests
-        run: python -m unittest tests.test_generate_rankings_post -v
+        run: python -m unittest tests.test_generate_rankings_post tests.test_schedule_social_post -v
 
   verify:
     runs-on: ubuntu-latest
