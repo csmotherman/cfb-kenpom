@@ -32,18 +32,18 @@ _POST_RESULT_FIELDS = """
     ... on LimitReachedError { message }
 """
 
-CREATE_DRAFT_POST_MUTATION = f"""
+CREATE_DRAFT_POST_MUTATION = """
 mutation CreateDraftPost($input: CreatePostInput!) {
   createPost(input: $input) {
-{_POST_RESULT_FIELDS}
+""" + _POST_RESULT_FIELDS + """
   }
 }
 """
 
-CREATE_SCHEDULED_POST_MUTATION = f"""
+CREATE_SCHEDULED_POST_MUTATION = """
 mutation CreateScheduledPost($input: CreatePostInput!) {
   createPost(input: $input) {
-{_POST_RESULT_FIELDS}
+""" + _POST_RESULT_FIELDS + """
   }
 }
 """
