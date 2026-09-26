@@ -55,6 +55,36 @@ def get_by_dedupe_key(base_url: str, secret: str, dedupe_key: str) -> dict[str, 
     return rows[0] if rows else None
 
 
+def get_latest_by_event_type(base_url: str, secret: str, event_type: str, season: int) -> dict[str, Any] | None:
+    """The most recently generated row for this event_type/season (highest
+    week, ties broken by created_at), or None if none exists yet. Used to
+    determine whether a new candidate's source data represents an actually
+    new release, not merely new-to-this-table data (see freshness.py)."""
+    query = urlencode(
+        {
+            "select": "*",
+            "event_type": f"eq.{event_type}",
+            "season": f"eq.{season}",
+            "order": "week.desc,created_at.desc",
+            "limit": "1",
+        },
+        safe=",.:",
+    )
+    request = Request(
+        f"{base_url}/rest/v1/{TABLE}?{query}",
+        headers={"apikey": secret, "Accept": "application/json"},
+    )
+    try:
+        with urlopen(request, timeout=30) as response:
+            rows = json.load(response)
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:2000]
+        raise SocialDbError(f"social_posts latest-row lookup failed for event_type={event_type} season={season}: HTTP {exc.code} {exc.reason} -- {detail}") from exc
+    except URLError as exc:
+        raise SocialDbError(f"social_posts latest-row lookup failed for event_type={event_type} season={season}: {exc!r}") from exc
+    return rows[0] if rows else None
+
+
 def insert_post(base_url: str, secret: str, row: dict[str, Any], retries: int = 3) -> dict[str, Any]:
     """Insert a new social_posts row and return it as persisted (id, created_at, etc. included).
 

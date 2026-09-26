@@ -6,6 +6,26 @@ on:
 permissions:
   contents: read
 jobs:
+  # Separate from `verify` deliberately: the main job installs '.[models,dev]'
+  # and must not also carry Pillow (and its system-level imaging libs) just
+  # for the handful of social-post tests. Without this job, the Pillow-
+  # dependent renderer tests only ever *skip* under '.[models,dev]' -- which
+  # means the actual rankings-graphic code path was never exercised by CI at
+  # all, the exact kind of gap that passes locally and breaks unattended on
+  # a Sunday.
+  social-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install analytics package with social extras
+        run: pip install -e '.[social]'
+      - name: Run social/Pillow-dependent tests
+        run: python -m unittest tests.test_generate_rankings_post -v
+
   verify:
     runs-on: ubuntu-latest
     steps:

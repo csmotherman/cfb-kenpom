@@ -30,7 +30,7 @@ import json
 import os
 from pathlib import Path
 
-from cfb_analytics.social import db, policy, scheduling
+from cfb_analytics.social import db, freshness, policy, scheduling
 from cfb_analytics.social.images.rankings_card import RankingsCardRow, render_rankings_card
 from cfb_analytics.social.provenance import content_hash
 from cfb_analytics.social.season import resolve_active_season
@@ -56,7 +56,7 @@ def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--season", type=int, default=None,
@@ -66,7 +66,14 @@ def main() -> None:
         "--output-dir", type=Path, default=REPO / "build" / "social",
         help="Local directory to render the PNG into (never uploaded anywhere by this script)",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--force", action="store_true",
+        help=(
+            "Bypass the PRIME 25 freshness guard (for a manual/backfill run only). "
+            "dedupe_key still applies -- this cannot recreate a candidate that already exists."
+        ),
+    )
+    args = parser.parse_args(argv)
 
     season = args.season if args.season is not None else resolve_active_season()
     print(f"Season: {season}" + ("" if args.season is not None else " (resolved dynamically from meta.json)"))
@@ -90,6 +97,30 @@ def main() -> None:
             f"(social_posts id={existing['id']}, status={existing['status']}). Nothing to do."
         )
         return
+
+    # Freshness guard: prime-rankings/{season}.json is the source of truth
+    # for whether a *new* PRIME 25 has actually been released. A dedupe_key
+    # miss above only means this exact season+week hasn't been posted --
+    # it says nothing about whether the underlying release is actually new,
+    # since throughWeek can lag other data for hours. Compare against the
+    # release we last actually turned into a candidate for this season.
+    current_released_at = prime.get("releasedAt")
+    latest_prior = db.get_latest_by_event_type(base_url, secret, "rankings_weekly", season)
+    prior_released_at = (
+        (latest_prior.get("source_snapshot") or {}).get("primeRankings", {}).get("releasedAt")
+        if latest_prior else None
+    )
+    if args.force:
+        print(f"--force: bypassing the freshness guard (current releasedAt={current_released_at!r}).")
+    else:
+        fresh = freshness.is_release_fresh(current_released_at, prior_released_at)
+        if not fresh:
+            print(
+                f"PRIME 25 releasedAt={current_released_at!r} is not newer than the last "
+                f"generated release ({prior_released_at!r}); this is not a new release. "
+                "Skipping. Use --force for a manual/backfill run."
+            )
+            return
 
     card_rows = [
         RankingsCardRow(
@@ -149,6 +180,8 @@ def main() -> None:
         "metadata": {
             "team_count": len(teams),
             "missed_publish_window": target.missed_window,
+            "freshness_override": args.force,
+            "prior_release_compared_against": prior_released_at,
             "generator": "scripts/generate_rankings_post.py",
             "git_sha": os.environ.get("GITHUB_SHA"),
         },
