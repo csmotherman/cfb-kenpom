@@ -85,6 +85,67 @@ def get_latest_by_event_type(base_url: str, secret: str, event_type: str, season
     return rows[0] if rows else None
 
 
+def get_by_id(base_url: str, secret: str, post_id: str) -> dict[str, Any] | None:
+    """The row with this id, or None if it doesn't exist."""
+    query = urlencode({"select": "*", "id": f"eq.{post_id}", "limit": "1"}, safe=",.:")
+    request = Request(
+        f"{base_url}/rest/v1/{TABLE}?{query}",
+        headers={"apikey": secret, "Accept": "application/json"},
+    )
+    try:
+        with urlopen(request, timeout=30) as response:
+            rows = json.load(response)
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:2000]
+        raise SocialDbError(f"social_posts lookup failed for id={post_id}: HTTP {exc.code} {exc.reason} -- {detail}") from exc
+    except URLError as exc:
+        raise SocialDbError(f"social_posts lookup failed for id={post_id}: {exc!r}") from exc
+    return rows[0] if rows else None
+
+
+def update_post(base_url: str, secret: str, post_id: str, fields: dict[str, Any], retries: int = 3) -> dict[str, Any]:
+    """Patch an existing social_posts row by id with `fields` (a partial
+    update -- columns not present in `fields` are left untouched) and
+    return it as persisted."""
+    query = urlencode({"id": f"eq.{post_id}"}, safe=",.:")
+    body = json.dumps(fields, separators=(",", ":"), default=str, allow_nan=False).encode("utf-8")
+    context = f"id={post_id}"
+    last_error: Exception | None = None
+    for attempt in range(1, retries + 1):
+        request = Request(
+            f"{base_url}/rest/v1/{TABLE}?{query}",
+            data=body,
+            method="PATCH",
+            headers={
+                "apikey": secret,
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            },
+        )
+        try:
+            with urlopen(request, timeout=60) as response:
+                if response.status not in (200, 201):
+                    raise SocialDbError(f"social_posts update failed with HTTP {response.status} ({context})")
+                persisted = json.load(response)
+            if not isinstance(persisted, list) or len(persisted) != 1:
+                raise SocialDbError(f"social_posts update for {context} returned an unexpected response shape")
+            return persisted[0]
+        except HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")[:2000]
+            if exc.code >= 500 and attempt < retries:
+                last_error = RuntimeError(f"HTTP {exc.code} {exc.reason} -- {detail}")
+                time.sleep(2 * attempt)
+                continue
+            raise SocialDbError(f"social_posts update failed for {context}: HTTP {exc.code} {exc.reason} -- {detail}") from exc
+        except URLError as exc:
+            last_error = exc
+            if attempt < retries:
+                time.sleep(2 * attempt)
+                continue
+            raise SocialDbError(f"social_posts update failed for {context} after {retries} attempts: {last_error!r}") from exc
+    raise SocialDbError(f"social_posts update failed for {context}: exhausted retries")
+
+
 def insert_post(base_url: str, secret: str, row: dict[str, Any], retries: int = 3) -> dict[str, Any]:
     """Insert a new social_posts row and return it as persisted (id, created_at, etc. included).
 
