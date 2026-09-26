@@ -14,10 +14,11 @@ been recorded yet. Normal generation resumes once a later run sees a
 strictly newer releasedAt than the baseline. --force generates from the
 current release immediately, bootstrap or not.
 
-Every event type is pinned to DRAFT_ONLY (see cfb_analytics.social.policy):
-this script renders the PNG to a local directory, writes one social_posts
-row with status="candidate", and does nothing else. It never uploads to
-Storage and never calls Buffer.
+This script only generates the candidate: it renders the PNG to a local
+directory and writes one social_posts row with status="candidate". It never
+uploads to Storage and never calls Buffer itself. The downstream Sunday
+workflow may promote rankings_weekly candidates according to the publish
+policy in cfb_analytics.social.policy.
 
 The card and caption show only fields prime-rankings/{season}.json (the
 official PRIME 25) itself carries -- rank, team, conference, record, and its
