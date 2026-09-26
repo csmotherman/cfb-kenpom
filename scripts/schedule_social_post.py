@@ -58,9 +58,10 @@ def main(argv: list[str] | None = None) -> None:
         )
         return
 
-    if row["event_type"] != "rankings_weekly":
+    if row["event_type"] not in {"rankings_weekly", "ratings_weekly"}:
         raise SystemExit(
-            f"Automated scheduling is restricted to rankings_weekly; got event_type={row['event_type']!r}."
+            "Automated scheduling is restricted to weekly PRIME rankings/ratings posts; "
+            f"got event_type={row['event_type']!r}."
         )
 
     if row["status"] != "candidate":
@@ -118,7 +119,12 @@ def main(argv: list[str] | None = None) -> None:
                 "The candidate cannot be scheduled without a local image or existing image_url."
             )
 
-        object_path = storage.rankings_image_path(row["season"], row["week"], row["content_hash"])
+        path_builder = (
+            storage.ratings_image_path
+            if row["event_type"] == "ratings_weekly"
+            else storage.rankings_image_path
+        )
+        object_path = path_builder(row["season"], row["week"], row["content_hash"])
         png_bytes = local_png_path.read_bytes()
         print(f"Uploading {local_png_path} -> {object_path} ...")
         image_url = storage.upload_png(base_url, secret, object_path, png_bytes)
