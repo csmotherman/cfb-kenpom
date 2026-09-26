@@ -18,12 +18,13 @@ from unittest import mock
 
 from cfb_analytics.social.freshness import is_release_fresh
 from cfb_analytics.social.provenance import SourceRef, assert_numbers_are_sourced
-from cfb_analytics.social.scheduling import EASTERN, intended_publication_target
+from cfb_analytics.social.scheduling import EASTERN, intended_publication_target, intended_ratings_publication_target
 from cfb_analytics.social.season import resolve_active_season
 from cfb_analytics.social.templates import (
     MAX_TWEET_CHARS,
     RankedTeam,
     build_rankings_weekly_caption,
+    build_ratings_weekly_caption,
 )
 
 
@@ -112,6 +113,50 @@ class BuildRankingsWeeklyCaptionTests(unittest.TestCase):
             build_rankings_weekly_caption(
                 season=2026, week=3, top_teams=long_teams, prime_rankings_path=self.prime_rankings_path,
             )
+
+
+
+class BuildRatingsWeeklyCaptionTests(unittest.TestCase):
+    def test_power_ratings_headline_and_values(self):
+        text, sources = build_ratings_weekly_caption(
+            season=2026,
+            week=4,
+            top_teams=[
+                (1, "Ohio State", 24.4),
+                (2, "Texas", 22.1),
+                (3, "Michigan", 19.7),
+            ],
+            ratings_path="web/public/data/rankings/2026.json",
+        )
+        self.assertTrue(text.startswith("POWER RATINGS - WEEK 4"))
+        self.assertIn("Ohio State (+24.4)", text)
+        self.assertIn("primecfb.com/ratings", text)
+        self.assertLessEqual(len(text), MAX_TWEET_CHARS)
+        self.assertTrue(all(s.file == "web/public/data/rankings/2026.json" for s in sources))
+
+    def test_power_ratings_copy_varies_by_week(self):
+        teams = [(1, "Ohio State", 24.4), (2, "Texas", 22.1), (3, "Michigan", 19.7)]
+        week4, _ = build_ratings_weekly_caption(
+            season=2026, week=4, top_teams=teams, ratings_path="web/public/data/rankings/2026.json",
+        )
+        week5, _ = build_ratings_weekly_caption(
+            season=2026, week=5, top_teams=teams, ratings_path="web/public/data/rankings/2026.json",
+        )
+        self.assertNotEqual(week4, week5)
+
+
+class IntendedRatingsPublicationTargetTests(unittest.TestCase):
+    def test_sunday_before_2pm_targets_2pm(self):
+        now = datetime(2026, 9, 27, 15, 0, tzinfo=timezone.utc)  # 11 AM EDT
+        target = intended_ratings_publication_target(now)
+        local = target.scheduled_at.astimezone(EASTERN)
+        self.assertFalse(target.missed_window)
+        self.assertEqual((local.hour, local.minute), (14, 0))
+
+    def test_sunday_at_2pm_is_missed(self):
+        now = datetime(2026, 9, 27, 18, 0, tzinfo=timezone.utc)  # 2 PM EDT
+        target = intended_ratings_publication_target(now)
+        self.assertTrue(target.missed_window)
 
 
 class IntendedPublicationTargetTests(unittest.TestCase):
