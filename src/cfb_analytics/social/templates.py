@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 from .provenance import SourceRef, assert_numbers_are_sourced
 
-RANKINGS_WEEKLY_CAPTION_VERSION = "rankings_weekly_v3"
+RANKINGS_WEEKLY_CAPTION_VERSION = "rankings_weekly_v4"
 
 MAX_TWEET_CHARS = 280
 SITE_RANKINGS_URL = "primecfb.com/rankings"
