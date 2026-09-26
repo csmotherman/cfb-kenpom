@@ -77,7 +77,11 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
   const toughestSchedule = initial?.toughestSchedule ?? null;
   const biggestRiser = initial?.biggestRiser ?? null;
 
-  const displayWeek = snapshot?.throughWeek ?? latestWeek ?? initial?.currentWeek ?? null;
+  // The homepage hero should reflect the live schedule week, not the most
+  // recently completed PRIME ranking snapshot. Rankings naturally lag the
+  // active slate by a week while games are being played, so schedule.currentWeek
+  // is the correct source of truth for this badge.
+  const displayWeek = initial?.currentWeek ?? featuredGame?.week ?? latestWeek ?? snapshot?.throughWeek ?? null;
 
   return (
     <>
