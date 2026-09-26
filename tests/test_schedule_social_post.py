@@ -137,6 +137,41 @@ class ScheduleSocialPostTests(unittest.TestCase):
         self.assertEqual(final_fields["status"], "scheduled")
         self.assertEqual(final_fields["buffer_post_id"], "buffer-123")
 
+
+    def test_power_ratings_uses_ratings_storage_path(self):
+        row = self._row(
+            event_type="ratings_weekly",
+            text_content="POWER RATINGS - WEEK 4",
+            image_storage_path="build/social/2099/power-ratings-week-04.png",
+            scheduled_at="2099-09-27T18:00:00+00:00",
+        )
+        row["content_hash"] = content_hash(
+            row["text_content"],
+            [SourceRef(**s) for s in row["sources"]],
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = Path(tmp)
+            png = repo_root / row["image_storage_path"]
+            png.parent.mkdir(parents=True)
+            png.write_bytes(b"png-bytes")
+
+            updated = {**row, "status": "scheduled", "buffer_post_id": "buffer-ratings"}
+
+            with mock.patch.object(scheduler, "REPO", repo_root), \
+                 mock.patch.object(scheduler.db, "config", return_value=("u", "s")), \
+                 mock.patch.object(scheduler.db, "get_by_id", return_value=row), \
+                 mock.patch.object(scheduler.storage, "ratings_image_path", return_value="ratings/2099/week-04/hash.png") as ratings_path, \
+                 mock.patch.object(scheduler.storage, "rankings_image_path") as rankings_path, \
+                 mock.patch.object(scheduler.storage, "upload_png", return_value="https://cdn.example/ratings.png"), \
+                 mock.patch.object(scheduler.buffer_client, "config", return_value=("https://api.buffer.com", "token")), \
+                 mock.patch.object(scheduler.buffer_client, "create_scheduled_post", return_value="buffer-ratings") as create, \
+                 mock.patch.object(scheduler.db, "update_post", return_value=updated):
+                scheduler.main(["row-1"])
+
+        ratings_path.assert_called_once()
+        rankings_path.assert_not_called()
+        self.assertEqual(create.call_args.kwargs["due_at"], "2099-09-27T18:00:00.000Z")
+
     def test_existing_buffer_post_is_idempotent_noop(self):
         row = self._row(status="scheduled", buffer_post_id="buffer-existing")
         with mock.patch.object(scheduler.db, "config", return_value=("u", "s")), \
