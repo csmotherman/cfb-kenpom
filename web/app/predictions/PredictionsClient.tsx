@@ -666,7 +666,7 @@ function UpsetWatchCard({ row, market, onOpen }: {
               <circle cx="12" cy="17.2" r="1" />
             </svg>
           </span>
-          Upset of the Week
+          PRIME UPSET PICK
         </h2>
         <span>{time.date} · {time.time || "Time TBA"}</span>
       </header>
