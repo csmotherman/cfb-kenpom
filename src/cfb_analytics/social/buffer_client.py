@@ -1,27 +1,14 @@
-"""Buffer GraphQL client for creating unscheduled post drafts.
+"""Buffer GraphQL client for PRIME social posts.
 
-Authenticates with a personal access token (BUFFER_ACCESS_TOKEN, generated
-at https://publish.buffer.com/settings/api) rather than the OAuth connection
-an interactive Claude/MCP session uses -- a standalone script run from CI or
-a shell has no access to that session's OAuth grant.
+Authenticates with BUFFER_ACCESS_TOKEN and the official Buffer GraphQL
+endpoint (https://api.buffer.com). Draft creation remains available for
+manual review flows; scheduled creation is used by rankings_weekly when the
+policy is SCHEDULED_AUTO.
 
-The mutation shape below (CreatePostInput, the PostActionPayload union, the
-ImageAssetInput/ImageMetadataInput fields) is copied directly from Buffer's
-own GraphQL schema (confirmed via introspection), so it is accurate.
-BUFFER_GRAPHQL_URL defaults to Buffer's official documented API endpoint
-(https://api.buffer.com) but is fully overridable.
-
-createIdea was deliberately NOT used here: Buffer's Idea type has no
-channel-targeting field (only a generic `services` platform-type list), so
-it cannot satisfy "post to this exact connected channel." createPost with
-saveToDraft=true is both channel-specific and creates an unscheduled draft.
-
-schedulingType is set to "automatic" (not "notification") per Buffer's own
-API documentation. This describes what would happen if the post were later
-taken out of draft and scheduled -- it has no effect while saveToDraft=true
-holds, which is what actually keeps this an unscheduled draft rather than a
-scheduled or published post. schedulingType is a required field on
-CreatePostInput regardless of saveToDraft.
+Buffer's documented exact-time scheduling contract is:
+- schedulingType: automatic
+- mode: customScheduled
+- dueAt: ISO-8601 UTC timestamp
 """
 from __future__ import annotations
 
@@ -32,12 +19,10 @@ from urllib.request import Request, urlopen
 
 DEFAULT_GRAPHQL_URL = "https://api.buffer.com"
 
-CREATE_DRAFT_POST_MUTATION = """
-mutation CreateDraftPost($input: CreatePostInput!) {
-  createPost(input: $input) {
+_POST_RESULT_FIELDS = """
     __typename
     ... on PostActionSuccess {
-      post { id status channelId text }
+      post { id status channelId text dueAt }
     }
     ... on InvalidInputError { message }
     ... on NotFoundError { message }
@@ -45,15 +30,27 @@ mutation CreateDraftPost($input: CreatePostInput!) {
     ... on UnexpectedError { message }
     ... on RestProxyError { message code }
     ... on LimitReachedError { message }
+"""
+
+CREATE_DRAFT_POST_MUTATION = f"""
+mutation CreateDraftPost($input: CreatePostInput!) {
+  createPost(input: $input) {
+{_POST_RESULT_FIELDS}
+  }
+}
+"""
+
+CREATE_SCHEDULED_POST_MUTATION = f"""
+mutation CreateScheduledPost($input: CreatePostInput!) {
+  createPost(input: $input) {
+{_POST_RESULT_FIELDS}
   }
 }
 """
 
 
 class BufferClientError(RuntimeError):
-    """A confirmed failure: no draft was created. Callers (see
-    scripts/promote_social_post.py) must never mark a row status="draft"
-    after catching this."""
+    """A confirmed Buffer failure; callers must not advance social_posts state."""
 
 
 def config() -> tuple[str, str]:
@@ -61,40 +58,14 @@ def config() -> tuple[str, str]:
     token = os.environ.get("BUFFER_ACCESS_TOKEN")
     if not token:
         raise BufferClientError(
-            "BUFFER_ACCESS_TOKEN is required to create a Buffer draft "
+            "BUFFER_ACCESS_TOKEN is required for Buffer writes "
             "(generate one at https://publish.buffer.com/settings/api)"
         )
     return url, token
 
 
-def create_draft_post(
-    graphql_url: str,
-    token: str,
-    *,
-    channel_id: str,
-    text: str,
-    image_url: str,
-    alt_text: str,
-) -> str:
-    """Create an unscheduled Buffer draft post with one image attached to
-    `channel_id`. Returns the Buffer post id.
-
-    Raises BufferClientError for any failure, including a well-formed
-    GraphQL error payload (e.g. an InvalidInputError union member) -- a
-    caller can never mistake a rejected request for a created draft, since
-    only a successful return here means one was actually created.
-    """
-    variables = {
-        "input": {
-            "channelId": channel_id,
-            "text": text,
-            "assets": [{"image": {"url": image_url, "metadata": {"altText": alt_text}}}],
-            "mode": "addToQueue",
-            "saveToDraft": True,
-            "schedulingType": "automatic",
-        }
-    }
-    body = json.dumps({"query": CREATE_DRAFT_POST_MUTATION, "variables": variables}).encode("utf-8")
+def _create_post(graphql_url: str, token: str, *, mutation: str, variables: dict) -> str:
+    body = json.dumps({"query": mutation, "variables": variables}).encode("utf-8")
     request = Request(
         graphql_url,
         data=body,
@@ -125,3 +96,68 @@ def create_draft_post(
     if not post_id:
         raise BufferClientError(f"Buffer createPost succeeded but returned no post id: {result!r}")
     return post_id
+
+
+def _image_assets(image_url: str, alt_text: str) -> list[dict]:
+    return [{"image": {"url": image_url, "metadata": {"altText": alt_text}}}]
+
+
+def create_draft_post(
+    graphql_url: str,
+    token: str,
+    *,
+    channel_id: str,
+    text: str,
+    image_url: str,
+    alt_text: str,
+) -> str:
+    """Create an unscheduled Buffer draft with one image."""
+    variables = {
+        "input": {
+            "channelId": channel_id,
+            "text": text,
+            "assets": _image_assets(image_url, alt_text),
+            "mode": "addToQueue",
+            "saveToDraft": True,
+            "schedulingType": "automatic",
+        }
+    }
+    return _create_post(
+        graphql_url,
+        token,
+        mutation=CREATE_DRAFT_POST_MUTATION,
+        variables=variables,
+    )
+
+
+def create_scheduled_post(
+    graphql_url: str,
+    token: str,
+    *,
+    channel_id: str,
+    text: str,
+    image_url: str,
+    alt_text: str,
+    due_at: str,
+) -> str:
+    """Create an automatically published Buffer post at exact UTC due_at.
+
+    due_at must be an ISO-8601 UTC timestamp (for example
+    2026-09-27T19:00:00.000Z). This does not save a draft.
+    """
+    variables = {
+        "input": {
+            "channelId": channel_id,
+            "text": text,
+            "assets": _image_assets(image_url, alt_text),
+            "mode": "customScheduled",
+            "dueAt": due_at,
+            "schedulingType": "automatic",
+        }
+    }
+    return _create_post(
+        graphql_url,
+        token,
+        mutation=CREATE_SCHEDULED_POST_MUTATION,
+        variables=variables,
+    )
