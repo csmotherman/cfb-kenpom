@@ -66,6 +66,11 @@ class RankingsCardRow:
     conference: str | None
     record: str
     team_id: int | None = None
+    display_value: str | None = None
+
+
+def _row_display_value(row: RankingsCardRow) -> str:
+    return row.display_value if row.display_value is not None else row.record
 
 
 # ---------------------------------------------------------------------------
@@ -242,7 +247,17 @@ def _section_label(draw: ImageDraw.ImageDraw, text: str, *, top: int, height: in
 # Section renderers
 # ---------------------------------------------------------------------------
 
-def _draw_hero(img: Image.Image, draw: ImageDraw.ImageDraw, *, season: int, week: int) -> None:
+def _draw_hero(
+    img: Image.Image,
+    draw: ImageDraw.ImageDraw,
+    *,
+    season: int,
+    week: int,
+    title_prefix: str = "COMPOSITE ",
+    title_accent: str = "RANKINGS",
+    methodology_text: str = METHODOLOGY_PILL_TEXT,
+    tagline_text: str = TAGLINE_TEXT,
+) -> None:
     # Texture: scale background-rankings.png to the hero's width and take a
     # top-aligned crop (deliberately, not a stretch) -- the source's top
     # corners carry the crown/helmet art; its bottom carries yard-line
@@ -318,7 +333,6 @@ def _draw_hero(img: Image.Image, draw: ImageDraw.ImageDraw, *, season: int, week
     # Constrained to stop before the week badge, not the full card width --
     # the title's y-range overlaps the badge's, and "PRIME COMPOSITE
     # RANKINGS" is long enough that the naive full-width fit collided with it.
-    title_prefix, title_accent = "COMPOSITE ", "RANKINGS"
     title_max_width = badge_box[0] - 24 - SIDE_MARGIN
     title_font = fit_font(
         draw, title_prefix + title_accent, brand.display_font, title_max_width,
@@ -331,12 +345,12 @@ def _draw_hero(img: Image.Image, draw: ImageDraw.ImageDraw, *, season: int, week
 
     # Methodology pill.
     pill_font = brand.body_font(19, 800)
-    pill_text_w = draw.textlength(METHODOLOGY_PILL_TEXT, font=pill_font)
+    pill_text_w = draw.textlength(methodology_text, font=pill_font)
     pill_pad_x, pill_h = 22, 42
     pill_box = (SIDE_MARGIN, y, SIDE_MARGIN + pill_text_w + 2 * pill_pad_x, y + pill_h)
     draw.rounded_rectangle(pill_box, radius=pill_h / 2, fill=brand.GOLD)
     draw.text(
-        (SIDE_MARGIN + pill_pad_x, y + pill_h / 2), METHODOLOGY_PILL_TEXT,
+        (SIDE_MARGIN + pill_pad_x, y + pill_h / 2), methodology_text,
         font=pill_font, fill=brand.NAVY, anchor="lm",
     )
     y += pill_h + 32
@@ -344,7 +358,7 @@ def _draw_hero(img: Image.Image, draw: ImageDraw.ImageDraw, *, season: int, week
     # Tagline. .prime25-hero__trust's literal #66717d read as fading into
     # the hero once rendered (confirmed visually, not assumed) -- using the
     # lightened, dark-hero-adapted version of the same tone instead.
-    draw.text((SIDE_MARGIN, y), TAGLINE_TEXT, font=brand.body_font(19, 600), fill=brand.PRIME25_MUTED_TEXT_ON_DARK, anchor="la")
+    draw.text((SIDE_MARGIN, y), tagline_text, font=brand.body_font(19, 600), fill=brand.PRIME25_MUTED_TEXT_ON_DARK, anchor="la")
 
 
 def _top5_card_box(index: int) -> tuple[int, int, int, int]:
@@ -416,7 +430,7 @@ def _draw_top5(img: Image.Image, draw: ImageDraw.ImageDraw, rows: list[RankingsC
         draw.text((cx, y0 + 208), row.team, font=name_font, fill=brand.PRIME25_TEAM_NAME, anchor="mm")
 
         draw.text(
-            (cx, y0 + 244), row.record,
+            (cx, y0 + 244), _row_display_value(row),
             font=brand.mono_font(19, "semibold"), fill=brand.PRIME25_FEATURED_RECORD_TEXT, anchor="mm",
         )
 
@@ -477,17 +491,17 @@ def _draw_grid(img: Image.Image, draw: ImageDraw.ImageDraw, rows: list[RankingsC
         draw.text((cx, y0 + 90), row.team, font=name_font, fill=brand.PRIME25_TEAM_NAME, anchor="mm")
 
         draw.text(
-            (cx, y0 + 112), row.record,
+            (cx, y0 + 112), _row_display_value(row),
             font=brand.mono_font(14, "semibold"), fill=brand.PRIME25_RECORD_TEXT, anchor="mm",
         )
 
 
-def _draw_footer(draw: ImageDraw.ImageDraw) -> None:
+def _draw_footer(draw: ImageDraw.ImageDraw, footer_note_text: str = FOOTER_NOTE_TEXT) -> None:
     draw.rectangle([0, FOOTER_TOP, CARD_WIDTH, CARD_HEIGHT], fill=brand.NAVY)
     y_mid = FOOTER_TOP + FOOTER_HEIGHT / 2
     # .prime25-stage__footer's literal #737d87 read as too faint next to
     # primecfb.com once rendered -- the lightened, dark-footer-adapted tone instead.
-    draw.text((SIDE_MARGIN, y_mid), FOOTER_NOTE_TEXT, font=brand.body_font(14, 600), fill=brand.PRIME25_FOOTER_TEXT_ON_DARK, anchor="lm")
+    draw.text((SIDE_MARGIN, y_mid), footer_note_text, font=brand.body_font(14, 600), fill=brand.PRIME25_FOOTER_TEXT_ON_DARK, anchor="lm")
     # primecfb.com is the one thing in the footer that should draw the eye --
     # larger and bolder than the disclaimer note, in the site's title gold.
     draw.text(
@@ -504,6 +518,11 @@ def render_rankings_card(
     week: int,
     rows: list[RankingsCardRow],
     output_path: Path,
+    title_prefix: str = "COMPOSITE ",
+    title_accent: str = "RANKINGS",
+    methodology_text: str = METHODOLOGY_PILL_TEXT,
+    tagline_text: str = TAGLINE_TEXT,
+    footer_note_text: str = FOOTER_NOTE_TEXT,
 ) -> Path:
     if not rows:
         raise ValueError("render_rankings_card requires at least one row")
@@ -513,12 +532,18 @@ def render_rankings_card(
     img = Image.new("RGB", (CARD_WIDTH, CARD_HEIGHT), brand.PRIME25_PAGE_BEIGE)
     draw = ImageDraw.Draw(img)
 
-    _draw_hero(img, draw, season=season, week=week)
+    _draw_hero(
+        img, draw, season=season, week=week,
+        title_prefix=title_prefix,
+        title_accent=title_accent,
+        methodology_text=methodology_text,
+        tagline_text=tagline_text,
+    )
     _section_label(draw, "TOP 5", top=TOP5_LABEL_TOP, height=TOP5_LABEL_HEIGHT, color=brand.PRIME25_SECTION_GOLD)
     _draw_top5(img, draw, rows[:5])
     _section_label(draw, "6–25", top=GRID_LABEL_TOP, height=GRID_LABEL_HEIGHT, color=brand.PRIME25_SECTION_NAVY)
     _draw_grid(img, draw, rows[5:25])
-    _draw_footer(draw)
+    _draw_footer(draw, footer_note_text)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     img.save(output_path, format="PNG")
