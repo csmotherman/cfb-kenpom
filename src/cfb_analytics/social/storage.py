@@ -31,6 +31,13 @@ def rankings_image_path(season: int, week: int, content_hash: str) -> str:
     return f"rankings/{season}/week-{week:02d}/{digest}.png"
 
 
+
+
+def ratings_image_path(season: int, week: int, content_hash: str) -> str:
+    """Deterministic object path for a weekly Power Ratings PNG."""
+    digest = content_hash.rsplit(":", 1)[-1]
+    return f"ratings/{season}/week-{week:02d}/{digest}.png"
+
 def public_url(base_url: str, object_path: str) -> str:
     return f"{base_url}/storage/v1/object/public/{BUCKET}/{object_path}"
 
