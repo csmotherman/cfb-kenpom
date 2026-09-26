@@ -26,6 +26,7 @@ class PublishPolicy(str, Enum):
 
 EVENT_POLICY: dict[str, PublishPolicy] = {
     "rankings_weekly": PublishPolicy.SCHEDULED_AUTO,
+    "ratings_weekly": PublishPolicy.SCHEDULED_AUTO,
     "game_final_graded": PublishPolicy.DRAFT_ONLY,
     "market_disagreement": PublishPolicy.DRAFT_ONLY,
     "upset_call_pregame": PublishPolicy.DRAFT_ONLY,
