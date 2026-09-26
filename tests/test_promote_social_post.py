@@ -102,7 +102,7 @@ class CreateDraftPostTests(unittest.TestCase):
         payload = self._payload(data={"createPost": {"__typename": "PostActionSuccess", "post": {"id": "post-123"}}})
         with mock.patch("cfb_analytics.social.buffer_client.urlopen", return_value=_FakeResponse(200, payload)):
             post_id = buffer_client.create_draft_post(
-                "https://graph.buffer.com/graphql", "token",
+                "https://api.buffer.com", "token",
                 channel_id="chan-1", text="hello", image_url="https://x/img.png", alt_text="alt",
             )
         self.assertEqual(post_id, "post-123")
@@ -112,7 +112,7 @@ class CreateDraftPostTests(unittest.TestCase):
         with mock.patch("cfb_analytics.social.buffer_client.urlopen", return_value=_FakeResponse(200, payload)):
             with self.assertRaisesRegex(buffer_client.BufferClientError, "bad channel"):
                 buffer_client.create_draft_post(
-                    "https://graph.buffer.com/graphql", "token",
+                    "https://api.buffer.com", "token",
                     channel_id="chan-1", text="hello", image_url="https://x/img.png", alt_text="alt",
                 )
 
@@ -121,7 +121,7 @@ class CreateDraftPostTests(unittest.TestCase):
         with mock.patch("cfb_analytics.social.buffer_client.urlopen", return_value=_FakeResponse(200, payload)):
             with self.assertRaises(buffer_client.BufferClientError):
                 buffer_client.create_draft_post(
-                    "https://graph.buffer.com/graphql", "token",
+                    "https://api.buffer.com", "token",
                     channel_id="chan-1", text="hello", image_url="https://x/img.png", alt_text="alt",
                 )
 
@@ -129,7 +129,7 @@ class CreateDraftPostTests(unittest.TestCase):
         with mock.patch("cfb_analytics.social.buffer_client.urlopen", side_effect=_http_error(500)):
             with self.assertRaises(buffer_client.BufferClientError):
                 buffer_client.create_draft_post(
-                    "https://graph.buffer.com/graphql", "token",
+                    "https://api.buffer.com", "token",
                     channel_id="chan-1", text="hello", image_url="https://x/img.png", alt_text="alt",
                 )
 
@@ -137,6 +137,38 @@ class CreateDraftPostTests(unittest.TestCase):
         with mock.patch.dict("os.environ", {}, clear=True):
             with self.assertRaises(buffer_client.BufferClientError):
                 buffer_client.config()
+
+    def test_default_graphql_url_is_buffers_official_api_endpoint(self):
+        self.assertEqual(buffer_client.DEFAULT_GRAPHQL_URL, "https://api.buffer.com")
+
+    def test_config_uses_default_endpoint_when_not_overridden(self):
+        with mock.patch.dict("os.environ", {"BUFFER_ACCESS_TOKEN": "tok"}, clear=True):
+            url, token = buffer_client.config()
+        self.assertEqual(url, "https://api.buffer.com")
+        self.assertEqual(token, "tok")
+
+    def test_config_respects_url_override(self):
+        env = {"BUFFER_ACCESS_TOKEN": "tok", "BUFFER_GRAPHQL_URL": "https://staging.example.com/graphql"}
+        with mock.patch.dict("os.environ", env, clear=True):
+            url, _ = buffer_client.config()
+        self.assertEqual(url, "https://staging.example.com/graphql")
+
+    def test_draft_request_uses_exact_input_shape(self):
+        payload = self._payload(data={"createPost": {"__typename": "PostActionSuccess", "post": {"id": "post-123"}}})
+        with mock.patch("cfb_analytics.social.buffer_client.urlopen", return_value=_FakeResponse(200, payload)) as mock_urlopen:
+            buffer_client.create_draft_post(
+                buffer_client.DEFAULT_GRAPHQL_URL, "token",
+                channel_id="chan-1", text="hello", image_url="https://x/img.png", alt_text="alt text",
+            )
+        request = mock_urlopen.call_args.args[0]
+        self.assertEqual(request.full_url, "https://api.buffer.com")
+        sent = json.loads(request.data)
+        post_input = sent["variables"]["input"]
+        self.assertEqual(post_input["mode"], "addToQueue")
+        self.assertIs(post_input["saveToDraft"], True)
+        self.assertEqual(post_input["schedulingType"], "automatic")
+        self.assertEqual(post_input["channelId"], "chan-1")
+        self.assertEqual(post_input["assets"], [{"image": {"url": "https://x/img.png", "metadata": {"altText": "alt text"}}}])
 
 
 class PromoteSocialPostIntegrationTests(unittest.TestCase):
@@ -176,7 +208,7 @@ class PromoteSocialPostIntegrationTests(unittest.TestCase):
                  mock.patch("cfb_analytics.social.db.get_by_id", return_value=row), \
                  mock.patch("cfb_analytics.social.db.update_post") as mock_update, \
                  mock.patch("cfb_analytics.social.storage.upload_png", return_value="https://proj.supabase.co/x.png") as mock_upload, \
-                 mock.patch("cfb_analytics.social.buffer_client.config", return_value=("https://graph.buffer.com/graphql", "token")), \
+                 mock.patch("cfb_analytics.social.buffer_client.config", return_value=("https://api.buffer.com", "token")), \
                  mock.patch("cfb_analytics.social.buffer_client.create_draft_post", return_value="buffer-post-1") as mock_create:
                 mock_update.return_value = {"id": "row-1", "status": "draft", "buffer_post_id": "buffer-post-1"}
                 promote_module.main(["row-1", "--to-buffer-draft"])
@@ -245,7 +277,7 @@ class PromoteSocialPostIntegrationTests(unittest.TestCase):
                  mock.patch("cfb_analytics.social.db.get_by_id", return_value=row), \
                  mock.patch("cfb_analytics.social.db.update_post") as mock_update, \
                  mock.patch("cfb_analytics.social.storage.upload_png", return_value="https://proj.supabase.co/x.png") as mock_upload, \
-                 mock.patch("cfb_analytics.social.buffer_client.config", return_value=("https://graph.buffer.com/graphql", "token")), \
+                 mock.patch("cfb_analytics.social.buffer_client.config", return_value=("https://api.buffer.com", "token")), \
                  mock.patch(
                      "cfb_analytics.social.buffer_client.create_draft_post",
                      side_effect=buffer_client.BufferClientError("channel disconnected"),

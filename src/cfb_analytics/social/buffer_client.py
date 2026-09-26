@@ -7,18 +7,21 @@ a shell has no access to that session's OAuth grant.
 
 The mutation shape below (CreatePostInput, the PostActionPayload union, the
 ImageAssetInput/ImageMetadataInput fields) is copied directly from Buffer's
-own GraphQL schema (confirmed via introspection), so it is accurate. What
-could NOT be confirmed from this environment is the literal HTTP endpoint a
-personal-access-token request should target -- that detail is internal to
-however the MCP connection reaches Buffer and was never observable here.
-BUFFER_GRAPHQL_URL therefore defaults to Buffer's documented GraphQL
-endpoint but is fully overridable; confirm it against your own token/API
-setup before the first real promotion.
+own GraphQL schema (confirmed via introspection), so it is accurate.
+BUFFER_GRAPHQL_URL defaults to Buffer's official documented API endpoint
+(https://api.buffer.com) but is fully overridable.
 
 createIdea was deliberately NOT used here: Buffer's Idea type has no
 channel-targeting field (only a generic `services` platform-type list), so
 it cannot satisfy "post to this exact connected channel." createPost with
 saveToDraft=true is both channel-specific and creates an unscheduled draft.
+
+schedulingType is set to "automatic" (not "notification") per Buffer's own
+API documentation. This describes what would happen if the post were later
+taken out of draft and scheduled -- it has no effect while saveToDraft=true
+holds, which is what actually keeps this an unscheduled draft rather than a
+scheduled or published post. schedulingType is a required field on
+CreatePostInput regardless of saveToDraft.
 """
 from __future__ import annotations
 
@@ -27,7 +30,7 @@ import os
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-DEFAULT_GRAPHQL_URL = "https://graph.buffer.com/graphql"
+DEFAULT_GRAPHQL_URL = "https://api.buffer.com"
 
 CREATE_DRAFT_POST_MUTATION = """
 mutation CreateDraftPost($input: CreatePostInput!) {
@@ -88,7 +91,7 @@ def create_draft_post(
             "assets": [{"image": {"url": image_url, "metadata": {"altText": alt_text}}}],
             "mode": "addToQueue",
             "saveToDraft": True,
-            "schedulingType": "notification",
+            "schedulingType": "automatic",
         }
     }
     body = json.dumps({"query": CREATE_DRAFT_POST_MUTATION, "variables": variables}).encode("utf-8")
