@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import SiteNav from "@/components/SiteNav";
@@ -79,52 +80,89 @@ export default function PerformanceClient({ seoLede }: { seoLede?: ReactNode }) 
           </p>
         ) : (
           <>
-            <header className="prediction-performance-page__header">
-              <div>
-                <span className="eyebrow">Transparent model grading</span>
-                <h1>Model Performance</h1>
+            <section className="prediction-performance-hero">
+              <div className="prediction-performance-hero__copy">
+                <span className="prediction-performance-hero__eyebrow">PRIME prediction lab</span>
+                <h1>Prediction <span>Performance</span></h1>
                 <p>
-                  Every result comes from a frozen pregame prediction matched to the final score.
-                  No current ratings are used to rewrite old picks.
+                  Every PRIME pick is frozen before kickoff, then graded against the final score.
+                  No rewriting history. No current ratings slipped into old predictions.
                 </p>
+                <div className="prediction-performance-hero__trust" aria-label="Prediction grading standards">
+                  <span>Frozen pregame picks</span>
+                  <i />
+                  <span>Final-score grading</span>
+                  <i />
+                  <span>Market benchmarked</span>
+                </div>
               </div>
 
-              {records.length > 1 ? (
-                <label className="prediction-performance-page__season">
-                  <span>Season</span>
-                  <select value={active.season} onChange={(event) => setSeason(Number(event.target.value))}>
-                    {records.map((item) => (
-                      <option key={item.season} value={item.season}>{item.season}</option>
-                    ))}
-                  </select>
-                </label>
-              ) : (
-                <span className="prediction-performance-page__season-pill">{active.season} season</span>
-              )}
-            </header>
+              <aside className="prediction-performance-hero__scorecard" aria-label={`${active.season} prediction performance`}>
+                <div className="prediction-performance-hero__season-row">
+                  {records.length > 1 ? (
+                    <label className="prediction-performance-page__season">
+                      <span>Season</span>
+                      <select value={active.season} onChange={(event) => setSeason(Number(event.target.value))}>
+                        {records.map((item) => (
+                          <option key={item.season} value={item.season}>{item.season}</option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : (
+                    <span className="prediction-performance-page__season-pill">{active.season} season</span>
+                  )}
+                  <span className="prediction-performance-hero__live">LIVE GRADE</span>
+                </div>
+                <strong>{pct(active.overall.accuracySU)}</strong>
+                <span className="prediction-performance-hero__score-label">Winner accuracy</span>
+                <div className="prediction-performance-hero__mini">
+                  <span><b>{record(active.overall)}</b> record</span>
+                  <span><b>{points(active.overall.avgAbsMarginError)}</b> margin MAE</span>
+                </div>
+                <Link href="/predictions">View Weekly Predictions →</Link>
+              </aside>
+            </section>
 
             <section className="prediction-performance-kpis" aria-label="Season summary">
-              <div><strong>{record(active.overall)}</strong><span>Correct–incorrect</span></div>
-              <div><strong>{pct(active.overall.accuracySU)}</strong><span>Winner accuracy</span></div>
-              <div><strong>{points(active.overall.avgAbsMarginError)}</strong><span>Margin MAE</span></div>
-              <div><strong>{active.overall.graded}</strong><span>Graded games</span></div>
+              <div className="prediction-performance-kpi prediction-performance-kpi--record">
+                <span>Season record</span>
+                <strong>{record(active.overall)}</strong>
+                <small>Correct–incorrect</small>
+              </div>
+              <div className="prediction-performance-kpi prediction-performance-kpi--accuracy">
+                <span>Winner accuracy</span>
+                <strong>{pct(active.overall.accuracySU)}</strong>
+                <small>Straight-up picks</small>
+              </div>
+              <div className="prediction-performance-kpi prediction-performance-kpi--margin">
+                <span>Margin error</span>
+                <strong>{points(active.overall.avgAbsMarginError)}</strong>
+                <small>Average absolute points</small>
+              </div>
+              <div className="prediction-performance-kpi prediction-performance-kpi--sample">
+                <span>Sample size</span>
+                <strong>{active.overall.graded}</strong>
+                <small>Graded games</small>
+              </div>
             </section>
 
             <section className="prediction-performance-errors" aria-labelledby="errorTitle">
-              <div className="prediction-performance-section-heading">
-                <div>
-                  <span className="eyebrow">Error distribution</span>
-                  <h2 id="errorTitle">How close were the projected margins?</h2>
-                </div>
+              <div className="prediction-performance-errors__intro">
+                <span className="eyebrow">Margin accuracy</span>
+                <h2 id="errorTitle">How close is PRIME?</h2>
+                <p>
+                  Winner accuracy tells you who PRIME gets right. These numbers show how tightly
+                  the projected scoring margin tracks the actual game.
+                </p>
                 <span className="prediction-performance-model-id">{active.modelVersion}</span>
               </div>
               <div className="prediction-performance-errors__grid">
-                <div><strong>{points(active.overall.medianAbsMarginError)}</strong><span>Median error</span></div>
-                <div><strong>{points(active.overall.rmse)}</strong><span>RMSE</span></div>
-                <div><strong>{pct(active.overall.within3Pct)}</strong><span>Within 3 pts</span></div>
-                <div><strong>{pct(active.overall.within7Pct)}</strong><span>Within 7 pts</span></div>
-                <div><strong>{pct(active.overall.within10Pct)}</strong><span>Within 10 pts</span></div>
-                <div><strong>{pct(active.overall.within14Pct)}</strong><span>Within 14 pts</span></div>
+                <div><span>Median error</span><strong>{points(active.overall.medianAbsMarginError)}</strong><small>points</small></div>
+                <div><span>RMSE</span><strong>{points(active.overall.rmse)}</strong><small>points</small></div>
+                <div><span>Within 3</span><strong>{pct(active.overall.within3Pct)}</strong><small>of games</small></div>
+                <div><span>Within 7</span><strong>{pct(active.overall.within7Pct)}</strong><small>of games</small></div>
+                <div><span>Within 10</span><strong>{pct(active.overall.within10Pct)}</strong><small>of games</small></div>
+                <div><span>Within 14</span><strong>{pct(active.overall.within14Pct)}</strong><small>of games</small></div>
               </div>
             </section>
 
