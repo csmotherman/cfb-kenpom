@@ -72,7 +72,7 @@ class BuildRankingsWeeklyCaptionTests(unittest.TestCase):
             season=2026, week=3, top_teams=self.top_teams, prime_rankings_path=self.prime_rankings_path,
         )
         self.assertIn("Notre Dame", text)
-        self.assertIn("Week 3", text)
+        self.assertTrue(text.startswith("COMPOSITE RANKINGS - WEEK 3"))
         self.assertIn("primecfb.com/rankings", text)
         self.assertLessEqual(len(text), MAX_TWEET_CHARS)
         # Every SourceRef must trace to a real field that could be checked in the source files.
