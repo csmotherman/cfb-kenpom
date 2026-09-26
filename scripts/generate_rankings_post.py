@@ -4,6 +4,16 @@ Idempotent: computes a dedupe_key from season+week and checks Supabase
 social_posts for it before doing any rendering or writing. A second run for
 a season/week that has already been generated is a no-op.
 
+Bootstrap: the first automated run ever for a season (no prior
+rankings_weekly row exists) does not generate a post from whatever release
+happens to be current -- it records that release as a baseline
+(status="rejected", metadata.baseline=true) and returns. This is what makes
+deploying this automation mid-season safe: without it, the first Sunday run
+would immediately post an already-stale release simply because nothing had
+been recorded yet. Normal generation resumes once a later run sees a
+strictly newer releasedAt than the baseline. --force generates from the
+current release immediately, bootstrap or not.
+
 Every event type is pinned to DRAFT_ONLY (see cfb_analytics.social.policy):
 this script renders the PNG to a local directory, writes one social_posts
 row with status="candidate", and does nothing else. It never uploads to
@@ -110,8 +120,69 @@ def main(argv: list[str] | None = None) -> None:
         (latest_prior.get("source_snapshot") or {}).get("primeRankings", {}).get("releasedAt")
         if latest_prior else None
     )
+
+    if latest_prior is None and not args.force:
+        # Bootstrap: this season has no rankings_weekly row at all yet, so
+        # there is nothing to compare freshness against. Treating that as
+        # "fresh" would let deploying this automation mid-season immediately
+        # post whatever release happens to be sitting in prime-rankings.json
+        # at that moment, however old. Instead, record the current release
+        # as a baseline (same dedupe_key, so this exact week can never later
+        # be posted retroactively either) without generating a real
+        # candidate. Normal generation resumes once a strictly newer release
+        # appears on a later run.
+        baseline_row = {
+            "platform": "twitter",
+            "event_type": "rankings_weekly",
+            "season": season,
+            "week": week,
+            "game_ids": None,
+            "team_slugs": [t["slug"] for t in teams],
+            "dedupe_key": dedupe_key,
+            "status": "rejected",
+            "publish_policy": policy.resolve_policy("rankings_weekly").value,
+            "text_content": (
+                f"[baseline] No prior rankings_weekly row existed for season {season} when this "
+                "automation ran. Recording this release as the starting baseline instead of posting "
+                "it, so deploying mid-season cannot immediately post an already-stale release."
+            ),
+            "alt_text": None,
+            "image_storage_path": None,
+            "image_url": None,
+            "caption_version": None,
+            "render_version": None,
+            "content_hash": None,
+            "sources": [],
+            "source_snapshot": {
+                "primeRankings": {
+                    "season": prime.get("season"), "throughWeek": week,
+                    "releasedAt": current_released_at, "teams": teams,
+                },
+            },
+            "metadata": {
+                "baseline": True,
+                "reason": "no_prior_rankings_weekly_row_for_season",
+                "team_count": len(teams),
+                "freshness_override": False,
+                "prior_release_compared_against": None,
+                "generator": "scripts/generate_rankings_post.py",
+                "git_sha": os.environ.get("GITHUB_SHA"),
+            },
+            "buffer_post_id": None,
+            "buffer_channel_id": BUFFER_CHANNEL_ID,
+            "scheduled_at": None,
+        }
+        inserted = db.insert_post(base_url, secret, baseline_row)
+        print(
+            f"No prior rankings_weekly row for season {season}; recorded baseline "
+            f"id={inserted['id']} at releasedAt={current_released_at!r}. Not generating a post -- "
+            "a later run will generate once a newer release appears. Use --force to generate from "
+            "this release instead."
+        )
+        return
+
     if args.force:
-        print(f"--force: bypassing the freshness guard (current releasedAt={current_released_at!r}).")
+        print(f"--force: bypassing the freshness guard (current releasedAt={current_released_at!r}, prior={prior_released_at!r}).")
     else:
         fresh = freshness.is_release_fresh(current_released_at, prior_released_at)
         if not fresh:

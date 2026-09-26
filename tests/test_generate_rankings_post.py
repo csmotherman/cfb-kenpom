@@ -251,13 +251,6 @@ class GenerateRankingsPostFreshnessGuardIntegrationTests(unittest.TestCase):
         self.assertFalse(row["metadata"]["freshness_override"])
         self.assertEqual(row["metadata"]["prior_release_compared_against"], "2026-09-21T12:00:00Z")
 
-    def test_first_ever_release_generates(self):
-        mock_insert, mock_render, mock_latest = self._run_main(
-            through_week=1, released_at="2026-09-07T12:00:00Z", prior_released_at=None,
-        )
-        mock_latest.assert_called_once()
-        mock_insert.assert_called_once()
-
     def test_force_bypasses_stale_guard(self):
         mock_insert, mock_render, _ = self._run_main(
             through_week=3, released_at="2026-09-16T12:00:00Z", prior_released_at="2026-09-21T12:00:00Z",
@@ -266,6 +259,53 @@ class GenerateRankingsPostFreshnessGuardIntegrationTests(unittest.TestCase):
         mock_insert.assert_called_once()
         mock_render.assert_called_once()
         row = mock_insert.call_args.args[2]
+        self.assertTrue(row["metadata"]["freshness_override"])
+
+    # -- Bootstrap/baseline: deploying this automation mid-season must not
+    # immediately post whatever release happens to already be sitting in
+    # prime-rankings.json just because social_posts has no history yet. --
+
+    def test_1_first_automated_run_establishes_baseline_and_does_not_generate(self):
+        mock_insert, mock_render, mock_latest = self._run_main(
+            through_week=6, released_at="2026-10-14T12:00:00Z", prior_released_at=None,
+        )
+        mock_latest.assert_called_once()
+        mock_render.assert_not_called()
+        mock_insert.assert_called_once()
+        row = mock_insert.call_args.args[2]
+        self.assertEqual(row["status"], "rejected")
+        self.assertTrue(row["metadata"]["baseline"])
+        self.assertEqual(row["dedupe_key"], "rankings_weekly:2026:6")
+        self.assertEqual(row["source_snapshot"]["primeRankings"]["releasedAt"], "2026-10-14T12:00:00Z")
+
+    def test_2_same_release_after_baseline_does_not_generate(self):
+        # A later run re-reads prime-rankings.json and finds the exact same
+        # release the baseline row already recorded (nothing new published yet).
+        baseline_released_at = "2026-10-14T12:00:00Z"
+        mock_insert, mock_render, _ = self._run_main(
+            through_week=6, released_at=baseline_released_at, prior_released_at=baseline_released_at,
+        )
+        mock_insert.assert_not_called()
+        mock_render.assert_not_called()
+
+    def test_3_newer_release_after_baseline_generates(self):
+        mock_insert, mock_render, _ = self._run_main(
+            through_week=7, released_at="2026-10-21T12:00:00Z", prior_released_at="2026-10-14T12:00:00Z",
+        )
+        mock_insert.assert_called_once()
+        mock_render.assert_called_once()
+        row = mock_insert.call_args.args[2]
+        self.assertEqual(row["status"], "candidate")
+
+    def test_4_force_generates_the_baseline_release_immediately(self):
+        mock_insert, mock_render, mock_latest = self._run_main(
+            through_week=6, released_at="2026-10-14T12:00:00Z", prior_released_at=None, force=True,
+        )
+        mock_latest.assert_called_once()
+        mock_insert.assert_called_once()
+        mock_render.assert_called_once()
+        row = mock_insert.call_args.args[2]
+        self.assertEqual(row["status"], "candidate")
         self.assertTrue(row["metadata"]["freshness_override"])
 
 
