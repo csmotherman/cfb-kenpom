@@ -318,7 +318,7 @@ def _draw_hero(img: Image.Image, draw: ImageDraw.ImageDraw, *, season: int, week
     # Constrained to stop before the week badge, not the full card width --
     # the title's y-range overlaps the badge's, and "PRIME COMPOSITE
     # RANKINGS" is long enough that the naive full-width fit collided with it.
-    title_prefix, title_accent = "PRIME COMPOSITE ", "RANKINGS"
+    title_prefix, title_accent = "COMPOSITE ", "RANKINGS"
     title_max_width = badge_box[0] - 24 - SIDE_MARGIN
     title_font = fit_font(
         draw, title_prefix + title_accent, brand.display_font, title_max_width,
