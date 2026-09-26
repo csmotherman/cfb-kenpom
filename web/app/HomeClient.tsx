@@ -280,9 +280,9 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
           <article className="prime-home-panel prime-home-panel--rankings">
             <header className="prime-home-panel__head">
               <div>
-                <span className="prime-home-panel__kicker">Official PRIME Rankings</span>
-                <h2>The PRIME 25</h2>
-                <p>PRIME&apos;s official ranking: 50% Power Rating + 50% Strength of Record.</p>
+                <span className="prime-home-panel__kicker">50% Net Rating / 50% Strength of Record</span>
+                <h2>Composite Rankings</h2>
+                <p>PRIME&apos;s official ranking, blending team strength with résumé earned.</p>
               </div>
               <Link href="/rankings">Full Rankings →</Link>
             </header>
