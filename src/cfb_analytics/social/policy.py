@@ -1,10 +1,10 @@
-"""Publish-policy gate.
+"""Publish-policy gate for generated social content.
 
-Every event type maps to a PublishPolicy that controls how far a generated
-candidate is allowed to travel automatically. No code in this package may
-call Supabase Storage or the Buffer API unless the resolved policy for that
-row's event_type says so -- and every event type is pinned to DRAFT_ONLY
-today, so nothing currently does either.
+Only event types explicitly raised above DRAFT_ONLY may travel farther than
+candidate generation. rankings_weekly is now SCHEDULED_AUTO: a fresh Sunday
+PRIME 25 release may be uploaded to Storage and scheduled in Buffer for the
+precomputed 3:00 PM America/Detroit slot. Every other event type remains
+DRAFT_ONLY.
 """
 from __future__ import annotations
 
@@ -13,25 +13,19 @@ from enum import Enum
 
 class PublishPolicy(str, Enum):
     #: Generate, validate, write a social_posts row (status="candidate"). Stop.
-    #: No image upload, no Buffer call.
     DRAFT_ONLY = "DRAFT_ONLY"
     #: DRAFT_ONLY, plus upload the image to Storage and create an unscheduled
     #: Buffer draft/idea for human review.
     BUFFER_DRAFT = "BUFFER_DRAFT"
-    #: BUFFER_DRAFT, plus set a scheduledAt on the Buffer post. Fully automated.
+    #: Upload the image and create an automatically published Buffer post at
+    #: the candidate's exact scheduled_at timestamp.
     SCHEDULED_AUTO = "SCHEDULED_AUTO"
-    #: A gate, combinable with the above: stay at status="candidate" until a
-    #: human explicitly approves the row (sets approved_at) before the next
-    #: tier is allowed to act on it.
+    #: Stay at status="candidate" until a human explicitly approves the row.
     MANUAL_APPROVAL = "MANUAL_APPROVAL"
 
 
-# Every event type is DRAFT_ONLY. Only raise a specific event_type to a
-# further tier as an explicit, individual decision -- see Phase 3 of the
-# architecture writeup. This map being the single source of truth means that
-# decision never requires touching generator code.
 EVENT_POLICY: dict[str, PublishPolicy] = {
-    "rankings_weekly": PublishPolicy.DRAFT_ONLY,
+    "rankings_weekly": PublishPolicy.SCHEDULED_AUTO,
     "game_final_graded": PublishPolicy.DRAFT_ONLY,
     "market_disagreement": PublishPolicy.DRAFT_ONLY,
     "upset_call_pregame": PublishPolicy.DRAFT_ONLY,
