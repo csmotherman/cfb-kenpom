@@ -167,13 +167,32 @@ export default function HomeClient({ seo, initial }: { seo?: ReactNode; initial?
                 <b>{featuredGame ? `Week ${featuredGame.week}` : "Next Up"}</b>
               </div>
               {featuredMatchups.length > 1 ? (
-                <div className="prime-home-matchup__nav" aria-label="Weekend Watchlist navigation">
-                  <button type="button" onClick={() => moveWatchlist(-1)} aria-label="Previous matchup">‹</button>
-                  <span aria-live="polite">{watchlistIndex + 1} / {featuredMatchups.length}</span>
-                  <button type="button" onClick={() => moveWatchlist(1)} aria-label="Next matchup">›</button>
-                </div>
+                <span className="prime-home-matchup__count" aria-live="polite">
+                  {watchlistIndex + 1} / {featuredMatchups.length}
+                </span>
               ) : null}
             </header>
+
+            {featuredMatchups.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  className="prime-home-matchup__side-nav prime-home-matchup__side-nav--prev"
+                  onClick={() => moveWatchlist(-1)}
+                  aria-label="Previous matchup"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="prime-home-matchup__side-nav prime-home-matchup__side-nav--next"
+                  onClick={() => moveWatchlist(1)}
+                  aria-label="Next matchup"
+                >
+                  ›
+                </button>
+              </>
+            ) : null}
 
             {featuredGame ? (
               <div
