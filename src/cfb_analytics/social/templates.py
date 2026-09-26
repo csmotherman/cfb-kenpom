@@ -69,15 +69,18 @@ def build_rankings_weekly_caption(
         sources.append(SourceRef(file=prime_rankings_path, field="teams[].rank", value=t.rank, team=t.team))
         sources.append(SourceRef(file=prime_rankings_path, field="teams[].record", value=t.record, team=t.team))
 
+    # The first line is the fixed public identity of this weekly post.
+    # The body still rotates so successive tweets are not boilerplate copies.
+    headline = f"COMPOSITE RANKINGS - WEEK {week}"
     variant = _weekly_rankings_copy_variant(season, week)
     if variant == 0:
-        lines = [f"The Week {week} PRIME 25 is here.", *team_lines, f"Full rankings → {SITE_RANKINGS_URL}"]
+        lines = [headline, "The top of this week's board:", *team_lines, f"Full rankings → {SITE_RANKINGS_URL}"]
     elif variant == 1:
-        lines = [f"New week. New PRIME 25.", f"Week {week} top three:", *team_lines, f"See the full board → {SITE_RANKINGS_URL}"]
+        lines = [headline, "Here's the top three:", *team_lines, f"See the full board → {SITE_RANKINGS_URL}"]
     elif variant == 2:
-        lines = [f"PRIME 25 — Week {week}", "The top of the board:", *team_lines, f"All 25 → {SITE_RANKINGS_URL}"]
+        lines = [headline, "The top of the board:", *team_lines, f"All 25 → {SITE_RANKINGS_URL}"]
     else:
-        lines = [f"Week {week} rankings are live.", "The PRIME 25 starts with:", *team_lines, f"Full PRIME 25 → {SITE_RANKINGS_URL}"]
+        lines = [headline, "This week's top three:", *team_lines, f"Full PRIME 25 → {SITE_RANKINGS_URL}"]
 
     text = "\n".join(lines)
 
